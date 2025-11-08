@@ -1,0 +1,85 @@
+🎵 Core Music Features
+• 	Perfect clone of DistroKid
+• 	Stripe integration for royalty payouts
+• 	Full artist distribution system
+• 	Perfect clone of Studio One 7
+• 	Full DAW environment
+• 	Perfect clones of every digital plugin ever created, rebranded for Max Booster
+• 	AI-powered tools
+• 	AI track mixer
+• 	AI track mastering
+• 	Perfect clone of BeatStars
+• 	Peer-to-peer marketplace
+• 	Stripe integration for transactions
+
+📊 Platform & Dashboard Features
+• 	Comprehensive dashboard (central hub)
+• 	Analytics page (real-time performance metrics)
+• 	Social Media Management Page
+• 	Platform-specific content generation for: Facebook, Instagram, X (Twitter), YouTube, TikTok, Threads, Google Business, LinkedIn
+• 	OAuth SaaS connections for each platform
+• 	NEW: Multi‑modal content generation from prompt or URL:
+• 	Text posts (captions, hashtags, long/short copy)
+• 	Image generation (optimized sizes, branded visuals)
+• 	Video generation (mp4 short-form clips, reels, ads)
+• 	Audio generation (voiceovers, jingles, background tracks)
+• 	Advertisement System Page
+• 	Combines all ad platform capabilities into one
+• 	Eliminates need for ad spend
+• 	Custom AI model that boosts ads beyond native systems
+• 	NEW: Multi‑modal ad generation from prompt or URL:
+• 	Text ads (headlines, CTAs, copy)
+• 	Image ads (banners, carousels, display graphics)
+• 	Video ads (mp4 commercials, explainers, product demos)
+• 	Audio ads (podcast spots, radio-style ads, streaming campaigns)
+• 	Self-optimizing campaigns with real-time A/B testing
+• 	Centralized dashboard for monitoring and scaling
+
+💻 Web & SaaS Features
+• 	Landing page
+• 	Pricing page
+• 	One plan, three tiers (monthly/yearly/lifetime)
+• 	$49 / $399 / $699
+• 	Stripe integration
+• 	Dedicated register pages for each subscription tier
+• 	Custom login page
+• 	Email login
+• 	Google OAuth login
+• 	Signup page with OAuth options
+• 	Paid user and admin protected routes
+• 	Admin email: 
+
+🔒 Security & Infrastructure
+• 	Self-healing security system (repairs faster than hacks can occur)
+• 	Digitized IT system (second to none)
+• 	Audit system for both security and functionality
+• 	Must achieve perfect scores before release
+• 	Auth system meeting mainstream standards
+• 	Scalability to handle billions of users simultaneously
+
+🎨 Design & Branding
+• 	Modern / borderline futuristic design
+• 	Layout inspired by Hootsuite
+• 	Logo updated throughout platform (using provided picture)
+• 	Color scheme based on logo (focus on blue tones)
+• 	Consistent styling guidelines across all pages
+• 	Typography, buttons, sliders, text fields, backgrounds
+• 	Shared design tokens (color variables, font sizes, margins)
+• 	Responsive design for all screen sizes
+
+⚙️ Development & Engineering Requirements
+• 	Front-end + back-end functionality (no cosmetic-only UI)
+• 	Proper routing throughout platform
+• 	Automation layer to tie everything together
+• 	Fully operational UI elements with interactive feedback
+• 	Debugging and logging built-in
+• 	Automated tests (unit + integration) for:
+• 	OAuth workflows
+• 	Interactive UI elements
+• 	Fully commented code (HTML, CSS/SCSS, JS/TS, server-side)
+• 	README file with deployment, testing, and maintenance instructions
+• 	Modern frameworks (React, Vue, or plain stack as applicable)
+• 	Error handling with fallbacks
+• 	Page-by-page build discipline
+• 	Each page treated as a puzzle piece
+• 	Must be 100% production-grade before moving on

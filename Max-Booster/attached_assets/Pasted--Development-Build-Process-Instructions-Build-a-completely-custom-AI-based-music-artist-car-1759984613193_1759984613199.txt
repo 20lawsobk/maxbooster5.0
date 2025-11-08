@@ -1,0 +1,89 @@
+🏗️ Development & Build Process Instructions
+• 	Build a completely custom AI-based music artist career management platform named Max Booster.
+• 	Treat each page like an intricate puzzle:
+• 	Break down into tiny pieces.
+• 	Add functionality to each piece before moving on.
+• 	Do not move to the next page until the current one is 100% production-grade.
+• 	No test functionality is allowed in the final product.
+• 	Follow professional coding and programming practices and procedures.
+• 	Ensure front-end and back-end functionality together (no cosmetic-only UI).
+• 	Use modern web development practices and frameworks (React, Vue, or plain HTML/CSS/JS).
+• 	Provide fully commented code (HTML, CSS/SCSS, JS/TS, server-side).
+• 	Provide a README file describing deployment, testing, and maintenance.
+• 	Incorporate debugging and logging as needed.
+• 	Provide automated tests (unit + integration) for:
+• 	OAuth workflows
+• 	Interactive UI elements
+• 	Ensure consistent error handling and provide fallbacks.
+• 	Ensure proper routing throughout the platform.
+• 	Add automation to tie everything together.
+
+🎨 Design & Branding Instructions
+• 	Use a modern / borderline futuristic design.
+• 	Layout should be inspired by Hootsuite.
+• 	Use the provided picture as the logo.
+• 	Apply the logo and color scheme throughout the platform.
+• 	Focus more on blue tones from the logo.
+• 	Use consistent styling guidelines across all pages:
+• 	Typography
+• 	Buttons
+• 	Sliders
+• 	Text fields
+• 	Backgrounds
+• 	Use shared design tokens (color variables, font sizes, margins).
+• 	Ensure responsive design across devices and screen sizes.
+• 	Double-check that the design layout, color scheme, and interactive functionalities match the provided screenshot.
+
+🔒 Security & Infrastructure Instructions
+• 	Build a self-healing security system that heals faster than it can be hacked.
+• 	Build a digitized IT system that is second to none.
+• 	Run an audit on both security and functionality.
+• 	If Max Booster doesn’t get perfect scores, keep working until it does.
+• 	Ensure the auth system meets mainstream standards.
+• 	Ensure every user’s data is safe.
+• 	Platform must be able to handle billions of users at once.
+
+💳 Authentication & Payment Instructions
+• 	Add email and Google login/signup options via OAuth.
+• 	Set up a custom login page with email and Google subsystems (Replit auth configuration).
+• 	Add paid user and admin protected routes.
+• 	Admin email: .
+• 	Integrate Stripe for:
+• 	Royalty payouts (DistroKid clone).
+• 	Peer-to-peer transactions (BeatStars clone).
+• 	Subscription payments (pricing tiers).
+
+📄 Page-by-Page Instructions
+• 	Landing page.
+• 	Pricing page with one plan, three tiers:
+• 	Monthly = $49
+• 	Yearly = $399
+• 	Lifetime = $699
+• 	Stripe integration.
+• 	Dedicated register page for each subscription tier.
+• 	Custom login page with email + Google OAuth.
+• 	Signup page with OAuth options.
+• 	Comprehensive dashboard.
+• 	Analytics page.
+• 	Social Media Management Page:
+• 	Generate optimized platform-specific content (Facebook, Instagram, X, YouTube, TikTok, Threads, Google Business, LinkedIn).
+• 	SaaS connections via OAuth.
+• 	Generate text, image, mp4, and audio content from both prompt and URL.
+• 	Advertisement System Page:
+• 	Combine all ad platform capabilities.
+• 	Eliminate need for ad spend.
+• 	Custom AI model that boosts ads beyond native systems.
+• 	Generate text, image, mp4, and audio ads from both prompt and URL.
+• 	DistroKid clone with Stripe payouts.
+• 	Studio One 7 clone with all plugins rebranded.
+• 	AI track mixer.
+• 	AI track mastering.
+• 	BeatStars clone with Stripe peer-to-peer transactions.
+
+✅ Quality & Delivery Instructions
+• 	No compromises: must be flawless, perfected, production-grade functionality.
+• 	Non-negotiable: all requirements must be met exactly.
+• 	If something doesn’t exist, custom create it with mainstream platform quality.
+• 	All AI-related functionality must be made in-house.
+• 	Audit security and functionality until perfect scores are achieved.
+• 	Do not accept anything less than requested.

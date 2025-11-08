@@ -1,0 +1,212 @@
+# Max Booster - Docker Compose (Local Development & Testing)
+# This setup mimics production infrastructure locally
+
+version: '3.8'
+
+services:
+  # Application Server (3 instances for testing horizontal scaling)
+  api-1:
+    build: ../../
+    container_name: maxbooster-api-1
+    ports:
+      - "5001:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://maxbooster:password@postgres:5432/maxbooster
+      REDIS_URL: redis://redis:6379
+      SESSION_SECRET: dev-secret-key
+      DB_POOL_SIZE: 20
+      MAX_SESSIONS: 50000
+      RATE_LIMIT_MAX: 100
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+
+  api-2:
+    build: ../../
+    container_name: maxbooster-api-2
+    ports:
+      - "5002:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://maxbooster:password@postgres:5432/maxbooster
+      REDIS_URL: redis://redis:6379
+      SESSION_SECRET: dev-secret-key
+      DB_POOL_SIZE: 20
+      MAX_SESSIONS: 50000
+      RATE_LIMIT_MAX: 100
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+
+  api-3:
+    build: ../../
+    container_name: maxbooster-api-3
+    ports:
+      - "5003:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://maxbooster:password@postgres:5432/maxbooster
+      REDIS_URL: redis://redis:6379
+      SESSION_SECRET: dev-secret-key
+      DB_POOL_SIZE: 20
+      MAX_SESSIONS: 50000
+      RATE_LIMIT_MAX: 100
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+
+  # NGINX Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: maxbooster-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api-1
+      - api-2
+      - api-3
+    restart: unless-stopped
+
+  # PostgreSQL Primary
+  postgres:
+    image: postgres:15-alpine
+    container_name: maxbooster-postgres
+    environment:
+      POSTGRES_USER: maxbooster
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: maxbooster
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    restart: unless-stopped
+
+  # PostgreSQL Read Replica (simulated with streaming replication)
+  postgres-replica:
+    image: postgres:15-alpine
+    container_name: maxbooster-postgres-replica
+    environment:
+      POSTGRES_USER: maxbooster
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: maxbooster
+      PGDATA: /var/lib/postgresql/data/replica
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-replica-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Redis Cluster (3 nodes)
+  redis:
+    image: redis:7-alpine
+    container_name: maxbooster-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  # Worker Processes (for async job queue)
+  worker-1:
+    build: ../../
+    container_name: maxbooster-worker-1
+    command: node server/workers/index.js
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://maxbooster:password@postgres:5432/maxbooster
+      REDIS_URL: redis://redis:6379
+      WORKER_TYPE: audio
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+
+  worker-2:
+    build: ../../
+    container_name: maxbooster-worker-2
+    command: node server/workers/index.js
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://maxbooster:password@postgres:5432/maxbooster
+      REDIS_URL: redis://redis:6379
+      WORKER_TYPE: analytics
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  # MinIO (S3-compatible object storage for local development)
+  minio:
+    image: minio/minio:latest
+    container_name: maxbooster-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
+    restart: unless-stopped
+
+  # Prometheus (Monitoring)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: maxbooster-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+
+  # Grafana (Dashboards)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: maxbooster-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana-dashboards:/etc/grafana/provisioning/dashboards:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  postgres-replica-data:
+  redis-data:
+  minio-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  default:
+    name: maxbooster-network

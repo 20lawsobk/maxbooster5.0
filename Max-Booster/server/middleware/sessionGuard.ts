@@ -1,0 +1,41 @@
+import { db } from '../db';
+import { sql } from 'drizzle-orm';
+import type { Request, Response, NextFunction } from 'express';
+import { config } from '../config/defaults.js';
+
+export class SessionGuard {
+  private static readonly CHECK_INTERVAL = 30000; // 30 seconds
+  private static lastCheck = 0;
+  private static cachedCount = 0;
+  
+  static async checkSessionCapacity(req: Request, res: Response, next: NextFunction) {
+    try {
+      const now = Date.now();
+      
+      // Only check every 30 seconds to avoid DB overhead
+      if (now - SessionGuard.lastCheck > SessionGuard.CHECK_INTERVAL) {
+        const result = await db.execute(sql`SELECT COUNT(*) as count FROM sessions WHERE expire > NOW()`);
+        SessionGuard.cachedCount = parseInt(result.rows[0].count as string);
+        SessionGuard.lastCheck = now;
+      }
+      
+      if (SessionGuard.cachedCount >= config.session.maxSessions) {
+        console.warn(`⚠️ Session capacity exceeded: ${SessionGuard.cachedCount} active sessions`);
+        
+        // For unauthenticated requests, reject with 503
+        if (!req.isAuthenticated || !req.isAuthenticated()) {
+          return res.status(503).json({
+            error: 'Service temporarily unavailable',
+            message: 'The system has reached maximum capacity. New sessions cannot be created at this time.',
+            retryAfter: 300 // 5 minutes
+          });
+        }
+      }
+      
+      next();
+    } catch (error) {
+      console.error('Session guard error:', error);
+      next(); // Fail open
+    }
+  }
+}

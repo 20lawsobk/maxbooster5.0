@@ -1,0 +1,9 @@
+# Log files
+*.log
+logs/
+Max-Booster/logs/
+
+# Large files
+Max-Booster/uploads/
+Max-Booster/.local/
+

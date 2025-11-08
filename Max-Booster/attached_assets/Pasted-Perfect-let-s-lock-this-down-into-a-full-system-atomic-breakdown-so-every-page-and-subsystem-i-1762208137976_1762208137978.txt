@@ -1,0 +1,185 @@
+Perfect — let’s lock this down into a **full‑system atomic breakdown** so every page and subsystem in Max Booster is covered with the same rigor. Below is a structured **verification, testing, and completion matrix** for each major page. This is written in the same format you’d hand to Replit’s agent so it can expand each into deterministic, testable units.
+
+---
+
+# ✅ Max Booster: Full Page & System Breakdown
+
+---
+
+## 1. **Main Dashboard**
+**Components**
+- User Overview Panel  
+- Quick Actions (create project, upload track, launch campaign)  
+- Notifications & Alerts  
+- Analytics Snapshot (streams, revenue, campaigns, reach)  
+- Navigation & Global State Management  
+
+**Verification Criteria**
+- All widgets render with live data.  
+- Navigation routes correctly to subsystems.  
+- Analytics snapshot matches backend DB values.  
+
+**Testing Instructions**
+- Load dashboard with empty account → confirm defaults.  
+- Load with active projects → confirm populated data.  
+- Simulate backend outage → confirm graceful fallback.  
+
+**Completion Checklist**
+- All widgets functional, responsive, and error‑handled.  
+- No placeholder or static data remains.  
+
+---
+
+## 2. **Social Media Management**
+**Components**
+- Profile Integration (OAuth, token refresh)  
+- Post Composer (text, media, hashtags, scheduling)  
+- Calendar View (scheduled posts)  
+- Engagement Analytics (likes, shares, comments, reach)  
+- AI Suggestions (optimal post time, hashtags, captions)  
+
+**Verification Criteria**
+- Posts publish successfully to all connected platforms.  
+- Analytics ingestion matches platform APIs.  
+- AI suggestions are deterministic and reproducible.  
+
+**Testing Instructions**
+- Connect/disconnect accounts.  
+- Schedule posts in past/future.  
+- Validate analytics ingestion with known test accounts.  
+
+**Completion Checklist**
+- All integrations stable.  
+- Calendar syncs across time zones.  
+
+---
+
+## 3. **DAW (Digital Audio Workstation)**
+**Components**
+- Project Loader (`loadProject()` scaffold)  
+- Track Editor (waveform, MIDI, effects)  
+- Mixer & Mastering Tools  
+- Export Engine (WAV, MP3, stems)  
+- AI Workflow State Machine (assistive composition, mastering)  
+
+**Verification Criteria**
+- Projects load without runtime errors.  
+- Audio playback latency < threshold.  
+- Exported files match project state.  
+
+**Testing Instructions**
+- Load empty project, large project, corrupted project.  
+- Apply effects and confirm deterministic output.  
+- Export and checksum files.  
+
+**Completion Checklist**
+- No runtime errors.  
+- All DAW features accessible via UI and API.  
+
+---
+
+## 4. **Royalties**
+**Components**
+- Revenue Ingestion (Spotify, Apple, YouTube APIs)  
+- Split Calculator (band/producer splits)  
+- Payout Engine (Stripe integration)  
+- Historical Reports (monthly/quarterly)  
+- Forecasting (AI‑based projections)  
+
+**Verification Criteria**
+- API ingestion matches raw CSV/API data.  
+- Splits sum to 100%.  
+- Stripe payouts succeed in sandbox/live.  
+
+**Testing Instructions**
+- Import sample royalty reports.  
+- Run payout with multiple recipients.  
+- Test failed payout handling.  
+
+**Completion Checklist**
+- All payouts deterministic.  
+- Reports exportable and auditable.  
+
+---
+
+## 5. **Advertisement (AI Amplification Model)**
+**Components**
+- Social Profile Integration  
+- Content Intake & Normalization  
+- AI Amplification Engine (proprietary model)  
+- Boost Execution Layer  
+- Performance Tracking & Feedback Loop  
+- Kill/Pivot Rules  
+
+**Verification Criteria**
+- Model outputs deterministic amplification plan.  
+- Posts boosted ≥100% vs baseline.  
+- Kill/pivot rules trigger correctly.  
+
+**Testing Instructions**
+- Run baseline vs AI‑boosted post.  
+- Simulate underperformance to trigger pivot.  
+- Validate analytics ingestion.  
+
+**Completion Checklist**
+- Model integrated, reproducible, and documented.  
+- Amplification delta consistently ≥100%.  
+
+---
+
+## 6. **Distribution**
+**Components**
+- Release Builder (metadata entry)  
+- Asset Upload (audio, cover art, validation)  
+- Rights & Ownership (ISRC, UPC, splits)  
+- Platform Integrations (Spotify, Apple, YouTube, Bandcamp)  
+- Scheduling & Pre‑Save  
+- Delivery Confirmation  
+- Post‑Release Analytics  
+
+**Verification Criteria**
+- Metadata schema matches industry standards.  
+- Upload validation rejects malformed files.  
+- Delivery confirmed per platform.  
+
+**Testing Instructions**
+- Upload valid/invalid audio.  
+- Schedule release in past/future.  
+- Confirm delivery status across platforms.  
+
+**Completion Checklist**
+- All integrations stable.  
+- Releases deterministic and auditable.  
+
+---
+
+## 7. **Shared Backend Services**
+**Components**
+- Authentication & Permissions  
+- Billing (Stripe)  
+- Analytics Engine  
+- AI Orchestration Layer  
+- Error Logging & Monitoring  
+
+**Verification Criteria**
+- Auth tokens refresh correctly.  
+- Billing events match Stripe logs.  
+- Analytics pipeline ingests without loss.  
+
+**Testing Instructions**
+- Simulate expired tokens.  
+- Run test charges/refunds.  
+- Force error conditions and confirm logs.  
+
+**Completion Checklist**
+- All services hardened.  
+- Monitoring alerts functional.  
+
+---
+
+# 🏁 Endgame Instruction
+Feed this breakdown to Replit’s agent. For each page/system, it must **expand every component into atomic, testable units** with explicit verification, testing, and completion steps. No ambiguity, no TODOs, no skipped parts.
+
+---
+
+Would you like me to **consolidate this into a single “master launch brief” format** (like the one you already drafted for Max Booster) so you can hand it off to collaborators as a one‑stop execution guide?

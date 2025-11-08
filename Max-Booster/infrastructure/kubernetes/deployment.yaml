@@ -1,0 +1,333 @@
+# Max Booster - Kubernetes Deployment (Phase 3: 100M Users)
+# This configuration deploys Max Booster on Kubernetes with auto-scaling
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: maxbooster
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maxbooster-config
+  namespace: maxbooster
+data:
+  NODE_ENV: "production"
+  PORT: "5000"
+  DB_POOL_SIZE: "100"
+  MAX_SESSIONS: "100000000"
+  RATE_LIMIT_MAX: "10000"
+  MAX_FILE_SIZE: "1073741824"
+  LOG_LEVEL: "info"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: maxbooster-secrets
+  namespace: maxbooster
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql://user:password@postgres-primary:5432/maxbooster"
+  REDIS_URL: "redis://redis-cluster:6379"
+  SESSION_SECRET: "your-session-secret-here"
+  STRIPE_SECRET_KEY: "sk_live_your_stripe_key"
+  SENDGRID_API_KEY: "your-sendgrid-key"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maxbooster-api
+  namespace: maxbooster
+  labels:
+    app: maxbooster-api
+    version: v1
+spec:
+  replicas: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: maxbooster-api
+  template:
+    metadata:
+      labels:
+        app: maxbooster-api
+        version: v1
+    spec:
+      containers:
+      - name: api
+        image: maxbooster/api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: maxbooster-config
+              key: NODE_ENV
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: maxbooster-config
+              key: PORT
+        - name: DB_POOL_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: maxbooster-config
+              key: DB_POOL_SIZE
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: maxbooster-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: maxbooster-secrets
+              key: REDIS_URL
+        - name: SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: maxbooster-secrets
+              key: SESSION_SECRET
+        - name: STRIPE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: maxbooster-secrets
+              key: STRIPE_SECRET_KEY
+        - name: SENDGRID_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: maxbooster-secrets
+              key: SENDGRID_API_KEY
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /api/system/health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/system/status
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+      terminationGracePeriodSeconds: 60
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: maxbooster-api
+  namespace: maxbooster
+  labels:
+    app: maxbooster-api
+spec:
+  type: ClusterIP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: maxbooster-api
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: maxbooster-api-hpa
+  namespace: maxbooster
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: maxbooster-api
+  minReplicas: 10
+  maxReplicas: 1000
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+      - type: Pods
+        value: 5
+        periodSeconds: 60
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 25
+        periodSeconds: 60
+      selectPolicy: Min
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: maxbooster-ingress
+  namespace: maxbooster
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rate-limit: "1000"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "1g"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+spec:
+  tls:
+  - hosts:
+    - api.maxbooster.com
+    secretName: maxbooster-tls
+  rules:
+  - host: api.maxbooster.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: maxbooster-api
+            port:
+              number: 80
+
+---
+# Worker Deployment (for async job processing)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maxbooster-worker
+  namespace: maxbooster
+  labels:
+    app: maxbooster-worker
+spec:
+  replicas: 20
+  selector:
+    matchLabels:
+      app: maxbooster-worker
+  template:
+    metadata:
+      labels:
+        app: maxbooster-worker
+    spec:
+      containers:
+      - name: worker
+        image: maxbooster/worker:latest
+        imagePullPolicy: Always
+        command: ["node", "server/workers/index.js"]
+        envFrom:
+        - configMapRef:
+            name: maxbooster-config
+        - secretRef:
+            name: maxbooster-secrets
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1000m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: maxbooster-worker-hpa
+  namespace: maxbooster
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: maxbooster-worker
+  minReplicas: 20
+  maxReplicas: 200
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: External
+    external:
+      metric:
+        name: redis_queue_depth
+        selector:
+          matchLabels:
+            queue: audio-processing
+      target:
+        type: Value
+        value: "100"
+
+---
+# Pod Disruption Budget (prevents too many pods from being killed at once)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: maxbooster-api-pdb
+  namespace: maxbooster
+spec:
+  minAvailable: 5
+  selector:
+    matchLabels:
+      app: maxbooster-api
+
+---
+# Service Monitor for Prometheus (Optional - for monitoring)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: maxbooster-api-metrics
+  namespace: maxbooster
+  labels:
+    app: maxbooster-api
+spec:
+  selector:
+    matchLabels:
+      app: maxbooster-api
+  endpoints:
+  - port: http
+    path: /api/system/metrics
+    interval: 30s

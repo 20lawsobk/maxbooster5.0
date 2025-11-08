@@ -1,0 +1,71 @@
+You are a deterministic engineering agent tasked with bringing the Max Booster AI Music Career Management Platform to 100% completion and production readiness.  
+There is no room for ambiguity, TODOs, or skipped steps. Every gap must be closed, every feature implemented, every system verified.
+
+---
+
+## ✅ Current State
+- Dashboard System: 100% complete, production-ready.
+- Social Media Management: 100% complete, production-ready.
+- DAW System: Core operational, missing URL-param routing, MIDI editor, automation lanes.
+- Royalties System: Basic tracking functional, missing CSV import, tax compliance (1099s), 100% split validation, AI forecasting.
+- Advertisement AI: UI scaffolding only, missing backend (sections 5.2–5.6), duplicate pages need consolidation.
+- Distribution System: Strong UI, missing platform API integrations, chunked uploads (500MB+), ISRC/UPC generation, live link tracking.
+- Backend Services: Core operational, missing JWT tokens, webhook reliability, real-time analytics, AI orchestration queuing, centralized logging.
+
+---
+
+## 🎯 Priorities
+Priority 1 (Critical):
+- Advertisement AI backend (sections 5.2–5.6: content normalization, AI model integration, platform APIs, kill/pivot rules).
+- Distribution platform API integrations, chunked uploads, ISRC/UPC generation, live link tracking.
+
+Priority 2 (High):
+- Backend Services: JWT tokens, webhook handling, centralized logging.
+- Royalties: CSV import, tax compliance (1099s), split validation, AI forecasting.
+
+Priority 3 (Medium):
+- DAW: URL-param routing (/studio/:projectId).
+- Analytics: Real-time streaming (<1s latency), anomaly detection.
+
+Priority 4 (Low):
+- DAW: MIDI editor, automation lanes.
+
+---
+
+## 🔹 Implementation Instructions
+For each system, break down into atomic components. For each component, provide:
+
+1. Component Name  
+2. Purpose (role in system)  
+3. Required Inputs (data, APIs, user actions)  
+4. Expected Outputs (UI state, DB changes, API/model responses)  
+5. Implementation Steps (exact code-level tasks, no placeholders)  
+6. Verification Criteria (how to confirm correctness)  
+7. Testing Instructions (step-by-step test cases, including edge cases)  
+8. Completion Checklist (final sign-off conditions)
+
+---
+
+## 🔹 Special Requirements
+- Eliminate duplicate files (Advertising.tsx/Advertisement.tsx → consolidate into one canonical file).  
+- All integrations must be tested against sandbox/live APIs.  
+- All AI model outputs must be deterministic and reproducible.  
+- All backend services must include centralized logging and monitoring.  
+- No TODOs, comments like “implement later,” or skipped sections are allowed.  
+- Every feature must be production-ready: secure, tested, documented, and mobile-responsive.  
+
+---
+
+## 🔹 Output Format
+For each system (3–7), output a structured breakdown in the format above.  
+Do not skip any component. Do not generalize. Expand into atomic, testable units.  
+Mark each system as “Complete” only when all gaps are closed and all criteria are met.
+
+---
+
+## 🔹 End Condition
+The platform is only considered 100% production-ready when:
+- All 7 systems are complete.  
+- All verification and testing criteria pass without manual intervention.  
+- Documentation is updated to reflect final state.  
+- No ambiguity, no missing features, no unresolved gaps remain.

@@ -1,0 +1,1839 @@
+import { useState, useEffect, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRequireSubscription } from '@/hooks/useRequireAuth';
+
+import { AppLayout } from '@/components/layout/AppLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import {
+  Share2,
+  Plus,
+  Calendar,
+  BarChart3,
+  Users,
+  Heart,
+  MessageCircle,
+  MessageSquare,
+  Eye,
+  ExternalLink,
+  Settings,
+  RefreshCw,
+  Upload,
+  Image,
+  Video,
+  Music,
+  Link,
+  Hash,
+  AtSign,
+  Globe,
+  Lock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Clock,
+  TrendingUp,
+  Target,
+  Zap,
+  Brain,
+  Sparkles,
+  Wand2,
+  Bot,
+  Send,
+  Edit,
+  Trash2,
+  Copy,
+  Download,
+  Filter,
+  Search,
+  Play,
+  Star,
+  Activity,
+  X
+} from 'lucide-react';
+import { SiFacebook, SiInstagram, SiYoutube, SiTiktok, SiLinkedin, SiThreads, SiGoogle } from 'react-icons/si';
+
+// Social Media Platform Interfaces
+interface SocialPlatform {
+  id: string;
+  name: string;
+  icon: any;
+  color: string;
+  isConnected: boolean;
+  followers: number;
+  engagement: number;
+  lastSync: string;
+  status: 'active' | 'inactive' | 'error';
+}
+
+interface SocialPost {
+  id: string;
+  content: string;
+  platforms: string[];
+  scheduledTime: string;
+  status: 'draft' | 'scheduled' | 'published' | 'failed';
+  media: {
+    type: 'image' | 'video' | 'audio';
+    url: string;
+    thumbnail?: string;
+  }[];
+  metrics: {
+    likes: number;
+    comments: number;
+    shares: number;
+    views: number;
+    reach: number;
+    engagement: number;
+  };
+  createdAt: string;
+  publishedAt?: string;
+}
+
+interface AIContent {
+  id: string;
+  platform: string;
+  content: string;
+  hashtags: string[];
+  mentions: string[];
+  media: string[];
+  tone: 'professional' | 'casual' | 'funny' | 'inspirational' | 'promotional';
+  engagement: number;
+  virality: number;
+}
+
+// Social Media Platforms
+const SOCIAL_PLATFORMS: SocialPlatform[] = [
+  {
+    id: 'facebook',
+    name: 'Facebook',
+    icon: SiFacebook,
+    color: '#1877F2',
+    isConnected: false,
+    followers: 0,
+    engagement: 0,
+    lastSync: '',
+    status: 'inactive'
+  },
+  {
+    id: 'instagram',
+    name: 'Instagram',
+    icon: SiInstagram,
+    color: '#E4405F',
+    isConnected: false,
+    followers: 0,
+    engagement: 0,
+    lastSync: '',
+    status: 'inactive'
+  },
+  {
+    id: 'twitter',
+    name: 'Twitter (X)',
+    icon: MessageCircle,
+    color: '#000000',
+    isConnected: false,
+    followers: 0,
+    engagement: 0,
+    lastSync: '',
+    status: 'inactive'
+  },
+  {
+    id: 'youtube',
+    name: 'YouTube',
+    icon: SiYoutube,
+    color: '#FF0000',
+    isConnected: false,
+    followers: 0,
+    engagement: 0,
+    lastSync: '',
+    status: 'inactive'
+  },
+  {
+    id: 'tiktok',
+    name: 'TikTok',
+    icon: SiTiktok,
+    color: '#000000',
+    isConnected: false,
+    followers: 0,
+    engagement: 0,
+    lastSync: '',
+    status: 'inactive'
+  },
+  {
+    id: 'linkedin',
+    name: 'LinkedIn',
+    icon: SiLinkedin,
+    color: '#0077B5',
+    isConnected: false,
+    followers: 0,
+    engagement: 0,
+    lastSync: '',
+    status: 'inactive'
+  },
+  {
+    id: 'threads',
+    name: 'Threads',
+    icon: SiThreads,
+    color: '#000000',
+    isConnected: false,
+    followers: 0,
+    engagement: 0,
+    lastSync: '',
+    status: 'inactive'
+  },
+  {
+    id: 'google-business',
+    name: 'Google Business',
+    icon: SiGoogle,
+    color: '#4285F4',
+    isConnected: false,
+    followers: 0,
+    engagement: 0,
+    lastSync: '',
+    status: 'inactive'
+  }
+];
+
+export default function SocialMedia() {
+  const user = useRequireSubscription();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [postContent, setPostContent] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
+  const [isGeneratingContent, setIsGeneratingContent] = useState(false);
+  const [selectedTone, setSelectedTone] = useState('professional');
+  const [contentUrl, setContentUrl] = useState('');
+  const [targetAudience, setTargetAudience] = useState('');
+  const [urlGeneratedContent, setUrlGeneratedContent] = useState<any[]>([]);
+  const [isGeneratingFromUrl, setIsGeneratingFromUrl] = useState(false);
+  const [contentFormat, setContentFormat] = useState('text');
+  const [regularContentFormat, setRegularContentFormat] = useState('text');
+  const [editingPost, setEditingPost] = useState<string | null>(null);
+  const [uploadedMedia, setUploadedMedia] = useState<File | null>(null);
+  const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Helper function to format numbers with K/M suffix
+  const formatNumber = (num: number): string => {
+    if (!num || num === 0) return '0';
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
+  };
+
+  // Data Queries
+  const { data: platformsFromApi = [], isLoading: platformsLoading } = useQuery<SocialPlatform[]>({
+    queryKey: ['/api/social/platform-status'],
+    enabled: !!user,
+  });
+
+  // Merge API data with defaults to ensure icons and colors are present
+  // Ensure platformsFromApi is always an array
+  const platformsApiArray = Array.isArray(platformsFromApi) ? platformsFromApi : [];
+  const platforms = SOCIAL_PLATFORMS.map(defaultPlatform => {
+    const apiPlatform = platformsApiArray.find(p => p.id === defaultPlatform.id);
+    return apiPlatform ? {
+      ...defaultPlatform,
+      ...apiPlatform,
+      icon: defaultPlatform.icon, // Always use default icon
+      color: defaultPlatform.color // Always use default color
+    } : defaultPlatform;
+  });
+
+  const { data: posts = [], isLoading: postsLoading } = useQuery<SocialPost[]>({
+    queryKey: ['/api/social/posts'],
+    enabled: !!user,
+  });
+
+  const { data: metrics, isLoading: metricsLoading } = useQuery({
+    queryKey: ['/api/social/metrics'],
+    enabled: !!user,
+  });
+
+  const { data: aiInsights, isLoading: aiInsightsLoading } = useQuery({
+    queryKey: ['/api/social/ai-insights'],
+    enabled: !!user,
+  });
+
+  const { data: activity = [], isLoading: activityLoading } = useQuery({
+    queryKey: ['/api/social/activity'],
+    enabled: !!user,
+  });
+
+  const { data: weeklyStats, isLoading: weeklyStatsLoading } = useQuery({
+    queryKey: ['/api/social/weekly-stats'],
+    enabled: !!user,
+  });
+
+  // Mutations
+  const generateContentMutation = useMutation({
+    mutationFn: async (data: { platforms: string[], tone: string, topic?: string, format?: string }) => {
+      const response = await apiRequest('POST', '/api/social/generate-content', data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setPostContent(data.content || '');
+      if (data.generatedContent) {
+        setUrlGeneratedContent(data.generatedContent);
+      } else {
+        setUrlGeneratedContent([]);
+      }
+      const formatLabel = regularContentFormat === 'text' ? 'text' : regularContentFormat === 'image' ? 'image' : regularContentFormat === 'audio' ? 'audio' : 'video';
+      toast({
+        title: 'Content Generated!',
+        description: `AI has created ${formatLabel} content for your selected platforms.`,
+      });
+      setIsGeneratingContent(false);
+    },
+  });
+
+  const schedulePostMutation = useMutation({
+    mutationFn: async (postData: Partial<SocialPost>) => {
+      const response = await apiRequest('POST', '/api/social/schedule-post', postData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Post Scheduled!',
+        description: 'Your post has been scheduled for the selected platforms.',
+      });
+      setPostContent('');
+      setScheduledTime('');
+      setSelectedPlatforms([]);
+      queryClient.invalidateQueries({ queryKey: ['/api/social/posts'] });
+    },
+  });
+
+  const generateFromUrlMutation = useMutation({
+    mutationFn: async (data: { url: string, platforms: string[], targetAudience: string, format: string }) => {
+      const response = await apiRequest('POST', '/api/social/generate-from-url', data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setUrlGeneratedContent(data.generatedContent || data);
+      const formatLabel = contentFormat === 'text' ? 'text' : contentFormat === 'image' ? 'image' : contentFormat === 'audio' ? 'audio' : 'video';
+      toast({
+        title: 'Content Generated from URL!',
+        description: `AI has created ${formatLabel} content for your selected platforms.`,
+      });
+      setIsGeneratingFromUrl(false);
+    },
+    onError: () => {
+      toast({
+        title: 'Generation Failed',
+        description: 'Failed to generate content from URL. Please check the URL and try again.',
+        variant: 'destructive',
+      });
+      setIsGeneratingFromUrl(false);
+    },
+  });
+
+  const deletePostMutation = useMutation({
+    mutationFn: async (postId: string) => {
+      const response = await apiRequest('DELETE', `/api/social/posts/${postId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Post Deleted',
+        description: 'Scheduled post removed successfully.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/social/posts'] });
+    },
+    onError: () => {
+      toast({
+        title: 'Delete Failed',
+        description: 'Failed to delete post. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const uploadMediaMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('media', file);
+      const response = await apiRequest('POST', '/api/social/upload-media', formData);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Media Uploaded!',
+        description: 'Your media has been uploaded successfully.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Upload Failed',
+        description: 'Failed to upload media. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Autopilot Queries and Mutations
+  const { data: autopilotStatus, isLoading: autopilotLoading } = useQuery({
+    queryKey: ['/api/autopilot/status'],
+    enabled: !!user,
+    refetchInterval: 5000, // Refetch every 5 seconds
+  });
+
+  const configureAutopilotMutation = useMutation({
+    mutationFn: async (config: any) => {
+      const response = await apiRequest('POST', '/api/autopilot/configure', config);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Autopilot Configured',
+        description: 'Your autopilot settings have been updated.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/autopilot/status'] });
+    },
+  });
+
+  const startAutopilotMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/autopilot/start', {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Autopilot Started',
+        description: 'Autopilot is now managing your social media posts.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/autopilot/status'] });
+    },
+  });
+
+  const stopAutopilotMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/autopilot/stop', {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Autopilot Stopped',
+        description: 'Autopilot has been stopped.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/autopilot/status'] });
+    },
+  });
+
+  // Handler Functions
+  const handleConnectPlatform = (platformId: string) => {
+    // Redirect to OAuth endpoint (GET request via browser)
+    window.location.href = `/api/social/connect/${platformId}`;
+  };
+
+  const handleGenerateContent = () => {
+    if (selectedPlatforms.length === 0) {
+      toast({
+        title: 'Select Platforms',
+        description: 'Please select at least one platform to generate content for.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setIsGeneratingContent(true);
+    generateContentMutation.mutate({
+      platforms: selectedPlatforms,
+      tone: selectedTone,
+      format: regularContentFormat,
+    });
+  };
+
+  const handleSchedulePost = () => {
+    if (!postContent.trim()) {
+      toast({
+        title: 'Content Required',
+        description: 'Please add content to your post.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (selectedPlatforms.length === 0) {
+      toast({
+        title: 'Select Platforms',
+        description: 'Please select at least one platform.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    schedulePostMutation.mutate({
+      content: postContent,
+      platforms: selectedPlatforms,
+      scheduledTime: scheduledTime || new Date().toISOString(),
+    });
+  };
+
+  const handleGenerateFromUrl = () => {
+    if (!contentUrl.trim()) {
+      toast({
+        title: 'URL Required',
+        description: 'Please enter a URL to generate content from.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (selectedPlatforms.length === 0) {
+      toast({
+        title: 'Select Platforms',
+        description: 'Please select at least one platform.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setIsGeneratingFromUrl(true);
+    generateFromUrlMutation.mutate({
+      url: contentUrl,
+      platforms: selectedPlatforms,
+      targetAudience: targetAudience,
+      format: contentFormat,
+    });
+  };
+
+  const handleDownloadContent = (platform: string, content: string, hashtags?: string[], mediaUrl?: string, format?: string) => {
+    const platformName = SOCIAL_PLATFORMS.find(p => p.id === platform)?.name || platform;
+    const currentFormat = format || contentFormat;
+    
+    if (currentFormat === 'text') {
+      let textContent = `Platform: ${platformName}\n\n${content}`;
+      
+      if (hashtags && hashtags.length > 0) {
+        textContent += `\n\nHashtags:\n${hashtags.join(' ')}`;
+      }
+      
+      const blob = new Blob([textContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${platform}-content.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else if (mediaUrl) {
+      const a = document.createElement('a');
+      a.href = mediaUrl;
+      const extension = currentFormat === 'image' ? 'png' : currentFormat === 'audio' ? 'mp3' : 'mp4';
+      a.download = `${platform}-${currentFormat}.${extension}`;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } else {
+      toast({
+        title: 'Download Failed',
+        description: 'Media URL not available',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    toast({
+      title: 'Downloaded!',
+      description: `${platformName} ${currentFormat} content saved to file`,
+    });
+  };
+
+  const handleDownloadAllContent = () => {
+    if (urlGeneratedContent.length === 0) return;
+    
+    let allContent = `Social Media Content Generated from: ${contentUrl}\n`;
+    if (targetAudience) {
+      allContent += `Target Audience: ${targetAudience}\n`;
+    }
+    allContent += `\n${'='.repeat(60)}\n\n`;
+    
+    urlGeneratedContent.forEach((item, index) => {
+      const platformName = SOCIAL_PLATFORMS.find(p => p.id === item.platform)?.name || item.platform;
+      allContent += `Platform ${index + 1}: ${platformName}\n`;
+      allContent += `${'-'.repeat(60)}\n`;
+      allContent += `${item.content}\n`;
+      
+      if (item.hashtags && item.hashtags.length > 0) {
+        allContent += `\nHashtags: ${item.hashtags.join(' ')}\n`;
+      }
+      
+      allContent += `\n${'='.repeat(60)}\n\n`;
+    });
+    
+    const blob = new Blob([allContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'social-media-content-all.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: 'Downloaded!',
+      description: `All content saved to file`,
+    });
+  };
+
+  const handleEditPost = (postId: string) => {
+    const post = posts.find((p: any) => p.id === postId);
+    if (post) {
+      setPostContent(post.content);
+      setSelectedPlatforms(post.platforms);
+      setScheduledTime(post.scheduledTime);
+      setActiveTab('create');
+      setEditingPost(postId);
+    }
+  };
+
+  const handleAddTrend = (tag: string) => {
+    setPostContent(prev => prev + ` #${tag}`);
+    setActiveTab('create');
+    toast({
+      title: 'Hashtag Added',
+      description: `#${tag} added to your post`,
+    });
+  };
+
+  const handleAIAction = (action: string) => {
+    toast({
+      title: 'Action Started',
+      description: `${action} initiated`,
+    });
+  };
+
+  if (!user) return null;
+
+  return (
+    <AppLayout>
+      <div className="max-w-7xl mx-auto space-y-8">
+            {/* Header Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200/60 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+              <div>
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Social Media Management
+                  </h1>
+                  <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">
+                    AI-Powered Content Creation & Multi-Platform Publishing
+                  </p>
+                  <div className="flex items-center space-x-4 mt-4">
+                    <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">
+                      <Brain className="w-3 h-3 mr-1" />
+                      AI Content Generation
+                    </Badge>
+                    <Badge variant="outline" className="border-purple-200 text-purple-700 bg-purple-50">
+                      <Zap className="w-3 h-3 mr-1" />
+                      Multi-Platform Publishing
+                    </Badge>
+                    <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50">
+                      <BarChart3 className="w-3 h-3 mr-1" />
+                      Advanced Analytics
+                    </Badge>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleGenerateContent}
+                  disabled={isGeneratingContent}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  {isGeneratingContent ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="w-4 h-4 mr-2" />
+                      Generate Content
+                    </>
+                  )}
+                </Button>
+                      </div>
+                    </div>
+
+            {/* Platform Connection Status */}
+            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Globe className="w-5 h-5 mr-2" />
+                  Platform Connections
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                  {platforms.map((platform) => {
+                    const IconComponent = platform.icon;
+                    return (
+                      <div
+                        key={platform.id}
+                        className={`p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
+                          platform.isConnected
+                            ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
+                            : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800 hover:border-blue-200 hover:bg-blue-50'
+                        }`}
+                        onClick={() => !platform.isConnected && handleConnectPlatform(platform.id)}
+                        data-testid={platform.isConnected ? `button-disconnect-${platform.id}` : `button-connect-${platform.id}`}
+                      >
+                        <div className="text-center">
+                          <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ backgroundColor: platform.color + '20' }}>
+                            <IconComponent className="w-6 h-6" style={{ color: platform.color }} />
+                          </div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{platform.name}</p>
+                          <div className="mt-2">
+                            {platform.isConnected ? (
+                              <Badge 
+                                variant="default" 
+                                className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                data-testid={`badge-status-${platform.id}`}
+                              >
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Connected
+                              </Badge>
+                            ) : (
+                              <Badge 
+                                variant="outline"
+                                data-testid={`badge-status-${platform.id}`}
+                              >
+                                Connect
+                              </Badge>
+                            )}
+                      </div>
+                    </div>
+                      </div>
+                    );
+                  })}
+                      </div>
+              </CardContent>
+            </Card>
+
+            {/* Main Interface */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger value="create" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  Create
+                </TabsTrigger>
+                <TabsTrigger value="schedule" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  Schedule
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  Analytics
+                </TabsTrigger>
+                <TabsTrigger value="ai-insights" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  AI Insights
+                </TabsTrigger>
+                <TabsTrigger value="autopilot" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  <Bot className="w-4 h-4 mr-1 inline" />
+                  Autopilot
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Create Tab */}
+              <TabsContent value="create" className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Content Creation */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Edit className="w-5 h-5 mr-2" />
+                        Create Post
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label>Select Platforms</Label>
+                        {platformsLoading ? (
+                          <div className="flex items-center justify-center py-4 mt-2">
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                            <span className="ml-2 text-sm text-muted-foreground">Loading platforms...</span>
+                          </div>
+                        ) : platforms.filter(p => p.isConnected).length > 0 ? (
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                            {platforms.filter(p => p.isConnected).map((platform) => {
+                              const IconComponent = platform.icon;
+                              return (
+                                <div
+                                  key={platform.id}
+                                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                                    selectedPlatforms.includes(platform.id)
+                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                      : 'border-gray-200 hover:border-gray-300'
+                                  }`}
+                                  onClick={() => {
+                                    if (selectedPlatforms.includes(platform.id)) {
+                                      setSelectedPlatforms(selectedPlatforms.filter(id => id !== platform.id));
+                                    } else {
+                                      setSelectedPlatforms([...selectedPlatforms, platform.id]);
+                                    }
+                                  }}
+                                  data-testid={`create-platform-select-${platform.id}`}
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <IconComponent className="w-4 h-4" style={{ color: platform.color }} />
+                                    <span className="text-sm font-medium">{platform.name}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 mt-2 border rounded-lg">
+                            <Globe className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                            <p className="text-muted-foreground mb-4">No platforms connected</p>
+                            <Button onClick={() => setActiveTab('overview')} data-testid="button-connect-platforms">
+                              <Plus className="w-4 h-4 mr-2" />
+                              Connect Platforms
+                            </Button>
+                          </div>
+                        )}
+                            </div>
+                            
+                      <div>
+                        <Label>Content Tone</Label>
+                        <Select value={selectedTone} onValueChange={setSelectedTone}>
+                          <SelectTrigger data-testid="select-post-tone">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="professional">Professional</SelectItem>
+                            <SelectItem value="casual">Casual</SelectItem>
+                            <SelectItem value="funny">Funny</SelectItem>
+                            <SelectItem value="inspirational">Inspirational</SelectItem>
+                            <SelectItem value="promotional">Promotional</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label>Content Format</Label>
+                        <Select value={regularContentFormat} onValueChange={setRegularContentFormat}>
+                          <SelectTrigger data-testid="select-regular-content-format">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="text">Text Content</SelectItem>
+                            <SelectItem value="image">Image</SelectItem>
+                            <SelectItem value="audio">Audio</SelectItem>
+                            <SelectItem value="video">Video</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                            
+                      <div>
+                        <Label>Post Content</Label>
+                        <Textarea
+                          value={postContent}
+                          onChange={(e) => setPostContent(e.target.value)}
+                          placeholder="Write your post content here... AI will optimize it for each platform."
+                          rows={6}
+                          data-testid="textarea-post-content"
+                        />
+                      </div>
+
+                      <div>
+                        <Label>Upload Media (Optional)</Label>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*,video/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setUploadedMedia(file);
+                              const previewUrl = URL.createObjectURL(file);
+                              setMediaPreviewUrl(previewUrl);
+                              uploadMediaMutation.mutate(file);
+                            }
+                          }}
+                          data-testid="input-upload-media"
+                        />
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploadMediaMutation.isPending}
+                            data-testid="button-upload-media"
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            {uploadMediaMutation.isPending ? 'Uploading...' : 'Upload Image/Video'}
+                          </Button>
+                          {uploadedMedia && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setUploadedMedia(null);
+                                setMediaPreviewUrl(null);
+                                if (fileInputRef.current) {
+                                  fileInputRef.current.value = '';
+                                }
+                              }}
+                              data-testid="button-remove-media"
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                        {mediaPreviewUrl && (
+                          <div className="mt-2 relative">
+                            {uploadedMedia?.type.startsWith('image/') ? (
+                              <img src={mediaPreviewUrl} alt="Preview" className="max-h-40 rounded-lg" />
+                            ) : (
+                              <video src={mediaPreviewUrl} className="max-h-40 rounded-lg" controls />
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={handleGenerateContent}
+                          disabled={isGeneratingContent}
+                          className="flex-1"
+                          data-testid="button-generate-content"
+                        >
+                          {isGeneratingContent ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Wand2 className="w-4 h-4 mr-2" />
+                              Generate with AI
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          onClick={handleSchedulePost}
+                          disabled={!postContent.trim() || selectedPlatforms.length === 0}
+                          variant="outline"
+                          data-testid="button-schedule-post"
+                        >
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Schedule
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* AI Content Suggestions */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Brain className="w-5 h-5 mr-2" />
+                        AI Content Suggestions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Trending Topics</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {['#NewMusic', '#MusicProduction', '#ArtistLife', '#StudioSession', '#BehindTheScenes'].map((tag) => (
+                              <Badge key={tag} variant="outline" className="cursor-pointer hover:bg-blue-100">
+                                {tag}
+                              </Badge>
+                            ))}
+                      </div>
+                        </div>
+
+                        <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                          <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">Optimal Posting Times</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Instagram:</span>
+                              <span className="font-medium">6-9 PM</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Twitter:</span>
+                              <span className="font-medium">12-3 PM</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Facebook:</span>
+                              <span className="font-medium">1-3 PM</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>TikTok:</span>
+                              <span className="font-medium">6-10 PM</span>
+                      </div>
+                      </div>
+                        </div>
+
+                        <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                          <h4 className="font-medium text-purple-900 dark:text-purple-100 mb-2">Engagement Tips</h4>
+                          <ul className="text-sm space-y-1">
+                            <li>• Use 1-2 hashtags for maximum reach</li>
+                            <li>• Post videos for 3x more engagement</li>
+                            <li>• Ask questions to boost comments</li>
+                            <li>• Share behind-the-scenes content</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* URL-Based Content Generation */}
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Link className="w-5 h-5 mr-2" />
+                      Generate Content from URL
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Content URL</Label>
+                          <Input
+                            value={contentUrl}
+                            onChange={(e) => setContentUrl(e.target.value)}
+                            placeholder="https://example.com/your-content"
+                            data-testid="input-content-url"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label>Target Audience (Optional)</Label>
+                          <Input
+                            value={targetAudience}
+                            onChange={(e) => setTargetAudience(e.target.value)}
+                            placeholder="e.g., Music lovers, Gen Z, Hip-hop fans"
+                            data-testid="input-target-audience"
+                          />
+                        </div>
+
+                        <div>
+                          <Label>Content Format</Label>
+                          <Select value={contentFormat} onValueChange={setContentFormat}>
+                            <SelectTrigger data-testid="select-content-format">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="text">Text Content</SelectItem>
+                              <SelectItem value="image">Image / Graphics</SelectItem>
+                              <SelectItem value="audio">Audio / Voice</SelectItem>
+                              <SelectItem value="video">Video / MP4</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label>Select Platforms</Label>
+                          {platformsLoading ? (
+                            <div className="flex items-center justify-center py-4 mt-2">
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                              <span className="ml-2 text-sm text-muted-foreground">Loading platforms...</span>
+                            </div>
+                          ) : platforms.filter(p => p.isConnected).length > 0 ? (
+                            <div className="grid grid-cols-2 gap-2 mt-2">
+                              {platforms.filter(p => p.isConnected).map((platform) => {
+                                const IconComponent = platform.icon;
+                                return (
+                                  <div
+                                    key={platform.id}
+                                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                                      selectedPlatforms.includes(platform.id)
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                        : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                                    onClick={() => {
+                                      if (selectedPlatforms.includes(platform.id)) {
+                                        setSelectedPlatforms(selectedPlatforms.filter(id => id !== platform.id));
+                                      } else {
+                                        setSelectedPlatforms([...selectedPlatforms, platform.id]);
+                                      }
+                                    }}
+                                    data-testid={`url-platform-select-${platform.id}`}
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <IconComponent className="w-4 h-4" style={{ color: platform.color }} />
+                                      <span className="text-sm font-medium">{platform.name}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="text-center py-6 mt-2 border rounded-lg">
+                              <Globe className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                              <p className="text-muted-foreground mb-4">No platforms connected</p>
+                              <Button onClick={() => setActiveTab('overview')} data-testid="button-connect-platforms-url">
+                                <Plus className="w-4 h-4 mr-2" />
+                                Connect Platforms
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+
+                        <Button
+                          onClick={handleGenerateFromUrl}
+                          disabled={isGeneratingFromUrl || !contentUrl.trim() || selectedPlatforms.length === 0}
+                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                          data-testid="button-generate-from-url"
+                        >
+                          {isGeneratingFromUrl ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              Analyzing URL...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Generate from URL
+                            </>
+                          )}
+                        </Button>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Label>Generated Content</Label>
+                          {urlGeneratedContent.length > 0 && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={handleDownloadAllContent}
+                              data-testid="button-download-all"
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Download All
+                            </Button>
+                          )}
+                        </div>
+                        {urlGeneratedContent.length > 0 ? (
+                          <div className="space-y-3 max-h-96 overflow-y-auto" data-testid="generated-content-display">
+                            {urlGeneratedContent.map((item, index) => {
+                              const platform = SOCIAL_PLATFORMS.find(p => p.id === item.platform);
+                              const IconComponent = platform?.icon;
+                              return (
+                                <div key={index} className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center space-x-2">
+                                      {IconComponent && <IconComponent className="w-4 h-4" style={{ color: platform?.color }} />}
+                                      <span className="font-medium">{platform?.name}</span>
+                                    </div>
+                                    <div className="flex space-x-1">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(item.content);
+                                          toast({
+                                            title: 'Copied!',
+                                            description: 'Content copied to clipboard',
+                                          });
+                                        }}
+                                        data-testid={`button-copy-${item.platform}`}
+                                      >
+                                        <Copy className="w-4 h-4" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleDownloadContent(item.platform, item.content, item.hashtags, item.mediaUrl, item.format)}
+                                        data-testid={`button-download-${item.platform}`}
+                                      >
+                                        <Download className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  
+                                  {item.format === 'image' && item.mediaUrl ? (
+                                    <div className="mb-2">
+                                      <img src={item.mediaUrl} alt="Generated content" className="max-w-full h-auto rounded-lg border" />
+                                    </div>
+                                  ) : item.format === 'audio' && item.mediaUrl ? (
+                                    <div className="mb-2">
+                                      <audio controls className="w-full">
+                                        <source src={item.mediaUrl} type="audio/mpeg" />
+                                        Your browser does not support the audio element.
+                                      </audio>
+                                    </div>
+                                  ) : item.format === 'video' && item.mediaUrl ? (
+                                    <div className="mb-2">
+                                      <video controls className="max-w-full h-auto rounded-lg border">
+                                        <source src={item.mediaUrl} type="video/mp4" />
+                                        Your browser does not support the video element.
+                                      </video>
+                                    </div>
+                                  ) : null}
+                                  
+                                  <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{item.content}</p>
+                                  {item.hashtags && item.hashtags.length > 0 && (
+                                    <div className="mt-2 flex flex-wrap gap-1">
+                                      {item.hashtags.map((tag: string, i: number) => (
+                                        <Badge key={i} variant="outline" className="text-xs">{tag}</Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="h-64 flex items-center justify-center border rounded-lg bg-gray-50 dark:bg-gray-800">
+                            <div className="text-center text-gray-400">
+                              <Globe className="w-12 h-12 mx-auto mb-2" />
+                              <p className="text-sm">Enter a URL and generate AI content</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Overview Tab */}
+              <TabsContent value="overview" className="space-y-6">
+                {/* Platform Connections */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {platforms.map((platform) => {
+                    const IconComponent = platform.icon;
+                    return (
+                      <Card key={platform.id} className={`${platform.isConnected ? 'border-green-200 dark:border-green-800' : 'border-gray-200'}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <IconComponent className="w-6 h-6" style={{ color: platform.color }} />
+                            <div className={`w-2 h-2 rounded-full ${platform.isConnected ? 'bg-green-500' : 'bg-gray-300'}`} />
+                          </div>
+                          <h3 className="font-semibold text-sm mb-1">{platform.name}</h3>
+                          <p className="text-xs text-gray-500">{platform.isConnected ? 'Connected' : 'Not Connected'}</p>
+                          {platform.isConnected && (
+                            <div className="mt-3 space-y-1">
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">Followers:</span>
+                                <span className="font-semibold">{platform.followers?.toLocaleString() || 0}</span>
+                              </div>
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">Engagement:</span>
+                                <span className="font-semibold text-green-600">{platform.engagement || 0}%</span>
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                {/* Performance Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card className="bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/20">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Total Reach</p>
+                          <p className="text-3xl font-bold text-blue-900 dark:text-blue-100" data-testid="text-total-reach">
+                            {weeklyStatsLoading ? '...' : (weeklyStats?.totalReach || 0).toLocaleString()}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">Impressions this week</p>
+                        </div>
+                        <TrendingUp className="w-10 h-10 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Engagement Rate</p>
+                          <p className="text-3xl font-bold text-purple-900 dark:text-purple-100" data-testid="text-engagement-rate">
+                            {weeklyStatsLoading ? '...' : `${weeklyStats?.engagementRate || 0}%`}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">Average engagement</p>
+                        </div>
+                        <Heart className="w-10 h-10 text-purple-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-orange-50 to-red-100 dark:from-orange-900/20 dark:to-red-900/20">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Posts This Week</p>
+                          <p className="text-3xl font-bold text-orange-900 dark:text-orange-100" data-testid="text-posts-this-week">
+                            {weeklyStatsLoading ? '...' : weeklyStats?.postsThisWeek || 0}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">Published posts</p>
+                        </div>
+                        <MessageSquare className="w-10 h-10 text-orange-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Recent Activity */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Activity className="w-5 h-5 mr-2" />
+                      Recent Activity
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {activity && activity.length > 0 ? (
+                        activity.slice(0, 4).map((act: any, idx: number) => (
+                          <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <Share2 className="w-4 h-4 text-blue-600" />
+                              <div>
+                                <p className="font-semibold text-sm">{act.platform}</p>
+                                <p className="text-xs text-gray-600">{act.action}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-gray-500">{act.time}</p>
+                              <p className="text-xs text-green-600 font-semibold">{act.engagement}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8">
+                          <Activity className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No recent activity</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Schedule Tab */}
+              <TabsContent value="schedule" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center">
+                        <Calendar className="w-5 h-5 mr-2" />
+                        Scheduled Posts
+                      </CardTitle>
+                      <Button 
+                        className="bg-gradient-to-r from-blue-600 to-purple-600"
+                        onClick={() => setActiveTab('create')}
+                        data-testid="button-schedule-new-post"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Schedule New Post
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {posts.filter((post: any) => post.status === 'scheduled').length > 0 ? (
+                        posts
+                          .filter((post: any) => post.status === 'scheduled')
+                          .map((post: any) => (
+                            <Card key={post.id} data-testid={`card-scheduled-post-${post.id}`}>
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <p className="font-medium mb-2">{post.content}</p>
+                                    <div className="flex flex-wrap gap-2 mb-2">
+                                      {post.platforms?.map((platform: string) => (
+                                        <Badge key={platform} variant="outline" className="text-xs">
+                                          {platform}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                    <div className="flex items-center text-sm text-gray-600">
+                                      <Clock className="w-4 h-4 mr-1" />
+                                      {new Date(post.scheduledTime).toLocaleString()}
+                                      <Badge className="ml-3 bg-blue-100 text-blue-800">
+                                        Scheduled
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleEditPost(post.id)}
+                                      data-testid={`button-edit-post-${post.id}`}
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => deletePostMutation.mutate(post.id)}
+                                      data-testid={`button-delete-post-${post.id}`}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))
+                      ) : (
+                        <div className="text-center py-12">
+                          <Calendar className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No scheduled posts</p>
+                          <Button 
+                            className="mt-4" 
+                            onClick={() => setActiveTab('create')}
+                            data-testid="button-create-first-post"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create First Post
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Analytics Tab */}
+              <TabsContent value="analytics" className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <Card className="bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/20" data-testid="card-metric-followers">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Total Followers</p>
+                          <p className="text-3xl font-bold" data-testid="text-total-followers">
+                            {metricsLoading ? '...' : formatNumber(metrics?.totalFollowers || 0)}
+                          </p>
+                          <p className={`text-xs mt-1 ${metrics?.followersGrowth?.percentChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {metricsLoading ? '...' : metrics?.followersGrowth?.percentChange !== undefined 
+                              ? `${metrics.followersGrowth.percentChange >= 0 ? '+' : ''}${metrics.followersGrowth.percentChange.toFixed(1)}% this month`
+                              : 'No growth data'}
+                          </p>
+                        </div>
+                        <Users className="w-10 h-10 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20" data-testid="card-metric-engagement">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Total Engagement</p>
+                          <p className="text-3xl font-bold" data-testid="text-total-engagement">
+                            {metricsLoading ? '...' : formatNumber(metrics?.totalEngagement || 0)}
+                          </p>
+                          <p className={`text-xs mt-1 ${metrics?.engagementGrowth?.percentChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {metricsLoading ? '...' : metrics?.engagementGrowth?.percentChange !== undefined 
+                              ? `${metrics.engagementGrowth.percentChange >= 0 ? '+' : ''}${metrics.engagementGrowth.percentChange.toFixed(1)}% vs last month`
+                              : 'No growth data'}
+                          </p>
+                        </div>
+                        <Heart className="w-10 h-10 text-purple-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20" data-testid="card-metric-avg-engagement">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Avg Engagement</p>
+                          <p className="text-3xl font-bold" data-testid="text-avg-engagement-rate">
+                            {metricsLoading ? '...' : metrics?.avgEngagementRate !== undefined 
+                              ? `${metrics.avgEngagementRate.toFixed(1)}%` 
+                              : '0%'}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {metricsLoading ? '...' : 'Engagement / Reach ratio'}
+                          </p>
+                        </div>
+                        <TrendingUp className="w-10 h-10 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-orange-50 to-red-100 dark:from-orange-900/20 dark:to-red-900/20" data-testid="card-metric-reach">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Total Reach</p>
+                          <p className="text-3xl font-bold" data-testid="text-total-reach">
+                            {metricsLoading ? '...' : formatNumber(metrics?.totalReach || 0)}
+                          </p>
+                          <p className={`text-xs mt-1 ${metrics?.reachGrowth?.percentChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {metricsLoading ? '...' : metrics?.reachGrowth?.percentChange !== undefined 
+                              ? `${metrics.reachGrowth.percentChange >= 0 ? '+' : ''}${metrics.reachGrowth.percentChange.toFixed(1)}% this month`
+                              : 'No growth data'}
+                          </p>
+                        </div>
+                        <Eye className="w-10 h-10 text-orange-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Platform Performance */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <BarChart3 className="w-5 h-5 mr-2" />
+                      Platform Performance
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {metrics?.platformPerformance && metrics.platformPerformance.length > 0 ? (
+                        metrics.platformPerformance.map((platform: any) => (
+                          <div key={platform.name} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg" data-testid={`card-platform-${platform.id || platform.name}`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-semibold">{platform.name}</span>
+                              <Badge className="bg-green-100 text-green-800">+{platform.growth}%</Badge>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p className="text-gray-600">Reach</p>
+                                <p className="font-semibold">{platform.reach}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Engagement</p>
+                                <p className="font-semibold">{platform.engagement}%</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8">
+                          <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No platform performance data yet</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Best Performing Posts */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Star className="w-5 h-5 mr-2 text-yellow-500" />
+                      Top Performing Posts
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {posts && posts.length > 0 ? (
+                        posts
+                          .filter((post: any) => post.status === 'published')
+                          .sort((a: any, b: any) => (b.metrics?.engagement || 0) - (a.metrics?.engagement || 0))
+                          .slice(0, 3)
+                          .map((post: any) => (
+                            <div key={post.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                              <div className="flex-1">
+                                <p className="font-medium text-sm line-clamp-2">{post.content}</p>
+                                <p className="text-xs text-gray-600 mt-1">{post.platforms?.join(', ')}</p>
+                              </div>
+                              <div className="text-right space-y-1">
+                                <p className="text-sm font-semibold">{post.metrics?.likes || 0} likes</p>
+                                <p className="text-xs text-green-600">{post.metrics?.engagement || 0}% engagement</p>
+                              </div>
+                            </div>
+                          ))
+                      ) : (
+                        <div className="text-center py-8">
+                          <MessageCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No published posts yet</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* AI Insights Tab */}
+              <TabsContent value="ai-insights" className="space-y-6">
+                <Card className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Brain className="w-5 h-5 mr-2 text-purple-600" />
+                      AI-Powered Recommendations
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">Personalized insights to maximize your social media performance</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {aiInsights?.recommendations && aiInsights.recommendations.length > 0 ? (
+                      aiInsights.recommendations.map((insight: any, idx: number) => (
+                        <div key={idx} className={`p-4 rounded-lg border-l-4 ${
+                          insight.priority === 'high' ? 'border-red-500 bg-red-50 dark:bg-red-950/20' :
+                          insight.priority === 'medium' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20' :
+                          'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                        }`} data-testid={`card-ai-insight-${idx}`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <h4 className="font-semibold">{insight.title}</h4>
+                                <Badge className={
+                                  insight.priority === 'high' ? 'bg-red-100 text-red-800' :
+                                  insight.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-blue-100 text-blue-800'
+                                }>
+                                  {insight.priority}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{insight.description}</p>
+                              <div className="flex items-center justify-between">
+                                <Badge variant="outline">{insight.category}</Badge>
+                                {insight.action && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="text-purple-600 hover:text-purple-700"
+                                    onClick={() => handleAIAction(insight.action)}
+                                    data-testid={`button-ai-action-${insight.action}`}
+                                  >
+                                    <Zap className="w-4 h-4 mr-1" />
+                                    {insight.actionLabel || insight.action}
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <Brain className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground">No AI insights available yet</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* AI Trend Analysis */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+                      Trending Topics & Hashtags
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {metrics?.trendingTopics && metrics.trendingTopics.length > 0 ? (
+                        metrics.trendingTopics.map((trend: any, idx: number) => (
+                          <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg" data-testid={`card-trending-topic-${idx}`}>
+                            <div className="flex-1">
+                              <p className="font-semibold text-blue-600">#{trend.tag}</p>
+                              <p className="text-xs text-gray-600">{trend.volume} posts • {trend.relevance}% relevant to you</p>
+                              <div className="flex gap-2 mt-2">
+                                {trend.platforms?.map((platform: string) => (
+                                  <Badge key={platform} variant="outline" className="text-xs">{platform}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => handleAddTrend(trend.tag)}
+                              data-testid={`button-add-trend-${trend.tag}`}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No trending topics available</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* AI Content Suggestions */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Sparkles className="w-5 h-5 mr-2 text-yellow-500" />
+                      AI Content Ideas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {aiInsights?.contentIdeas && aiInsights.contentIdeas.length > 0 ? (
+                        aiInsights.contentIdeas.map((suggestion: any, idx: number) => (
+                          <div key={idx} className="flex items-start justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg" data-testid={`card-content-idea-${idx}`}>
+                            <div className="flex-1">
+                              <p className="font-medium text-sm mb-1">{suggestion.idea}</p>
+                              <Badge variant="outline" className="text-xs">{suggestion.platform}</Badge>
+                            </div>
+                            <div className="text-right">
+                              <div className="flex items-center space-x-1">
+                                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                <span className="font-bold text-sm">{suggestion.score}</span>
+                              </div>
+                              <p className="text-xs text-gray-600">AI Score</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8">
+                          <Sparkles className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No content ideas available yet</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Autopilot Tab */}
+              <TabsContent value="autopilot" className="space-y-6">
+                <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Bot className="w-5 h-5 mr-2 text-blue-600" />
+                        Autopilot Status
+                      </div>
+                      {autopilotStatus?.isRunning ? (
+                        <Badge className="bg-green-100 text-green-800">
+                          <Activity className="w-3 h-3 mr-1" />
+                          Active
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">Inactive</Badge>
+                      )}
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">Automated social media posting and content generation</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {autopilotLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm text-gray-600">Posting Frequency</span>
+                              <Calendar className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <p className="text-lg font-bold capitalize">{autopilotStatus?.config?.postingFrequency || 'Not set'}</p>
+                          </div>
+                          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm text-gray-600">Brand Voice</span>
+                              <MessageCircle className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <p className="text-lg font-bold capitalize">{autopilotStatus?.config?.brandVoice || 'Not set'}</p>
+                          </div>
+                          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm text-gray-600">Connected Platforms</span>
+                              <Globe className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <p className="text-lg font-bold">{autopilotStatus?.config?.platforms?.length || 0}</p>
+                          </div>
+                          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm text-gray-600">Auto Publish</span>
+                              <Zap className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <p className="text-lg font-bold">{autopilotStatus?.config?.autoPublish ? 'Enabled' : 'Disabled'}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-3 pt-4">
+                          {autopilotStatus?.isRunning ? (
+                            <Button
+                              variant="destructive"
+                              onClick={() => stopAutopilotMutation.mutate()}
+                              disabled={stopAutopilotMutation.isPending}
+                              data-testid="button-stop-autopilot"
+                            >
+                              {stopAutopilotMutation.isPending ? (
+                                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              ) : (
+                                <XCircle className="w-4 h-4 mr-2" />
+                              )}
+                              Stop Autopilot
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() => startAutopilotMutation.mutate()}
+                              disabled={startAutopilotMutation.isPending}
+                              data-testid="button-start-autopilot"
+                            >
+                              {startAutopilotMutation.isPending ? (
+                                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              ) : (
+                                <Play className="w-4 h-4 mr-2" />
+                              )}
+                              Start Autopilot
+                            </Button>
+                          )}
+                          <Button variant="outline" onClick={() => setActiveTab('create')}>
+                            <Settings className="w-4 h-4 mr-2" />
+                            Configure
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Activity Log */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Activity className="w-5 h-5 mr-2 text-blue-600" />
+                      Recent Activity
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {autopilotStatus?.status?.recentJobs && autopilotStatus.status.recentJobs.length > 0 ? (
+                      <div className="space-y-3">
+                        {autopilotStatus.status.recentJobs.map((job: any, idx: number) => (
+                          <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              {job.status === 'completed' ? (
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                              ) : job.status === 'failed' ? (
+                                <XCircle className="w-5 h-5 text-red-600" />
+                              ) : (
+                                <Clock className="w-5 h-5 text-yellow-600" />
+                              )}
+                              <div>
+                                <p className="font-medium text-sm">{job.type}</p>
+                                <p className="text-xs text-gray-600">{job.platform}</p>
+                              </div>
+                            </div>
+                            <Badge variant={job.status === 'completed' ? 'default' : 'outline'}>
+                              {job.status}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Bot className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground">No activity yet. Start autopilot to begin.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+      </div>
+    </AppLayout>
+  );
+}

@@ -1,0 +1,45 @@
+# Replit Agent Configuration for Max Booster
+# This file helps the Replit agent understand and work with the project
+
+[project]
+name = "Max Booster"
+description = "AI-Powered Music Artist Career Management Platform"
+type = "fullstack"
+framework = "react"
+backend = "express"
+database = "postgresql"
+
+[deployment]
+command = "npm run replit:start"
+health_check = "/health"
+port = 5000
+
+[environment]
+node_version = "18"
+package_manager = "npm"
+
+[features]
+- AI-powered music mixing and mastering
+- Music distribution to 150+ platforms
+- Social media management with AI content generation
+- Revolutionary AI advertising system
+- Beat marketplace with peer-to-peer transactions
+- Comprehensive analytics and royalty tracking
+- Professional DAW (Studio One 7 clone)
+- Admin dashboard with system monitoring
+
+[quick_start]
+1. Set environment variables in Secrets tab
+2. Run: npm run replit:install
+3. Run: npm run replit:start
+4. Access: https://your-repl-name.your-username.repl.co
+
+[admin_access]
+email = "brandonlawson720@gmail.com"
+password = "admin123!"
+dashboard = "/admin"
+
+[api_endpoints]
+health = "/health"
+api_base = "/api"
+docs = "/docs"

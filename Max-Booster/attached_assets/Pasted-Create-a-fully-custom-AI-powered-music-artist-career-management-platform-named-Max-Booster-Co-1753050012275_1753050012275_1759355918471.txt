@@ -1,0 +1,47 @@
+Create a fully custom, AI-powered music artist career management platform named “Max Booster.”  
+
+Core Platform Features  
+- DistroKid clone with Stripe integration for royalty payouts.  
+- Studio One 7 clone rebranded for Max Booster, including perfect copies of every digital plugin ever created.  
+- AI track mixer and AI track mastering engine.  
+- Comprehensive user dashboard showing projects, royalty balances, and notifications.  
+- Analytics page with charts for streams, social growth, and revenue forecasts.  
+- Social media management page that auto-generates optimized posts for Facebook, Instagram, X (Twitter), YouTube, TikTok, Threads, Google Business, and LinkedIn, with OAuth-powered SaaS connections.  
+- Advertisement system page combining all native ad-platform capabilities into one AI engine that boosts every ad by 100%, eliminating the need for external ad spend.  
+- BeatStars clone with Stripe integration for peer-to-peer beat and sample transactions.  
+
+Pages & Routing  
+- Landing page with hero section, platform overview, and “Get Started” CTA.  
+- Pricing page: single plan offered in three tiers—Monthly $49, Yearly $399 (39/mo equivalent), Lifetime $699—with Stripe checkout and dedicated registration routes for each.  
+- Login/Register page with email/password and Google OAuth (per Replit auth configuration).  
+- Protected user routes for paid subscribers, plus admin portal (admin@maxbooster : admin123!) with role-based access control.  
+- Ensure seamless front-end/back-end routing, state management, and navigation guards.  
+
+Design & UX  
+- Modern, borderline futuristic layout inspired by Hootsuite.  
+- Update logo across all pages using the attached image; emphasize the blues in its palette.  
+- Consistent design tokens for colors, typography, spacing, and component sizes (buttons, sliders, forms).  
+- Fully responsive: desktop, tablet, and mobile breakpoints with identical content hierarchy.  
+- Interactive feedback on all UI elements (loaders, toasts, form validation).  
+
+Scalability & Security  
+- Architect to handle billions of users simultaneously (microservices or serverless).  
+- Auth system following mainstream standards: JWT or OAuth2 for session tokens, secure password hashing, CSRF protection.  
+- Encrypt sensitive data at rest and in transit.  
+- Role-based access checks on every API endpoint.  
+
+Automation & Testing  
+- Automate workflows tying royalties, analytics updates, social posts, and ad campaigns.  
+- Incorporate logging, error monitoring, and debug mode toggles.  
+- Provide automated unit and integration tests for OAuth flows, page components, and API contracts.  
+
+Deliverables  
+- Fully commented front-end and back-end code (HTML/CSS/SCSS, JavaScript/TypeScript, server frameworks).  
+- README with deployment steps, environment setup, testing commands, and maintenance guidelines.  
+- Asset folder containing the logo and any custom plugin files.  
+
+Development Approach  
+1. Break each page into atomic components; verify 100% production-grade functionality before proceeding.  
+2. Enforce professional coding standards (linting, formatting, commit hygiene).  
+3. No placeholder or test code in final build—every feature must be fully implemented and verified.  
+4. If any requested feature does not exist natively, build it in-house at mainstream platform quality.  

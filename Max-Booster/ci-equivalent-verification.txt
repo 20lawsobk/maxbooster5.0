@@ -1,0 +1,42 @@
+  console.log
+    
+    🔄 Starting 1-year long-term simulation (52 scenarios)...
+
+      at server/simulations/autonomousUpgradeSimulation.ts:475:11
+
+  console.log
+    
+    🔄 Starting 1-year long-term simulation (52 scenarios)...
+
+      at server/simulations/autonomousUpgradeSimulation.ts:475:11
+
+(node:9949) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS server/simulations/__tests__/verifyKPIs.test.ts (30.644 s)
+  AI System KPI Verification
+    Autonomous Upgrade System
+      ✓ meets ≥95% success rate (4 ms)
+      ✓ meets ≥100% quality threshold vs manual baseline (1 ms)
+      ✓ achieves zero downtime deployments (1 ms)
+      ✓ maintains or gains competitive advantage (1 ms)
+      ✓ meets detection speed SLA compliance (1 ms)
+      ✓ produces deterministic results (reproducible) (4 ms)
+      ✓ long-term simulation meets ≥95% success rate (65 ms)
+      ✓ long-term simulation maintains continuous adaptation (3 ms)
+    Ad Booster System
+      ✓ meets ≥2.0x amplification factor (100%+ boost) (1 ms)
+      ✓ comprehensive simulation - all scenarios pass (2 ms)
+      ✓ produces deterministic results (reproducible) (1 ms)
+      ✓ achieves zero cost organic amplification (1 ms)
+    Integration Tests
+      ✓ all critical KPIs pass together (1 ms)
+    Reproducibility Verification
+      ✓ running simulations multiple times produces identical results (1 ms)
+      ✓ different seeds produce different results (13 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       15 passed, 15 total
+Snapshots:   0 total
+Time:        31.182 s
+Ran all test suites matching /server\/simulations\/__tests__\/verifyKPIs.test.ts/i.
+EXIT_CODE=0

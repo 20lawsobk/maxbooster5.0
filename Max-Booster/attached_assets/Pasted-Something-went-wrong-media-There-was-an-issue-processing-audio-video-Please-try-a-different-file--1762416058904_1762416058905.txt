@@ -1,0 +1,18 @@
+Something went wrong
+media
+There was an issue processing audio/video. Please try a different file or format.
+Technical details
+analyzeAudioMutation is not defined
+
+Stack trace:
+ReferenceError: analyzeAudioMutation is not defined
+    at Studio (https://b3372fbe-cfe2-4ff6-ada7-c23aa9c3f93d-00-1z2axttb2987e.kirk.replit.dev/src/pages/Studio.tsx?t=1762415682250:2172:7)
+    at renderWithHooks (https://b3372fbe-cfe2-4ff6-ada7-c23aa9c3f93d-00-1z2axttb2987e.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=0ccc6f87:11548:26)
+    at updateFunctionComponent (https://b3372fbe-cfe2-4ff6-ada7-c23aa9c3f93d-00-1z2axttb2987e.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=0ccc6f87:14582:28)
+    at mountLazyComponent (https://b3372fbe-cfe2-4ff6-ada7-c23aa9c3f93d-00-1z2axttb2987e.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=0ccc6f87:14833:23)
+    at beginWork (https://b3372fbe-cfe2-4ff6-ada7-c23aa9c3f93d-00-1z2axttb2987e.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=0ccc6f87:15918:22)
+    at beginWork$1 (https://b3372fbe-cfe2-4ff6-ada7-c23aa9c3f93d-00-1z2axttb2987e.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=0ccc6f87:19753:22)
+    at performUnitOfWork (https://b3372fbe-cfe2-4ff6-ada7-c23aa9c3f93d-00-1z2axttb2987e.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=0ccc6f87:19198:20)
+    at workLoopSync (https://b3372fbe-cfe2-4ff6-ada7-c23aa9c3f93d-00-1z2axttb2987e.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=0ccc6f87:19137:13)
+    at renderRootSync (https://b3372fbe-cfe2-4ff6-ada7-c23aa9c3f93d-00-1z2axttb2987e.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=0ccc6f87:19116:15)
+    at recoverFromConcurrentError (https://b3372fbe-cfe2-4ff6-ada7-c23aa9c3f93d-00-1z2axttb2987e.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=0ccc6f87:18736:28)
