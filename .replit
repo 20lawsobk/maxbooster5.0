@@ -4,6 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
+packages = ["libuuid", "cairo", "pango", "libpng", "libjpeg", "giflib", "pkg-config", "pixman"]
 
 [workflows]
 runButton = "Project"
@@ -15,15 +16,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Next.js Dev Server"
+args = "Max Booster Platform"
 
 [[workflows.workflow]]
-name = "Next.js Dev Server"
+name = "Max Booster Platform"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd Max-Booster/client/my-app && npm run dev"
+args = "cd Max-Booster && npm run dev"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
@@ -33,7 +34,11 @@ outputType = "webview"
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 44211
+externalPort = 3000
+
 [deployment]
 deploymentTarget = "autoscale"
-run = ["bash", "-c", "cd Max-Booster/client/my-app && npm run start"]
-build = ["bash", "-c", "cd Max-Booster/client/my-app && npm run build"]
+run = ["bash", "-c", "cd Max-Booster && npm run start"]
+build = ["bash", "-c", "cd Max-Booster && npm run build"]
