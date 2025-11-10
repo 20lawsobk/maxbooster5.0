@@ -45,12 +45,18 @@ import { ConversionDialog } from '@/components/studio/ConversionDialog';
 import { PerformanceMonitor } from '@/components/studio/PerformanceMonitor';
 import { RecordingPanel } from '@/components/studio/RecordingPanel';
 import { WaveformVisualizer } from '@/components/studio/WaveformVisualizer';
+import { MarkerLane } from '@/components/studio/MarkerLane';
+import { ZoomControls } from '@/components/studio/ZoomControls';
+import { TimeRuler } from '@/components/studio/TimeRuler';
+import { AutomationLane } from '@/components/studio/AutomationLane';
 import AudioEngine from '@/lib/audioEngine';
 import { LayoutGrid } from '@/components/studio/LayoutGrid';
 import { StudioTopBar } from '@/components/studio/StudioTopBar';
 import { StudioInspector } from '@/components/studio/StudioInspector';
 import { StudioBrowser } from '@/components/studio/StudioBrowser';
 import { StudioDock } from '@/components/studio/StudioDock';
+import { useMarkers } from '@/hooks/useMarkers';
+import { useStudioStore } from '@/lib/studioStore';
 
 const TRACK_COLORS = [
   '#4ade80', '#60a5fa', '#f87171', '#fbbf24', '#a78bfa',
@@ -130,11 +136,18 @@ export default function Studio() {
   
   const [view, setView] = useState<'arrangement' | 'mixer'>('arrangement');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [zoom, setZoom] = useState(1);
   const [showBrowser, setShowBrowser] = useState(true);
   const [showInspector, setShowInspector] = useState(true);
   const [browserTab, setBrowserTab] = useState('files');
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
+  const [showAutomation, setShowAutomation] = useState(false);
+  const [automationParameter, setAutomationParameter] = useState<'volume' | 'pan' | 'effect-param'>('volume');
+  
+  // Use Zustand store for zoom and other timeline state
+  const { zoom, setZoom, currentTime: studioCurrentTime, setCurrentTime: setStudioCurrentTime } = useStudioStore();
+  
+  // Marker persistence with React Query
+  const markerService = useMarkers(selectedProject?.id || null);
   const [isAIMixing, setIsAIMixing] = useState(false);
   const [isAIMastering, setIsAIMastering] = useState(false);
   const [showLyricsPanel, setShowLyricsPanel] = useState(false);
@@ -1459,6 +1472,36 @@ export default function Studio() {
                               onModeChange={setVisualizerMode}
                             />
                           </div>
+                          {/* Zoom Controls and Snap Grid */}
+                          <ZoomControls />
+                          
+                          {/* Time Ruler */}
+                          <div className="flex">
+                            <div className="w-64 bg-[#252525] border-r border-gray-700" />
+                            <div className="flex-1">
+                              <TimeRuler
+                                duration={audioPlayer.state?.duration ?? 60}
+                                tempo={controller.transport.tempo}
+                                timeSignature={selectedProject?.timeSignature || '4/4'}
+                                loopEnabled={controller.transport.loopEnabled}
+                                loopStart={controller.transport.loopStart}
+                                loopEnd={controller.transport.loopEnd}
+                                onTimelineClick={handleTimelineClick}
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Marker Lane */}
+                          <div className="flex">
+                            <div className="w-64 bg-[#252525] border-r border-gray-700" />
+                            <div className="flex-1">
+                              <MarkerLane
+                                duration={audioPlayer.state?.duration ?? 60}
+                                onTimelineClick={handleTimelineClick}
+                              />
+                            </div>
+                          </div>
+                          
                           <div className="flex border-b border-gray-700">
                             <div className="w-64 bg-[#252525] border-r border-gray-700 p-2 flex items-center justify-between">
                               <div className="text-xs font-semibold text-gray-400">TRACKS</div>
@@ -1468,6 +1511,15 @@ export default function Studio() {
                                 </Button>
                                 <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => setShowAddBusDialog(true)} data-testid="button-add-bus">
                                   <MonitorSpeaker className="h-3 w-3 mr-1" />Bus
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant={showAutomation ? 'secondary' : 'ghost'} 
+                                  className="h-6 px-2 text-xs" 
+                                  onClick={() => setShowAutomation(!showAutomation)}
+                                  data-testid="button-toggle-automation"
+                                >
+                                  <Activity className="h-3 w-3 mr-1" />Auto
                                 </Button>
                               </div>
                             </div>
@@ -1492,6 +1544,23 @@ export default function Studio() {
                               />
                             </div>
                           </div>
+                          
+                          {/* Automation Lanes */}
+                          {showAutomation && selectedTrack && (
+                            <div className="flex">
+                              <div className="w-64 bg-[#252525] border-r border-gray-700" />
+                              <div className="flex-1">
+                                <AutomationLane
+                                  trackId={selectedTrack}
+                                  parameter={automationParameter}
+                                  duration={audioPlayer.state?.duration ?? 60}
+                                  onPointsChange={(points) => {
+                                    console.log('Automation points updated:', points);
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )}
                           <ScrollArea className="flex-1">
                             <TrackList
                               tracks={displayTracks}

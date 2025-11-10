@@ -26,6 +26,7 @@ const analyticsRedisClient = new Redis(config.redis.url, {
 analyticsRedisClient.on('error', (err) => console.error('Analytics Redis Error:', err));
 analyticsRedisClient.on('connect', () => console.log('✅ Analytics Redis connected'));
 import { setupReliabilityEndpoints } from "./routes/reliability-endpoints";
+import studioMarkersRouter from "./routes/studioMarkers";
 import { createSessionStore, getSessionConfig } from "./middleware/sessionConfig";
 import { ConnectionGuard } from './middleware/connectionGuard';
 import { globalRateLimiter, criticalEndpointLimiter } from './middleware/globalRateLimiter';
@@ -481,6 +482,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply critical endpoint limiter to sensitive operations
   app.use('/api/payments', criticalEndpointLimiter);
   app.use('/api/admin', criticalEndpointLimiter);
+
+  // Register studio marker routes
+  app.use('/api/studio', studioMarkersRouter);
 
   // Authentication routes - Legacy registration blocked for payment-first workflow
   app.post('/api/auth/register', async (req, res) => {
