@@ -1,0 +1,45 @@
+Universal DAW Layout Blueprint
+1. Timeline / Arrangement View (Top)
+• 	Purpose: Central canvas for audio, MIDI, automation, and arrangement blocks.
+• 	Key Features:
+• 	Horizontal tracks stacked vertically.
+• 	Zoomable grid with bars/beats and absolute time.
+• 	Marker track for navigation and looping.
+• 	Scratch pad or alternate arrangement lanes for experimentation.
+• 	Why Universal: Every DAW user—songwriter, producer, engineer—needs a clear timeline to structure ideas.
+
+2. Mixer / Console (Bottom)
+• 	Purpose: Signal flow control, gain staging, and effects routing.
+• 	Key Features:
+• 	Channel strips with fader, pan, inserts, sends.
+• 	Bus and subgroup visibility.
+• 	Metering for levels, phase, and dynamics.
+• 	Optional hardware I/O mapping.
+• 	Why Universal: Mixing is a deterministic process; a bottom‑anchored console mirrors physical studio desks and keeps routing transparent.
+
+3. Browser / Inspector (Side Panel)
+• 	Purpose: Asset management and contextual detail.
+• 	Key Features:
+• 	Browser for samples, instruments, plug‑ins, presets.
+• 	Inspector showing track‑specific parameters (I/O, gain, plug‑in chain).
+• 	Metadata indexing for reproducibility.
+• 	Why Universal: Keeps resources and track details instantly accessible without cluttering the main canvas.
+
+4. Transport Bar (Fixed, Center or Top)
+• 	Purpose: Playback control and global status.
+• 	Key Features:
+• 	Play, stop, record, loop, metronome.
+• 	Tempo, time signature, and sync indicators.
+• 	Toggle for “Follow Playhead” scrolling.
+• 	Why Universal: Every workflow depends on transport; it must be always visible.
+
+5. Optional Floating Panels
+• 	Editors: Audio editor, MIDI piano roll, automation lanes.
+• 	Routing Matrix: Grid view for hardware and bus connections.
+• 	Macro Toolbar: Customizable shortcuts for deterministic workflows.
+
+⚙️ Why This Layout Works Universally
+• 	Single‑Window Paradigm: Reduces cognitive load and eliminates modal interruptions.
+• 	Modular Zones: Timeline, mixer, and browser are distinct but interconnected.
+• 	Scalable: Works for beginners (simple track view) and pros (complex routing).
+• 	Cross‑Genre Compatibility: Equally effective for EDM, film scoring, live recording, or mastering.

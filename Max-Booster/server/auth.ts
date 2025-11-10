@@ -81,3 +81,6 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
   
   next();
 };
+
+// Alias for backwards compatibility
+export const requireAuth = requireAuthDual;

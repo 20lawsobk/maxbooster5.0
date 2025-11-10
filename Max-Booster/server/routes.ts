@@ -3833,6 +3833,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Marker Management
+  app.get('/api/studio/projects/:projectId/markers', requireAuth, async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const userId = (req.user as any).id;
+      
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const projectMarkers = await storage.getProjectMarkers(projectId);
+      res.json({ markers: projectMarkers });
+    } catch (error: any) {
+      console.error('Error fetching markers:', error);
+      res.status(500).json({ error: 'Failed to fetch markers' });
+    }
+  });
+  
+  app.post('/api/studio/projects/:projectId/markers', requireAuth, async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const userId = (req.user as any).id;
+      const { name, time, position, color, type } = req.body;
+      
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const newMarker = await storage.createMarker({
+        projectId,
+        name,
+        time,
+        position: position || time,
+        color,
+        type: type || 'marker'
+      });
+      
+      res.status(201).json(newMarker);
+    } catch (error: any) {
+      console.error('Error creating marker:', error);
+      res.status(500).json({ error: 'Failed to create marker' });
+    }
+  });
+  
+  app.patch('/api/studio/projects/:projectId/markers/:markerId', requireAuth, async (req, res) => {
+    try {
+      const { projectId, markerId } = req.params;
+      const userId = (req.user as any).id;
+      const updates = req.body;
+      
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ error: 'Unauthorized' });
+      }
+      
+      const updatedMarker = await storage.updateMarker(markerId, projectId, updates);
+      res.json(updatedMarker);
+    } catch (error: any) {
+      console.error('Error updating marker:', error);
+      res.status(500).json({ error: 'Failed to update marker' });
+    }
+  });
+  
+  app.delete('/api/studio/projects/:projectId/markers/:markerId', requireAuth, async (req, res) => {
+    try {
+      const { projectId, markerId } = req.params;
+      const userId = (req.user as any).id;
+      
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ error: 'Unauthorized' });
+      }
+      
+      await storage.deleteMarker(markerId, projectId);
+      res.status(204).send();
+    } catch (error: any) {
+      console.error('Error deleting marker:', error);
+      res.status(500).json({ error: 'Failed to delete marker' });
+    }
+  });
+
   // Automation Management
   app.get('/api/studio/projects/:projectId/automation', requireAuth, async (req, res) => {
     try {
