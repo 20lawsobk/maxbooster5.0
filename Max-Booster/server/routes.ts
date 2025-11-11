@@ -4994,7 +4994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/social/connect/youtube', requireAuth, (req, res) => {
-    if (!process.env.YOUTUBE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    if (!process.env.YOUTUBE_CLIENT_ID || !process.env.YOUTUBE_CLIENT_SECRET) {
       return res.redirect('/social-media?error=youtube-not-configured');
     }
     const user = req.user as any;
@@ -5014,7 +5014,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
         code,
         client_id: process.env.YOUTUBE_CLIENT_ID,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        client_secret: process.env.YOUTUBE_CLIENT_SECRET,
         redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/youtube`,
         grant_type: 'authorization_code'
       });
@@ -5060,11 +5060,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/social/connect/googlebusiness', requireAuth, (req, res) => {
-    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    if (!process.env.GOOGLE_BUSINESS_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
       return res.redirect('/social-media?error=googlebusiness-not-configured');
     }
     const user = req.user as any;
-    const googleBusinessAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${req.protocol}://${req.get('host')}/api/social/callback/googlebusiness`)}&scope=https://www.googleapis.com/auth/business.manage&state=${user.id}`;
+    const googleBusinessAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_BUSINESS_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${req.protocol}://${req.get('host')}/api/social/callback/googlebusiness`)}&scope=https://www.googleapis.com/auth/business.manage&state=${user.id}`;
     res.redirect(googleBusinessAuthUrl);
   });
 
@@ -5079,7 +5079,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
         code,
-        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_id: process.env.GOOGLE_BUSINESS_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
         redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/googlebusiness`,
         grant_type: 'authorization_code'
@@ -8115,7 +8115,7 @@ app.post("/api/social/connect/:platform", requireAuth, async (req, res) => {
       facebook: isValidCredential(process.env.FACEBOOK_APP_ID) && isValidCredential(process.env.FACEBOOK_APP_SECRET),
       instagram: isValidCredential(process.env.FACEBOOK_APP_ID) && isValidCredential(process.env.FACEBOOK_APP_SECRET),
       twitter: isValidCredential(process.env.TWITTER_API_KEY) && isValidCredential(process.env.TWITTER_API_SECRET),
-      youtube: isValidCredential(process.env.YOUTUBE_CLIENT_ID) && isValidCredential(process.env.GOOGLE_CLIENT_SECRET),
+      youtube: isValidCredential(process.env.YOUTUBE_CLIENT_ID) && isValidCredential(process.env.YOUTUBE_CLIENT_SECRET),
       tiktok: isValidCredential(process.env.TIKTOK_CLIENT_KEY) && isValidCredential(process.env.TIKTOK_CLIENT_SECRET),
       linkedin: isValidCredential(process.env.LINKEDIN_CLIENT_ID) && isValidCredential(process.env.LINKEDIN_CLIENT_SECRET),
       threads: isValidCredential(process.env.THREADS_APP_ID) && isValidCredential(process.env.THREADS_APP_SECRET),
@@ -8137,7 +8137,7 @@ app.post("/api/social/connect/:platform", requireAuth, async (req, res) => {
       facebook: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/facebook`)}&scope=pages_manage_posts,pages_read_engagement,pages_show_list,instagram_basic,instagram_content_publish&state=${user.id}`,
       instagram: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/instagram`)}&scope=instagram_basic,instagram_content_publish,instagram_manage_insights&state=${user.id}`,
       twitter: `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${process.env.TWITTER_API_KEY}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/twitter`)}&scope=tweet.read%20tweet.write%20users.read%20offline.access&state=${user.id}&code_challenge=challenge&code_challenge_method=plain`,
-      youtube: `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.YOUTUBE_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/youtube`)}&scope=https://www.googleapis.com/auth/youtube&state=${user.id}`,
+      youtube: `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.YOUTUBE_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/youtube`)}&scope=https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.upload&state=${user.id}`,
       tiktok: `https://www.tiktok.com/auth/authorize/?client_key=${process.env.TIKTOK_CLIENT_KEY}&response_type=code&scope=user.info.basic,video.list,video.upload&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/tiktok`)}&state=${user.id}`,
       linkedin: `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${process.env.LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/linkedin`)}&scope=w_member_social,r_liteprofile,r_emailaddress&state=${user.id}`,
       threads: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.THREADS_APP_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/threads`)}&scope=threads_basic,threads_content_publish,threads_manage_insights&state=${user.id}`,
