@@ -11469,7 +11469,8 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   const { supportAIService } = await import('./services/supportAIService.js');
 
   // Seed knowledge base on first run
-  await knowledgeBaseService.seedDefaultArticles();
+  // TODO: Re-enable after running db:push to create support tables
+  // await knowledgeBaseService.seedDefaultArticles();
 
   // Support Tickets - Create new ticket
   app.post("/api/support/tickets", requireAuth, async (req, res) => {
