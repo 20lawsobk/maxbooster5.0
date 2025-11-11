@@ -137,6 +137,8 @@ export interface IStorage {
   createStudioTrack(track: InsertStudioTrack): Promise<StudioTrack>;
   updateStudioTrack(id: string, projectId: string, updates: Partial<StudioTrack>): Promise<StudioTrack>;
   updateStudioTrackEffects(id: string, projectId: string, effects: any): Promise<StudioTrack>;
+  updateTrackProcessedAudio(trackId: string, projectId: string, filePath: string, processingInfo: { type: string; settings: any; timestamp: Date }): Promise<StudioTrack>;
+  getProcessedTrackAudio(trackId: string): Promise<{ filePath: string; processingInfo: any } | null>;
   deleteStudioTrack(id: string, projectId: string): Promise<void>;
   
   // Audio clip operations  
@@ -1793,6 +1795,90 @@ export class DatabaseStorage implements IStorage {
         return updatedTrack;
       },
       'updateStudioTrackEffects'
+    );
+  }
+
+  async updateTrackProcessedAudio(
+    trackId: string,
+    projectId: string,
+    filePath: string,
+    processingInfo: { type: string; settings: any; timestamp: Date }
+  ): Promise<StudioTrack> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [track] = await db
+          .select()
+          .from(studioTracks)
+          .where(sql`${studioTracks.id} = ${trackId} AND ${studioTracks.projectId} = ${projectId}`)
+          .limit(1);
+        
+        if (!track) {
+          throw new Error('Track not found');
+        }
+
+        const currentEffects = (track.effects as any) || {};
+        const processingHistory = (currentEffects.processingHistory || []) as any[];
+        
+        processingHistory.push({
+          type: processingInfo.type,
+          settings: processingInfo.settings,
+          filePath,
+          timestamp: processingInfo.timestamp.toISOString(),
+        });
+
+        const updatedEffects = {
+          ...currentEffects,
+          processingHistory,
+          lastProcessedFile: filePath,
+        };
+
+        const [updatedTrack] = await db
+          .update(studioTracks)
+          .set({ 
+            effects: updatedEffects,
+            frozenFilePath: filePath,
+            updatedAt: new Date() 
+          })
+          .where(sql`${studioTracks.id} = ${trackId} AND ${studioTracks.projectId} = ${projectId}`)
+          .returning();
+        
+        return updatedTrack;
+      },
+      'updateTrackProcessedAudio'
+    );
+  }
+
+  async getProcessedTrackAudio(trackId: string): Promise<{ filePath: string; processingInfo: any } | null> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [track] = await db
+          .select()
+          .from(studioTracks)
+          .where(eq(studioTracks.id, trackId))
+          .limit(1);
+        
+        if (!track) {
+          return null;
+        }
+
+        const effects = (track.effects as any) || {};
+        const lastProcessedFile = effects.lastProcessedFile;
+        const processingHistory = effects.processingHistory || [];
+        
+        if (!lastProcessedFile) {
+          return null;
+        }
+
+        const latestProcessing = processingHistory.length > 0 
+          ? processingHistory[processingHistory.length - 1]
+          : null;
+
+        return {
+          filePath: lastProcessedFile,
+          processingInfo: latestProcessing,
+        };
+      },
+      'getProcessedTrackAudio'
     );
   }
 
