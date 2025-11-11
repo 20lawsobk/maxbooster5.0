@@ -8,6 +8,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { KeyboardShortcutsDialog } from "@/components/dialogs/KeyboardShortcutsDialog";
 import { SkipLinks } from "@/components/SkipLinks";
+import { LiveChatWidget } from "@/components/support/LiveChatWidget";
 import { useKeyboardShortcuts, announce } from "@/lib/accessibility";
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
@@ -42,6 +43,7 @@ const Settings = lazy(() => import("@/pages/Settings"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const SecurityDashboard = lazy(() => import("@/pages/admin/SecurityDashboard"));
+const SupportDashboard = lazy(() => import("@/pages/admin/SupportDashboard"));
 const Projects = lazy(() => import("@/pages/Projects"));
 const Royalties = lazy(() => import("@/pages/Royalties"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
@@ -70,6 +72,7 @@ function Router() {
       <Route path="/pricing" component={Pricing} />
       <Route path="/subscribe/:tier" component={Subscribe} />
       <Route path="/admin/security" component={SecurityDashboard} />
+      <Route path="/admin/support" component={SupportDashboard} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin" component={Admin} />
       <Route path="/settings" component={Settings} />
@@ -197,6 +200,7 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
+            <LiveChatWidget />
             <div id="main-content" role="main" tabIndex={-1}>
               <Suspense fallback={
                 <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading application">

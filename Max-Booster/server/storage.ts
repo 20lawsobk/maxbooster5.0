@@ -1,4 +1,4 @@
-import { users, projects, analytics, notifications, releases, tracks, trackAnalysis, collaborators, earnings, hyperFollowPages, studioProjects, studioTracks, audioClips, midiClips, virtualInstruments, audioEffects, mixBusses, automationData, markers, lyrics, generatedMelodies, adCampaigns, adInsights, adCreatives, adAIRuns, adCampaignVariants, adPlatformAccounts, adDeliveryLogs, adKillRules, adRuleExecutions, adCompetitorIntelligence, adAudienceSegments, adCreativePredictions, adConversions, socialAccounts, socialCampaigns, posts, socialMetrics, payouts, listings, likes, orders, payoutEvents, passwordResetTokens, sessions, pluginCatalog, autosaves, exportJobs, distributionPackages, distributionTracks, studioConversions, studioCollabSessions, studioCollabSnapshots, projectCollaborators, projectRoyaltySplits, revenueEvents, royaltyLedger, royaltyPayments, collaboratorTaxProfiles, revenueImportHistory, forecastSnapshots, trendEvents, modelVersions, optimizationTasks, payoutSettings, paymentMethods, uploadSessions, isrcRegistry, upcRegistry, jwtTokens, refreshTokens, tokenRevocations, permissions, webhookEvents, webhookAttempts, webhookDeadLetterQueue, logEvents, royaltySplits, distroReleases, distroTracks, distroProviders, distroDispatch, socialInfluencerScores, socialViralTracking, socialNetworkAnalysis, type User, type InsertUser, type Project, type InsertProject, type Analytics, type InsertAnalytics, type Notification, type InsertNotification, type Release, type InsertRelease, type Track, type InsertTrack, type TrackAnalysis, type InsertTrackAnalysis, type StudioProject, type InsertStudioProject, type StudioTrack, type InsertStudioTrack, type AudioClip, type InsertAudioClip, type MidiClip, type InsertMidiClip, type VirtualInstrument, type InsertVirtualInstrument, type AudioEffect, type InsertAudioEffect, type MixBus, type InsertMixBus, type AutomationData, type InsertAutomationData, type Marker, type InsertMarker, type Lyrics, type InsertLyrics, type GeneratedMelody, type InsertGeneratedMelody, type SocialInfluencerScore, type InsertSocialInfluencerScore, type SocialViralTracking, type InsertSocialViralTracking, type SocialNetworkAnalysis, type InsertSocialNetworkAnalysis, type AdCampaign, type InsertAdCampaign, type AdInsights, type InsertAdInsights, type AdCreative, type InsertAdCreative, type AdCompetitorIntelligence, type InsertAdCompetitorIntelligence, type AdAudienceSegment, type InsertAdAudienceSegment, type AdCreativePrediction, type InsertAdCreativePrediction, type AdConversion, type InsertAdConversion, type AdAIRun, type InsertAdAIRun, type AdCampaignVariant, type DistroRelease, type InsertDistroRelease, type DistroTrack, type InsertDistroTrack, type InsertAdCampaignVariant, type AdPlatformAccount, type InsertAdPlatformAccount, type AdDeliveryLog, type InsertAdDeliveryLog, type AdKillRule, type InsertAdKillRule, type AdRuleExecution, type InsertAdRuleExecution, type Payout, type InsertPayout, type Listing, type Order, type Autosave, type InsertAutosave, type DistributionPackage, type InsertDistributionPackage, type DistributionTrack, type InsertDistributionTrack, type StudioCollabSession, type InsertStudioCollabSession, type StudioCollabSnapshot, type InsertStudioCollabSnapshot, type ProjectCollaborator, type InsertProjectCollaborator, type ProjectRoyaltySplit, type InsertProjectRoyaltySplit, type RevenueEvent, type InsertRevenueEvent, type RoyaltyLedger, type InsertRoyaltyLedger, type RoyaltyPayment, type InsertRoyaltyPayment, type CollaboratorTaxProfile, type InsertCollaboratorTaxProfile, type RevenueImportHistory, type InsertRevenueImportHistory, type ForecastSnapshot, type InsertForecastSnapshot, type TrendEvent, type InsertTrendEvent, type ModelVersion, type InsertModelVersion, type OptimizationTask, type InsertOptimizationTask, type PayoutSettings, type InsertPayoutSettings, type PaymentMethod, type InsertPaymentMethod, type UploadSession, type InsertUploadSession, type ISRCRegistry, type InsertISRCRegistry, type UPCRegistry, type InsertUPCRegistry, type JWTToken, type InsertJWTToken, type RefreshToken, type InsertRefreshToken, type TokenRevocation, type InsertTokenRevocation, type Permission, type InsertPermission, type WebhookAttempt, type InsertWebhookAttempt, type WebhookDeadLetterQueue, type InsertWebhookDeadLetterQueue, type LogEvent, type InsertLogEvent, type RoyaltySplit, aiModels, aiModelVersions, trainingDatasets, inferenceRuns, performanceMetrics, explanationLogs, featureFlags, aiCanaryDeployments, aiRetrainingSchedules, aiRetrainingRuns, aiDeploymentHistory, type AIModel, type InsertAIModel, type AIModelVersion, type InsertAIModelVersion, type TrainingDataset, type InsertTrainingDataset, type InferenceRun, type InsertInferenceRun, type PerformanceMetric, type InsertPerformanceMetric, type ExplanationLog, type InsertExplanationLog, type FeatureFlag, type InsertFeatureFlag, type AICanaryDeployment, type InsertAICanaryDeployment, type AIRetrainingSchedule, type InsertAIRetrainingSchedule, type AIRetrainingRun, type InsertAIRetrainingRun, type AIDeploymentHistory, type InsertAIDeploymentHistory, type InsertRoyaltySplit } from "@shared/schema";
+import { users, projects, analytics, analyticsAnomalies, notifications, releases, tracks, trackAnalysis, collaborators, earnings, hyperFollowPages, studioProjects, studioTracks, audioClips, midiClips, virtualInstruments, audioEffects, mixBusses, automationData, markers, lyrics, generatedMelodies, adCampaigns, adInsights, adCreatives, adAIRuns, adCampaignVariants, adPlatformAccounts, adDeliveryLogs, adKillRules, adRuleExecutions, adCompetitorIntelligence, adAudienceSegments, adCreativePredictions, adConversions, socialAccounts, socialCampaigns, posts, socialMetrics, payouts, listings, likes, orders, payoutEvents, passwordResetTokens, sessions, pluginCatalog, autosaves, exportJobs, distributionPackages, distributionTracks, studioConversions, studioCollabSessions, studioCollabSnapshots, projectCollaborators, projectRoyaltySplits, revenueEvents, royaltyLedger, royaltyPayments, collaboratorTaxProfiles, revenueImportHistory, forecastSnapshots, trendEvents, modelVersions, optimizationTasks, payoutSettings, paymentMethods, uploadSessions, isrcRegistry, upcRegistry, jwtTokens, refreshTokens, tokenRevocations, permissions, webhookEvents, webhookAttempts, webhookDeadLetterQueue, logEvents, royaltySplits, distroReleases, distroTracks, distroProviders, distroDispatch, socialInfluencerScores, socialViralTracking, socialNetworkAnalysis, complianceControls, complianceEvidence, complianceAudits, type User, type InsertUser, type Project, type InsertProject, type Analytics, type InsertAnalytics, type Notification, type InsertNotification, type Release, type InsertRelease, type Track, type InsertTrack, type TrackAnalysis, type InsertTrackAnalysis, type StudioProject, type InsertStudioProject, type StudioTrack, type InsertStudioTrack, type AudioClip, type InsertAudioClip, type MidiClip, type InsertMidiClip, type VirtualInstrument, type InsertVirtualInstrument, type AudioEffect, type InsertAudioEffect, type MixBus, type InsertMixBus, type AutomationData, type InsertAutomationData, type Marker, type InsertMarker, type Lyrics, type InsertLyrics, type GeneratedMelody, type ComplianceControl, type InsertComplianceControl, type ComplianceEvidence, type InsertComplianceEvidence, type ComplianceAudit, type InsertComplianceAudit, type InsertGeneratedMelody, type SocialInfluencerScore, type InsertSocialInfluencerScore, type SocialViralTracking, type InsertSocialViralTracking, type SocialNetworkAnalysis, type InsertSocialNetworkAnalysis, type AdCampaign, type InsertAdCampaign, type AdInsights, type InsertAdInsights, type AdCreative, type InsertAdCreative, type AdCompetitorIntelligence, type InsertAdCompetitorIntelligence, type AdAudienceSegment, type InsertAdAudienceSegment, type AdCreativePrediction, type InsertAdCreativePrediction, type AdConversion, type InsertAdConversion, type AdAIRun, type InsertAdAIRun, type AdCampaignVariant, type DistroRelease, type InsertDistroRelease, type DistroTrack, type InsertDistroTrack, type InsertAdCampaignVariant, type AdPlatformAccount, type InsertAdPlatformAccount, type AdDeliveryLog, type InsertAdDeliveryLog, type AdKillRule, type InsertAdKillRule, type AdRuleExecution, type InsertAdRuleExecution, type Payout, type InsertPayout, type Listing, type Order, type Autosave, type InsertAutosave, type DistributionPackage, type InsertDistributionPackage, type DistributionTrack, type InsertDistributionTrack, type StudioCollabSession, type InsertStudioCollabSession, type StudioCollabSnapshot, type InsertStudioCollabSnapshot, type ProjectCollaborator, type InsertProjectCollaborator, type ProjectRoyaltySplit, type InsertProjectRoyaltySplit, type RevenueEvent, type InsertRevenueEvent, type RoyaltyLedger, type InsertRoyaltyLedger, type RoyaltyPayment, type InsertRoyaltyPayment, type CollaboratorTaxProfile, type InsertCollaboratorTaxProfile, type RevenueImportHistory, type InsertRevenueImportHistory, type ForecastSnapshot, type InsertForecastSnapshot, type TrendEvent, type InsertTrendEvent, type ModelVersion, type InsertModelVersion, type OptimizationTask, type InsertOptimizationTask, type PayoutSettings, type InsertPayoutSettings, type PaymentMethod, type InsertPaymentMethod, type UploadSession, type InsertUploadSession, type ISRCRegistry, type InsertISRCRegistry, type UPCRegistry, type InsertUPCRegistry, type JWTToken, type InsertJWTToken, type RefreshToken, type InsertRefreshToken, type TokenRevocation, type InsertTokenRevocation, type Permission, type InsertPermission, type WebhookAttempt, type InsertWebhookAttempt, type WebhookDeadLetterQueue, type InsertWebhookDeadLetterQueue, type LogEvent, type InsertLogEvent, type RoyaltySplit, aiModels, aiModelVersions, trainingDatasets, inferenceRuns, performanceMetrics, explanationLogs, featureFlags, aiCanaryDeployments, aiRetrainingSchedules, aiRetrainingRuns, aiDeploymentHistory, type AIModel, type InsertAIModel, type AIModelVersion, type InsertAIModelVersion, type TrainingDataset, type InsertTrainingDataset, type InferenceRun, type InsertInferenceRun, type PerformanceMetric, type InsertPerformanceMetric, type ExplanationLog, type InsertExplanationLog, type FeatureFlag, type InsertFeatureFlag, type AICanaryDeployment, type InsertAICanaryDeployment, type AIRetrainingSchedule, type InsertAIRetrainingSchedule, type AIRetrainingRun, type InsertAIRetrainingRun, type AIDeploymentHistory, type InsertAIDeploymentHistory, type InsertRoyaltySplit } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, sql, and, gte, lte, or, like } from "drizzle-orm";
 import { databaseResilience } from "./reliability/database-resilience";
@@ -644,6 +644,44 @@ export interface IStorage {
   createRetrainingSchedule(schedule: InsertAIRetrainingSchedule): Promise<AIRetrainingSchedule>;
   createRetrainingRun(run: InsertAIRetrainingRun): Promise<AIRetrainingRun>;
   createDeploymentHistory(history: InsertAIDeploymentHistory): Promise<AIDeploymentHistory>;
+
+  // ============================================================================
+  // COMPLIANCE MANAGEMENT
+  // ============================================================================
+  
+  // Compliance Control operations
+  createComplianceControl(control: InsertComplianceControl): Promise<ComplianceControl>;
+  getComplianceControl(id: string): Promise<ComplianceControl | undefined>;
+  listComplianceControls(filters?: { standard?: string; status?: string; category?: string }): Promise<ComplianceControl[]>;
+  updateComplianceControl(id: string, updates: Partial<ComplianceControl>): Promise<ComplianceControl>;
+  deleteComplianceControl(id: string): Promise<void>;
+  getControlsByStandard(standard: string): Promise<ComplianceControl[]>;
+  getControlsNeedingReview(): Promise<ComplianceControl[]>;
+  
+  // Compliance Evidence operations
+  createComplianceEvidence(evidence: InsertComplianceEvidence): Promise<ComplianceEvidence>;
+  getComplianceEvidence(id: string): Promise<ComplianceEvidence | undefined>;
+  listComplianceEvidence(filters?: { controlId?: string; evidenceType?: string; automated?: boolean }): Promise<ComplianceEvidence[]>;
+  getEvidenceByControl(controlId: string): Promise<ComplianceEvidence[]>;
+  deleteComplianceEvidence(id: string): Promise<void>;
+  getExpiringEvidence(daysAhead?: number): Promise<ComplianceEvidence[]>;
+  
+  // Compliance Audit operations
+  createComplianceAudit(audit: InsertComplianceAudit): Promise<ComplianceAudit>;
+  getComplianceAudit(id: string): Promise<ComplianceAudit | undefined>;
+  getComplianceAuditByAuditId(auditId: string): Promise<ComplianceAudit | undefined>;
+  listComplianceAudits(filters?: { standard?: string; status?: string; startDate?: Date; endDate?: Date }): Promise<ComplianceAudit[]>;
+  updateComplianceAudit(id: string, updates: Partial<ComplianceAudit>): Promise<ComplianceAudit>;
+  getRecentAudits(limit?: number): Promise<ComplianceAudit[]>;
+  getComplianceOverview(): Promise<{
+    totalControls: number;
+    implementedControls: number;
+    partialControls: number;
+    plannedControls: number;
+    totalEvidence: number;
+    expiringEvidence: number;
+    recentAudits: number;
+  }>;
 }
 
 // Simple in-memory cache with TTL for frequently-accessed data
@@ -8750,6 +8788,322 @@ export class DatabaseStorage implements IStorage {
         return created;
       },
       'createDeploymentHistory'
+    );
+  }
+
+  // ============================================================================
+  // COMPLIANCE MANAGEMENT IMPLEMENTATIONS
+  // ============================================================================
+
+  async createComplianceControl(control: InsertComplianceControl): Promise<ComplianceControl> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(complianceControls).values(control).returning();
+        return created;
+      },
+      'createComplianceControl'
+    );
+  }
+
+  async getComplianceControl(id: string): Promise<ComplianceControl | undefined> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [control] = await db.select().from(complianceControls).where(eq(complianceControls.id, id));
+        return control;
+      },
+      'getComplianceControl'
+    );
+  }
+
+  async listComplianceControls(filters?: { standard?: string; status?: string; category?: string }): Promise<ComplianceControl[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        let query = db.select().from(complianceControls);
+        const conditions = [];
+
+        if (filters?.standard) {
+          conditions.push(eq(complianceControls.standard, filters.standard));
+        }
+        if (filters?.status) {
+          conditions.push(eq(complianceControls.status, filters.status));
+        }
+        if (filters?.category) {
+          conditions.push(eq(complianceControls.category, filters.category));
+        }
+
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions)) as any;
+        }
+
+        return await query;
+      },
+      'listComplianceControls'
+    );
+  }
+
+  async updateComplianceControl(id: string, updates: Partial<ComplianceControl>): Promise<ComplianceControl> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [updated] = await db.update(complianceControls)
+          .set({ ...updates, updatedAt: new Date() })
+          .where(eq(complianceControls.id, id))
+          .returning();
+        return updated;
+      },
+      'updateComplianceControl'
+    );
+  }
+
+  async deleteComplianceControl(id: string): Promise<void> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        await db.delete(complianceControls).where(eq(complianceControls.id, id));
+      },
+      'deleteComplianceControl'
+    );
+  }
+
+  async getControlsByStandard(standard: string): Promise<ComplianceControl[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        return await db.select().from(complianceControls)
+          .where(eq(complianceControls.standard, standard))
+          .orderBy(complianceControls.controlId);
+      },
+      'getControlsByStandard'
+    );
+  }
+
+  async getControlsNeedingReview(): Promise<ComplianceControl[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const today = new Date();
+        return await db.select().from(complianceControls)
+          .where(lte(complianceControls.nextReviewDate, today))
+          .orderBy(complianceControls.nextReviewDate);
+      },
+      'getControlsNeedingReview'
+    );
+  }
+
+  async createComplianceEvidence(evidence: InsertComplianceEvidence): Promise<ComplianceEvidence> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(complianceEvidence).values(evidence).returning();
+        return created;
+      },
+      'createComplianceEvidence'
+    );
+  }
+
+  async getComplianceEvidence(id: string): Promise<ComplianceEvidence | undefined> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [evidence] = await db.select().from(complianceEvidence).where(eq(complianceEvidence.id, id));
+        return evidence;
+      },
+      'getComplianceEvidence'
+    );
+  }
+
+  async listComplianceEvidence(filters?: { controlId?: string; evidenceType?: string; automated?: boolean }): Promise<ComplianceEvidence[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        let query = db.select().from(complianceEvidence);
+        const conditions = [];
+
+        if (filters?.controlId) {
+          conditions.push(eq(complianceEvidence.controlId, filters.controlId));
+        }
+        if (filters?.evidenceType) {
+          conditions.push(eq(complianceEvidence.evidenceType, filters.evidenceType));
+        }
+        if (filters?.automated !== undefined) {
+          conditions.push(eq(complianceEvidence.automated, filters.automated));
+        }
+
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions)) as any;
+        }
+
+        return await query.orderBy(desc(complianceEvidence.collectedAt));
+      },
+      'listComplianceEvidence'
+    );
+  }
+
+  async getEvidenceByControl(controlId: string): Promise<ComplianceEvidence[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        return await db.select().from(complianceEvidence)
+          .where(eq(complianceEvidence.controlId, controlId))
+          .orderBy(desc(complianceEvidence.collectedAt));
+      },
+      'getEvidenceByControl'
+    );
+  }
+
+  async deleteComplianceEvidence(id: string): Promise<void> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        await db.delete(complianceEvidence).where(eq(complianceEvidence.id, id));
+      },
+      'deleteComplianceEvidence'
+    );
+  }
+
+  async getExpiringEvidence(daysAhead: number = 30): Promise<ComplianceEvidence[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + daysAhead);
+        
+        return await db.select().from(complianceEvidence)
+          .where(and(
+            lte(complianceEvidence.validUntil, futureDate),
+            gte(complianceEvidence.validUntil, new Date())
+          ))
+          .orderBy(complianceEvidence.validUntil);
+      },
+      'getExpiringEvidence'
+    );
+  }
+
+  async createComplianceAudit(audit: InsertComplianceAudit): Promise<ComplianceAudit> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(complianceAudits).values(audit).returning();
+        return created;
+      },
+      'createComplianceAudit'
+    );
+  }
+
+  async getComplianceAudit(id: string): Promise<ComplianceAudit | undefined> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [audit] = await db.select().from(complianceAudits).where(eq(complianceAudits.id, id));
+        return audit;
+      },
+      'getComplianceAudit'
+    );
+  }
+
+  async getComplianceAuditByAuditId(auditId: string): Promise<ComplianceAudit | undefined> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [audit] = await db.select().from(complianceAudits).where(eq(complianceAudits.auditId, auditId));
+        return audit;
+      },
+      'getComplianceAuditByAuditId'
+    );
+  }
+
+  async listComplianceAudits(filters?: { standard?: string; status?: string; startDate?: Date; endDate?: Date }): Promise<ComplianceAudit[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        let query = db.select().from(complianceAudits);
+        const conditions = [];
+
+        if (filters?.standard) {
+          conditions.push(eq(complianceAudits.standard, filters.standard));
+        }
+        if (filters?.status) {
+          conditions.push(eq(complianceAudits.status, filters.status));
+        }
+        if (filters?.startDate) {
+          conditions.push(gte(complianceAudits.auditDate, filters.startDate));
+        }
+        if (filters?.endDate) {
+          conditions.push(lte(complianceAudits.auditDate, filters.endDate));
+        }
+
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions)) as any;
+        }
+
+        return await query.orderBy(desc(complianceAudits.auditDate));
+      },
+      'listComplianceAudits'
+    );
+  }
+
+  async updateComplianceAudit(id: string, updates: Partial<ComplianceAudit>): Promise<ComplianceAudit> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [updated] = await db.update(complianceAudits)
+          .set({ ...updates, updatedAt: new Date() })
+          .where(eq(complianceAudits.id, id))
+          .returning();
+        return updated;
+      },
+      'updateComplianceAudit'
+    );
+  }
+
+  async getRecentAudits(limit: number = 10): Promise<ComplianceAudit[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        return await db.select().from(complianceAudits)
+          .orderBy(desc(complianceAudits.auditDate))
+          .limit(limit);
+      },
+      'getRecentAudits'
+    );
+  }
+
+  async getComplianceOverview(): Promise<{
+    totalControls: number;
+    implementedControls: number;
+    partialControls: number;
+    plannedControls: number;
+    totalEvidence: number;
+    expiringEvidence: number;
+    recentAudits: number;
+  }> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [controlStats] = await db.select({
+          total: sql<number>`count(*)::int`,
+          implemented: sql<number>`count(case when status = 'implemented' then 1 end)::int`,
+          partial: sql<number>`count(case when status = 'partial' then 1 end)::int`,
+          planned: sql<number>`count(case when status = 'planned' then 1 end)::int`,
+        }).from(complianceControls);
+
+        const [evidenceStats] = await db.select({
+          total: sql<number>`count(*)::int`,
+        }).from(complianceEvidence);
+
+        const thirtyDaysFromNow = new Date();
+        thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+        
+        const [expiringStats] = await db.select({
+          expiring: sql<number>`count(*)::int`,
+        }).from(complianceEvidence)
+          .where(and(
+            lte(complianceEvidence.validUntil, thirtyDaysFromNow),
+            gte(complianceEvidence.validUntil, new Date())
+          ));
+
+        const ninetyDaysAgo = new Date();
+        ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+        
+        const [auditStats] = await db.select({
+          recent: sql<number>`count(*)::int`,
+        }).from(complianceAudits)
+          .where(gte(complianceAudits.auditDate, ninetyDaysAgo));
+
+        return {
+          totalControls: controlStats?.total || 0,
+          implementedControls: controlStats?.implemented || 0,
+          partialControls: controlStats?.partial || 0,
+          plannedControls: controlStats?.planned || 0,
+          totalEvidence: evidenceStats?.total || 0,
+          expiringEvidence: expiringStats?.expiring || 0,
+          recentAudits: auditStats?.recent || 0,
+        };
+      },
+      'getComplianceOverview'
     );
   }
 }

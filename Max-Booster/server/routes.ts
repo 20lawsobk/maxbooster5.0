@@ -11460,6 +11460,297 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     }
   };
 
+  // ============================================================================
+  // SUPPORT SYSTEM API ENDPOINTS
+  // ============================================================================
+
+  const { supportTicketService } = await import('./services/supportTicketService.js');
+  const { knowledgeBaseService } = await import('./services/knowledgeBaseService.js');
+  const { supportAIService } = await import('./services/supportAIService.js');
+
+  // Seed knowledge base on first run
+  await knowledgeBaseService.seedDefaultArticles();
+
+  // Support Tickets - Create new ticket
+  app.post("/api/support/tickets", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const ticketData = insertSupportTicketSchema.parse(req.body);
+      
+      const category = await supportAIService.categorizeTicket(
+        ticketData.subject,
+        ticketData.description
+      );
+      
+      const ticket = await supportTicketService.createTicket(userId, {
+        ...ticketData,
+        category: ticketData.category || category,
+      });
+      
+      res.json(ticket);
+    } catch (error: any) {
+      console.error('Error creating support ticket:', error);
+      res.status(500).json({ error: error.message || 'Failed to create ticket' });
+    }
+  });
+
+  // Support Tickets - Get user's tickets
+  app.get("/api/support/tickets", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const filters = {
+        status: req.query.status ? (req.query.status as string).split(',') : undefined,
+        priority: req.query.priority ? (req.query.priority as string).split(',') : undefined,
+        category: req.query.category as string,
+      };
+      
+      const tickets = await supportTicketService.getUserTickets(userId, filters);
+      res.json(tickets);
+    } catch (error: any) {
+      console.error('Error fetching tickets:', error);
+      res.status(500).json({ error: 'Failed to fetch tickets' });
+    }
+  });
+
+  // Support Tickets - Get all tickets (admin only)
+  app.get("/api/support/tickets/all", requireAuth, async (req, res) => {
+    try {
+      if (!req.user!.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      
+      const filters = {
+        status: req.query.status ? (req.query.status as string).split(',') : undefined,
+        priority: req.query.priority ? (req.query.priority as string).split(',') : undefined,
+        assignedTo: req.query.assignedTo as string,
+        search: req.query.search as string,
+      };
+      
+      const tickets = await supportTicketService.getAllTickets(filters);
+      res.json(tickets);
+    } catch (error: any) {
+      console.error('Error fetching all tickets:', error);
+      res.status(500).json({ error: 'Failed to fetch tickets' });
+    }
+  });
+
+  // Support Tickets - Get ticket by ID
+  app.get("/api/support/tickets/:id", requireAuth, async (req, res) => {
+    try {
+      const ticketId = req.params.id;
+      const userId = req.user!.id;
+      
+      const ticket = await supportTicketService.getTicketById(ticketId, userId);
+      
+      if (!ticket) {
+        return res.status(404).json({ error: 'Ticket not found' });
+      }
+      
+      res.json(ticket);
+    } catch (error: any) {
+      console.error('Error fetching ticket:', error);
+      res.status(error.message === 'Unauthorized to view this ticket' ? 403 : 500).json({ 
+        error: error.message || 'Failed to fetch ticket' 
+      });
+    }
+  });
+
+  // Support Tickets - Update ticket
+  app.patch("/api/support/tickets/:id", requireAuth, async (req, res) => {
+    try {
+      const ticketId = req.params.id;
+      const userId = req.user!.id;
+      const updates = updateSupportTicketSchema.parse(req.body);
+      
+      const ticket = await supportTicketService.updateTicket(ticketId, userId, updates);
+      res.json(ticket);
+    } catch (error: any) {
+      console.error('Error updating ticket:', error);
+      res.status(error.message.includes('Unauthorized') ? 403 : 500).json({ 
+        error: error.message || 'Failed to update ticket' 
+      });
+    }
+  });
+
+  // Support Tickets - Add message
+  app.post("/api/support/tickets/:id/messages", requireAuth, async (req, res) => {
+    try {
+      const ticketId = req.params.id;
+      const userId = req.user!.id;
+      const { message, attachments } = req.body;
+      
+      const isStaffReply = req.user!.isAdmin || false;
+      
+      const messageRecord = await supportTicketService.addMessage(
+        ticketId,
+        userId,
+        message,
+        isStaffReply,
+        attachments
+      );
+      
+      res.json(messageRecord);
+    } catch (error: any) {
+      console.error('Error adding message:', error);
+      res.status(500).json({ error: error.message || 'Failed to add message' });
+    }
+  });
+
+  // Support Tickets - Get stats (admin only)
+  app.get("/api/support/stats", requireAuth, async (req, res) => {
+    try {
+      if (!req.user!.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      
+      const stats = await supportTicketService.getTicketStats();
+      res.json(stats);
+    } catch (error: any) {
+      console.error('Error fetching ticket stats:', error);
+      res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+  });
+
+  // Knowledge Base - Search articles
+  app.get("/api/support/kb/articles", async (req, res) => {
+    try {
+      const query = req.query.search as string;
+      const category = req.query.category as string;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+      
+      const articles = await knowledgeBaseService.searchArticles(query, category, limit);
+      res.json(articles);
+    } catch (error: any) {
+      console.error('Error searching articles:', error);
+      res.status(500).json({ error: 'Failed to search articles' });
+    }
+  });
+
+  // Knowledge Base - Get article by ID
+  app.get("/api/support/kb/articles/:id", async (req, res) => {
+    try {
+      const articleId = req.params.id;
+      const article = await knowledgeBaseService.getArticleById(articleId);
+      
+      if (!article) {
+        return res.status(404).json({ error: 'Article not found' });
+      }
+      
+      res.json(article);
+    } catch (error: any) {
+      console.error('Error fetching article:', error);
+      res.status(500).json({ error: 'Failed to fetch article' });
+    }
+  });
+
+  // Knowledge Base - Mark article as helpful
+  app.post("/api/support/kb/articles/:id/feedback", async (req, res) => {
+    try {
+      const articleId = req.params.id;
+      const { helpful } = req.body;
+      
+      await knowledgeBaseService.markHelpful(articleId, helpful === true);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Error marking article feedback:', error);
+      res.status(500).json({ error: 'Failed to save feedback' });
+    }
+  });
+
+  // Knowledge Base - Get categories
+  app.get("/api/support/kb/categories", async (req, res) => {
+    try {
+      const categories = await knowledgeBaseService.getCategories();
+      res.json(categories);
+    } catch (error: any) {
+      console.error('Error fetching categories:', error);
+      res.status(500).json({ error: 'Failed to fetch categories' });
+    }
+  });
+
+  // Knowledge Base - Get popular articles
+  app.get("/api/support/kb/popular", async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const articles = await knowledgeBaseService.getPopularArticles(limit);
+      res.json(articles);
+    } catch (error: any) {
+      console.error('Error fetching popular articles:', error);
+      res.status(500).json({ error: 'Failed to fetch popular articles' });
+    }
+  });
+
+  // Knowledge Base - Create article (admin only)
+  app.post("/api/support/kb/articles", requireAuth, async (req, res) => {
+    try {
+      if (!req.user!.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      
+      const articleData = insertKnowledgeBaseArticleSchema.parse(req.body);
+      const article = await knowledgeBaseService.createArticle({
+        ...articleData,
+        authorId: req.user!.id,
+      });
+      
+      res.json(article);
+    } catch (error: any) {
+      console.error('Error creating article:', error);
+      res.status(500).json({ error: 'Failed to create article' });
+    }
+  });
+
+  // Knowledge Base - Update article (admin only)
+  app.patch("/api/support/kb/articles/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user!.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      
+      const articleId = req.params.id;
+      const updates = updateKnowledgeBaseArticleSchema.parse(req.body);
+      
+      const article = await knowledgeBaseService.updateArticle(articleId, updates);
+      res.json(article);
+    } catch (error: any) {
+      console.error('Error updating article:', error);
+      res.status(500).json({ error: 'Failed to update article' });
+    }
+  });
+
+  // Knowledge Base - Get stats (admin only)
+  app.get("/api/support/kb/stats", requireAuth, async (req, res) => {
+    try {
+      if (!req.user!.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      
+      const stats = await knowledgeBaseService.getKBStats();
+      res.json(stats);
+    } catch (error: any) {
+      console.error('Error fetching KB stats:', error);
+      res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+  });
+
+  // AI Support - Ask question
+  app.post("/api/support/ai/ask", async (req, res) => {
+    try {
+      const { question } = req.body;
+      const userId = req.user?.id;
+      
+      const response = await supportAIService.answerQuestion({
+        question,
+        userId,
+      });
+      
+      res.json(response);
+    } catch (error: any) {
+      console.error('Error answering question:', error);
+      res.status(500).json({ error: 'Failed to get answer' });
+    }
+  });
+
   // Job Queue Status Endpoints
   
   // Get job status by queue name and job ID

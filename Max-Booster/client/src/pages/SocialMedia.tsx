@@ -536,7 +536,7 @@ export default function SocialMedia() {
     });
   };
 
-  const handleSchedulePost = () => {
+  const handleSchedulePostFromTab = () => {
     if (!postContent.trim()) {
       toast({
         title: 'Content Required',
@@ -1044,7 +1044,7 @@ export default function SocialMedia() {
                           )}
                         </Button>
                         <Button
-                          onClick={handleSchedulePost}
+                          onClick={handleSchedulePostFromTab}
                           disabled={!postContent.trim() || selectedPlatforms.length === 0}
                           variant="outline"
                           data-testid="button-schedule-post"

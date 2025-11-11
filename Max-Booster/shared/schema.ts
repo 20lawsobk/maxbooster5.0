@@ -1696,6 +1696,111 @@ export const securityComplianceReports = pgTable("security_compliance_reports", 
   generatedAtIdx: index("security_compliance_reports_generated_at_idx").on(table.generatedAt),
 }));
 
+// ============================================================================
+// COMPLIANCE CONTROLS & EVIDENCE MANAGEMENT
+// ============================================================================
+
+// Compliance Controls - Track implementation status of controls across standards
+export const complianceControls = pgTable("compliance_controls", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  standard: varchar("standard", { length: 100 }).notNull(), // SOC2, ISO27001, GDPR, HIPAA, PCI
+  controlId: varchar("control_id", { length: 100 }).notNull(), // e.g., CC1.1, A.9.1.1, Art.32
+  title: varchar("title", { length: 500 }).notNull(),
+  description: text("description").notNull(),
+  category: varchar("category", { length: 100 }).notNull(), // Security, Availability, Privacy, etc.
+  status: varchar("status", { length: 50 }).notNull().default("planned"), // implemented, partial, planned
+  evidenceUrls: jsonb("evidence_urls"), // Array of URLs/paths to evidence
+  implementationNotes: text("implementation_notes"),
+  responsibleParty: varchar("responsible_party", { length: 255 }),
+  automatedCheck: boolean("automated_check").default(false),
+  checkFrequency: varchar("check_frequency", { length: 50 }), // daily, weekly, monthly
+  lastAuditDate: timestamp("last_audit_date"),
+  nextReviewDate: timestamp("next_review_date"),
+  complianceScore: integer("compliance_score"), // 0-100
+  remediationPlan: text("remediation_plan"),
+  priority: varchar("priority", { length: 20 }), // low, medium, high, critical
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  standardIdx: index("compliance_controls_standard_idx").on(table.standard),
+  controlIdIdx: index("compliance_controls_control_id_idx").on(table.controlId),
+  statusIdx: index("compliance_controls_status_idx").on(table.status),
+  categoryIdx: index("compliance_controls_category_idx").on(table.category),
+  nextReviewDateIdx: index("compliance_controls_next_review_date_idx").on(table.nextReviewDate),
+  standardControlIdx: index("compliance_controls_standard_control_idx").on(table.standard, table.controlId),
+}));
+
+// Compliance Evidence - Automated and manual evidence collection
+export const complianceEvidence = pgTable("compliance_evidence", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  controlId: uuid("control_id").notNull(),
+  evidenceType: varchar("evidence_type", { length: 100 }).notNull(), // audit_log, screenshot, policy_doc, penetration_test, backup_log, access_review
+  title: varchar("title", { length: 500 }).notNull(),
+  description: text("description"),
+  filePath: varchar("file_path", { length: 1000 }),
+  fileUrl: varchar("file_url", { length: 1000 }),
+  fileSize: integer("file_size"),
+  mimeType: varchar("mime_type", { length: 100 }),
+  metadata: jsonb("metadata"), // Additional context-specific data
+  automated: boolean("automated").default(false), // Was this automatically collected?
+  collectionMethod: varchar("collection_method", { length: 255 }),
+  collectedBy: varchar("collected_by", { length: 255 }),
+  collectedAt: timestamp("collected_at").defaultNow().notNull(),
+  validUntil: timestamp("valid_until"), // Evidence expiration date
+  verified: boolean("verified").default(false),
+  verifiedBy: varchar("verified_by", { length: 255 }),
+  verifiedAt: timestamp("verified_at"),
+  hashChecksum: varchar("hash_checksum", { length: 255 }), // SHA-256 for integrity
+  relatedStandards: jsonb("related_standards"), // Array of standard names this evidence supports
+}, (table) => ({
+  controlIdIdx: index("compliance_evidence_control_id_idx").on(table.controlId),
+  evidenceTypeIdx: index("compliance_evidence_evidence_type_idx").on(table.evidenceType),
+  collectedAtIdx: index("compliance_evidence_collected_at_idx").on(table.collectedAt),
+  validUntilIdx: index("compliance_evidence_valid_until_idx").on(table.validUntil),
+  automatedIdx: index("compliance_evidence_automated_idx").on(table.automated),
+}));
+
+// Compliance Audits - Track formal audits and their outcomes
+export const complianceAudits = pgTable("compliance_audits", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  auditId: varchar("audit_id", { length: 255 }).notNull().unique(),
+  standard: varchar("standard", { length: 100 }).notNull(), // SOC2, ISO27001, GDPR, etc.
+  auditType: varchar("audit_type", { length: 100 }).notNull(), // internal, external, self-assessment
+  auditDate: timestamp("audit_date").notNull(),
+  auditor: varchar("auditor", { length: 255 }), // Auditing firm or person
+  auditorContact: varchar("auditor_contact", { length: 255 }),
+  scope: text("scope"), // What was included in audit
+  findings: jsonb("findings").notNull(), // Detailed findings array
+  status: varchar("status", { length: 50 }).notNull(), // passed, failed, needs_improvement, in_progress
+  overallScore: real("overall_score"), // 0-100
+  passedControls: integer("passed_controls").default(0),
+  failedControls: integer("failed_controls").default(0),
+  partialControls: integer("partial_controls").default(0),
+  totalControls: integer("total_controls").default(0),
+  criticalFindings: integer("critical_findings").default(0),
+  highFindings: integer("high_findings").default(0),
+  mediumFindings: integer("medium_findings").default(0),
+  lowFindings: integer("low_findings").default(0),
+  recommendations: jsonb("recommendations"), // Array of remediation recommendations
+  actionPlan: text("action_plan"),
+  reportUrl: varchar("report_url", { length: 1000 }),
+  reportPath: varchar("report_path", { length: 1000 }),
+  certificateIssued: boolean("certificate_issued").default(false),
+  certificateValidUntil: timestamp("certificate_valid_until"),
+  nextAuditDate: timestamp("next_audit_date"),
+  createdBy: varchar("created_by", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+  metadata: jsonb("metadata"),
+}, (table) => ({
+  auditIdIdx: index("compliance_audits_audit_id_idx").on(table.auditId),
+  standardIdx: index("compliance_audits_standard_idx").on(table.standard),
+  auditDateIdx: index("compliance_audits_audit_date_idx").on(table.auditDate),
+  statusIdx: index("compliance_audits_status_idx").on(table.status),
+  nextAuditDateIdx: index("compliance_audits_next_audit_date_idx").on(table.nextAuditDate),
+}));
+
 // AI Music Suite Additions
 
 // Audio Assets
@@ -2719,6 +2824,115 @@ export const socialNetworkAnalysis = pgTable("social_network_analysis", {
 }));
 
 // ============================================================================
+// CUSTOMER SUPPORT SYSTEM
+// ============================================================================
+
+export const ticketStatusEnum = pgEnum('ticket_status', [
+  'open', 'in_progress', 'resolved', 'closed'
+]);
+
+export const ticketPriorityEnum = pgEnum('ticket_priority', [
+  'low', 'medium', 'high', 'critical'
+]);
+
+export const supportTickets = pgTable("support_tickets", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  subject: varchar("subject", { length: 500 }).notNull(),
+  description: text("description").notNull(),
+  status: ticketStatusEnum("status").default('open').notNull(),
+  priority: ticketPriorityEnum("priority").default('medium').notNull(),
+  category: varchar("category", { length: 100 }),
+  assignedTo: varchar("assigned_to", { length: 255 }).references(() => users.id),
+  resolvedAt: timestamp("resolved_at"),
+  closedAt: timestamp("closed_at"),
+  satisfaction: integer("satisfaction"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("support_tickets_user_id_idx").on(table.userId),
+  statusIdx: index("support_tickets_status_idx").on(table.status),
+  priorityIdx: index("support_tickets_priority_idx").on(table.priority),
+  assignedToIdx: index("support_tickets_assigned_to_idx").on(table.assignedTo),
+  createdAtIdx: index("support_tickets_created_at_idx").on(table.createdAt),
+  userStatusIdx: index("support_tickets_user_status_idx").on(table.userId, table.status),
+}));
+
+export const supportTicketMessages = pgTable("support_ticket_messages", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  ticketId: uuid("ticket_id").notNull().references(() => supportTickets.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id),
+  message: text("message").notNull(),
+  isStaffReply: boolean("is_staff_reply").default(false),
+  attachments: jsonb("attachments"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  ticketIdIdx: index("support_ticket_messages_ticket_id_idx").on(table.ticketId),
+  createdAtIdx: index("support_ticket_messages_created_at_idx").on(table.createdAt),
+}));
+
+export const supportTicketTags = pgTable("support_ticket_tags", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  ticketId: uuid("ticket_id").notNull().references(() => supportTickets.id, { onDelete: 'cascade' }),
+  tag: varchar("tag", { length: 100 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  ticketIdIdx: index("support_ticket_tags_ticket_id_idx").on(table.ticketId),
+  tagIdx: index("support_ticket_tags_tag_idx").on(table.tag),
+}));
+
+export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title", { length: 500 }).notNull(),
+  content: text("content").notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  tags: jsonb("tags"),
+  views: integer("views").default(0),
+  helpfulCount: integer("helpful_count").default(0),
+  notHelpfulCount: integer("not_helpful_count").default(0),
+  isPublished: boolean("is_published").default(false),
+  authorId: varchar("author_id", { length: 255 }).references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  categoryIdx: index("kb_articles_category_idx").on(table.category),
+  isPublishedIdx: index("kb_articles_is_published_idx").on(table.isPublished),
+  viewsIdx: index("kb_articles_views_idx").on(table.views),
+  helpfulCountIdx: index("kb_articles_helpful_count_idx").on(table.helpfulCount),
+}));
+
+export const chatSessions = pgTable("chat_sessions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id, { onDelete: 'cascade' }),
+  sessionToken: varchar("session_token", { length: 255 }).notNull().unique(),
+  status: varchar("status", { length: 50 }).default('active'),
+  escalatedToTicket: uuid("escalated_to_ticket").references(() => supportTickets.id),
+  assignedStaff: varchar("assigned_staff", { length: 255 }).references(() => users.id),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  endedAt: timestamp("ended_at"),
+}, (table) => ({
+  userIdIdx: index("chat_sessions_user_id_idx").on(table.userId),
+  sessionTokenIdx: index("chat_sessions_session_token_idx").on(table.sessionToken),
+  statusIdx: index("chat_sessions_status_idx").on(table.status),
+  createdAtIdx: index("chat_sessions_created_at_idx").on(table.createdAt),
+}));
+
+export const chatMessages = pgTable("chat_messages", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: uuid("session_id").notNull().references(() => chatSessions.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id),
+  message: text("message").notNull(),
+  isAI: boolean("is_ai").default(false),
+  isStaff: boolean("is_staff").default(false),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  sessionIdIdx: index("chat_messages_session_id_idx").on(table.sessionId),
+  createdAtIdx: index("chat_messages_created_at_idx").on(table.createdAt),
+}));
+
+// ============================================================================
 // AI GOVERNANCE & MODEL MANAGEMENT
 // ============================================================================
 
@@ -3441,6 +3655,23 @@ export const insertSecurityComplianceReportSchema = createInsertSchema(securityC
   generatedAt: true,
 });
 
+export const insertComplianceControlSchema = createInsertSchema(complianceControls).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertComplianceEvidenceSchema = createInsertSchema(complianceEvidence).omit({
+  id: true,
+  collectedAt: true,
+});
+
+export const insertComplianceAuditSchema = createInsertSchema(complianceAudits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertSystemFlagSchema = createInsertSchema(systemFlags);
 
 export const insertAssetSchema = createInsertSchema(assets).omit({
@@ -3590,6 +3821,9 @@ export type InsertSecurityAnomaly = z.infer<typeof insertSecurityAnomalySchema>;
 export type InsertSecurityZeroDayAlert = z.infer<typeof insertSecurityZeroDayAlertSchema>;
 export type InsertSecurityPenTestResult = z.infer<typeof insertSecurityPenTestResultSchema>;
 export type InsertSecurityComplianceReport = z.infer<typeof insertSecurityComplianceReportSchema>;
+export type InsertComplianceControl = z.infer<typeof insertComplianceControlSchema>;
+export type InsertComplianceEvidence = z.infer<typeof insertComplianceEvidenceSchema>;
+export type InsertComplianceAudit = z.infer<typeof insertComplianceAuditSchema>;
 export type InsertSystemFlag = z.infer<typeof insertSystemFlagSchema>;
 export type InsertAsset = z.infer<typeof insertAssetSchema>;
 export type InsertClip = z.infer<typeof insertClipSchema>;
@@ -3665,6 +3899,9 @@ export type SecurityAnomaly = typeof securityAnomalies.$inferSelect;
 export type SecurityZeroDayAlert = typeof securityZeroDayAlerts.$inferSelect;
 export type SecurityPenTestResult = typeof securityPenTestResults.$inferSelect;
 export type SecurityComplianceReport = typeof securityComplianceReports.$inferSelect;
+export type ComplianceControl = typeof complianceControls.$inferSelect;
+export type ComplianceEvidence = typeof complianceEvidence.$inferSelect;
+export type ComplianceAudit = typeof complianceAudits.$inferSelect;
 export type SystemFlag = typeof systemFlags.$inferSelect;
 export type Asset = typeof assets.$inferSelect;
 export type Clip = typeof clips.$inferSelect;
@@ -4474,3 +4711,35 @@ export type InsertAIRetrainingRun = z.infer<typeof insertAIRetrainingRunSchema>;
 export type AIDeploymentHistory = typeof aiDeploymentHistory.$inferSelect;
 export const insertAIDeploymentHistorySchema = createInsertSchema(aiDeploymentHistory).omit({ id: true });
 export type InsertAIDeploymentHistory = z.infer<typeof insertAIDeploymentHistorySchema>;
+
+// ============================================================================
+// CUSTOMER SUPPORT SYSTEM - Type Exports
+// ============================================================================
+
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit({ id: true, createdAt: true, updatedAt: true });
+export const updateSupportTicketSchema = insertSupportTicketSchema.partial();
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
+export type UpdateSupportTicket = z.infer<typeof updateSupportTicketSchema>;
+
+export type SupportTicketMessage = typeof supportTicketMessages.$inferSelect;
+export const insertSupportTicketMessageSchema = createInsertSchema(supportTicketMessages).omit({ id: true, createdAt: true });
+export type InsertSupportTicketMessage = z.infer<typeof insertSupportTicketMessageSchema>;
+
+export type SupportTicketTag = typeof supportTicketTags.$inferSelect;
+export const insertSupportTicketTagSchema = createInsertSchema(supportTicketTags).omit({ id: true, createdAt: true });
+export type InsertSupportTicketTag = z.infer<typeof insertSupportTicketTagSchema>;
+
+export type KnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferSelect;
+export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBaseArticles).omit({ id: true, createdAt: true, updatedAt: true });
+export const updateKnowledgeBaseArticleSchema = insertKnowledgeBaseArticleSchema.partial();
+export type InsertKnowledgeBaseArticle = z.infer<typeof insertKnowledgeBaseArticleSchema>;
+export type UpdateKnowledgeBaseArticle = z.infer<typeof updateKnowledgeBaseArticleSchema>;
+
+export type ChatSession = typeof chatSessions.$inferSelect;
+export const insertChatSessionSchema = createInsertSchema(chatSessions).omit({ id: true, createdAt: true });
+export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
+
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({ id: true, createdAt: true });
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;

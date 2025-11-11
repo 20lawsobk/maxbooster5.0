@@ -114,6 +114,204 @@ class EmailService {
     });
   }
 
+  async sendTicketCreatedEmail(
+    to: string,
+    userName: string,
+    ticketSubject: string,
+    ticketId: string
+  ): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.warn('⚠️  SendGrid not initialized, skipping ticket created email');
+      return false;
+    }
+
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'support@maxbooster.ai';
+    
+    const emailData = {
+      to,
+      from: fromEmail,
+      subject: `Support Ticket Created: ${ticketSubject}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+          <div style="background-color: #f3f4f6; padding: 40px 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                <h1 style="margin: 0; color: #ffffff; font-size: 24px;">Support Ticket Created</h1>
+              </div>
+              <div style="padding: 30px;">
+                <p>Hi ${userName},</p>
+                <p>Your support ticket has been successfully created. Our team will review it and respond as soon as possible.</p>
+                <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <p style="margin: 0; font-weight: bold;">Subject:</p>
+                  <p style="margin: 5px 0 0;">${ticketSubject}</p>
+                  <p style="margin: 15px 0 0; font-weight: bold;">Ticket ID:</p>
+                  <p style="margin: 5px 0 0;">${ticketId}</p>
+                </div>
+                <p>You can track the status of your ticket in your account dashboard.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="https://maxbooster.ai/support/tickets/${ticketId}" style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px;">View Ticket</a>
+                </div>
+                <p style="color: #6b7280; font-size: 14px;">Thank you for using Max Booster!</p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Hi ${userName},\n\nYour support ticket has been created.\n\nSubject: ${ticketSubject}\nTicket ID: ${ticketId}\n\nOur team will respond as soon as possible.\n\nView your ticket: https://maxbooster.ai/support/tickets/${ticketId}`,
+    };
+
+    const startTime = Date.now();
+    try {
+      await sgMail.send(emailData);
+      const deliveryTime = Date.now() - startTime;
+      emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
+      return true;
+    } catch (error: any) {
+      const deliveryTime = Date.now() - startTime;
+      const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
+      emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
+      console.error('❌ Failed to send ticket created email:', errorMessage);
+      return false;
+    }
+  }
+
+  async sendTicketReplyEmail(
+    to: string,
+    userName: string,
+    ticketSubject: string,
+    ticketId: string,
+    replyMessage: string
+  ): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.warn('⚠️  SendGrid not initialized, skipping ticket reply email');
+      return false;
+    }
+
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'support@maxbooster.ai';
+    const truncatedMessage = replyMessage.length > 200 ? replyMessage.substring(0, 200) + '...' : replyMessage;
+    
+    const emailData = {
+      to,
+      from: fromEmail,
+      subject: `New Reply on: ${ticketSubject}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+          <div style="background-color: #f3f4f6; padding: 40px 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                <h1 style="margin: 0; color: #ffffff; font-size: 24px;">New Support Reply</h1>
+              </div>
+              <div style="padding: 30px;">
+                <p>Hi ${userName},</p>
+                <p>You have a new reply on your support ticket:</p>
+                <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <p style="margin: 0; font-weight: bold;">Ticket:</p>
+                  <p style="margin: 5px 0 15px;">${ticketSubject}</p>
+                  <p style="margin: 0; font-weight: bold;">Reply:</p>
+                  <p style="margin: 5px 0 0;">${truncatedMessage}</p>
+                </div>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="https://maxbooster.ai/support/tickets/${ticketId}" style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px;">View Full Conversation</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Hi ${userName},\n\nYou have a new reply on your support ticket: ${ticketSubject}\n\nReply: ${truncatedMessage}\n\nView full conversation: https://maxbooster.ai/support/tickets/${ticketId}`,
+    };
+
+    const startTime = Date.now();
+    try {
+      await sgMail.send(emailData);
+      const deliveryTime = Date.now() - startTime;
+      emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
+      return true;
+    } catch (error: any) {
+      const deliveryTime = Date.now() - startTime;
+      const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
+      emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
+      console.error('❌ Failed to send ticket reply email:', errorMessage);
+      return false;
+    }
+  }
+
+  async sendTicketStatusUpdateEmail(
+    to: string,
+    userName: string,
+    ticketSubject: string,
+    ticketId: string,
+    newStatus: string
+  ): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.warn('⚠️  SendGrid not initialized, skipping ticket status update email');
+      return false;
+    }
+
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'support@maxbooster.ai';
+    const statusMessages: Record<string, string> = {
+      open: 'Your ticket is now open and awaiting review.',
+      in_progress: 'Our team is actively working on your ticket.',
+      resolved: 'Your ticket has been resolved!',
+      closed: 'Your ticket has been closed.',
+    };
+    
+    const emailData = {
+      to,
+      from: fromEmail,
+      subject: `Ticket Status Update: ${ticketSubject}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+          <div style="background-color: #f3f4f6; padding: 40px 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                <h1 style="margin: 0; color: #ffffff; font-size: 24px;">Ticket Status Updated</h1>
+              </div>
+              <div style="padding: 30px;">
+                <p>Hi ${userName},</p>
+                <p>The status of your support ticket has been updated:</p>
+                <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <p style="margin: 0; font-weight: bold;">Ticket:</p>
+                  <p style="margin: 5px 0 15px;">${ticketSubject}</p>
+                  <p style="margin: 0; font-weight: bold;">New Status:</p>
+                  <p style="margin: 5px 0 0; color: #667eea; font-size: 18px; text-transform: uppercase;">${newStatus.replace('_', ' ')}</p>
+                  <p style="margin: 10px 0 0; color: #6b7280;">${statusMessages[newStatus] || 'Status has been updated.'}</p>
+                </div>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="https://maxbooster.ai/support/tickets/${ticketId}" style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px;">View Ticket</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Hi ${userName},\n\nYour support ticket status has been updated to: ${newStatus.replace('_', ' ').toUpperCase()}\n\nTicket: ${ticketSubject}\n\n${statusMessages[newStatus] || 'Status has been updated.'}\n\nView ticket: https://maxbooster.ai/support/tickets/${ticketId}`,
+    };
+
+    const startTime = Date.now();
+    try {
+      await sgMail.send(emailData);
+      const deliveryTime = Date.now() - startTime;
+      emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
+      return true;
+    } catch (error: any) {
+      const deliveryTime = Date.now() - startTime;
+      const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
+      emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
+      console.error('❌ Failed to send ticket status update email:', errorMessage);
+      return false;
+    }
+  }
+
   private getInvitationTemplate(data: InvitationEmailData): {
     subject: string;
     html: string;
