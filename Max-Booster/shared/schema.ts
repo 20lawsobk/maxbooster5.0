@@ -1674,6 +1674,690 @@ export const projectCollaborators = pgTable("project_collaborators", {
   projectUserIdx: index("project_collaborators_project_user_idx").on(table.projectId, table.userId),
 }));
 
+// ============================================================================
+// PROFESSIONAL FEATURES - Social Media Suite
+// ============================================================================
+
+// Content Calendar - Visual calendar for scheduling posts
+export const contentCalendar = pgTable("content_calendar", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: varchar("title", { length: 255 }).notNull(),
+  scheduledFor: timestamp("scheduled_for").notNull(),
+  platforms: jsonb("platforms").notNull(), // ['facebook', 'instagram', 'twitter', etc]
+  status: varchar("status", { length: 50 }).default("draft").notNull(), // draft, scheduled, published, failed
+  postType: varchar("post_type", { length: 50 }).notNull(), // post, story, reel, video
+  content: text("content"),
+  mediaUrls: jsonb("media_urls"),
+  hashtags: jsonb("hashtags"),
+  mentions: jsonb("mentions"),
+  location: varchar("location", { length: 255 }),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("content_calendar_user_id_idx").on(table.userId),
+  scheduledForIdx: index("content_calendar_scheduled_for_idx").on(table.scheduledFor),
+  statusIdx: index("content_calendar_status_idx").on(table.status),
+}));
+
+// Unified Inbox - Aggregated messages from all social platforms
+export const unifiedInboxMessages = pgTable("unified_inbox_messages", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  platform: varchar("platform", { length: 50 }).notNull(), // facebook, instagram, twitter, etc
+  messageType: varchar("message_type", { length: 50 }).notNull(), // dm, comment, mention, reply
+  externalId: varchar("external_id", { length: 255 }), // Platform's message ID
+  fromUsername: varchar("from_username", { length: 255 }),
+  fromDisplayName: varchar("from_display_name", { length: 255 }),
+  content: text("content").notNull(),
+  postUrl: varchar("post_url", { length: 500 }),
+  isRead: boolean("is_read").default(false),
+  isReplied: boolean("is_replied").default(false),
+  replyText: text("reply_text"),
+  sentiment: varchar("sentiment", { length: 20 }), // positive, negative, neutral
+  priority: varchar("priority", { length: 20 }).default("normal"), // high, normal, low
+  receivedAt: timestamp("received_at").defaultNow().notNull(),
+  repliedAt: timestamp("replied_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("unified_inbox_user_id_idx").on(table.userId),
+  platformIdx: index("unified_inbox_platform_idx").on(table.platform),
+  isReadIdx: index("unified_inbox_is_read_idx").on(table.isRead),
+  receivedAtIdx: index("unified_inbox_received_at_idx").on(table.receivedAt),
+  userPlatformIdx: index("unified_inbox_user_platform_idx").on(table.userId, table.platform),
+}));
+
+// Best Posting Times - AI-calculated optimal posting times
+export const bestPostingTimes = pgTable("best_posting_times", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  platform: varchar("platform", { length: 50 }).notNull(),
+  dayOfWeek: integer("day_of_week").notNull(), // 0-6 (Sunday-Saturday)
+  hour: integer("hour").notNull(), // 0-23
+  engagementScore: real("engagement_score").notNull(), // 0-100
+  sampleSize: integer("sample_size").notNull(), // Number of posts analyzed
+  lastCalculated: timestamp("last_calculated").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("best_posting_times_user_id_idx").on(table.userId),
+  platformIdx: index("best_posting_times_platform_idx").on(table.platform),
+  userPlatformIdx: index("best_posting_times_user_platform_idx").on(table.userId, table.platform),
+}));
+
+// Hashtag Research - AI-suggested hashtags with performance metrics
+export const hashtagResearch = pgTable("hashtag_research", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  hashtag: varchar("hashtag", { length: 100 }).notNull(),
+  platform: varchar("platform", { length: 50 }).notNull(),
+  category: varchar("category", { length: 100 }),
+  popularity: real("popularity"), // 0-100
+  competition: real("competition"), // 0-100 (low = easier to rank)
+  avgEngagement: real("avg_engagement"),
+  trending: boolean("trending").default(false),
+  relatedTags: jsonb("related_tags"),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("hashtag_research_user_id_idx").on(table.userId),
+  hashtagIdx: index("hashtag_research_hashtag_idx").on(table.hashtag),
+  platformIdx: index("hashtag_research_platform_idx").on(table.platform),
+  trendingIdx: index("hashtag_research_trending_idx").on(table.trending),
+}));
+
+// Story Schedules - Scheduling for Stories/Reels/Short-form content
+export const storySchedules = pgTable("story_schedules", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  platform: varchar("platform", { length: 50 }).notNull(), // instagram, facebook, youtube_shorts, tiktok
+  storyType: varchar("story_type", { length: 50 }).notNull(), // story, reel, short
+  mediaUrl: varchar("media_url", { length: 500 }).notNull(),
+  mediaType: varchar("media_type", { length: 50 }).notNull(), // image, video
+  duration: integer("duration"), // seconds (for videos)
+  caption: text("caption"),
+  stickers: jsonb("stickers"), // location, poll, question, etc
+  scheduledFor: timestamp("scheduled_for").notNull(),
+  status: varchar("status", { length: 50 }).default("scheduled"), // scheduled, published, failed
+  publishedAt: timestamp("published_at"),
+  externalId: varchar("external_id", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("story_schedules_user_id_idx").on(table.userId),
+  platformIdx: index("story_schedules_platform_idx").on(table.platform),
+  scheduledForIdx: index("story_schedules_scheduled_for_idx").on(table.scheduledFor),
+  statusIdx: index("story_schedules_status_idx").on(table.status),
+}));
+
+// ============================================================================
+// PROFESSIONAL FEATURES - Marketplace Pro
+// ============================================================================
+
+// Listing Stems - Individual track stems for sale
+export const listingStems = pgTable("listing_stems", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  listingId: uuid("listing_id").notNull().references(() => listings.id, { onDelete: 'cascade' }),
+  stemName: varchar("stem_name", { length: 255 }).notNull(), // "Drums", "Bass", "Vocals", etc
+  stemType: varchar("stem_type", { length: 50 }).notNull(), // drums, bass, melody, vocals, fx, etc
+  fileUrl: varchar("file_url", { length: 500 }).notNull(),
+  fileSize: bigint("file_size", { mode: 'number' }).notNull(),
+  format: varchar("format", { length: 20 }).notNull(), // wav, mp3, flac
+  sampleRate: integer("sample_rate"),
+  bitDepth: integer("bit_depth"),
+  price: decimal("price", { precision: 10, scale: 2 }), // Optional individual stem price
+  downloadCount: integer("download_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  listingIdIdx: index("listing_stems_listing_id_idx").on(table.listingId),
+  stemTypeIdx: index("listing_stems_stem_type_idx").on(table.stemType),
+}));
+
+// License Templates - Customizable license agreements
+export const licenseTemplates = pgTable("license_templates", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  templateName: varchar("template_name", { length: 255 }).notNull(),
+  licenseType: varchar("license_type", { length: 50 }).notNull(), // basic, premium, exclusive, custom
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  usageRights: jsonb("usage_rights").notNull(), // {commercial: bool, streaming: bool, radio: bool, etc}
+  distributionLimit: integer("distribution_limit"), // Max copies/streams (null = unlimited)
+  monetizationAllowed: boolean("monetization_allowed").default(true),
+  creditRequired: boolean("credit_required").default(true),
+  exclusivity: boolean("exclusivity").default(false),
+  royaltySplit: integer("royalty_split"), // Percentage to producer (0-100)
+  termsText: text("terms_text").notNull(),
+  isDefault: boolean("is_default").default(false),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("license_templates_user_id_idx").on(table.userId),
+  licenseTypeIdx: index("license_templates_license_type_idx").on(table.licenseType),
+  isActiveIdx: index("license_templates_is_active_idx").on(table.isActive),
+}));
+
+// Embeddable Players - Widget configurations for external sites
+export const embeddablePlayers = pgTable("embeddable_players", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  listingId: uuid("listing_id").references(() => listings.id, { onDelete: 'cascade' }),
+  playerName: varchar("player_name", { length: 255 }).notNull(),
+  widgetToken: varchar("widget_token", { length: 255 }).notNull().unique(),
+  theme: varchar("theme", { length: 50 }).default("dark"), // dark, light, custom
+  primaryColor: varchar("primary_color", { length: 20 }).default("#4ade80"),
+  showWaveform: boolean("show_waveform").default(true),
+  showPurchaseButton: boolean("show_purchase_button").default(true),
+  showSocialShare: boolean("show_social_share").default(true),
+  autoplay: boolean("autoplay").default(false),
+  width: integer("width").default(400),
+  height: integer("height").default(200),
+  embedCode: text("embed_code"),
+  playCount: integer("play_count").default(0),
+  clickThroughCount: integer("click_through_count").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("embeddable_players_user_id_idx").on(table.userId),
+  listingIdIdx: index("embeddable_players_listing_id_idx").on(table.listingId),
+  widgetTokenIdx: index("embeddable_players_widget_token_idx").on(table.widgetToken),
+}));
+
+// Producer Profiles - Enhanced seller profiles
+export const producerProfiles = pgTable("producer_profiles", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique().references(() => users.id, { onDelete: 'cascade' }),
+  displayName: varchar("display_name", { length: 255 }).notNull(),
+  bio: text("bio"),
+  profileImageUrl: varchar("profile_image_url", { length: 500 }),
+  bannerImageUrl: varchar("banner_image_url", { length: 500 }),
+  location: varchar("location", { length: 255 }),
+  genres: jsonb("genres"),
+  socialLinks: jsonb("social_links"), // {instagram, twitter, youtube, etc}
+  verifiedProducer: boolean("verified_producer").default(false),
+  totalSales: integer("total_sales").default(0),
+  averageRating: real("average_rating"),
+  reviewCount: integer("review_count").default(0),
+  featured: boolean("featured").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("producer_profiles_user_id_idx").on(table.userId),
+  verifiedIdx: index("producer_profiles_verified_idx").on(table.verifiedProducer),
+  featuredIdx: index("producer_profiles_featured_idx").on(table.featured),
+}));
+
+// Stem Orders - Track individual stem purchases
+export const stemOrders = pgTable("stem_orders", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: 'cascade' }),
+  stemId: uuid("stem_id").notNull().references(() => listingStems.id, { onDelete: 'cascade' }),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  downloadToken: varchar("download_token", { length: 255 }),
+  downloadedAt: timestamp("downloaded_at"),
+  downloadCount: integer("download_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  orderIdIdx: index("stem_orders_order_id_idx").on(table.orderId),
+  stemIdIdx: index("stem_orders_stem_id_idx").on(table.stemId),
+}));
+
+// ============================================================================
+// PROFESSIONAL FEATURES - Analytics Intelligence
+// ============================================================================
+
+// Playlist Tracking - Track playlist adds/removals across platforms
+export const playlistTracking = pgTable("playlist_tracking", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  trackId: uuid("track_id").references(() => tracks.id, { onDelete: 'cascade' }),
+  releaseId: uuid("release_id").references(() => distroReleases.id, { onDelete: 'cascade' }),
+  platform: varchar("platform", { length: 50 }).notNull(), // spotify, apple_music, youtube_music, etc
+  playlistName: varchar("playlist_name", { length: 255 }).notNull(),
+  playlistId: varchar("playlist_id", { length: 255 }), // Platform's playlist ID
+  playlistFollowers: integer("playlist_followers"),
+  playlistType: varchar("playlist_type", { length: 50 }), // editorial, algorithmic, user
+  curatorName: varchar("curator_name", { length: 255 }),
+  position: integer("position"), // Position in playlist
+  addedDate: timestamp("added_date").notNull(),
+  removedDate: timestamp("removed_date"),
+  streamsGenerated: integer("streams_generated").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("playlist_tracking_user_id_idx").on(table.userId),
+  trackIdIdx: index("playlist_tracking_track_id_idx").on(table.trackId),
+  platformIdx: index("playlist_tracking_platform_idx").on(table.platform),
+  isActiveIdx: index("playlist_tracking_is_active_idx").on(table.isActive),
+  addedDateIdx: index("playlist_tracking_added_date_idx").on(table.addedDate),
+}));
+
+// Competitive Analysis - Compare performance to other artists
+export const competitiveAnalysis = pgTable("competitive_analysis", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  competitorName: varchar("competitor_name", { length: 255 }).notNull(),
+  competitorId: varchar("competitor_id", { length: 255 }), // Platform artist ID
+  platform: varchar("platform", { length: 50 }).notNull(),
+  monthlyListeners: integer("monthly_listeners"),
+  followers: integer("followers"),
+  totalStreams: bigint("total_streams", { mode: 'number' }),
+  topPlaylistPosition: integer("top_playlist_position"),
+  socialMediaFollowing: jsonb("social_media_following"),
+  releaseFrequency: real("release_frequency"), // Releases per month
+  avgStreamsPerRelease: integer("avg_streams_per_release"),
+  benchmarkDate: timestamp("benchmark_date").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("competitive_analysis_user_id_idx").on(table.userId),
+  competitorNameIdx: index("competitive_analysis_competitor_name_idx").on(table.competitorName),
+  platformIdx: index("competitive_analysis_platform_idx").on(table.platform),
+  benchmarkDateIdx: index("competitive_analysis_benchmark_date_idx").on(table.benchmarkDate),
+}));
+
+// Radio Plays - Traditional radio airplay tracking
+export const radioPlays = pgTable("radio_plays", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  trackId: uuid("track_id").references(() => tracks.id, { onDelete: 'cascade' }),
+  releaseId: uuid("release_id").references(() => distroReleases.id, { onDelete: 'cascade' }),
+  stationName: varchar("station_name", { length: 255 }).notNull(),
+  stationCallSign: varchar("station_call_sign", { length: 50 }),
+  stationFormat: varchar("station_format", { length: 100 }), // Top 40, Country, Hip-Hop, etc
+  market: varchar("market", { length: 255 }), // City/Region
+  marketSize: varchar("market_size", { length: 50 }), // Major, Medium, Small
+  estimatedListeners: integer("estimated_listeners"),
+  playedAt: timestamp("played_at").notNull(),
+  detectionSource: varchar("detection_source", { length: 100 }), // uploaded_log, api, manual
+  royaltyGenerated: decimal("royalty_generated", { precision: 10, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("radio_plays_user_id_idx").on(table.userId),
+  trackIdIdx: index("radio_plays_track_id_idx").on(table.trackId),
+  stationNameIdx: index("radio_plays_station_name_idx").on(table.stationName),
+  playedAtIdx: index("radio_plays_played_at_idx").on(table.playedAt),
+  marketIdx: index("radio_plays_market_idx").on(table.market),
+}));
+
+// TikTok Analytics - TikTok-specific performance metrics
+export const tiktokAnalytics = pgTable("tiktok_analytics", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  trackId: uuid("track_id").references(() => tracks.id, { onDelete: 'cascade' }),
+  releaseId: uuid("release_id").references(() => distroReleases.id, { onDelete: 'cascade' }),
+  soundId: varchar("sound_id", { length: 255 }), // TikTok sound ID
+  videoCreations: integer("video_creations").default(0), // Number of videos using the sound
+  totalViews: bigint("total_views", { mode: 'number' }).default(sql`0`),
+  totalLikes: bigint("total_likes", { mode: 'number' }).default(sql`0`),
+  totalShares: integer("total_shares").default(0),
+  totalComments: integer("total_comments").default(0),
+  trending: boolean("trending").default(false),
+  trendingRegions: jsonb("trending_regions"), // Array of country codes
+  topCreators: jsonb("top_creators"), // Top users using the sound
+  viralityScore: real("virality_score"), // 0-100
+  snapshotDate: timestamp("snapshot_date").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("tiktok_analytics_user_id_idx").on(table.userId),
+  trackIdIdx: index("tiktok_analytics_track_id_idx").on(table.trackId),
+  trendingIdx: index("tiktok_analytics_trending_idx").on(table.trending),
+  snapshotDateIdx: index("tiktok_analytics_snapshot_date_idx").on(table.snapshotDate),
+}));
+
+// Demographic Insights - Age, gender, location breakdown
+export const demographicInsights = pgTable("demographic_insights", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  trackId: uuid("track_id").references(() => tracks.id, { onDelete: 'cascade' }),
+  releaseId: uuid("release_id").references(() => distroReleases.id, { onDelete: 'cascade' }),
+  platform: varchar("platform", { length: 50 }).notNull(),
+  ageRange: varchar("age_range", { length: 20 }).notNull(), // 13-17, 18-24, 25-34, etc
+  gender: varchar("gender", { length: 20 }), // male, female, non_binary, unknown
+  country: varchar("country", { length: 100 }),
+  city: varchar("city", { length: 255 }),
+  listeners: integer("listeners").default(0),
+  streams: integer("streams").default(0),
+  percentage: real("percentage"), // Percentage of total audience
+  snapshotDate: timestamp("snapshot_date").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("demographic_insights_user_id_idx").on(table.userId),
+  trackIdIdx: index("demographic_insights_track_id_idx").on(table.trackId),
+  platformIdx: index("demographic_insights_platform_idx").on(table.platform),
+  countryIdx: index("demographic_insights_country_idx").on(table.country),
+  snapshotDateIdx: index("demographic_insights_snapshot_date_idx").on(table.snapshotDate),
+}));
+
+// ============================================================================
+// PROFESSIONAL FEATURES - Royalties Operations
+// ============================================================================
+
+// Split Sheet Documents - Generated PDF split sheets
+export const splitSheetDocuments = pgTable("split_sheet_documents", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  projectId: uuid("project_id").references(() => projects.id, { onDelete: 'cascade' }),
+  trackId: uuid("track_id").references(() => tracks.id, { onDelete: 'cascade' }),
+  documentName: varchar("document_name", { length: 255 }).notNull(),
+  documentUrl: varchar("document_url", { length: 500 }),
+  status: varchar("status", { length: 50 }).default("draft"), // draft, pending_signatures, completed
+  totalSplits: integer("total_splits").notNull(),
+  signedCount: integer("signed_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+}, (table) => ({
+  userIdIdx: index("split_sheet_documents_user_id_idx").on(table.userId),
+  projectIdIdx: index("split_sheet_documents_project_id_idx").on(table.projectId),
+  statusIdx: index("split_sheet_documents_status_idx").on(table.status),
+}));
+
+// Split Sheet Signatures - Digital signatures for split agreements
+export const splitSheetSignatures = pgTable("split_sheet_signatures", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  documentId: uuid("document_id").notNull().references(() => splitSheetDocuments.id, { onDelete: 'cascade' }),
+  collaboratorId: varchar("collaborator_id").references(() => users.id),
+  collaboratorEmail: varchar("collaborator_email", { length: 255 }).notNull(),
+  collaboratorName: varchar("collaborator_name", { length: 255 }).notNull(),
+  percentage: decimal("percentage", { precision: 5, scale: 2 }).notNull(),
+  role: varchar("role", { length: 100 }), // Producer, Writer, Composer, etc
+  signatureToken: varchar("signature_token", { length: 255 }).unique(),
+  signedAt: timestamp("signed_at"),
+  signatureData: text("signature_data"), // Base64 signature image
+  ipAddress: varchar("ip_address", { length: 50 }),
+  userAgent: text("user_agent"),
+  status: varchar("status", { length: 50 }).default("pending"), // pending, signed, declined
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  documentIdIdx: index("split_sheet_signatures_document_id_idx").on(table.documentId),
+  collaboratorIdIdx: index("split_sheet_signatures_collaborator_id_idx").on(table.collaboratorId),
+  statusIdx: index("split_sheet_signatures_status_idx").on(table.status),
+  signatureTokenIdx: index("split_sheet_signatures_signature_token_idx").on(table.signatureToken),
+}));
+
+// PRO Registrations - Track ASCAP, BMI, SESAC registrations
+export const proRegistrations = pgTable("pro_registrations", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  trackId: uuid("track_id").references(() => tracks.id, { onDelete: 'cascade' }),
+  releaseId: uuid("release_id").references(() => distroReleases.id, { onDelete: 'cascade' }),
+  proName: varchar("pro_name", { length: 100 }).notNull(), // ASCAP, BMI, SESAC, PRS, SOCAN, etc
+  workId: varchar("work_id", { length: 255 }), // PRO's work registration ID
+  iswc: varchar("iswc", { length: 50 }), // International Standard Musical Work Code
+  registrationStatus: varchar("registration_status", { length: 50 }).default("pending"), // pending, registered, rejected
+  submittedDate: timestamp("submitted_date"),
+  approvedDate: timestamp("approved_date"),
+  writers: jsonb("writers").notNull(), // Array of {name, ipi, percentage, role}
+  publishers: jsonb("publishers"), // Array of {name, ipi, percentage}
+  registrationNotes: text("registration_notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("pro_registrations_user_id_idx").on(table.userId),
+  trackIdIdx: index("pro_registrations_track_id_idx").on(table.trackId),
+  proNameIdx: index("pro_registrations_pro_name_idx").on(table.proName),
+  workIdIdx: index("pro_registrations_work_id_idx").on(table.workId),
+  statusIdx: index("pro_registrations_status_idx").on(table.registrationStatus),
+}));
+
+// Territory Royalties - Country/region-specific royalty tracking
+export const territoryRoyalties = pgTable("territory_royalties", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  trackId: uuid("track_id").references(() => tracks.id, { onDelete: 'cascade' }),
+  releaseId: uuid("release_id").references(() => distroReleases.id, { onDelete: 'cascade' }),
+  territory: varchar("territory", { length: 100 }).notNull(), // Country code or region
+  platform: varchar("platform", { length: 50 }).notNull(),
+  revenueType: varchar("revenue_type", { length: 50 }).notNull(), // streaming, download, performance, mechanical
+  streams: integer("streams").default(0),
+  revenue: decimal("revenue", { precision: 10, scale: 2 }).default("0"),
+  currency: varchar("currency", { length: 10 }).default("USD"),
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  reportedDate: timestamp("reported_date").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("territory_royalties_user_id_idx").on(table.userId),
+  trackIdIdx: index("territory_royalties_track_id_idx").on(table.trackId),
+  territoryIdx: index("territory_royalties_territory_idx").on(table.territory),
+  platformIdx: index("territory_royalties_platform_idx").on(table.platform),
+  periodStartIdx: index("territory_royalties_period_start_idx").on(table.periodStart),
+}));
+
+// Black Box Royalties - Unclaimed/unmatched royalties tracking
+export const blackBoxRoyalties = pgTable("black_box_royalties", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  source: varchar("source", { length: 100 }).notNull(), // Platform or PRO
+  trackTitle: varchar("track_title", { length: 255 }),
+  possibleTrackId: uuid("possible_track_id").references(() => tracks.id),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 10 }).default("USD"),
+  periodStart: timestamp("period_start"),
+  periodEnd: timestamp("period_end"),
+  claimStatus: varchar("claim_status", { length: 50 }).default("unclaimed"), // unclaimed, investigating, claimed, disputed
+  claimedAt: timestamp("claimed_at"),
+  matchConfidence: real("match_confidence"), // 0-100 AI confidence score
+  matchReason: text("match_reason"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("black_box_royalties_user_id_idx").on(table.userId),
+  sourceIdx: index("black_box_royalties_source_idx").on(table.source),
+  claimStatusIdx: index("black_box_royalties_claim_status_idx").on(table.claimStatus),
+  possibleTrackIdIdx: index("black_box_royalties_possible_track_id_idx").on(table.possibleTrackId),
+}));
+
+// ============================================================================
+// PROFESSIONAL FEATURES - Distribution Enhancements
+// ============================================================================
+
+// Pre-Release Analytics - Track pre-saves and pre-orders
+export const preReleaseAnalytics = pgTable("pre_release_analytics", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  releaseId: uuid("release_id").notNull().references(() => distroReleases.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  platform: varchar("platform", { length: 50 }).notNull(), // spotify, apple_music, etc
+  preSaves: integer("pre_saves").default(0),
+  preOrders: integer("pre_orders").default(0),
+  emailCaptures: integer("email_captures").default(0),
+  socialShares: integer("social_shares").default(0),
+  referralSource: varchar("referral_source", { length: 255 }),
+  country: varchar("country", { length: 100 }),
+  snapshotDate: timestamp("snapshot_date").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  releaseIdIdx: index("pre_release_analytics_release_id_idx").on(table.releaseId),
+  userIdIdx: index("pre_release_analytics_user_id_idx").on(table.userId),
+  platformIdx: index("pre_release_analytics_platform_idx").on(table.platform),
+  snapshotDateIdx: index("pre_release_analytics_snapshot_date_idx").on(table.snapshotDate),
+}));
+
+// Territory Release Dates - Country-specific release scheduling
+export const territoryReleaseDates = pgTable("territory_release_dates", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  releaseId: uuid("release_id").notNull().references(() => distroReleases.id, { onDelete: 'cascade' }),
+  territory: varchar("territory", { length: 100 }).notNull(), // Country code or region
+  releaseDate: timestamp("release_date").notNull(),
+  timezone: varchar("timezone", { length: 100 }).default("UTC"),
+  releasedAt: timestamp("released_at"),
+  status: varchar("status", { length: 50 }).default("scheduled"), // scheduled, released, delayed, cancelled
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  releaseIdIdx: index("territory_release_dates_release_id_idx").on(table.releaseId),
+  territoryIdx: index("territory_release_dates_territory_idx").on(table.territory),
+  releaseDateIdx: index("territory_release_dates_release_date_idx").on(table.releaseDate),
+  statusIdx: index("territory_release_dates_status_idx").on(table.status),
+}));
+
+// Content ID Claims - YouTube Content ID tracking
+export const contentIdClaims = pgTable("content_id_claims", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  trackId: uuid("track_id").references(() => tracks.id, { onDelete: 'cascade' }),
+  releaseId: uuid("release_id").references(() => distroReleases.id, { onDelete: 'cascade' }),
+  videoId: varchar("video_id", { length: 255 }), // YouTube video ID
+  videoUrl: varchar("video_url", { length: 500 }),
+  videoTitle: varchar("video_title", { length: 500 }),
+  channelName: varchar("channel_name", { length: 255 }),
+  claimType: varchar("claim_type", { length: 50 }).default("automatic"), // automatic, manual
+  claimStatus: varchar("claim_status", { length: 50 }).default("claimed"), // claimed, disputed, released, resolved
+  policy: varchar("policy", { length: 50 }).default("monetize"), // monetize, track, block
+  matchDuration: integer("match_duration"), // Seconds of matched content
+  totalDuration: integer("total_duration"), // Total video duration
+  views: integer("views").default(0),
+  estimatedRevenue: decimal("estimated_revenue", { precision: 10, scale: 2 }).default("0"),
+  disputeReason: text("dispute_reason"),
+  claimedAt: timestamp("claimed_at").defaultNow().notNull(),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("content_id_claims_user_id_idx").on(table.userId),
+  trackIdIdx: index("content_id_claims_track_id_idx").on(table.trackId),
+  videoIdIdx: index("content_id_claims_video_id_idx").on(table.videoId),
+  claimStatusIdx: index("content_id_claims_claim_status_idx").on(table.claimStatus),
+}));
+
+// Lyric Sync Data - Timed lyrics in LRC format
+export const lyricSyncData = pgTable("lyric_sync_data", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  trackId: uuid("track_id").notNull().references(() => tracks.id, { onDelete: 'cascade' }),
+  releaseId: uuid("release_id").references(() => distroReleases.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  lrcContent: text("lrc_content").notNull(), // Full LRC format lyrics with timestamps
+  language: varchar("language", { length: 20 }).default("en"),
+  syncType: varchar("sync_type", { length: 50 }).default("line"), // line, word, syllable
+  syncedBy: varchar("synced_by", { length: 50 }).default("manual"), // manual, ai, imported
+  lineCount: integer("line_count"),
+  duration: integer("duration"), // Track duration in seconds
+  platformStatus: jsonb("platform_status"), // {spotify: "synced", apple_music: "pending", etc}
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  trackIdIdx: index("lyric_sync_data_track_id_idx").on(table.trackId),
+  releaseIdIdx: index("lyric_sync_data_release_id_idx").on(table.releaseId),
+  userIdIdx: index("lyric_sync_data_user_id_idx").on(table.userId),
+}));
+
+// ============================================================================
+// PROFESSIONAL FEATURES - Studio Collaboration
+// ============================================================================
+
+// Stem Exports - Individual track export jobs
+export const stemExports = pgTable("stem_exports", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  trackIds: jsonb("track_ids").notNull(), // Array of track IDs to export as stems
+  exportFormat: varchar("export_format", { length: 20 }).notNull(), // wav, mp3, flac, aiff
+  sampleRate: integer("sample_rate").default(48000),
+  bitDepth: integer("bit_depth").default(24),
+  normalize: boolean("normalize").default(true),
+  includeEffects: boolean("include_effects").default(true),
+  zipArchiveUrl: varchar("zip_archive_url", { length: 500 }),
+  status: varchar("status", { length: 50 }).default("pending"), // pending, processing, completed, failed
+  progress: integer("progress").default(0),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+}, (table) => ({
+  projectIdIdx: index("stem_exports_project_id_idx").on(table.projectId),
+  userIdIdx: index("stem_exports_user_id_idx").on(table.userId),
+  statusIdx: index("stem_exports_status_idx").on(table.status),
+}));
+
+// Plugin Presets - User-saved plugin configurations
+export const pluginPresets = pgTable("plugin_presets", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  presetName: varchar("preset_name", { length: 255 }).notNull(),
+  pluginType: varchar("plugin_type", { length: 100 }).notNull(), // eq, compressor, reverb, etc
+  pluginId: varchar("plugin_id", { length: 255 }), // Reference to plugin catalog
+  parameters: jsonb("parameters").notNull(), // Full plugin state
+  category: varchar("category", { length: 100 }), // vocal, drum, master, etc
+  isDefault: boolean("is_default").default(false),
+  isPublic: boolean("is_public").default(false),
+  downloadCount: integer("download_count").default(0),
+  rating: real("rating"),
+  tags: jsonb("tags"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("plugin_presets_user_id_idx").on(table.userId),
+  pluginTypeIdx: index("plugin_presets_plugin_type_idx").on(table.pluginType),
+  categoryIdx: index("plugin_presets_category_idx").on(table.category),
+  isPublicIdx: index("plugin_presets_is_public_idx").on(table.isPublic),
+}));
+
+// Collaboration Cursors - Real-time cursor positions
+export const collaborationCursors = pgTable("collaboration_cursors", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  cursorPosition: real("cursor_position").notNull(), // Timeline position in seconds
+  viewportStart: real("viewport_start"), // Visible timeline start
+  viewportEnd: real("viewport_end"), // Visible timeline end
+  selectedTrackId: uuid("selected_track_id"),
+  color: varchar("color", { length: 20 }), // User's cursor color
+  lastActiveAt: timestamp("last_active_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  projectIdIdx: index("collaboration_cursors_project_id_idx").on(table.projectId),
+  userIdIdx: index("collaboration_cursors_user_id_idx").on(table.userId),
+  projectUserIdx: index("collaboration_cursors_project_user_idx").on(table.projectId, table.userId),
+}));
+
+// Project Versions - Snapshot-based version history
+export const projectVersions = pgTable("project_versions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  versionNumber: integer("version_number").notNull(),
+  versionName: varchar("version_name", { length: 255 }),
+  description: text("description"),
+  snapshotData: jsonb("snapshot_data").notNull(), // Complete project state
+  fileReferences: jsonb("file_references"), // Audio file URLs/paths at this version
+  isAutoSave: boolean("is_auto_save").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  projectIdIdx: index("project_versions_project_id_idx").on(table.projectId),
+  userIdIdx: index("project_versions_user_id_idx").on(table.userId),
+  versionNumberIdx: index("project_versions_version_number_idx").on(table.versionNumber),
+  createdAtIdx: index("project_versions_created_at_idx").on(table.createdAt),
+}));
+
+// ============================================================================
+// PROFESSIONAL FEATURES - Advertising Amplification
+// ============================================================================
+
+// Personal Network Impacts - Track organic amplification metrics
+export const personalNetworkImpacts = pgTable("personal_network_impacts", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").notNull().references(() => adCampaigns.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  platform: varchar("platform", { length: 50 }).notNull(),
+  networkReach: integer("network_reach").default(0), // Friends/followers reached
+  organicImpressions: integer("organic_impressions").default(0),
+  organicEngagement: integer("organic_engagement").default(0),
+  organicShares: integer("organic_shares").default(0),
+  amplificationFactor: real("amplification_factor"), // Multiplier vs paid reach
+  viralCoefficient: real("viral_coefficient"), // Shares per view
+  costSavings: decimal("cost_savings", { precision: 10, scale: 2 }), // Estimated vs paid ads
+  snapshotDate: timestamp("snapshot_date").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  campaignIdIdx: index("personal_network_impacts_campaign_id_idx").on(table.campaignId),
+  userIdIdx: index("personal_network_impacts_user_id_idx").on(table.userId),
+  platformIdx: index("personal_network_impacts_platform_idx").on(table.platform),
+  snapshotDateIdx: index("personal_network_impacts_snapshot_date_idx").on(table.snapshotDate),
+}));
+
 // Insert Schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -2750,3 +3434,130 @@ export type InsertUserAsset = z.infer<typeof insertUserAssetSchema>;
 export type AssetTag = typeof assetTags.$inferSelect;
 export const insertAssetTagSchema = createInsertSchema(assetTags).omit({ id: true, createdAt: true });
 export type InsertAssetTag = z.infer<typeof insertAssetTagSchema>;
+
+// ============================================================================
+// PROFESSIONAL FEATURES - Type Exports
+// ============================================================================
+
+// Social Media Suite Types
+export type ContentCalendar = typeof contentCalendar.$inferSelect;
+export const insertContentCalendarSchema = createInsertSchema(contentCalendar).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertContentCalendar = z.infer<typeof insertContentCalendarSchema>;
+
+export type UnifiedInboxMessage = typeof unifiedInboxMessages.$inferSelect;
+export const insertUnifiedInboxMessageSchema = createInsertSchema(unifiedInboxMessages).omit({ id: true, createdAt: true });
+export type InsertUnifiedInboxMessage = z.infer<typeof insertUnifiedInboxMessageSchema>;
+
+export type BestPostingTime = typeof bestPostingTimes.$inferSelect;
+export const insertBestPostingTimeSchema = createInsertSchema(bestPostingTimes).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertBestPostingTime = z.infer<typeof insertBestPostingTimeSchema>;
+
+export type HashtagResearch = typeof hashtagResearch.$inferSelect;
+export const insertHashtagResearchSchema = createInsertSchema(hashtagResearch).omit({ id: true, createdAt: true });
+export type InsertHashtagResearch = z.infer<typeof insertHashtagResearchSchema>;
+
+export type StorySchedule = typeof storySchedules.$inferSelect;
+export const insertStoryScheduleSchema = createInsertSchema(storySchedules).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertStorySchedule = z.infer<typeof insertStoryScheduleSchema>;
+
+// Marketplace Pro Types
+export type ListingStem = typeof listingStems.$inferSelect;
+export const insertListingStemSchema = createInsertSchema(listingStems).omit({ id: true, createdAt: true });
+export type InsertListingStem = z.infer<typeof insertListingStemSchema>;
+
+export type LicenseTemplate = typeof licenseTemplates.$inferSelect;
+export const insertLicenseTemplateSchema = createInsertSchema(licenseTemplates).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertLicenseTemplate = z.infer<typeof insertLicenseTemplateSchema>;
+
+export type EmbeddablePlayer = typeof embeddablePlayers.$inferSelect;
+export const insertEmbeddablePlayerSchema = createInsertSchema(embeddablePlayers).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertEmbeddablePlayer = z.infer<typeof insertEmbeddablePlayerSchema>;
+
+export type ProducerProfile = typeof producerProfiles.$inferSelect;
+export const insertProducerProfileSchema = createInsertSchema(producerProfiles).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertProducerProfile = z.infer<typeof insertProducerProfileSchema>;
+
+export type StemOrder = typeof stemOrders.$inferSelect;
+export const insertStemOrderSchema = createInsertSchema(stemOrders).omit({ id: true, createdAt: true });
+export type InsertStemOrder = z.infer<typeof insertStemOrderSchema>;
+
+// Analytics Intelligence Types
+export type PlaylistTracking = typeof playlistTracking.$inferSelect;
+export const insertPlaylistTrackingSchema = createInsertSchema(playlistTracking).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertPlaylistTracking = z.infer<typeof insertPlaylistTrackingSchema>;
+
+export type CompetitiveAnalysis = typeof competitiveAnalysis.$inferSelect;
+export const insertCompetitiveAnalysisSchema = createInsertSchema(competitiveAnalysis).omit({ id: true, createdAt: true });
+export type InsertCompetitiveAnalysis = z.infer<typeof insertCompetitiveAnalysisSchema>;
+
+export type RadioPlay = typeof radioPlays.$inferSelect;
+export const insertRadioPlaySchema = createInsertSchema(radioPlays).omit({ id: true, createdAt: true });
+export type InsertRadioPlay = z.infer<typeof insertRadioPlaySchema>;
+
+export type TikTokAnalytics = typeof tiktokAnalytics.$inferSelect;
+export const insertTikTokAnalyticsSchema = createInsertSchema(tiktokAnalytics).omit({ id: true, createdAt: true });
+export type InsertTikTokAnalytics = z.infer<typeof insertTikTokAnalyticsSchema>;
+
+export type DemographicInsight = typeof demographicInsights.$inferSelect;
+export const insertDemographicInsightSchema = createInsertSchema(demographicInsights).omit({ id: true, createdAt: true });
+export type InsertDemographicInsight = z.infer<typeof insertDemographicInsightSchema>;
+
+// Royalties Operations Types
+export type SplitSheetDocument = typeof splitSheetDocuments.$inferSelect;
+export const insertSplitSheetDocumentSchema = createInsertSchema(splitSheetDocuments).omit({ id: true, createdAt: true });
+export type InsertSplitSheetDocument = z.infer<typeof insertSplitSheetDocumentSchema>;
+
+export type SplitSheetSignature = typeof splitSheetSignatures.$inferSelect;
+export const insertSplitSheetSignatureSchema = createInsertSchema(splitSheetSignatures).omit({ id: true, createdAt: true });
+export type InsertSplitSheetSignature = z.infer<typeof insertSplitSheetSignatureSchema>;
+
+export type ProRegistration = typeof proRegistrations.$inferSelect;
+export const insertProRegistrationSchema = createInsertSchema(proRegistrations).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertProRegistration = z.infer<typeof insertProRegistrationSchema>;
+
+export type TerritoryRoyalty = typeof territoryRoyalties.$inferSelect;
+export const insertTerritoryRoyaltySchema = createInsertSchema(territoryRoyalties).omit({ id: true, createdAt: true });
+export type InsertTerritoryRoyalty = z.infer<typeof insertTerritoryRoyaltySchema>;
+
+export type BlackBoxRoyalty = typeof blackBoxRoyalties.$inferSelect;
+export const insertBlackBoxRoyaltySchema = createInsertSchema(blackBoxRoyalties).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertBlackBoxRoyalty = z.infer<typeof insertBlackBoxRoyaltySchema>;
+
+// Distribution Enhancements Types
+export type PreReleaseAnalytics = typeof preReleaseAnalytics.$inferSelect;
+export const insertPreReleaseAnalyticsSchema = createInsertSchema(preReleaseAnalytics).omit({ id: true, createdAt: true });
+export type InsertPreReleaseAnalytics = z.infer<typeof insertPreReleaseAnalyticsSchema>;
+
+export type TerritoryReleaseDate = typeof territoryReleaseDates.$inferSelect;
+export const insertTerritoryReleaseDateSchema = createInsertSchema(territoryReleaseDates).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertTerritoryReleaseDate = z.infer<typeof insertTerritoryReleaseDateSchema>;
+
+export type ContentIdClaim = typeof contentIdClaims.$inferSelect;
+export const insertContentIdClaimSchema = createInsertSchema(contentIdClaims).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertContentIdClaim = z.infer<typeof insertContentIdClaimSchema>;
+
+export type LyricSyncData = typeof lyricSyncData.$inferSelect;
+export const insertLyricSyncDataSchema = createInsertSchema(lyricSyncData).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertLyricSyncData = z.infer<typeof insertLyricSyncDataSchema>;
+
+// Studio Collaboration Types
+export type StemExport = typeof stemExports.$inferSelect;
+export const insertStemExportSchema = createInsertSchema(stemExports).omit({ id: true, createdAt: true });
+export type InsertStemExport = z.infer<typeof insertStemExportSchema>;
+
+export type PluginPreset = typeof pluginPresets.$inferSelect;
+export const insertPluginPresetSchema = createInsertSchema(pluginPresets).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertPluginPreset = z.infer<typeof insertPluginPresetSchema>;
+
+export type CollaborationCursor = typeof collaborationCursors.$inferSelect;
+export const insertCollaborationCursorSchema = createInsertSchema(collaborationCursors).omit({ id: true, createdAt: true });
+export type InsertCollaborationCursor = z.infer<typeof insertCollaborationCursorSchema>;
+
+export type ProjectVersion = typeof projectVersions.$inferSelect;
+export const insertProjectVersionSchema = createInsertSchema(projectVersions).omit({ id: true, createdAt: true });
+export type InsertProjectVersion = z.infer<typeof insertProjectVersionSchema>;
+
+// Advertising Amplification Types
+export type PersonalNetworkImpact = typeof personalNetworkImpacts.$inferSelect;
+export const insertPersonalNetworkImpactSchema = createInsertSchema(personalNetworkImpacts).omit({ id: true, createdAt: true });
+export type InsertPersonalNetworkImpact = z.infer<typeof insertPersonalNetworkImpactSchema>;
