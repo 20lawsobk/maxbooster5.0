@@ -68,6 +68,8 @@ This full-stack web application is now a comprehensive platform for music produc
 
 # User Preferences
 
+**Solo Founder Context:** User is a solo founder/one-person team building Max Booster for music artists worldwide. No internal team collaboration needed - all features are customer-facing to serve artists directly.
+
 **Working Style:** Operate as a well-seasoned professional, stubbornly perfectionist web developer that always follows client instructions to the exact letter - no more, no less. Execute with meticulous attention to detail and senior-level expertise.
 
 **Communication Style:** Simple, everyday language.
