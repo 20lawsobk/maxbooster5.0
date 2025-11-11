@@ -588,6 +588,7 @@ export interface IStorage {
   // AI Model operations
   createAIModel(model: InsertAIModel): Promise<AIModel>;
   getAIModel(id: string): Promise<AIModel | undefined>;
+  getAIModelByName(modelName: string): Promise<AIModel | undefined>;
   listAIModels(filters?: { modelType?: string; category?: string; isActive?: boolean }): Promise<AIModel[]>;
   updateAIModel(id: string, updates: Partial<AIModel>): Promise<AIModel>;
   
@@ -8202,6 +8203,16 @@ export class DatabaseStorage implements IStorage {
         return model;
       },
       'getAIModel'
+    );
+  }
+
+  async getAIModelByName(modelName: string): Promise<AIModel | undefined> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [model] = await db.select().from(aiModels).where(eq(aiModels.modelName, modelName));
+        return model;
+      },
+      'getAIModelByName'
     );
   }
 
