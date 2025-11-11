@@ -16,6 +16,14 @@ export interface StudioState {
   isRecording: boolean;
   followPlayhead: boolean;
   
+  // Transport State
+  loopEnabled: boolean;
+  loopStart: number;
+  loopEnd: number;
+  tempo: number;
+  timeSignature: string;
+  metronomeEnabled: boolean;
+  
   // Timeline View State
   zoom: number;
   scrollPosition: number;
@@ -26,26 +34,61 @@ export interface StudioState {
   selectedTrackIds: string[];
   selectedClipIds: string[];
   selectedMarkerId: string | null;
+  selectedTrackId: string | null; // Single selection for Inspector
+  selectedClipId: string | null; // Single selection for Inspector
+  
+  // Browser State
+  browserVisible: boolean;
+  browserSearchQuery: string;
+  browserActiveTab: 'presets' | 'samples' | 'plugins' | 'files';
+  browserSelectedItem: string | null;
+  
+  // Inspector State
+  inspectorVisible: boolean;
+  
+  // Routing Matrix State
+  routingMatrixVisible: boolean;
   
   // Markers
   markers: Marker[];
   
-  // Actions
+  // Transport Actions
   setCurrentTime: (time: number) => void;
   setIsPlaying: (playing: boolean) => void;
   setIsRecording: (recording: boolean) => void;
   toggleFollowPlayhead: () => void;
+  setLoopEnabled: (enabled: boolean) => void;
+  setLoopStart: (time: number) => void;
+  setLoopEnd: (time: number) => void;
+  setTempo: (tempo: number) => void;
+  setTimeSignature: (signature: string) => void;
+  setMetronomeEnabled: (enabled: boolean) => void;
   
+  // View Actions
   setZoom: (zoom: number) => void;
   setScrollPosition: (position: number) => void;
   toggleSnap: () => void;
   setSnapResolution: (resolution: number) => void;
   
+  // Selection Actions
   selectTrack: (trackId: string, multi?: boolean) => void;
   selectClip: (clipId: string, multi?: boolean) => void;
   selectMarker: (markerId: string | null) => void;
   clearSelection: () => void;
   
+  // Browser Actions
+  toggleBrowser: () => void;
+  setBrowserSearchQuery: (query: string) => void;
+  setBrowserActiveTab: (tab: 'presets' | 'samples' | 'plugins' | 'files') => void;
+  setBrowserSelectedItem: (itemId: string | null) => void;
+  
+  // Inspector Actions
+  toggleInspector: () => void;
+  
+  // Routing Matrix Actions
+  toggleRoutingMatrix: () => void;
+  
+  // Marker Actions
   addMarker: (marker: Marker) => void;
   updateMarker: (id: string, updates: Partial<Marker>) => void;
   deleteMarker: (id: string) => void;
@@ -58,6 +101,14 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   isRecording: false,
   followPlayhead: true,
   
+  // Transport State
+  loopEnabled: false,
+  loopStart: 0,
+  loopEnd: 8,
+  tempo: 120,
+  timeSignature: '4/4',
+  metronomeEnabled: false,
+  
   zoom: 1.0,
   scrollPosition: 0,
   snapEnabled: true,
@@ -66,6 +117,20 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   selectedTrackIds: [],
   selectedClipIds: [],
   selectedMarkerId: null,
+  selectedTrackId: null,
+  selectedClipId: null,
+  
+  // Browser State
+  browserVisible: true,
+  browserSearchQuery: '',
+  browserActiveTab: 'files',
+  browserSelectedItem: null,
+  
+  // Inspector State
+  inspectorVisible: true,
+  
+  // Routing Matrix State
+  routingMatrixVisible: false,
   
   markers: [],
   
@@ -74,6 +139,14 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setIsRecording: (recording) => set({ isRecording: recording }),
   toggleFollowPlayhead: () => set((state) => ({ followPlayhead: !state.followPlayhead })),
+  
+  // Transport Actions
+  setLoopEnabled: (enabled) => set({ loopEnabled: enabled }),
+  setLoopStart: (time) => set({ loopStart: time }),
+  setLoopEnd: (time) => set({ loopEnd: time }),
+  setTempo: (tempo) => set({ tempo: Math.max(40, Math.min(240, tempo)) }),
+  setTimeSignature: (signature) => set({ timeSignature: signature }),
+  setMetronomeEnabled: (enabled) => set({ metronomeEnabled: enabled }),
   
   // View Actions
   setZoom: (zoom) => set({ zoom: Math.max(0.1, Math.min(10, zoom)) }),
@@ -87,7 +160,8 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       ? state.selectedTrackIds.includes(trackId)
         ? state.selectedTrackIds.filter(id => id !== trackId)
         : [...state.selectedTrackIds, trackId]
-      : [trackId]
+      : [trackId],
+    selectedTrackId: multi ? state.selectedTrackId : trackId,
   })),
   
   selectClip: (clipId, multi = false) => set((state) => ({
@@ -95,7 +169,8 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       ? state.selectedClipIds.includes(clipId)
         ? state.selectedClipIds.filter(id => id !== clipId)
         : [...state.selectedClipIds, clipId]
-      : [clipId]
+      : [clipId],
+    selectedClipId: multi ? state.selectedClipId : clipId,
   })),
   
   selectMarker: (markerId) => set({ selectedMarkerId: markerId }),
@@ -103,8 +178,22 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   clearSelection: () => set({ 
     selectedTrackIds: [], 
     selectedClipIds: [], 
-    selectedMarkerId: null 
+    selectedMarkerId: null,
+    selectedTrackId: null,
+    selectedClipId: null,
   }),
+  
+  // Browser Actions
+  toggleBrowser: () => set((state) => ({ browserVisible: !state.browserVisible })),
+  setBrowserSearchQuery: (query) => set({ browserSearchQuery: query }),
+  setBrowserActiveTab: (tab) => set({ browserActiveTab: tab }),
+  setBrowserSelectedItem: (itemId) => set({ browserSelectedItem: itemId }),
+  
+  // Inspector Actions
+  toggleInspector: () => set((state) => ({ inspectorVisible: !state.inspectorVisible })),
+  
+  // Routing Matrix Actions
+  toggleRoutingMatrix: () => set((state) => ({ routingMatrixVisible: !state.routingMatrixVisible })),
   
   // Marker Actions
   addMarker: (marker) => set((state) => ({ 

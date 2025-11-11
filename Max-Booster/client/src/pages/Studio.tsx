@@ -57,6 +57,10 @@ import { StudioBrowser } from '@/components/studio/StudioBrowser';
 import { StudioDock } from '@/components/studio/StudioDock';
 import { useMarkers } from '@/hooks/useMarkers';
 import { useStudioStore } from '@/lib/studioStore';
+import { TransportBar } from '@/components/studio/TransportBar';
+import { BrowserPanel } from '@/components/studio/BrowserPanel';
+import { InspectorPanel } from '@/components/studio/InspectorPanel';
+import { RoutingMatrix } from '@/components/studio/RoutingMatrix';
 
 const TRACK_COLORS = [
   '#4ade80', '#60a5fa', '#f87171', '#fbbf24', '#a78bfa',
@@ -136,15 +140,23 @@ export default function Studio() {
   
   const [view, setView] = useState<'arrangement' | 'mixer'>('arrangement');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [showBrowser, setShowBrowser] = useState(true);
-  const [showInspector, setShowInspector] = useState(true);
-  const [browserTab, setBrowserTab] = useState('files');
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
   const [showAutomation, setShowAutomation] = useState(false);
   const [automationParameter, setAutomationParameter] = useState<'volume' | 'pan' | 'effect-param'>('volume');
   
   // Use Zustand store for zoom and other timeline state
-  const { zoom, setZoom, currentTime: studioCurrentTime, setCurrentTime: setStudioCurrentTime } = useStudioStore();
+  const { 
+    zoom, 
+    setZoom, 
+    currentTime: studioCurrentTime, 
+    setCurrentTime: setStudioCurrentTime,
+    browserVisible,
+    toggleBrowser,
+    inspectorVisible,
+    toggleInspector,
+    routingMatrixVisible,
+    toggleRoutingMatrix,
+  } = useStudioStore();
   
   // Marker persistence with React Query
   const markerService = useMarkers(selectedProject?.id || null);
@@ -1073,6 +1085,26 @@ export default function Studio() {
       handler: () => controller.transport.isRecording ? handleStopRecording() : handleStartRecording(),
       description: 'Record'
     },
+    {
+      key: 'l',
+      handler: () => controller.toggleLoop(),
+      description: 'Toggle Loop'
+    },
+    {
+      key: 'b',
+      handler: () => toggleBrowser(),
+      description: 'Toggle Browser Panel'
+    },
+    {
+      key: 'i',
+      handler: () => toggleInspector(),
+      description: 'Toggle Inspector Panel'
+    },
+    {
+      key: 'shift+r',
+      handler: () => toggleRoutingMatrix(),
+      description: 'Toggle Routing Matrix'
+    },
     { 
       key: 'm', 
       handler: () => {
@@ -1331,13 +1363,14 @@ export default function Studio() {
           }
           
           inspector={
-            <StudioInspector
-              collapsed={!showInspector}
-              onToggleCollapse={() => setShowInspector(!showInspector)}
-              selectedTrack={selectedTrack ? displayTracks.find(t => t.id === selectedTrack) || null : null}
-              tracks={displayTracks}
-              onTrackUpdate={handleTrackUpdate}
-            />
+            inspectorVisible ? (
+              <InspectorPanel
+                selectedTrack={selectedTrack ? displayTracks.find(t => t.id === selectedTrack) || null : null}
+                selectedClip={null}
+                onTrackUpdate={handleTrackUpdate}
+                onClipUpdate={(clipId, updates) => console.log('Clip update:', clipId, updates)}
+              />
+            ) : null
           }
           
           timeline={
@@ -1624,43 +1657,21 @@ export default function Studio() {
           }
           
           browser={
-            <StudioBrowser
-              collapsed={!showBrowser}
-              onToggleCollapse={() => setShowBrowser(!showBrowser)}
-              recentFiles={recentFiles}
-              samples={samples}
-            />
+            browserVisible ? <BrowserPanel /> : null
           }
           
           dock={
-            <StudioDock
-              isPlaying={controller.transport.isPlaying}
-              isRecording={controller.transport.isRecording}
-              currentTime={controller.transport.currentTime}
-              tempo={controller.transport.tempo}
-              loopEnabled={controller.transport.loopEnabled}
-              metronomeEnabled={controller.transport.clickEnabled}
-              timeSignature={selectedProject?.timeSignature || '4/4'}
+            <TransportBar
               armedTracksCount={displayTracks.filter(t => t.armed).length}
-              onPlay={handlePlay}
-              onPause={handlePause}
-              onStop={handleStop}
-              onRecord={handleStartRecording}
-              onStopRecording={handleStopRecording}
-              onSkipBack={handleSkipBack}
-              onSkipForward={handleSkipForward}
-              onToggleLoop={controller.toggleLoop}
-              onToggleMetronome={controller.toggleClick}
-              onSetTempo={controller.setTempo}
-              onIncrementTempo={incrementTempo}
-              onDecrementTempo={decrementTempo}
-              onTapTempo={handleTapTempo}
-              cpuUsage={cpuUsage}
+              onUndo={() => console.log('Undo')}
+              onRedo={() => console.log('Redo')}
+              canUndo={false}
+              canRedo={false}
             />
           }
           
-          inspectorCollapsed={!showInspector}
-          browserCollapsed={!showBrowser}
+          inspectorCollapsed={!inspectorVisible}
+          browserCollapsed={!browserVisible}
         />
 
         <Dialog open={isAIMixing} onOpenChange={setIsAIMixing}>
@@ -2018,6 +2029,23 @@ export default function Studio() {
             size: f.size || f.fileSize || 0
           }))}
         />
+
+        {routingMatrixVisible && (
+          <RoutingMatrix
+            tracks={displayTracks.map(t => ({
+              id: t.id,
+              name: t.name,
+              color: t.color,
+              type: t.trackType
+            }))}
+            buses={mixBuses.map(b => ({
+              id: b.id,
+              name: b.name,
+              color: b.color
+            }))}
+            onClose={toggleRoutingMatrix}
+          />
+        )}
 
         <Dialog open={showAddTrackDialog} onOpenChange={setShowAddTrackDialog}>
           <DialogContent className="bg-[#252525] border-gray-700 text-white">
