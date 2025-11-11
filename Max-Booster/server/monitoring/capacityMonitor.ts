@@ -22,8 +22,8 @@ export class CapacityMonitor {
         console.warn(`⚠️ CAPACITY ALERT: Database pool at ${(poolUtilization * 100).toFixed(1)}% capacity`);
       }
       
-      // Check active sessions
-      const sessionResult = await db.execute(sql`SELECT COUNT(*) as count FROM sessions WHERE expire > NOW()`);
+      // Check active sessions (within last 24 hours)
+      const sessionResult = await db.execute(sql`SELECT COUNT(*) as count FROM sessions WHERE last_activity > NOW() - INTERVAL '24 hours'`);
       const activeSessions = parseInt(sessionResult.rows[0].count as string);
       const sessionUtilization = activeSessions / 50000;
       
