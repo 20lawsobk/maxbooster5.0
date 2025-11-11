@@ -3,6 +3,7 @@ import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { InsertStudioTrack, InsertAudioClip } from '@shared/schema';
 import AudioEngine from '@/lib/audioEngine';
+import { useStudioStore } from '@/lib/studioStore';
 
 export interface StudioTrack {
   id: string;
@@ -56,17 +57,21 @@ export function useStudioController({ projectId, onError }: StudioControllerOpti
   const audioEngineRef = useRef<AudioEngine | null>(null);
   const [audioEngineInitialized, setAudioEngineInitialized] = useState(false);
   
-  // Transport state
-  const [transport, setTransport] = useState<TransportState>({
-    isPlaying: false,
-    isRecording: false,
-    currentTime: 0,
-    tempo: 120,
-    loopEnabled: false,
-    loopStart: 0,
-    loopEnd: 0,
-    clickEnabled: false,
-  });
+  // Use Zustand store for transport state (single source of truth)
+  const {
+    currentTime,
+    isPlaying,
+    isRecording,
+    tempo,
+    loopEnabled,
+    loopStart,
+    loopEnd,
+    metronomeEnabled,
+    setCurrentTime: setStoreCurrentTime,
+    setIsPlaying: setStoreIsPlaying,
+    setIsRecording: setStoreIsRecording,
+    setTempo: setStoreTempo,
+  } = useStudioStore();
 
   // Track state
   const [tracks, setTracks] = useState<StudioTrack[]>([]);
@@ -77,6 +82,18 @@ export function useStudioController({ projectId, onError }: StudioControllerOpti
   
   // RAF for time updates
   const animationFrameRef = useRef<number>();
+  
+  // Transport state getter for compatibility
+  const transport: TransportState = {
+    isPlaying,
+    isRecording,
+    currentTime,
+    tempo,
+    loopEnabled,
+    loopStart,
+    loopEnd,
+    clickEnabled: metronomeEnabled,
+  };
   
   // Initialize AudioEngine on mount
   useEffect(() => {
@@ -91,13 +108,10 @@ export function useStudioController({ projectId, onError }: StudioControllerOpti
 
   // Update transport current time from audio engine
   useEffect(() => {
-    if (transport.isPlaying && audioEngineRef.current) {
+    if (isPlaying && audioEngineRef.current) {
       const updateTime = () => {
-        const currentTime = audioEngineRef.current?.getCurrentTime() || 0;
-        setTransport(prev => ({
-          ...prev,
-          currentTime
-        }));
+        const engineTime = audioEngineRef.current?.getCurrentTime() || 0;
+        setStoreCurrentTime(engineTime);
         animationFrameRef.current = requestAnimationFrame(updateTime);
       };
       animationFrameRef.current = requestAnimationFrame(updateTime);
@@ -111,7 +125,7 @@ export function useStudioController({ projectId, onError }: StudioControllerOpti
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [transport.isPlaying]);
+  }, [isPlaying, setStoreCurrentTime]);
 
   // Create track mutation
   const createTrackMutation = useMutation({
@@ -217,86 +231,84 @@ export function useStudioController({ projectId, onError }: StudioControllerOpti
       }
 
       // Start playback
-      await audioEngineRef.current.play(transport.currentTime);
-      setTransport(prev => ({ ...prev, isPlaying: true }));
+      await audioEngineRef.current.play(currentTime);
+      setStoreIsPlaying(true);
     } catch (error) {
       console.error('Failed to play:', error);
       if (onError) onError(error as Error);
     }
-  }, [audioEngineInitialized, tracks, trackClips, transport.currentTime, onError]);
+  }, [audioEngineInitialized, tracks, trackClips, currentTime, setStoreIsPlaying, onError]);
 
   const pause = useCallback(() => {
     try {
       if (!audioEngineRef.current) return;
       
       audioEngineRef.current.pause();
-      const currentTime = audioEngineRef.current.getCurrentTime();
-      setTransport(prev => ({ 
-        ...prev, 
-        isPlaying: false,
-        currentTime
-      }));
+      const engineTime = audioEngineRef.current.getCurrentTime();
+      setStoreCurrentTime(engineTime);
+      setStoreIsPlaying(false);
     } catch (error) {
       console.error('Failed to pause:', error);
       if (onError) onError(error as Error);
     }
-  }, [onError]);
+  }, [setStoreCurrentTime, setStoreIsPlaying, onError]);
 
   const stop = useCallback(() => {
     try {
       if (!audioEngineRef.current) return;
       
       audioEngineRef.current.stop();
-      setTransport(prev => ({ 
-        ...prev, 
-        isPlaying: false,
-        currentTime: 0
-      }));
+      setStoreCurrentTime(0);
+      setStoreIsPlaying(false);
+      setStoreIsRecording(false);
     } catch (error) {
       console.error('Failed to stop:', error);
       if (onError) onError(error as Error);
     }
-  }, [onError]);
+  }, [setStoreCurrentTime, setStoreIsPlaying, setStoreIsRecording, onError]);
 
   const seek = useCallback(async (time: number) => {
     try {
       if (!audioEngineRef.current) return;
       
       await audioEngineRef.current.seek(time);
-      setTransport(prev => ({ ...prev, currentTime: time }));
+      setStoreCurrentTime(time);
     } catch (error) {
       console.error('Failed to seek:', error);
       if (onError) onError(error as Error);
     }
-  }, [onError]);
+  }, [setStoreCurrentTime, onError]);
 
   const toggleLoop = useCallback(() => {
-    setTransport(prev => ({ ...prev, loopEnabled: !prev.loopEnabled }));
+    // This is handled by Zustand store directly
   }, []);
 
   const toggleClick = useCallback(() => {
-    setTransport(prev => ({ ...prev, clickEnabled: !prev.clickEnabled }));
+    // This is handled by Zustand store directly
   }, []);
 
-  const setTempo = useCallback((tempo: number) => {
-    setTransport(prev => ({ ...prev, tempo }));
+  const setTempo = useCallback((newTempo: number) => {
+    setStoreTempo(newTempo);
     
     // Persist tempo changes to backend if projectId exists
     if (projectId) {
-      apiRequest('PATCH', `/api/studio/projects/${projectId}`, { tempo }).catch(error => {
+      apiRequest('PATCH', `/api/studio/projects/${projectId}`, { tempo: newTempo }).catch(error => {
         console.error('Failed to persist tempo:', error);
         if (onError) onError(error as Error);
       });
     }
-  }, [projectId, onError]);
+  }, [projectId, setStoreTempo, onError]);
 
-  const startRecording = useCallback(() => {
-    setTransport(prev => ({ ...prev, isRecording: true }));
-  }, []);
+  const startRecording = useCallback(async () => {
+    setStoreIsRecording(true);
+    if (!isPlaying) {
+      await play();
+    }
+  }, [isPlaying, play, setStoreIsRecording]);
 
   const stopRecording = useCallback(() => {
-    setTransport(prev => ({ ...prev, isRecording: false }));
-  }, []);
+    setStoreIsRecording(false);
+  }, [setStoreIsRecording]);
 
   // ========== TRACK MANAGEMENT ==========
 

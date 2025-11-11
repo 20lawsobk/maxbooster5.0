@@ -14,6 +14,11 @@ interface TransportBarProps {
   onRedo?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
+  onPlay?: () => void;
+  onPause?: () => void;
+  onStop?: () => void;
+  onRecord?: () => void;
+  onSeek?: (time: number) => void;
 }
 
 export function TransportBar({
@@ -22,6 +27,11 @@ export function TransportBar({
   onRedo,
   canUndo = false,
   canRedo = false,
+  onPlay,
+  onPause,
+  onStop,
+  onRecord,
+  onSeek,
 }: TransportBarProps) {
   const {
     currentTime,
@@ -33,9 +43,6 @@ export function TransportBar({
     tempo,
     timeSignature,
     metronomeEnabled,
-    setIsPlaying,
-    setIsRecording,
-    setCurrentTime,
     setLoopEnabled,
     setLoopStart,
     setLoopEnd,
@@ -67,33 +74,36 @@ export function TransportBar({
   };
 
   const handlePlay = useCallback(() => {
-    setIsPlaying(!isPlaying);
-  }, [isPlaying, setIsPlaying]);
+    if (isPlaying && onPause) {
+      onPause();
+    } else if (!isPlaying && onPlay) {
+      onPlay();
+    }
+  }, [isPlaying, onPlay, onPause]);
 
   const handleStop = useCallback(() => {
-    setIsPlaying(false);
-    setIsRecording(false);
-    setCurrentTime(0);
-  }, [setIsPlaying, setIsRecording, setCurrentTime]);
+    if (onStop) {
+      onStop();
+    }
+  }, [onStop]);
 
   const handleRecord = useCallback(() => {
-    if (isRecording) {
-      setIsRecording(false);
-    } else {
-      setIsRecording(true);
-      if (!isPlaying) {
-        setIsPlaying(true);
-      }
+    if (onRecord) {
+      onRecord();
     }
-  }, [isRecording, isPlaying, setIsRecording, setIsPlaying]);
+  }, [onRecord]);
 
   const handleSkipBack = useCallback(() => {
-    setCurrentTime(Math.max(0, currentTime - 1));
-  }, [currentTime, setCurrentTime]);
+    if (onSeek) {
+      onSeek(Math.max(0, currentTime - 1));
+    }
+  }, [currentTime, onSeek]);
 
   const handleSkipForward = useCallback(() => {
-    setCurrentTime(currentTime + 1);
-  }, [currentTime, setCurrentTime]);
+    if (onSeek) {
+      onSeek(currentTime + 1);
+    }
+  }, [currentTime, onSeek]);
 
   const handleTapTempo = useCallback(() => {
     const now = Date.now();

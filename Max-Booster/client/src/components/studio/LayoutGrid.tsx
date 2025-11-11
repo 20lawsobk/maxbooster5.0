@@ -19,7 +19,7 @@ export function LayoutGrid({
 }: LayoutGridProps) {
   return (
     <div 
-      className="h-screen w-full overflow-hidden grid"
+      className="h-screen w-full grid"
       style={{
         gridTemplateAreas: `
           "topbar topbar topbar"
@@ -27,7 +27,7 @@ export function LayoutGrid({
           "dock dock dock"
         `,
         gridTemplateColumns: `${inspectorCollapsed ? '48px' : '280px'} 1fr ${browserCollapsed ? '48px' : '320px'}`,
-        gridTemplateRows: '56px 1fr 90px',
+        gridTemplateRows: 'auto 1fr auto',
         backgroundColor: 'var(--studio-bg-deep)',
       }}
       data-testid="layout-grid-container"
@@ -57,7 +57,7 @@ export function LayoutGrid({
       </div>
 
       <div 
-        className="flex flex-col overflow-auto"
+        className="flex flex-col overflow-hidden"
         style={{ 
           gridArea: 'timeline',
           background: 'var(--studio-timeline)',

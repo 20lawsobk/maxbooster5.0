@@ -1375,9 +1375,9 @@ export default function Studio() {
           
           timeline={
             <>
-              <div className="border-b" style={{ borderColor: 'var(--studio-border)', backgroundColor: 'var(--studio-bg-medium)' }}>
+              <div className="border-b max-h-32 overflow-y-auto" style={{ borderColor: 'var(--studio-border)', backgroundColor: 'var(--studio-bg-medium)' }}>
                 <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
-                  <div className="flex items-center gap-2 min-w-max px-4 py-2">
+                  <div className="flex items-center gap-2 flex-wrap px-4 py-2">
                     <RecordingPanel
                       isRecording={controller.transport.isRecording}
                       recordingDuration={recordingDuration}
@@ -1667,6 +1667,11 @@ export default function Studio() {
               onRedo={() => console.log('Redo')}
               canUndo={false}
               canRedo={false}
+              onPlay={handlePlay}
+              onPause={handlePause}
+              onStop={handleStop}
+              onRecord={() => controller.transport.isRecording ? controller.stopRecording() : controller.startRecording()}
+              onSeek={(time) => controller.seek(time)}
             />
           }
           
