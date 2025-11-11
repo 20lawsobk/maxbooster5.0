@@ -1504,6 +1504,71 @@ export const aiJobs = pgTable("ai_jobs", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ============================================================================
+// User Asset Management (Samples, Plugins, etc.)
+// ============================================================================
+
+// Asset Folders - For organizing user assets
+export const assetFolders = pgTable("asset_folders", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  parentId: uuid("parent_id"),
+  name: varchar("name", { length: 255 }).notNull(),
+  path: text("path").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("asset_folders_user_id_idx").on(table.userId),
+  parentIdIdx: index("asset_folders_parent_id_idx").on(table.parentId),
+  userPathIdx: index("asset_folders_user_path_idx").on(table.userId, table.path),
+}));
+
+// User Assets - Audio samples, plugins, loops, etc.
+export const userAssets = pgTable("user_assets", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  folderId: uuid("folder_id").references(() => assetFolders.id, { onDelete: 'set null' }),
+  projectId: uuid("project_id").references(() => projects.id, { onDelete: 'set null' }),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  assetType: varchar("asset_type", { length: 50 }).notNull(),
+  fileType: varchar("file_type", { length: 50 }).notNull(),
+  filePath: text("file_path").notNull(),
+  fileSize: bigint("file_size", { mode: 'number' }).notNull(),
+  mimeType: varchar("mime_type", { length: 100 }),
+  duration: real("duration"),
+  sampleRate: integer("sample_rate"),
+  bitDepth: integer("bit_depth"),
+  channels: integer("channels"),
+  bpm: integer("bpm"),
+  key: varchar("key", { length: 10 }),
+  waveformData: jsonb("waveform_data"),
+  metadata: jsonb("metadata"),
+  isPublic: boolean("is_public").default(false),
+  downloadCount: integer("download_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("user_assets_user_id_idx").on(table.userId),
+  folderIdIdx: index("user_assets_folder_id_idx").on(table.folderId),
+  projectIdIdx: index("user_assets_project_id_idx").on(table.projectId),
+  assetTypeIdx: index("user_assets_asset_type_idx").on(table.assetType),
+  userAssetTypeIdx: index("user_assets_user_asset_type_idx").on(table.userId, table.assetType),
+  createdAtIdx: index("user_assets_created_at_idx").on(table.createdAt),
+}));
+
+// Asset Tags - For categorizing and searching assets
+export const assetTags = pgTable("asset_tags", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  assetId: uuid("asset_id").notNull().references(() => userAssets.id, { onDelete: 'cascade' }),
+  tag: varchar("tag", { length: 100 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  assetIdIdx: index("asset_tags_asset_id_idx").on(table.assetId),
+  tagIdx: index("asset_tags_tag_idx").on(table.tag),
+  assetTagIdx: index("asset_tags_asset_tag_idx").on(table.assetId, table.tag),
+}));
+
 // Project Autosaves
 export const autosaves = pgTable("autosaves", {
   id: serial("id").primaryKey(),
@@ -2672,3 +2737,16 @@ export const updateTaxInfoSchema = z.object({
 export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({ id: true, createdAt: true });
 export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
+
+// User Asset Management Insert and Select Types
+export type AssetFolder = typeof assetFolders.$inferSelect;
+export const insertAssetFolderSchema = createInsertSchema(assetFolders).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertAssetFolder = z.infer<typeof insertAssetFolderSchema>;
+
+export type UserAsset = typeof userAssets.$inferSelect;
+export const insertUserAssetSchema = createInsertSchema(userAssets).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertUserAsset = z.infer<typeof insertUserAssetSchema>;
+
+export type AssetTag = typeof assetTags.$inferSelect;
+export const insertAssetTagSchema = createInsertSchema(assetTags).omit({ id: true, createdAt: true });
+export type InsertAssetTag = z.infer<typeof insertAssetTagSchema>;
