@@ -1,4 +1,4 @@
-import { users, projects, analytics, notifications, releases, tracks, trackAnalysis, collaborators, earnings, hyperFollowPages, studioProjects, studioTracks, audioClips, midiClips, virtualInstruments, audioEffects, mixBusses, automationData, markers, lyrics, generatedMelodies, adCampaigns, adInsights, adCreatives, adAIRuns, adCampaignVariants, adPlatformAccounts, adDeliveryLogs, adKillRules, adRuleExecutions, socialAccounts, socialCampaigns, posts, socialMetrics, payouts, listings, likes, orders, payoutEvents, passwordResetTokens, sessions, pluginCatalog, autosaves, exportJobs, distributionPackages, distributionTracks, studioConversions, studioCollabSessions, studioCollabSnapshots, projectCollaborators, projectRoyaltySplits, revenueEvents, royaltyLedger, royaltyPayments, collaboratorTaxProfiles, revenueImportHistory, forecastSnapshots, trendEvents, modelVersions, optimizationTasks, payoutSettings, paymentMethods, uploadSessions, isrcRegistry, upcRegistry, jwtTokens, refreshTokens, tokenRevocations, permissions, webhookEvents, webhookAttempts, webhookDeadLetterQueue, logEvents, royaltySplits, distroReleases, distroTracks, distroProviders, distroDispatch, type User, type InsertUser, type Project, type InsertProject, type Analytics, type InsertAnalytics, type Notification, type InsertNotification, type Release, type InsertRelease, type Track, type InsertTrack, type TrackAnalysis, type InsertTrackAnalysis, type StudioProject, type InsertStudioProject, type StudioTrack, type InsertStudioTrack, type AudioClip, type InsertAudioClip, type MidiClip, type InsertMidiClip, type VirtualInstrument, type InsertVirtualInstrument, type AudioEffect, type InsertAudioEffect, type MixBus, type InsertMixBus, type AutomationData, type InsertAutomationData, type Marker, type InsertMarker, type Lyrics, type InsertLyrics, type GeneratedMelody, type InsertGeneratedMelody, type AdCampaign, type InsertAdCampaign, type AdInsights, type InsertAdInsights, type AdCreative, type InsertAdCreative, type AdAIRun, type InsertAdAIRun, type AdCampaignVariant, type DistroRelease, type InsertDistroRelease, type DistroTrack, type InsertDistroTrack, type InsertAdCampaignVariant, type AdPlatformAccount, type InsertAdPlatformAccount, type AdDeliveryLog, type InsertAdDeliveryLog, type AdKillRule, type InsertAdKillRule, type AdRuleExecution, type InsertAdRuleExecution, type Payout, type InsertPayout, type Listing, type Order, type Autosave, type InsertAutosave, type DistributionPackage, type InsertDistributionPackage, type DistributionTrack, type InsertDistributionTrack, type StudioCollabSession, type InsertStudioCollabSession, type StudioCollabSnapshot, type InsertStudioCollabSnapshot, type ProjectCollaborator, type InsertProjectCollaborator, type ProjectRoyaltySplit, type InsertProjectRoyaltySplit, type RevenueEvent, type InsertRevenueEvent, type RoyaltyLedger, type InsertRoyaltyLedger, type RoyaltyPayment, type InsertRoyaltyPayment, type CollaboratorTaxProfile, type InsertCollaboratorTaxProfile, type RevenueImportHistory, type InsertRevenueImportHistory, type ForecastSnapshot, type InsertForecastSnapshot, type TrendEvent, type InsertTrendEvent, type ModelVersion, type InsertModelVersion, type OptimizationTask, type InsertOptimizationTask, type PayoutSettings, type InsertPayoutSettings, type PaymentMethod, type InsertPaymentMethod, type UploadSession, type InsertUploadSession, type ISRCRegistry, type InsertISRCRegistry, type UPCRegistry, type InsertUPCRegistry, type JWTToken, type InsertJWTToken, type RefreshToken, type InsertRefreshToken, type TokenRevocation, type InsertTokenRevocation, type Permission, type InsertPermission, type WebhookAttempt, type InsertWebhookAttempt, type WebhookDeadLetterQueue, type InsertWebhookDeadLetterQueue, type LogEvent, type InsertLogEvent, type RoyaltySplit, type InsertRoyaltySplit } from "@shared/schema";
+import { users, projects, analytics, notifications, releases, tracks, trackAnalysis, collaborators, earnings, hyperFollowPages, studioProjects, studioTracks, audioClips, midiClips, virtualInstruments, audioEffects, mixBusses, automationData, markers, lyrics, generatedMelodies, adCampaigns, adInsights, adCreatives, adAIRuns, adCampaignVariants, adPlatformAccounts, adDeliveryLogs, adKillRules, adRuleExecutions, socialAccounts, socialCampaigns, posts, socialMetrics, payouts, listings, likes, orders, payoutEvents, passwordResetTokens, sessions, pluginCatalog, autosaves, exportJobs, distributionPackages, distributionTracks, studioConversions, studioCollabSessions, studioCollabSnapshots, projectCollaborators, projectRoyaltySplits, revenueEvents, royaltyLedger, royaltyPayments, collaboratorTaxProfiles, revenueImportHistory, forecastSnapshots, trendEvents, modelVersions, optimizationTasks, payoutSettings, paymentMethods, uploadSessions, isrcRegistry, upcRegistry, jwtTokens, refreshTokens, tokenRevocations, permissions, webhookEvents, webhookAttempts, webhookDeadLetterQueue, logEvents, royaltySplits, distroReleases, distroTracks, distroProviders, distroDispatch, type User, type InsertUser, type Project, type InsertProject, type Analytics, type InsertAnalytics, type Notification, type InsertNotification, type Release, type InsertRelease, type Track, type InsertTrack, type TrackAnalysis, type InsertTrackAnalysis, type StudioProject, type InsertStudioProject, type StudioTrack, type InsertStudioTrack, type AudioClip, type InsertAudioClip, type MidiClip, type InsertMidiClip, type VirtualInstrument, type InsertVirtualInstrument, type AudioEffect, type InsertAudioEffect, type MixBus, type InsertMixBus, type AutomationData, type InsertAutomationData, type Marker, type InsertMarker, type Lyrics, type InsertLyrics, type GeneratedMelody, type InsertGeneratedMelody, type AdCampaign, type InsertAdCampaign, type AdInsights, type InsertAdInsights, type AdCreative, type InsertAdCreative, type AdAIRun, type InsertAdAIRun, type AdCampaignVariant, type DistroRelease, type InsertDistroRelease, type DistroTrack, type InsertDistroTrack, type InsertAdCampaignVariant, type AdPlatformAccount, type InsertAdPlatformAccount, type AdDeliveryLog, type InsertAdDeliveryLog, type AdKillRule, type InsertAdKillRule, type AdRuleExecution, type InsertAdRuleExecution, type Payout, type InsertPayout, type Listing, type Order, type Autosave, type InsertAutosave, type DistributionPackage, type InsertDistributionPackage, type DistributionTrack, type InsertDistributionTrack, type StudioCollabSession, type InsertStudioCollabSession, type StudioCollabSnapshot, type InsertStudioCollabSnapshot, type ProjectCollaborator, type InsertProjectCollaborator, type ProjectRoyaltySplit, type InsertProjectRoyaltySplit, type RevenueEvent, type InsertRevenueEvent, type RoyaltyLedger, type InsertRoyaltyLedger, type RoyaltyPayment, type InsertRoyaltyPayment, type CollaboratorTaxProfile, type InsertCollaboratorTaxProfile, type RevenueImportHistory, type InsertRevenueImportHistory, type ForecastSnapshot, type InsertForecastSnapshot, type TrendEvent, type InsertTrendEvent, type ModelVersion, type InsertModelVersion, type OptimizationTask, type InsertOptimizationTask, type PayoutSettings, type InsertPayoutSettings, type PaymentMethod, type InsertPaymentMethod, type UploadSession, type InsertUploadSession, type ISRCRegistry, type InsertISRCRegistry, type UPCRegistry, type InsertUPCRegistry, type JWTToken, type InsertJWTToken, type RefreshToken, type InsertRefreshToken, type TokenRevocation, type InsertTokenRevocation, type Permission, type InsertPermission, type WebhookAttempt, type InsertWebhookAttempt, type WebhookDeadLetterQueue, type InsertWebhookDeadLetterQueue, type LogEvent, type InsertLogEvent, type RoyaltySplit, aiModels, aiModelVersions, trainingDatasets, inferenceRuns, performanceMetrics, explanationLogs, featureFlags, type AIModel, type InsertAIModel, type AIModelVersion, type InsertAIModelVersion, type TrainingDataset, type InsertTrainingDataset, type InferenceRun, type InsertInferenceRun, type PerformanceMetric, type InsertPerformanceMetric, type ExplanationLog, type InsertExplanationLog, type FeatureFlag, type InsertFeatureFlag, type InsertRoyaltySplit } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, sql, and, gte, lte, or, like } from "drizzle-orm";
 import { databaseResilience } from "./reliability/database-resilience";
@@ -580,6 +580,45 @@ export interface IStorage {
   createForecast(forecast: any): Promise<any>;
   getForecastsByProject(projectId: string, limit?: number): Promise<any[]>;
   getLatestForecast(projectId: string, granularity: string): Promise<any | undefined>;
+
+  // ============================================================================
+  // AI GOVERNANCE & MODEL MANAGEMENT
+  // ============================================================================
+  
+  // AI Model operations
+  createAIModel(model: InsertAIModel): Promise<AIModel>;
+  getAIModel(id: string): Promise<AIModel | undefined>;
+  listAIModels(filters?: { modelType?: string; category?: string; isActive?: boolean }): Promise<AIModel[]>;
+  updateAIModel(id: string, updates: Partial<AIModel>): Promise<AIModel>;
+  
+  // AI Model Version operations
+  createAIModelVersion(version: InsertAIModelVersion): Promise<AIModelVersion>;
+  getAIModelVersion(id: string): Promise<AIModelVersion | undefined>;
+  listModelVersions(modelId: string, status?: string): Promise<AIModelVersion[]>;
+  
+  // Training Dataset operations
+  createTrainingDataset(dataset: InsertTrainingDataset): Promise<TrainingDataset>;
+  getTrainingDataset(id: string): Promise<TrainingDataset | undefined>;
+  listTrainingDatasets(filters?: { datasetType?: string; isActive?: boolean }): Promise<TrainingDataset[]>;
+  
+  // Inference Run operations
+  createInferenceRun(run: InsertInferenceRun): Promise<InferenceRun>;
+  getInferenceRuns(filters?: { modelId?: string; versionId?: string; userId?: string; startDate?: Date; endDate?: Date }, limit?: number): Promise<InferenceRun[]>;
+  logInference(run: InsertInferenceRun): Promise<InferenceRun>;
+  
+  // Performance Metric operations
+  createPerformanceMetric(metric: InsertPerformanceMetric): Promise<PerformanceMetric>;
+  getPerformanceMetrics(filters?: { modelId?: string; versionId?: string; metricType?: string; startDate?: Date; endDate?: Date }): Promise<PerformanceMetric[]>;
+  trackMetric(metric: InsertPerformanceMetric): Promise<PerformanceMetric>;
+  
+  // Explanation Log operations
+  createExplanationLog(log: InsertExplanationLog): Promise<ExplanationLog>;
+  getExplanationLog(inferenceId: string): Promise<ExplanationLog[]>;
+  
+  // Feature Flag operations
+  createFeatureFlag(flag: InsertFeatureFlag): Promise<FeatureFlag>;
+  getFeatureFlag(flagName: string): Promise<FeatureFlag | undefined>;
+  updateFeatureFlag(id: string, updates: Partial<FeatureFlag>): Promise<FeatureFlag>;
 }
 
 // Simple in-memory cache with TTL for frequently-accessed data
@@ -8139,6 +8178,263 @@ export class DatabaseStorage implements IStorage {
         }
       },
       'seedDSPProviders'
+    );
+  }
+
+  // ============================================================================
+  // AI GOVERNANCE & MODEL MANAGEMENT IMPLEMENTATIONS
+  // ============================================================================
+
+  async createAIModel(model: InsertAIModel): Promise<AIModel> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(aiModels).values(model).returning();
+        return created;
+      },
+      'createAIModel'
+    );
+  }
+
+  async getAIModel(id: string): Promise<AIModel | undefined> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [model] = await db.select().from(aiModels).where(eq(aiModels.id, id));
+        return model;
+      },
+      'getAIModel'
+    );
+  }
+
+  async listAIModels(filters?: { modelType?: string; category?: string; isActive?: boolean }): Promise<AIModel[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        let query = db.select().from(aiModels);
+        
+        const conditions = [];
+        if (filters?.modelType) conditions.push(eq(aiModels.modelType, filters.modelType));
+        if (filters?.category) conditions.push(eq(aiModels.category, filters.category));
+        if (filters?.isActive !== undefined) conditions.push(eq(aiModels.isActive, filters.isActive));
+        
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions)) as any;
+        }
+        
+        return await query.orderBy(desc(aiModels.createdAt));
+      },
+      'listAIModels'
+    );
+  }
+
+  async updateAIModel(id: string, updates: Partial<AIModel>): Promise<AIModel> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [updated] = await db.update(aiModels)
+          .set({ ...updates, updatedAt: new Date() })
+          .where(eq(aiModels.id, id))
+          .returning();
+        return updated;
+      },
+      'updateAIModel'
+    );
+  }
+
+  async createAIModelVersion(version: InsertAIModelVersion): Promise<AIModelVersion> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(aiModelVersions).values(version).returning();
+        return created;
+      },
+      'createAIModelVersion'
+    );
+  }
+
+  async getAIModelVersion(id: string): Promise<AIModelVersion | undefined> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [version] = await db.select().from(aiModelVersions).where(eq(aiModelVersions.id, id));
+        return version;
+      },
+      'getAIModelVersion'
+    );
+  }
+
+  async listModelVersions(modelId: string, status?: string): Promise<AIModelVersion[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        let query = db.select().from(aiModelVersions).where(eq(aiModelVersions.modelId, modelId));
+        
+        if (status) {
+          query = query.where(and(eq(aiModelVersions.modelId, modelId), eq(aiModelVersions.status, status))) as any;
+        }
+        
+        return await query.orderBy(desc(aiModelVersions.createdAt));
+      },
+      'listModelVersions'
+    );
+  }
+
+  async createTrainingDataset(dataset: InsertTrainingDataset): Promise<TrainingDataset> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(trainingDatasets).values(dataset).returning();
+        return created;
+      },
+      'createTrainingDataset'
+    );
+  }
+
+  async getTrainingDataset(id: string): Promise<TrainingDataset | undefined> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [dataset] = await db.select().from(trainingDatasets).where(eq(trainingDatasets.id, id));
+        return dataset;
+      },
+      'getTrainingDataset'
+    );
+  }
+
+  async listTrainingDatasets(filters?: { datasetType?: string; isActive?: boolean }): Promise<TrainingDataset[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        let query = db.select().from(trainingDatasets);
+        
+        const conditions = [];
+        if (filters?.datasetType) conditions.push(eq(trainingDatasets.datasetType, filters.datasetType));
+        if (filters?.isActive !== undefined) conditions.push(eq(trainingDatasets.isActive, filters.isActive));
+        
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions)) as any;
+        }
+        
+        return await query.orderBy(desc(trainingDatasets.createdAt));
+      },
+      'listTrainingDatasets'
+    );
+  }
+
+  async createInferenceRun(run: InsertInferenceRun): Promise<InferenceRun> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(inferenceRuns).values(run).returning();
+        return created;
+      },
+      'createInferenceRun'
+    );
+  }
+
+  async getInferenceRuns(filters?: { modelId?: string; versionId?: string; userId?: string; startDate?: Date; endDate?: Date }, limit: number = 100): Promise<InferenceRun[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        let query = db.select().from(inferenceRuns);
+        
+        const conditions = [];
+        if (filters?.modelId) conditions.push(eq(inferenceRuns.modelId, filters.modelId));
+        if (filters?.versionId) conditions.push(eq(inferenceRuns.versionId, filters.versionId));
+        if (filters?.userId) conditions.push(eq(inferenceRuns.userId, filters.userId));
+        if (filters?.startDate) conditions.push(gte(inferenceRuns.createdAt, filters.startDate));
+        if (filters?.endDate) conditions.push(lte(inferenceRuns.createdAt, filters.endDate));
+        
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions)) as any;
+        }
+        
+        return await query.orderBy(desc(inferenceRuns.createdAt)).limit(limit);
+      },
+      'getInferenceRuns'
+    );
+  }
+
+  async logInference(run: InsertInferenceRun): Promise<InferenceRun> {
+    return this.createInferenceRun(run);
+  }
+
+  async createPerformanceMetric(metric: InsertPerformanceMetric): Promise<PerformanceMetric> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(performanceMetrics).values(metric).returning();
+        return created;
+      },
+      'createPerformanceMetric'
+    );
+  }
+
+  async getPerformanceMetrics(filters?: { modelId?: string; versionId?: string; metricType?: string; startDate?: Date; endDate?: Date }): Promise<PerformanceMetric[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        let query = db.select().from(performanceMetrics);
+        
+        const conditions = [];
+        if (filters?.modelId) conditions.push(eq(performanceMetrics.modelId, filters.modelId));
+        if (filters?.versionId) conditions.push(eq(performanceMetrics.versionId, filters.versionId));
+        if (filters?.metricType) conditions.push(eq(performanceMetrics.metricType, filters.metricType));
+        if (filters?.startDate) conditions.push(gte(performanceMetrics.measuredAt, filters.startDate));
+        if (filters?.endDate) conditions.push(lte(performanceMetrics.measuredAt, filters.endDate));
+        
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions)) as any;
+        }
+        
+        return await query.orderBy(desc(performanceMetrics.measuredAt));
+      },
+      'getPerformanceMetrics'
+    );
+  }
+
+  async trackMetric(metric: InsertPerformanceMetric): Promise<PerformanceMetric> {
+    return this.createPerformanceMetric(metric);
+  }
+
+  async createExplanationLog(log: InsertExplanationLog): Promise<ExplanationLog> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(explanationLogs).values(log).returning();
+        return created;
+      },
+      'createExplanationLog'
+    );
+  }
+
+  async getExplanationLog(inferenceId: string): Promise<ExplanationLog[]> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        return await db.select().from(explanationLogs)
+          .where(eq(explanationLogs.inferenceId, inferenceId))
+          .orderBy(desc(explanationLogs.createdAt));
+      },
+      'getExplanationLog'
+    );
+  }
+
+  async createFeatureFlag(flag: InsertFeatureFlag): Promise<FeatureFlag> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(featureFlags).values(flag).returning();
+        return created;
+      },
+      'createFeatureFlag'
+    );
+  }
+
+  async getFeatureFlag(flagName: string): Promise<FeatureFlag | undefined> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [flag] = await db.select().from(featureFlags).where(eq(featureFlags.flagName, flagName));
+        return flag;
+      },
+      'getFeatureFlag'
+    );
+  }
+
+  async updateFeatureFlag(id: string, updates: Partial<FeatureFlag>): Promise<FeatureFlag> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [updated] = await db.update(featureFlags)
+          .set({ ...updates, updatedAt: new Date() })
+          .where(eq(featureFlags.id, id))
+          .returning();
+        return updated;
+      },
+      'updateFeatureFlag'
     );
   }
 }

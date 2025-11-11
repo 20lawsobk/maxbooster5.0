@@ -2339,7 +2339,7 @@ export const projectVersions = pgTable("project_versions", {
 // Personal Network Impacts - Track organic amplification metrics
 export const personalNetworkImpacts = pgTable("personal_network_impacts", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  campaignId: varchar("campaign_id").notNull().references(() => adCampaigns.id, { onDelete: 'cascade' }),
+  campaignId: integer("campaign_id").notNull().references(() => adCampaigns.id, { onDelete: 'cascade' }),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   platform: varchar("platform", { length: 50 }).notNull(),
   networkReach: integer("network_reach").default(0), // Friends/followers reached
@@ -2356,6 +2356,156 @@ export const personalNetworkImpacts = pgTable("personal_network_impacts", {
   userIdIdx: index("personal_network_impacts_user_id_idx").on(table.userId),
   platformIdx: index("personal_network_impacts_platform_idx").on(table.platform),
   snapshotDateIdx: index("personal_network_impacts_snapshot_date_idx").on(table.snapshotDate),
+}));
+
+// ============================================================================
+// AI GOVERNANCE & MODEL MANAGEMENT
+// ============================================================================
+
+// AI Models - Registry of all AI models in the system
+export const aiModels = pgTable("ai_models", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  modelName: varchar("model_name", { length: 255 }).notNull().unique(),
+  modelType: varchar("model_type", { length: 100 }).notNull(), // music_mastering, content_generation, advertising, security, insights
+  description: text("description"),
+  category: varchar("category", { length: 100 }), // audio, text, image, video, analytics, security
+  currentVersionId: uuid("current_version_id"), // Active production version
+  isActive: boolean("is_active").default(true),
+  isBeta: boolean("is_beta").default(false),
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  modelNameIdx: index("ai_models_model_name_idx").on(table.modelName),
+  modelTypeIdx: index("ai_models_model_type_idx").on(table.modelType),
+  categoryIdx: index("ai_models_category_idx").on(table.category),
+  isActiveIdx: index("ai_models_is_active_idx").on(table.isActive),
+}));
+
+// AI Model Versions - Version history for AI models
+export const aiModelVersions = pgTable("ai_model_versions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  modelId: uuid("model_id").notNull().references(() => aiModels.id, { onDelete: 'cascade' }),
+  versionNumber: varchar("version_number", { length: 50 }).notNull(), // semver: v1.0.0, v2.1.3
+  versionHash: varchar("version_hash", { length: 64 }).notNull().unique(), // Deterministic hash of model artifacts
+  algorithmChanges: text("algorithm_changes"),
+  parameters: jsonb("parameters"), // Model hyperparameters and configuration
+  trainingDatasetId: uuid("training_dataset_id").references(() => trainingDatasets.id),
+  performanceMetrics: jsonb("performance_metrics"), // Accuracy, precision, recall, F1, etc
+  status: varchar("status", { length: 50 }).default("development"), // development, staging, production, deprecated
+  deployedAt: timestamp("deployed_at"),
+  deprecatedAt: timestamp("deprecated_at"),
+  rollbackToVersionId: uuid("rollback_to_version_id").references(() => aiModelVersions.id),
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  modelIdIdx: index("ai_model_versions_model_id_idx").on(table.modelId),
+  versionHashIdx: index("ai_model_versions_version_hash_idx").on(table.versionHash),
+  statusIdx: index("ai_model_versions_status_idx").on(table.status),
+  deployedAtIdx: index("ai_model_versions_deployed_at_idx").on(table.deployedAt),
+}));
+
+// Training Datasets - References to training data for models
+export const trainingDatasets = pgTable("training_datasets", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  datasetName: varchar("dataset_name", { length: 255 }).notNull(),
+  datasetType: varchar("dataset_type", { length: 100 }).notNull(), // audio_samples, user_feedback, historical_data
+  description: text("description"),
+  dataSize: bigint("data_size", { mode: 'number' }), // Size in bytes
+  recordCount: integer("record_count"), // Number of training examples
+  dataLocation: varchar("data_location", { length: 500 }), // S3 bucket, file path, etc
+  dataHash: varchar("data_hash", { length: 64 }), // Content hash for integrity
+  schema: jsonb("schema"), // Data structure definition
+  metadata: jsonb("metadata"), // Source, collection method, date range, etc
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  datasetNameIdx: index("training_datasets_dataset_name_idx").on(table.datasetName),
+  datasetTypeIdx: index("training_datasets_dataset_type_idx").on(table.datasetType),
+  isActiveIdx: index("training_datasets_is_active_idx").on(table.isActive),
+}));
+
+// Inference Runs - Log of all AI model inferences
+export const inferenceRuns = pgTable("inference_runs", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  modelId: uuid("model_id").notNull().references(() => aiModels.id, { onDelete: 'cascade' }),
+  versionId: uuid("version_id").notNull().references(() => aiModelVersions.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").references(() => users.id),
+  inferenceType: varchar("inference_type", { length: 100 }).notNull(), // prediction, recommendation, classification, generation
+  inputData: jsonb("input_data").notNull(), // Input features/payload
+  outputData: jsonb("output_data").notNull(), // Model predictions/results
+  confidenceScore: real("confidence_score"), // 0-1 confidence
+  executionTimeMs: integer("execution_time_ms").notNull(),
+  success: boolean("success").default(true),
+  errorMessage: text("error_message"),
+  requestId: varchar("request_id", { length: 255 }), // For correlation
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  modelIdIdx: index("inference_runs_model_id_idx").on(table.modelId),
+  versionIdIdx: index("inference_runs_version_id_idx").on(table.versionId),
+  userIdIdx: index("inference_runs_user_id_idx").on(table.userId),
+  inferenceTypeIdx: index("inference_runs_inference_type_idx").on(table.inferenceType),
+  createdAtIdx: index("inference_runs_created_at_idx").on(table.createdAt),
+  requestIdIdx: index("inference_runs_request_id_idx").on(table.requestId),
+}));
+
+// Performance Metrics - Model performance tracking over time
+export const performanceMetrics = pgTable("performance_metrics", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  modelId: uuid("model_id").notNull().references(() => aiModels.id, { onDelete: 'cascade' }),
+  versionId: uuid("version_id").notNull().references(() => aiModelVersions.id, { onDelete: 'cascade' }),
+  metricType: varchar("metric_type", { length: 100 }).notNull(), // accuracy, precision, recall, f1, latency, throughput
+  metricValue: real("metric_value").notNull(),
+  metricUnit: varchar("metric_unit", { length: 50 }), // %, ms, req/s, etc
+  aggregationPeriod: varchar("aggregation_period", { length: 50 }), // hourly, daily, weekly
+  sampleSize: integer("sample_size"),
+  metadata: jsonb("metadata"), // Additional context
+  measuredAt: timestamp("measured_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  modelIdIdx: index("performance_metrics_model_id_idx").on(table.modelId),
+  versionIdIdx: index("performance_metrics_version_id_idx").on(table.versionId),
+  metricTypeIdx: index("performance_metrics_metric_type_idx").on(table.metricType),
+  measuredAtIdx: index("performance_metrics_measured_at_idx").on(table.measuredAt),
+}));
+
+// Explanation Logs - AI decision explanations (explainability)
+export const explanationLogs = pgTable("explanation_logs", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  inferenceId: uuid("inference_id").notNull().references(() => inferenceRuns.id, { onDelete: 'cascade' }),
+  explanationType: varchar("explanation_type", { length: 100 }).notNull(), // feature_importance, decision_tree, shap, lime
+  featureImportance: jsonb("feature_importance"), // {feature_name: importance_score}
+  decisionPath: jsonb("decision_path"), // Step-by-step reasoning
+  confidence: real("confidence"), // 0-1 confidence in explanation
+  humanReadable: text("human_readable"), // Plain English explanation
+  visualizationData: jsonb("visualization_data"), // Data for charts/graphs
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  inferenceIdIdx: index("explanation_logs_inference_id_idx").on(table.inferenceId),
+  explanationTypeIdx: index("explanation_logs_explanation_type_idx").on(table.explanationType),
+  createdAtIdx: index("explanation_logs_created_at_idx").on(table.createdAt),
+}));
+
+// Feature Flags - Control AI features and model deployments
+export const featureFlags = pgTable("feature_flags", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  flagName: varchar("flag_name", { length: 255 }).notNull().unique(),
+  flagType: varchar("flag_type", { length: 50 }).notNull(), // boolean, percentage, variant
+  description: text("description"),
+  isEnabled: boolean("is_enabled").default(false),
+  rolloutPercentage: integer("rollout_percentage").default(0), // 0-100 for gradual rollout
+  targetUsers: jsonb("target_users"), // Array of user IDs for targeted rollout
+  targetEnvironments: jsonb("target_environments"), // ['development', 'staging', 'production']
+  modelId: uuid("model_id").references(() => aiModels.id),
+  expiresAt: timestamp("expires_at"),
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  flagNameIdx: index("feature_flags_flag_name_idx").on(table.flagName),
+  isEnabledIdx: index("feature_flags_is_enabled_idx").on(table.isEnabled),
+  modelIdIdx: index("feature_flags_model_id_idx").on(table.modelId),
 }));
 
 // Insert Schemas
@@ -3561,3 +3711,35 @@ export type InsertProjectVersion = z.infer<typeof insertProjectVersionSchema>;
 export type PersonalNetworkImpact = typeof personalNetworkImpacts.$inferSelect;
 export const insertPersonalNetworkImpactSchema = createInsertSchema(personalNetworkImpacts).omit({ id: true, createdAt: true });
 export type InsertPersonalNetworkImpact = z.infer<typeof insertPersonalNetworkImpactSchema>;
+
+// ============================================================================
+// AI GOVERNANCE & MODEL MANAGEMENT - Type Exports
+// ============================================================================
+
+export type AIModel = typeof aiModels.$inferSelect;
+export const insertAIModelSchema = createInsertSchema(aiModels).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertAIModel = z.infer<typeof insertAIModelSchema>;
+
+export type AIModelVersion = typeof aiModelVersions.$inferSelect;
+export const insertAIModelVersionSchema = createInsertSchema(aiModelVersions).omit({ id: true, createdAt: true });
+export type InsertAIModelVersion = z.infer<typeof insertAIModelVersionSchema>;
+
+export type TrainingDataset = typeof trainingDatasets.$inferSelect;
+export const insertTrainingDatasetSchema = createInsertSchema(trainingDatasets).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertTrainingDataset = z.infer<typeof insertTrainingDatasetSchema>;
+
+export type InferenceRun = typeof inferenceRuns.$inferSelect;
+export const insertInferenceRunSchema = createInsertSchema(inferenceRuns).omit({ id: true, createdAt: true });
+export type InsertInferenceRun = z.infer<typeof insertInferenceRunSchema>;
+
+export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
+export const insertPerformanceMetricSchema = createInsertSchema(performanceMetrics).omit({ id: true, createdAt: true });
+export type InsertPerformanceMetric = z.infer<typeof insertPerformanceMetricSchema>;
+
+export type ExplanationLog = typeof explanationLogs.$inferSelect;
+export const insertExplanationLogSchema = createInsertSchema(explanationLogs).omit({ id: true, createdAt: true });
+export type InsertExplanationLog = z.infer<typeof insertExplanationLogSchema>;
+
+export type FeatureFlag = typeof featureFlags.$inferSelect;
+export const insertFeatureFlagSchema = createInsertSchema(featureFlags).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertFeatureFlag = z.infer<typeof insertFeatureFlagSchema>;
