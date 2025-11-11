@@ -2,6 +2,39 @@
 
 Max Booster is a comprehensive AI-powered music artist career management platform built with React, Express, and TypeScript. It provides professional-grade tools for music production, distribution, social media management, advertising, marketplace operations, and analytics. The platform features a Studio One-inspired DAW interface, autonomous AI systems for content optimization and security, and enterprise-scale architecture designed to support millions of concurrent users.
 
+# Recent Changes
+
+## User Asset Management System (November 11, 2025)
+
+**Expanded Native Plugin Catalog:**
+- Added 31 new professional-grade plugins across 15+ categories
+- Total catalog: 64 plugins including limiters, gates, de-essers, pitch correction, vocal processors, guitar/bass amp simulators, stereo imaging tools, metering/analysis tools, utility plugins, creative effects, and channel strips/preamps
+- Organized by category for easy browsing
+
+**User Asset Upload & Management:**
+- Complete database schema: `asset_folders`, `user_assets`, `asset_tags` tables with proper foreign keys and indexes
+- Secure file upload system with 500MB limit and strict MIME type validation
+- Support for audio samples (WAV, MP3, FLAC, AIFF, OGG) and plugin files (JSON, ZIP)
+- Per-user asset isolation with ownership verification at database and API level
+- Folder organization and tagging system for asset categorization
+- Secure download endpoints that sanitize responses (no filesystem path exposure)
+- 9 RESTful API endpoints: upload, list, retrieve, delete, folder management, tagging
+
+**Browser Panel Integration:**
+- Updated BrowserPanel to fetch and display user assets using React Query
+- Real-time asset loading with proper loading states and error handling
+- Upload button and progress-tracked upload dialog
+- Search and filtering capabilities for samples and plugins
+- Native plugins organized by category, user assets in "My Samples"/"My Plugins" folders
+- Cache invalidation ensures UI updates immediately after upload
+
+**Drag-and-Drop Functionality:**
+- Samples and plugins are draggable from browser panel
+- Track headers accept drops with visual feedback (accent color highlight and glow effect)
+- Drag data includes item id, name, type, and fileUrl for proper handling
+- Clean coexistence with existing @dnd-kit track reordering system
+- Console logging in place for integration with clip creation and effect chain systems
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -67,6 +100,7 @@ Preferred communication style: Simple, everyday language.
 - User authentication and profiles
 - Music projects, tracks, releases
 - Studio DAW data (audio clips, MIDI, mix busses, effects)
+- **User asset management** (asset_folders, user_assets, asset_tags tables)
 - Social media connections and campaigns
 - Advertising campaigns with A/B testing variants
 - Marketplace listings and orders
@@ -83,8 +117,9 @@ Preferred communication style: Simple, everyday language.
 **File Storage:**
 - Local filesystem references for development
 - Architecture supports migration to S3/CDN for production
-- Audio file handling (WAV, MP3, FLAC)
+- Audio file handling (WAV, MP3, FLAC, AIFF, OGG)
 - Waveform generation at multiple resolutions (low/medium/high)
+- **User asset uploads** with 500MB limit, secure download endpoints, and per-user isolation
 
 ## Authentication & Security
 
