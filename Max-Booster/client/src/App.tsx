@@ -34,12 +34,14 @@ const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Studio = lazy(() => import("@/pages/Studio"));
 const Marketplace = lazy(() => import("@/pages/Marketplace"));
 const Analytics = lazy(() => import("@/pages/Analytics"));
+const AIDashboard = lazy(() => import("@/pages/analytics/AIDashboard"));
 const SocialMedia = lazy(() => import("@/pages/SocialMedia"));
 const Advertisement = lazy(() => import("@/pages/Advertisement"));
 const Distribution = lazy(() => import("@/pages/Distribution"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
+const SecurityDashboard = lazy(() => import("@/pages/admin/SecurityDashboard"));
 const Projects = lazy(() => import("@/pages/Projects"));
 const Royalties = lazy(() => import("@/pages/Royalties"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
@@ -56,6 +58,7 @@ function Router() {
       <Route path="/register/success" component={RegisterSuccess} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/projects" component={Projects} />
+      <Route path="/analytics/ai" component={AIDashboard} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/social-media" component={SocialMedia} />
       <Route path="/advertising" component={Advertisement} />
@@ -66,8 +69,9 @@ function Router() {
       <Route path="/distribution" component={Distribution} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/subscribe/:tier" component={Subscribe} />
-      <Route path="/admin" component={Admin} />
+      <Route path="/admin/security" component={SecurityDashboard} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/admin" component={Admin} />
       <Route path="/settings" component={Settings} />
       <Route path="/features" component={Features} />
       <Route path="/api-docs" component={API} />

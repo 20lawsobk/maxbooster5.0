@@ -11,6 +11,7 @@ import {
   Disc, 
   Radio,
   Shield,
+  Brain,
   X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -27,6 +28,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
   { label: 'Projects', path: '/projects', icon: Music },
   { label: 'Analytics', path: '/analytics', icon: BarChart3 },
+  { label: 'AI Analytics', path: '/analytics/ai', icon: Brain },
   { label: 'Social Media', path: '/social-media', icon: Share2 },
   { label: 'Advertising', path: '/advertising', icon: Megaphone },
   { label: 'Marketplace', path: '/marketplace', icon: ShoppingBag },
@@ -34,6 +36,7 @@ const navItems: NavItem[] = [
   { label: 'Studio', path: '/studio', icon: Disc },
   { label: 'Distribution', path: '/distribution', icon: Radio },
   { label: 'Admin', path: '/admin', icon: Shield, adminOnly: true },
+  { label: 'Security', path: '/admin/security', icon: Shield, adminOnly: true },
 ];
 
 interface SidebarProps {
