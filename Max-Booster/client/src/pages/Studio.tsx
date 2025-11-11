@@ -39,6 +39,7 @@ import { TrackList } from '@/components/studio/TrackList';
 import { Timeline } from '@/components/studio/Timeline';
 import { MixerPanel } from '@/components/studio/MixerPanel';
 import { ExportDialog } from '@/components/studio/ExportDialog';
+import { StemExportDialog } from '@/components/studio/StemExportDialog';
 import { DistributionDialog } from '@/components/studio/DistributionDialog';
 import { AIGeneratorDialog } from '@/components/studio/AIGeneratorDialog';
 import { ConversionDialog } from '@/components/studio/ConversionDialog';
@@ -165,6 +166,7 @@ export default function Studio() {
   const [showLyricsPanel, setShowLyricsPanel] = useState(false);
   const [lyricsContent, setLyricsContent] = useState('');
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showStemExportDialog, setShowStemExportDialog] = useState(false);
   const [showDistributionDialog, setShowDistributionDialog] = useState(false);
   const [showAIGeneratorDialog, setShowAIGeneratorDialog] = useState(false);
   const [showConversionDialog, setShowConversionDialog] = useState(false);
@@ -1440,6 +1442,9 @@ export default function Studio() {
                     <Button size="sm" variant="ghost" className="h-8" onClick={() => setShowExportDialog(true)} disabled={!selectedProject} data-testid="button-open-export">
                       <Download className="h-4 w-4 mr-1" />Export
                     </Button>
+                    <Button size="sm" variant="ghost" className="h-8" onClick={() => setShowStemExportDialog(true)} disabled={!selectedProject || tracks.length === 0} data-testid="button-export-stems">
+                      <Layers className="h-4 w-4 mr-1" />Export Stems
+                    </Button>
                     <Button size="sm" variant="ghost" className="h-8" onClick={() => setShowConversionDialog(true)} disabled={!selectedProject} data-testid="button-convert">
                       <FileAudio className="h-4 w-4 mr-1" />Convert
                     </Button>
@@ -2015,6 +2020,12 @@ export default function Studio() {
           setExportDither={setExportDither}
           onExport={() => exportProjectMutation.mutate()}
           isExporting={exportProjectMutation.isPending}
+        />
+
+        <StemExportDialog
+          open={showStemExportDialog}
+          onOpenChange={setShowStemExportDialog}
+          projectId={selectedProject?.id?.toString() || null}
         />
 
         <AIGeneratorDialog

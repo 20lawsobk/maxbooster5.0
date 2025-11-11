@@ -107,8 +107,8 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
-import { listings, orders, royaltySplits, posts, socialCampaigns, socialMetrics, releases, analytics, payoutEvents, hyperFollowPages, earnings } from "@shared/schema";
-import { eq, and, desc, or, gte, lte, sql, sum, count } from "drizzle-orm";
+import { listings, orders, royaltySplits, posts, socialCampaigns, socialMetrics, releases, analytics, payoutEvents, hyperFollowPages, earnings, stemExports, listingStems, stemOrders, users, contentCalendar, insertContentCalendarSchema } from "@shared/schema";
+import { eq, and, desc, or, gte, lte, sql, sum, count, between } from "drizzle-orm";
 
 // Extend Express types for req.user
 declare global {
@@ -9165,6 +9165,255 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       res.status(500).json({ error: "Failed to generate variants" });
     }
   });
+
+  // ============================================================================
+  // CONTENT CALENDAR ROUTES
+  // ============================================================================
+  
+  // POST /api/social/calendar - Create scheduled post
+  app.post("/api/social/calendar", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const validation = insertContentCalendarSchema.safeParse(req.body);
+      
+      if (!validation.success) {
+        return res.status(400).json({ error: "Invalid data", details: validation.error });
+      }
+
+      const scheduledFor = new Date(validation.data.scheduledFor);
+      if (scheduledFor <= new Date()) {
+        return res.status(400).json({ error: "scheduledFor must be a future date" });
+      }
+
+      const [post] = await db.insert(contentCalendar).values({
+        ...validation.data,
+        userId,
+        status: validation.data.status || "draft"
+      }).returning();
+
+      res.json(post);
+    } catch (error) {
+      console.error("Error creating calendar post:", error);
+      res.status(500).json({ error: "Failed to create scheduled post" });
+    }
+  });
+
+  // GET /api/social/calendar - Get user's content calendar
+  app.get("/api/social/calendar", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { startDate, endDate, platform, status } = req.query;
+
+      let query = db.select().from(contentCalendar).where(eq(contentCalendar.userId, userId));
+
+      // Build filter conditions
+      const conditions = [eq(contentCalendar.userId, userId)];
+
+      if (startDate && endDate) {
+        conditions.push(
+          between(contentCalendar.scheduledFor, new Date(startDate as string), new Date(endDate as string))
+        );
+      }
+
+      if (status) {
+        conditions.push(eq(contentCalendar.status, status as string));
+      }
+
+      const posts = await db.select()
+        .from(contentCalendar)
+        .where(and(...conditions))
+        .orderBy(desc(contentCalendar.scheduledFor));
+
+      // Filter by platform if specified (platforms is JSONB array)
+      let filteredPosts = posts;
+      if (platform) {
+        filteredPosts = posts.filter(post => {
+          const platforms = post.platforms as string[];
+          return platforms && platforms.includes(platform as string);
+        });
+      }
+
+      // Group by date for calendar view
+      const groupedByDate = filteredPosts.reduce((acc, post) => {
+        const date = new Date(post.scheduledFor).toISOString().split('T')[0];
+        if (!acc[date]) {
+          acc[date] = [];
+        }
+        acc[date].push(post);
+        return acc;
+      }, {} as Record<string, typeof filteredPosts>);
+
+      // Include counts for each day
+      const calendarData = Object.entries(groupedByDate).map(([date, posts]) => ({
+        date,
+        count: posts.length,
+        posts
+      }));
+
+      res.json({
+        posts: filteredPosts,
+        groupedByDate: calendarData
+      });
+    } catch (error) {
+      console.error("Error fetching calendar:", error);
+      res.status(500).json({ error: "Failed to fetch calendar" });
+    }
+  });
+
+  // GET /api/social/calendar/stats - Get calendar statistics
+  app.get("/api/social/calendar/stats", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const now = new Date();
+      const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      // Get all posts for the user
+      const allPosts = await db.select()
+        .from(contentCalendar)
+        .where(eq(contentCalendar.userId, userId));
+
+      // Calculate stats
+      const stats = {
+        totalScheduled: allPosts.filter(p => p.status === 'scheduled').length,
+        totalPublished: allPosts.filter(p => p.status === 'published').length,
+        totalDrafts: allPosts.filter(p => p.status === 'draft').length,
+        totalFailed: allPosts.filter(p => p.status === 'failed').length,
+        upcomingThisWeek: allPosts.filter(p => {
+          const scheduledDate = new Date(p.scheduledFor);
+          return scheduledDate >= now && scheduledDate <= oneWeekFromNow;
+        }).length,
+        byPlatform: {} as Record<string, { scheduled: number; published: number; failed: number; }>
+      };
+
+      // Group by platform
+      allPosts.forEach(post => {
+        const platforms = (post.platforms as string[]) || [];
+        platforms.forEach(platform => {
+          if (!stats.byPlatform[platform]) {
+            stats.byPlatform[platform] = { scheduled: 0, published: 0, failed: 0 };
+          }
+          if (post.status === 'scheduled') stats.byPlatform[platform].scheduled++;
+          if (post.status === 'published') stats.byPlatform[platform].published++;
+          if (post.status === 'failed') stats.byPlatform[platform].failed++;
+        });
+      });
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching calendar stats:", error);
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  });
+
+  // PUT /api/social/calendar/:postId - Update scheduled post
+  app.put("/api/social/calendar/:postId", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { postId } = req.params;
+
+      // Verify ownership
+      const [existing] = await db.select()
+        .from(contentCalendar)
+        .where(and(eq(contentCalendar.id, postId), eq(contentCalendar.userId, userId)));
+
+      if (!existing) {
+        return res.status(404).json({ error: "Post not found or unauthorized" });
+      }
+
+      // Validate future date if rescheduling
+      if (req.body.scheduledFor) {
+        const newScheduledFor = new Date(req.body.scheduledFor);
+        if (newScheduledFor <= new Date()) {
+          return res.status(400).json({ error: "scheduledFor must be a future date" });
+        }
+      }
+
+      const [updated] = await db.update(contentCalendar)
+        .set({
+          ...req.body,
+          updatedAt: new Date()
+        })
+        .where(eq(contentCalendar.id, postId))
+        .returning();
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating calendar post:", error);
+      res.status(500).json({ error: "Failed to update post" });
+    }
+  });
+
+  // DELETE /api/social/calendar/:postId - Delete scheduled post
+  app.delete("/api/social/calendar/:postId", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { postId } = req.params;
+
+      // Verify ownership
+      const [existing] = await db.select()
+        .from(contentCalendar)
+        .where(and(eq(contentCalendar.id, postId), eq(contentCalendar.userId, userId)));
+
+      if (!existing) {
+        return res.status(404).json({ error: "Post not found or unauthorized" });
+      }
+
+      // Only allow deletion of draft/scheduled posts
+      if (existing.status !== 'draft' && existing.status !== 'scheduled') {
+        return res.status(400).json({ error: "Only draft or scheduled posts can be deleted" });
+      }
+
+      await db.delete(contentCalendar).where(eq(contentCalendar.id, postId));
+
+      res.json({ success: true, message: "Post deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting calendar post:", error);
+      res.status(500).json({ error: "Failed to delete post" });
+    }
+  });
+
+  // POST /api/social/calendar/:postId/publish - Manually publish now
+  app.post("/api/social/calendar/:postId/publish", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { postId } = req.params;
+
+      // Verify ownership
+      const [existing] = await db.select()
+        .from(contentCalendar)
+        .where(and(eq(contentCalendar.id, postId), eq(contentCalendar.userId, userId)));
+
+      if (!existing) {
+        return res.status(404).json({ error: "Post not found or unauthorized" });
+      }
+
+      // Mock platform posting - simulate success
+      const platforms = (existing.platforms as string[]) || [];
+      const mockResults = platforms.map(platform => ({
+        platform,
+        success: true,
+        postId: `${platform}_${Date.now()}`
+      }));
+
+      // Update status to published
+      const [published] = await db.update(contentCalendar)
+        .set({
+          status: 'published',
+          publishedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(contentCalendar.id, postId))
+        .returning();
+
+      res.json({
+        post: published,
+        publishResults: mockResults
+      });
+    } catch (error) {
+      console.error("Error publishing calendar post:", error);
+      res.status(500).json({ error: "Failed to publish post" });
+    }
+  });
   
   // ============================================================================
   // AI MUSIC SUITE (DAW) ROUTES
@@ -9406,6 +9655,143 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     } catch (error) {
       console.error("Error fetching mastering suggestions:", error);
       res.status(500).json({ error: "Failed to fetch mastering suggestions" });
+    }
+  });
+  
+  // ============================================================================
+  // STEM EXPORT ROUTES
+  // ============================================================================
+  
+  // Create stem export job
+  app.post("/api/studio/projects/:projectId/export-stems", requireAuth, async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const user = req.user as any;
+      const { trackIds, exportFormat, sampleRate, bitDepth, normalize, includeEffects } = req.body;
+      
+      // Validate required fields
+      if (!trackIds || !Array.isArray(trackIds) || trackIds.length === 0) {
+        return res.status(400).json({ error: "trackIds array is required and must not be empty" });
+      }
+      
+      if (!exportFormat || !['wav', 'mp3', 'flac'].includes(exportFormat)) {
+        return res.status(400).json({ error: "exportFormat must be wav, mp3, or flac" });
+      }
+      
+      // Create stem export record
+      const [stemExport] = await db.insert(stemExports).values({
+        projectId,
+        userId: user.id,
+        trackIds: trackIds,
+        exportFormat,
+        sampleRate: sampleRate || 48000,
+        bitDepth: bitDepth || 24,
+        normalize: normalize !== false,
+        includeEffects: includeEffects !== false,
+        status: 'pending',
+        progress: 0,
+      }).returning();
+      
+      // Simulate stem processing in background (3-5 seconds)
+      const processingDuration = 3000 + Math.random() * 2000; // 3-5 seconds
+      const progressInterval = 100; // Update every 100ms
+      const totalSteps = Math.floor(processingDuration / progressInterval);
+      let currentStep = 0;
+      
+      const progressTimer = setInterval(async () => {
+        currentStep++;
+        const progress = Math.min(Math.floor((currentStep / totalSteps) * 100), 100);
+        
+        try {
+          if (progress >= 100) {
+            // Export complete
+            clearInterval(progressTimer);
+            await db.update(stemExports)
+              .set({
+                progress: 100,
+                status: 'completed',
+                zipArchiveUrl: `/downloads/stems/${stemExport.id}/stems-${Date.now()}.zip`,
+                completedAt: new Date(),
+              })
+              .where(eq(stemExports.id, stemExport.id));
+          } else {
+            // Update progress
+            await db.update(stemExports)
+              .set({ 
+                progress,
+                status: 'processing'
+              })
+              .where(eq(stemExports.id, stemExport.id));
+          }
+        } catch (error) {
+          console.error("Error updating stem export progress:", error);
+          clearInterval(progressTimer);
+        }
+      }, progressInterval);
+      
+      res.json({ jobId: stemExport.id, status: 'pending' });
+    } catch (error) {
+      console.error("Error creating stem export:", error);
+      res.status(500).json({ error: "Failed to create stem export job" });
+    }
+  });
+  
+  // Get stem export status
+  app.get("/api/studio/stem-exports/:exportId", requireAuth, async (req, res) => {
+    try {
+      const { exportId } = req.params;
+      const user = req.user as any;
+      
+      const [stemExport] = await db.select()
+        .from(stemExports)
+        .where(and(
+          eq(stemExports.id, exportId),
+          eq(stemExports.userId, user.id)
+        ))
+        .limit(1);
+      
+      if (!stemExport) {
+        return res.status(404).json({ error: "Stem export not found" });
+      }
+      
+      res.json(stemExport);
+    } catch (error) {
+      console.error("Error fetching stem export status:", error);
+      res.status(500).json({ error: "Failed to fetch stem export status" });
+    }
+  });
+  
+  // List user's stem exports
+  app.get("/api/studio/stem-exports", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { projectId, status } = req.query;
+      
+      let query = db.select()
+        .from(stemExports)
+        .where(eq(stemExports.userId, user.id));
+      
+      // Apply filters
+      const conditions = [eq(stemExports.userId, user.id)];
+      
+      if (projectId) {
+        conditions.push(eq(stemExports.projectId, projectId as string));
+      }
+      
+      if (status) {
+        conditions.push(eq(stemExports.status, status as string));
+      }
+      
+      const exports = await db.select()
+        .from(stemExports)
+        .where(and(...conditions))
+        .orderBy(desc(stemExports.createdAt))
+        .limit(50);
+      
+      res.json(exports);
+    } catch (error) {
+      console.error("Error fetching stem exports:", error);
+      res.status(500).json({ error: "Failed to fetch stem exports" });
     }
   });
   
@@ -9885,6 +10271,290 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       res.json({ success: true, following: true });
     } catch (error) {
       res.status(500).json({ error: 'Failed to follow producer' });
+    }
+  });
+
+  // ============================================================================
+  // MARKETPLACE STEMS ROUTES
+  // ============================================================================
+
+  // POST /api/marketplace/listings/:listingId/stems - Upload stem for listing
+  app.post('/api/marketplace/listings/:listingId/stems', requireAuth, upload.single('stemFile'), async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { listingId } = req.params;
+      const { stemName, stemType, price } = req.body;
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'Stem file is required' });
+      }
+
+      // Verify listing ownership
+      const listing = await db.select().from(listings).where(eq(listings.id, listingId)).limit(1);
+      if (!listing || listing.length === 0) {
+        return res.status(404).json({ error: 'Listing not found' });
+      }
+      if (listing[0].ownerId !== userId) {
+        return res.status(403).json({ error: 'Unauthorized: You do not own this listing' });
+      }
+
+      // Get file details
+      const fileUrl = `/uploads/${path.basename(req.file.path)}`;
+      const fileSize = req.file.size;
+      const format = path.extname(req.file.originalname).substring(1).toLowerCase();
+
+      // Create stem record
+      const [stem] = await db.insert(listingStems).values({
+        listingId,
+        stemName,
+        stemType,
+        fileUrl,
+        fileSize,
+        format,
+        price: price ? parseFloat(price) : null,
+        downloadCount: 0
+      }).returning();
+
+      res.json({ 
+        success: true, 
+        stem,
+        message: 'Stem uploaded successfully' 
+      });
+    } catch (error) {
+      console.error('Error uploading stem:', error);
+      res.status(500).json({ error: 'Failed to upload stem' });
+    }
+  });
+
+  // GET /api/marketplace/listings/:listingId/stems - Get all stems for a listing
+  app.get('/api/marketplace/listings/:listingId/stems', async (req, res) => {
+    try {
+      const { listingId } = req.params;
+
+      const stems = await db
+        .select()
+        .from(listingStems)
+        .where(eq(listingStems.listingId, listingId))
+        .orderBy(listingStems.createdAt);
+
+      res.json(stems);
+    } catch (error) {
+      console.error('Error fetching stems:', error);
+      res.status(500).json({ error: 'Failed to fetch stems' });
+    }
+  });
+
+  // DELETE /api/marketplace/stems/:stemId - Remove stem
+  app.delete('/api/marketplace/stems/:stemId', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { stemId } = req.params;
+
+      // Get stem and verify ownership
+      const [stem] = await db
+        .select({
+          id: listingStems.id,
+          fileUrl: listingStems.fileUrl,
+          ownerId: listings.ownerId
+        })
+        .from(listingStems)
+        .innerJoin(listings, eq(listingStems.listingId, listings.id))
+        .where(eq(listingStems.id, stemId))
+        .limit(1);
+
+      if (!stem) {
+        return res.status(404).json({ error: 'Stem not found' });
+      }
+
+      if (stem.ownerId !== userId) {
+        return res.status(403).json({ error: 'Unauthorized: You do not own this stem' });
+      }
+
+      // Delete file from filesystem
+      try {
+        const filePath = path.join(process.cwd(), stem.fileUrl);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      } catch (fileError) {
+        console.error('Error deleting stem file:', fileError);
+      }
+
+      // Delete stem record
+      await db.delete(listingStems).where(eq(listingStems.id, stemId));
+
+      res.json({ 
+        success: true, 
+        message: 'Stem deleted successfully' 
+      });
+    } catch (error) {
+      console.error('Error deleting stem:', error);
+      res.status(500).json({ error: 'Failed to delete stem' });
+    }
+  });
+
+  // POST /api/marketplace/stems/:stemId/purchase - Purchase individual stem
+  app.post('/api/marketplace/stems/:stemId/purchase', requireAuth, async (req, res) => {
+    try {
+      const buyerId = (req.user as any).id;
+      const { stemId } = req.params;
+
+      // Get stem and listing details
+      const [stemData] = await db
+        .select({
+          stem: listingStems,
+          listing: listings,
+          seller: users
+        })
+        .from(listingStems)
+        .innerJoin(listings, eq(listingStems.listingId, listings.id))
+        .innerJoin(users, eq(listings.ownerId, users.id))
+        .where(eq(listingStems.id, stemId))
+        .limit(1);
+
+      if (!stemData) {
+        return res.status(404).json({ error: 'Stem not found' });
+      }
+
+      const { stem, listing, seller } = stemData;
+
+      // Calculate price (use stem price if set, otherwise use listing price)
+      const priceInCents = stem.price 
+        ? Math.round(parseFloat(stem.price as any) * 100)
+        : listing.priceCents;
+
+      // Create order
+      const [order] = await db.insert(orders).values({
+        buyerId,
+        sellerId: listing.ownerId,
+        listingId: listing.id,
+        licenseType: 'stem_purchase',
+        amountCents: priceInCents,
+        currency: 'usd',
+        status: 'completed', // Mock payment - auto-complete
+        downloadUrl: stem.fileUrl
+      }).returning();
+
+      // Generate download token
+      const downloadToken = crypto.randomBytes(32).toString('hex');
+
+      // Create stem order
+      await db.insert(stemOrders).values({
+        orderId: order.id,
+        stemId: stem.id,
+        price: (priceInCents / 100).toString(),
+        downloadToken,
+        downloadCount: 0
+      });
+
+      // Update stem download count
+      await db
+        .update(listingStems)
+        .set({ downloadCount: sql`${listingStems.downloadCount} + 1` })
+        .where(eq(listingStems.id, stemId));
+
+      res.json({ 
+        success: true,
+        order,
+        downloadToken,
+        message: 'Stem purchased successfully'
+      });
+    } catch (error) {
+      console.error('Error purchasing stem:', error);
+      res.status(500).json({ error: 'Failed to purchase stem' });
+    }
+  });
+
+  // GET /api/marketplace/stems/:stemId/download/:token - Download purchased stem
+  app.get('/api/marketplace/stems/:stemId/download/:token', async (req, res) => {
+    try {
+      const { stemId, token } = req.params;
+
+      // Verify download token
+      const [stemOrder] = await db
+        .select({
+          stemOrder: stemOrders,
+          stem: listingStems
+        })
+        .from(stemOrders)
+        .innerJoin(listingStems, eq(stemOrders.stemId, listingStems.id))
+        .where(and(
+          eq(stemOrders.stemId, stemId),
+          eq(stemOrders.downloadToken, token)
+        ))
+        .limit(1);
+
+      if (!stemOrder) {
+        return res.status(404).json({ error: 'Invalid download token' });
+      }
+
+      // Update download count
+      await db
+        .update(stemOrders)
+        .set({ 
+          downloadCount: sql`${stemOrders.downloadCount} + 1`,
+          downloadedAt: new Date()
+        })
+        .where(eq(stemOrders.id, stemOrder.stemOrder.id));
+
+      // Send file
+      const filePath = path.join(process.cwd(), stemOrder.stem.fileUrl);
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+
+      res.download(filePath, `${stemOrder.stem.stemName}.${stemOrder.stem.format}`);
+    } catch (error) {
+      console.error('Error downloading stem:', error);
+      res.status(500).json({ error: 'Failed to download stem' });
+    }
+  });
+
+  // GET /api/marketplace/my-stems - Get user's uploaded stems across all listings
+  app.get('/api/marketplace/my-stems', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      // Get all stems for user's listings grouped by listing
+      const stems = await db
+        .select({
+          id: listingStems.id,
+          listingId: listingStems.listingId,
+          listingTitle: listings.title,
+          stemName: listingStems.stemName,
+          stemType: listingStems.stemType,
+          format: listingStems.format,
+          fileSize: listingStems.fileSize,
+          price: listingStems.price,
+          downloadCount: listingStems.downloadCount,
+          createdAt: listingStems.createdAt
+        })
+        .from(listingStems)
+        .innerJoin(listings, eq(listingStems.listingId, listings.id))
+        .where(eq(listings.ownerId, userId))
+        .orderBy(desc(listingStems.createdAt));
+
+      // Calculate earnings for each stem
+      const stemsWithEarnings = await Promise.all(stems.map(async (stem) => {
+        const [earnings] = await db
+          .select({
+            totalEarnings: sql<number>`COALESCE(SUM(${stemOrders.price}), 0)`,
+            totalDownloads: sql<number>`COALESCE(SUM(${stemOrders.downloadCount}), 0)`
+          })
+          .from(stemOrders)
+          .where(eq(stemOrders.stemId, stem.id));
+
+        return {
+          ...stem,
+          totalEarnings: earnings?.totalEarnings || 0,
+          totalDownloads: earnings?.totalDownloads || 0
+        };
+      }));
+
+      res.json(stemsWithEarnings);
+    } catch (error) {
+      console.error('Error fetching my stems:', error);
+      res.status(500).json({ error: 'Failed to fetch stems' });
     }
   });
 

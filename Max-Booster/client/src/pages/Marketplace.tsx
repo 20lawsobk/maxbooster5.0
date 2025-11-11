@@ -13,8 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { StemsManager } from '@/components/StemsManager';
 import {
   Music,
   Play,
@@ -243,6 +245,8 @@ export default function Marketplace() {
   const [isPlaying, setIsPlaying] = useState<string | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showCartModal, setShowCartModal] = useState(false);
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
+  const [hasStems, setHasStems] = useState(false);
   const [uploadForm, setUploadForm] = useState({
     title: '',
     genre: '',

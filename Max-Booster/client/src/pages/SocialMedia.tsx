@@ -60,6 +60,9 @@ import {
   X
 } from 'lucide-react';
 import { SiFacebook, SiInstagram, SiYoutube, SiTiktok, SiLinkedin, SiThreads, SiGoogle } from 'react-icons/si';
+import { ContentCalendarView } from '@/components/Social/ContentCalendarView';
+import { SchedulePostDialog, SchedulePostData } from '@/components/Social/SchedulePostDialog';
+import { PostTimelineView } from '@/components/Social/PostTimelineView';
 
 // Social Media Platform Interfaces
 interface SocialPlatform {
@@ -222,6 +225,11 @@ export default function SocialMedia() {
   const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // Calendar state
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [editingCalendarPost, setEditingCalendarPost] = useState<any>(null);
+
   // Helper function to format numbers with K/M suffix
   const formatNumber = (num: number): string => {
     if (!num || num === 0) return '0';
@@ -271,6 +279,17 @@ export default function SocialMedia() {
 
   const { data: weeklyStats, isLoading: weeklyStatsLoading } = useQuery({
     queryKey: ['/api/social/weekly-stats'],
+    enabled: !!user,
+  });
+
+  // Calendar queries
+  const { data: calendarPosts = [], isLoading: calendarLoading } = useQuery({
+    queryKey: ['/api/social/calendar'],
+    enabled: !!user,
+  });
+
+  const { data: calendarStats, isLoading: calendarStatsLoading } = useQuery({
+    queryKey: ['/api/social/calendar/stats'],
     enabled: !!user,
   });
 
@@ -377,6 +396,71 @@ export default function SocialMedia() {
         description: 'Failed to upload media. Please try again.',
         variant: 'destructive',
       });
+    },
+  });
+
+  // Calendar mutations
+  const createCalendarPostMutation = useMutation({
+    mutationFn: async (data: SchedulePostData) => {
+      const response = await apiRequest('POST', '/api/social/calendar', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Post Scheduled!',
+        description: 'Your post has been added to the calendar.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/social/calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/social/calendar/stats'] });
+      setScheduleDialogOpen(false);
+      setEditingCalendarPost(null);
+    },
+  });
+
+  const updateCalendarPostMutation = useMutation({
+    mutationFn: async ({ postId, data }: { postId: string; data: Partial<SchedulePostData> }) => {
+      const response = await apiRequest('PUT', `/api/social/calendar/${postId}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Post Updated!',
+        description: 'Your scheduled post has been updated.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/social/calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/social/calendar/stats'] });
+      setScheduleDialogOpen(false);
+      setEditingCalendarPost(null);
+    },
+  });
+
+  const deleteCalendarPostMutation = useMutation({
+    mutationFn: async (postId: string) => {
+      const response = await apiRequest('DELETE', `/api/social/calendar/${postId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Post Deleted',
+        description: 'Scheduled post removed from calendar.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/social/calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/social/calendar/stats'] });
+    },
+  });
+
+  const publishCalendarPostMutation = useMutation({
+    mutationFn: async (postId: string) => {
+      const response = await apiRequest('POST', `/api/social/calendar/${postId}/publish`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Post Published!',
+        description: 'Your post has been published to selected platforms.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/social/calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/social/calendar/stats'] });
     },
   });
 
@@ -611,6 +695,41 @@ export default function SocialMedia() {
     });
   };
 
+  // Calendar handlers
+  const handleSchedulePost = (data: SchedulePostData) => {
+    if (editingCalendarPost) {
+      updateCalendarPostMutation.mutate({
+        postId: editingCalendarPost.id,
+        data
+      });
+    } else {
+      createCalendarPostMutation.mutate(data);
+    }
+  };
+
+  const handleDateClick = (date: Date, posts: any[]) => {
+    setSelectedDate(date);
+    toast({
+      title: 'Posts on this date',
+      description: `${posts.length} post(s) scheduled for ${date.toLocaleDateString()}`,
+    });
+  };
+
+  const handleEditCalendarPost = (post: any) => {
+    setEditingCalendarPost(post);
+    setScheduleDialogOpen(true);
+  };
+
+  const handleDeleteCalendarPost = (postId: string) => {
+    if (confirm('Are you sure you want to delete this scheduled post?')) {
+      deleteCalendarPostMutation.mutate(postId);
+    }
+  };
+
+  const handlePublishCalendarPost = (postId: string) => {
+    publishCalendarPostMutation.mutate(postId);
+  };
+
   if (!user) return null;
 
   return (
@@ -718,12 +837,16 @@ export default function SocialMedia() {
 
             {/* Main Interface */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <TabsList className="grid w-full grid-cols-7 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                 <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                   Overview
                 </TabsTrigger>
                 <TabsTrigger value="create" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                   Create
+                </TabsTrigger>
+                <TabsTrigger value="calendar" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  <Calendar className="w-4 h-4 mr-1 inline" />
+                  Calendar
                 </TabsTrigger>
                 <TabsTrigger value="schedule" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                   Schedule
@@ -1201,6 +1324,99 @@ export default function SocialMedia() {
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              {/* Calendar Tab */}
+              <TabsContent value="calendar" className="space-y-6">
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Card className="bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/20">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">This Week</p>
+                          <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                            {calendarStats?.upcomingThisWeek || 0}
+                          </p>
+                        </div>
+                        <Calendar className="w-8 h-8 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Scheduled</p>
+                          <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+                            {calendarStats?.totalScheduled || 0}
+                          </p>
+                        </div>
+                        <Clock className="w-8 h-8 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Published</p>
+                          <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+                            {calendarStats?.totalPublished || 0}
+                          </p>
+                        </div>
+                        <CheckCircle className="w-8 h-8 text-purple-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 flex items-center justify-center">
+                      <Button 
+                        onClick={() => {
+                          setEditingCalendarPost(null);
+                          setScheduleDialogOpen(true);
+                        }}
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Schedule Post
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Calendar View */}
+                <ContentCalendarView
+                  posts={Array.isArray(calendarPosts) ? calendarPosts : (calendarPosts as any)?.posts || []}
+                  onDateClick={handleDateClick}
+                />
+
+                {/* Timeline View */}
+                <PostTimelineView
+                  posts={Array.isArray(calendarPosts) ? calendarPosts : (calendarPosts as any)?.posts || []}
+                  onEdit={handleEditCalendarPost}
+                  onDelete={handleDeleteCalendarPost}
+                  onPublish={handlePublishCalendarPost}
+                />
+
+                {/* Schedule Post Dialog */}
+                <SchedulePostDialog
+                  open={scheduleDialogOpen}
+                  onOpenChange={setScheduleDialogOpen}
+                  onSchedule={handleSchedulePost}
+                  initialData={editingCalendarPost ? {
+                    title: editingCalendarPost.title,
+                    scheduledFor: new Date(editingCalendarPost.scheduledFor).toISOString().slice(0, 16),
+                    platforms: editingCalendarPost.platforms || [],
+                    postType: editingCalendarPost.postType || 'post',
+                    content: editingCalendarPost.content || '',
+                    mediaUrls: editingCalendarPost.mediaUrls || [],
+                    hashtags: editingCalendarPost.hashtags || [],
+                    mentions: editingCalendarPost.mentions || [],
+                    location: editingCalendarPost.location || '',
+                    status: editingCalendarPost.status || 'draft',
+                  } : undefined}
+                />
               </TabsContent>
 
               {/* Overview Tab */}
