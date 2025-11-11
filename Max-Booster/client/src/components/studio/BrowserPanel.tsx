@@ -1,12 +1,14 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { useStudioStore } from '@/lib/studioStore';
+import { AssetUploadDialog } from './AssetUploadDialog';
 import {
   Search, Folder, FolderOpen, FileAudio, Music, Box, Plug,
-  ChevronRight, ChevronDown, Play, Download
+  ChevronRight, ChevronDown, Play, Upload
 } from 'lucide-react';
 
 interface BrowserItem {
@@ -16,6 +18,17 @@ interface BrowserItem {
   children?: BrowserItem[];
   size?: string;
   duration?: string;
+  fileUrl?: string;
+}
+
+interface UserAsset {
+  id: string;
+  name: string;
+  assetType: string;
+  fileType: string;
+  fileSize: number;
+  fileUrl: string;
+  createdAt: string;
 }
 
 const MOCK_PRESETS: BrowserItem[] = [
@@ -36,47 +49,6 @@ const MOCK_PRESETS: BrowserItem[] = [
     children: [
       { id: 'grand-1', name: 'Grand Piano', type: 'preset' },
       { id: 'electric-1', name: 'Electric Piano', type: 'preset' },
-    ],
-  },
-];
-
-const MOCK_SAMPLES: BrowserItem[] = [
-  {
-    id: 'drums',
-    name: 'Drums',
-    type: 'folder',
-    children: [
-      { id: 'kick-1', name: 'Kick 01.wav', type: 'sample', size: '2.1 MB', duration: '0:03' },
-      { id: 'snare-1', name: 'Snare 01.wav', type: 'sample', size: '1.8 MB', duration: '0:02' },
-      { id: 'hihat-1', name: 'HiHat 01.wav', type: 'sample', size: '0.9 MB', duration: '0:01' },
-    ],
-  },
-  {
-    id: 'loops',
-    name: 'Loops',
-    type: 'folder',
-    children: [
-      { id: 'loop-1', name: 'Beat Loop 120.wav', type: 'sample', size: '8.4 MB', duration: '0:16' },
-      { id: 'loop-2', name: 'Bass Loop.wav', type: 'sample', size: '4.2 MB', duration: '0:08' },
-    ],
-  },
-];
-
-const MOCK_PLUGINS: BrowserItem[] = [
-  { id: 'eq', name: 'Parametric EQ', type: 'plugin' },
-  { id: 'comp', name: 'Compressor', type: 'plugin' },
-  { id: 'reverb', name: 'Reverb', type: 'plugin' },
-  { id: 'delay', name: 'Delay', type: 'plugin' },
-];
-
-const MOCK_FILES: BrowserItem[] = [
-  {
-    id: 'project',
-    name: 'Project Files',
-    type: 'folder',
-    children: [
-      { id: 'audio-1', name: 'Vocal Take 1.wav', type: 'file', size: '45 MB', duration: '3:24' },
-      { id: 'audio-2', name: 'Guitar.wav', type: 'file', size: '32 MB', duration: '2:15' },
     ],
   },
 ];
@@ -190,10 +162,79 @@ export function BrowserPanel() {
   } = useStudioStore();
 
   const [localSearch, setLocalSearch] = useState(browserSearchQuery);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   const handleSearch = (query: string) => {
     setLocalSearch(query);
     setBrowserSearchQuery(query);
+  };
+
+  // Fetch user samples
+  const { data: userSamples = [], isLoading: samplesLoading } = useQuery<UserAsset[]>({
+    queryKey: ['/api/assets', { assetType: 'sample' }],
+    queryFn: async () => {
+      const response = await fetch('/api/assets?assetType=sample');
+      if (!response.ok) throw new Error('Failed to fetch samples');
+      return response.json();
+    },
+    enabled: browserActiveTab === 'samples',
+  });
+
+  // Fetch user plugins
+  const { data: userPlugins = [], isLoading: pluginsLoading } = useQuery<UserAsset[]>({
+    queryKey: ['/api/assets', { assetType: 'plugin' }],
+    queryFn: async () => {
+      const response = await fetch('/api/assets?assetType=plugin');
+      if (!response.ok) throw new Error('Failed to fetch plugins');
+      return response.json();
+    },
+    enabled: browserActiveTab === 'plugins',
+  });
+
+  // Fetch native plugins from catalog
+  const { data: nativePlugins = [], isLoading: nativePluginsLoading } = useQuery({
+    queryKey: ['/api/studio/plugins'],
+    queryFn: async () => {
+      const response = await fetch('/api/studio/plugins');
+      if (!response.ok) throw new Error('Failed to fetch native plugins');
+      return response.json();
+    },
+    enabled: browserActiveTab === 'plugins',
+  });
+
+  // Convert user assets to browser items
+  const convertAssetsToBrowserItems = (assets: UserAsset[]): BrowserItem[] => {
+    return assets.map(asset => ({
+      id: asset.id,
+      name: asset.name,
+      type: asset.assetType === 'sample' ? 'sample' : 'plugin',
+      size: `${(asset.fileSize / (1024 * 1024)).toFixed(1)} MB`,
+      fileUrl: asset.fileUrl,
+    }));
+  };
+
+  // Convert native plugins to browser items
+  const convertNativePluginsToBrowserItems = (plugins: any[]): BrowserItem[] => {
+    const pluginsByCategory: Record<string, BrowserItem[]> = {};
+    
+    plugins.forEach(plugin => {
+      const category = plugin.category || 'Other';
+      if (!pluginsByCategory[category]) {
+        pluginsByCategory[category] = [];
+      }
+      pluginsByCategory[category].push({
+        id: `native-${plugin.id}`,
+        name: plugin.name,
+        type: 'plugin',
+      });
+    });
+
+    return Object.entries(pluginsByCategory).map(([category, items]) => ({
+      id: `category-${category}`,
+      name: category,
+      type: 'folder',
+      children: items,
+    }));
   };
 
   const filterItems = (items: BrowserItem[], query: string): BrowserItem[] => {
@@ -217,18 +258,52 @@ export function BrowserPanel() {
     switch (browserActiveTab) {
       case 'presets':
         return filterItems(MOCK_PRESETS, localSearch);
-      case 'samples':
-        return filterItems(MOCK_SAMPLES, localSearch);
-      case 'plugins':
-        return filterItems(MOCK_PLUGINS, localSearch);
+      case 'samples': {
+        const userItems = convertAssetsToBrowserItems(userSamples);
+        const allItems: BrowserItem[] = [];
+        
+        if (userItems.length > 0) {
+          allItems.push({
+            id: 'user-samples',
+            name: 'My Samples',
+            type: 'folder',
+            children: userItems,
+          });
+        }
+        
+        return filterItems(allItems, localSearch);
+      }
+      case 'plugins': {
+        const userItems = convertAssetsToBrowserItems(userPlugins);
+        const nativeItems = convertNativePluginsToBrowserItems(nativePlugins);
+        const allItems: BrowserItem[] = [];
+        
+        if (userItems.length > 0) {
+          allItems.push({
+            id: 'user-plugins',
+            name: 'My Plugins',
+            type: 'folder',
+            children: userItems,
+          });
+        }
+        
+        allItems.push(...nativeItems);
+        
+        return filterItems(allItems, localSearch);
+      }
       case 'files':
-        return filterItems(MOCK_FILES, localSearch);
+        return filterItems([], localSearch);
       default:
         return [];
     }
   };
 
   const content = getContentForTab();
+  const showUploadButton = browserActiveTab === 'samples' || browserActiveTab === 'plugins';
+  
+  const isLoading = 
+    (browserActiveTab === 'samples' && samplesLoading) ||
+    (browserActiveTab === 'plugins' && (pluginsLoading || nativePluginsLoading));
 
   return (
     <div 
@@ -240,7 +315,7 @@ export function BrowserPanel() {
     >
       {/* Header */}
       <div 
-        className="h-12 px-4 flex items-center border-b"
+        className="h-12 px-4 flex items-center justify-between border-b"
         style={{ borderColor: 'var(--studio-border)' }}
       >
         <h3 
@@ -249,6 +324,18 @@ export function BrowserPanel() {
         >
           BROWSER
         </h3>
+        
+        {showUploadButton && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setUploadDialogOpen(true)}
+            className="h-8 px-2 gap-1.5"
+          >
+            <Upload className="h-3.5 w-3.5" />
+            <span className="text-xs">Upload</span>
+          </Button>
+        )}
       </div>
 
       {/* Search */}
@@ -318,15 +405,34 @@ export function BrowserPanel() {
         <TabsContent value={browserActiveTab} className="flex-1 mt-0">
           <ScrollArea className="h-full">
             <div className="p-2">
-              {content.length === 0 ? (
+              {isLoading ? (
                 <div 
-                  className="flex flex-col items-center justify-center h-64 gap-2"
+                  className="flex flex-col items-center justify-center h-64 gap-3"
+                  style={{ color: 'var(--studio-text-muted)' }}
+                >
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-current" />
+                  <p className="text-sm">Loading...</p>
+                </div>
+              ) : content.length === 0 ? (
+                <div 
+                  className="flex flex-col items-center justify-center h-64 gap-3"
                   style={{ color: 'var(--studio-text-muted)' }}
                 >
                   <Box className="h-12 w-12 opacity-50" />
                   <p className="text-sm">
                     {localSearch ? 'No results found' : 'No items available'}
                   </p>
+                  {showUploadButton && !localSearch && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setUploadDialogOpen(true)}
+                      className="gap-2 mt-2"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Upload {browserActiveTab === 'samples' ? 'Samples' : 'Plugins'}
+                    </Button>
+                  )}
                 </div>
               ) : (
                 content.map((item) => (
@@ -343,6 +449,12 @@ export function BrowserPanel() {
           </ScrollArea>
         </TabsContent>
       </Tabs>
+
+      <AssetUploadDialog 
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        assetType={browserActiveTab === 'samples' ? 'sample' : 'plugin'}
+      />
     </div>
   );
 }
