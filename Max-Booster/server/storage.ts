@@ -1,4 +1,4 @@
-import { users, projects, analytics, notifications, releases, tracks, trackAnalysis, collaborators, earnings, hyperFollowPages, studioProjects, studioTracks, audioClips, midiClips, virtualInstruments, audioEffects, mixBusses, automationData, markers, lyrics, generatedMelodies, adCampaigns, adInsights, adCreatives, adAIRuns, adCampaignVariants, adPlatformAccounts, adDeliveryLogs, adKillRules, adRuleExecutions, socialAccounts, socialCampaigns, posts, socialMetrics, payouts, listings, likes, orders, payoutEvents, passwordResetTokens, sessions, pluginCatalog, autosaves, exportJobs, distributionPackages, distributionTracks, studioConversions, studioCollabSessions, studioCollabSnapshots, projectCollaborators, projectRoyaltySplits, revenueEvents, royaltyLedger, royaltyPayments, collaboratorTaxProfiles, revenueImportHistory, forecastSnapshots, trendEvents, modelVersions, optimizationTasks, payoutSettings, paymentMethods, uploadSessions, isrcRegistry, upcRegistry, jwtTokens, refreshTokens, tokenRevocations, permissions, webhookEvents, webhookAttempts, webhookDeadLetterQueue, logEvents, royaltySplits, type User, type InsertUser, type Project, type InsertProject, type Analytics, type InsertAnalytics, type Notification, type InsertNotification, type Release, type InsertRelease, type Track, type InsertTrack, type TrackAnalysis, type InsertTrackAnalysis, type StudioProject, type InsertStudioProject, type StudioTrack, type InsertStudioTrack, type AudioClip, type InsertAudioClip, type MidiClip, type InsertMidiClip, type VirtualInstrument, type InsertVirtualInstrument, type AudioEffect, type InsertAudioEffect, type MixBus, type InsertMixBus, type AutomationData, type InsertAutomationData, type Marker, type InsertMarker, type Lyrics, type InsertLyrics, type GeneratedMelody, type InsertGeneratedMelody, type AdCampaign, type InsertAdCampaign, type AdInsights, type InsertAdInsights, type AdCreative, type InsertAdCreative, type AdAIRun, type InsertAdAIRun, type AdCampaignVariant, type InsertAdCampaignVariant, type AdPlatformAccount, type InsertAdPlatformAccount, type AdDeliveryLog, type InsertAdDeliveryLog, type AdKillRule, type InsertAdKillRule, type AdRuleExecution, type InsertAdRuleExecution, type Payout, type InsertPayout, type Listing, type Order, type Autosave, type InsertAutosave, type DistributionPackage, type InsertDistributionPackage, type DistributionTrack, type InsertDistributionTrack, type StudioCollabSession, type InsertStudioCollabSession, type StudioCollabSnapshot, type InsertStudioCollabSnapshot, type ProjectCollaborator, type InsertProjectCollaborator, type ProjectRoyaltySplit, type InsertProjectRoyaltySplit, type RevenueEvent, type InsertRevenueEvent, type RoyaltyLedger, type InsertRoyaltyLedger, type RoyaltyPayment, type InsertRoyaltyPayment, type CollaboratorTaxProfile, type InsertCollaboratorTaxProfile, type RevenueImportHistory, type InsertRevenueImportHistory, type ForecastSnapshot, type InsertForecastSnapshot, type TrendEvent, type InsertTrendEvent, type ModelVersion, type InsertModelVersion, type OptimizationTask, type InsertOptimizationTask, type PayoutSettings, type InsertPayoutSettings, type PaymentMethod, type InsertPaymentMethod, type UploadSession, type InsertUploadSession, type ISRCRegistry, type InsertISRCRegistry, type UPCRegistry, type InsertUPCRegistry, type JWTToken, type InsertJWTToken, type RefreshToken, type InsertRefreshToken, type TokenRevocation, type InsertTokenRevocation, type Permission, type InsertPermission, type WebhookAttempt, type InsertWebhookAttempt, type WebhookDeadLetterQueue, type InsertWebhookDeadLetterQueue, type LogEvent, type InsertLogEvent, type RoyaltySplit, type InsertRoyaltySplit } from "@shared/schema";
+import { users, projects, analytics, notifications, releases, tracks, trackAnalysis, collaborators, earnings, hyperFollowPages, studioProjects, studioTracks, audioClips, midiClips, virtualInstruments, audioEffects, mixBusses, automationData, markers, lyrics, generatedMelodies, adCampaigns, adInsights, adCreatives, adAIRuns, adCampaignVariants, adPlatformAccounts, adDeliveryLogs, adKillRules, adRuleExecutions, socialAccounts, socialCampaigns, posts, socialMetrics, payouts, listings, likes, orders, payoutEvents, passwordResetTokens, sessions, pluginCatalog, autosaves, exportJobs, distributionPackages, distributionTracks, studioConversions, studioCollabSessions, studioCollabSnapshots, projectCollaborators, projectRoyaltySplits, revenueEvents, royaltyLedger, royaltyPayments, collaboratorTaxProfiles, revenueImportHistory, forecastSnapshots, trendEvents, modelVersions, optimizationTasks, payoutSettings, paymentMethods, uploadSessions, isrcRegistry, upcRegistry, jwtTokens, refreshTokens, tokenRevocations, permissions, webhookEvents, webhookAttempts, webhookDeadLetterQueue, logEvents, royaltySplits, distroReleases, distroTracks, distroProviders, distroDispatch, type User, type InsertUser, type Project, type InsertProject, type Analytics, type InsertAnalytics, type Notification, type InsertNotification, type Release, type InsertRelease, type Track, type InsertTrack, type TrackAnalysis, type InsertTrackAnalysis, type StudioProject, type InsertStudioProject, type StudioTrack, type InsertStudioTrack, type AudioClip, type InsertAudioClip, type MidiClip, type InsertMidiClip, type VirtualInstrument, type InsertVirtualInstrument, type AudioEffect, type InsertAudioEffect, type MixBus, type InsertMixBus, type AutomationData, type InsertAutomationData, type Marker, type InsertMarker, type Lyrics, type InsertLyrics, type GeneratedMelody, type InsertGeneratedMelody, type AdCampaign, type InsertAdCampaign, type AdInsights, type InsertAdInsights, type AdCreative, type InsertAdCreative, type AdAIRun, type InsertAdAIRun, type AdCampaignVariant, type DistroRelease, type InsertDistroRelease, type DistroTrack, type InsertDistroTrack, type InsertAdCampaignVariant, type AdPlatformAccount, type InsertAdPlatformAccount, type AdDeliveryLog, type InsertAdDeliveryLog, type AdKillRule, type InsertAdKillRule, type AdRuleExecution, type InsertAdRuleExecution, type Payout, type InsertPayout, type Listing, type Order, type Autosave, type InsertAutosave, type DistributionPackage, type InsertDistributionPackage, type DistributionTrack, type InsertDistributionTrack, type StudioCollabSession, type InsertStudioCollabSession, type StudioCollabSnapshot, type InsertStudioCollabSnapshot, type ProjectCollaborator, type InsertProjectCollaborator, type ProjectRoyaltySplit, type InsertProjectRoyaltySplit, type RevenueEvent, type InsertRevenueEvent, type RoyaltyLedger, type InsertRoyaltyLedger, type RoyaltyPayment, type InsertRoyaltyPayment, type CollaboratorTaxProfile, type InsertCollaboratorTaxProfile, type RevenueImportHistory, type InsertRevenueImportHistory, type ForecastSnapshot, type InsertForecastSnapshot, type TrendEvent, type InsertTrendEvent, type ModelVersion, type InsertModelVersion, type OptimizationTask, type InsertOptimizationTask, type PayoutSettings, type InsertPayoutSettings, type PaymentMethod, type InsertPaymentMethod, type UploadSession, type InsertUploadSession, type ISRCRegistry, type InsertISRCRegistry, type UPCRegistry, type InsertUPCRegistry, type JWTToken, type InsertJWTToken, type RefreshToken, type InsertRefreshToken, type TokenRevocation, type InsertTokenRevocation, type Permission, type InsertPermission, type WebhookAttempt, type InsertWebhookAttempt, type WebhookDeadLetterQueue, type InsertWebhookDeadLetterQueue, type LogEvent, type InsertLogEvent, type RoyaltySplit, type InsertRoyaltySplit } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, sql, and, gte, lte, or, like } from "drizzle-orm";
 import { databaseResilience } from "./reliability/database-resilience";
@@ -97,6 +97,28 @@ export interface IStorage {
   getDistroDispatch(id: string): Promise<any | undefined>;
   createDistroDispatch(dispatch: any): Promise<any>;
   updateDistroDispatch(id: string, updates: any): Promise<any>;
+
+  // Distribution Releases operations
+  getDistroReleases(userId: string): Promise<DistroRelease[]>;
+  getDistroRelease(id: string): Promise<DistroRelease | undefined>;
+  createDistroRelease(data: InsertDistroRelease): Promise<DistroRelease>;
+  updateDistroRelease(id: string, data: Partial<InsertDistroRelease>): Promise<DistroRelease>;
+  deleteDistroRelease(id: string): Promise<void>;
+
+  // Distribution Tracks operations
+  getDistroTracksByReleaseId(releaseId: string): Promise<DistroTrack[]>;
+  createDistroTrack(data: InsertDistroTrack): Promise<DistroTrack>;
+  updateDistroTrack(id: string, data: Partial<InsertDistroTrack>): Promise<DistroTrack>;
+  deleteDistroTrack(id: string): Promise<void>;
+
+  // DSP Providers
+  getDSPProviders(): Promise<any[]>;
+
+  // ISRC/UPC Registry operations
+  createISRCCode(data: InsertISRCRegistry): Promise<ISRCRegistry>;
+  createUPCCode(data: InsertUPCRegistry): Promise<UPCRegistry>;
+  validateISRCCode(isrc: string): Promise<boolean>;
+  validateUPCCode(upc: string): Promise<boolean>;
 
   // Max Booster Studio operations - Now use unified projects table
   // Legacy studio-specific tables still used for tracks, clips, etc.
@@ -7648,6 +7670,357 @@ export class DatabaseStorage implements IStorage {
         return result[0];
       },
       'getLatestForecast'
+    );
+  }
+
+  // Distribution Releases operations
+  async getDistroReleases(userId: string): Promise<DistroRelease[]> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        return await db.select().from(distroReleases)
+          .where(eq(distroReleases.artistId, userId))
+          .orderBy(desc(distroReleases.createdAt));
+      },
+      'getDistroReleases'
+    );
+  }
+
+  async getDistroRelease(id: string): Promise<DistroRelease | undefined> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [release] = await db.select().from(distroReleases)
+          .where(eq(distroReleases.id, id));
+        return release;
+      },
+      'getDistroRelease'
+    );
+  }
+
+  async createDistroRelease(data: InsertDistroRelease): Promise<DistroRelease> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [release] = await db.insert(distroReleases).values(data).returning();
+        return release;
+      },
+      'createDistroRelease'
+    );
+  }
+
+  async updateDistroRelease(id: string, data: Partial<InsertDistroRelease>): Promise<DistroRelease> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [updated] = await db.update(distroReleases)
+          .set({ ...data, updatedAt: new Date() })
+          .where(eq(distroReleases.id, id))
+          .returning();
+        return updated;
+      },
+      'updateDistroRelease'
+    );
+  }
+
+  async deleteDistroRelease(id: string): Promise<void> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        await db.delete(distroReleases).where(eq(distroReleases.id, id));
+      },
+      'deleteDistroRelease'
+    );
+  }
+
+  // Distribution Tracks operations
+  async getDistroTracksByReleaseId(releaseId: string): Promise<DistroTrack[]> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        return await db.select().from(distroTracks)
+          .where(eq(distroTracks.releaseId, releaseId))
+          .orderBy(asc(distroTracks.trackNumber));
+      },
+      'getDistroTracksByReleaseId'
+    );
+  }
+
+  async createDistroTrack(data: InsertDistroTrack): Promise<DistroTrack> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [track] = await db.insert(distroTracks).values(data).returning();
+        return track;
+      },
+      'createDistroTrack'
+    );
+  }
+
+  async updateDistroTrack(id: string, data: Partial<InsertDistroTrack>): Promise<DistroTrack> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [updated] = await db.update(distroTracks)
+          .set(data)
+          .where(eq(distroTracks.id, id))
+          .returning();
+        return updated;
+      },
+      'updateDistroTrack'
+    );
+  }
+
+  async deleteDistroTrack(id: string): Promise<void> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        await db.delete(distroTracks).where(eq(distroTracks.id, id));
+      },
+      'deleteDistroTrack'
+    );
+  }
+
+  // DSP Providers
+  async getDSPProviders(): Promise<any[]> {
+    return this.getAllDistroProviders();
+  }
+
+  // ISRC/UPC Registry operations
+  async createISRCCode(data: InsertISRCRegistry): Promise<ISRCRegistry> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [code] = await db.insert(isrcRegistry).values(data).returning();
+        return code;
+      },
+      'createISRCCode'
+    );
+  }
+
+  async createUPCCode(data: InsertUPCRegistry): Promise<UPCRegistry> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [code] = await db.insert(upcRegistry).values(data).returning();
+        return code;
+      },
+      'createUPCCode'
+    );
+  }
+
+  async validateISRCCode(isrc: string): Promise<boolean> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [existing] = await db.select().from(isrcRegistry)
+          .where(eq(isrcRegistry.isrc, isrc));
+        return !existing; // Returns true if code is available (not found)
+      },
+      'validateISRCCode'
+    );
+  }
+
+  async validateUPCCode(upc: string): Promise<boolean> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [existing] = await db.select().from(upcRegistry)
+          .where(eq(upcRegistry.upc, upc));
+        return !existing; // Returns true if code is available (not found)
+      },
+      'validateUPCCode'
+    );
+  }
+
+  // Seed DSP Providers
+  async seedDSPProviders(): Promise<void> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const providers = [
+          {
+            name: 'Spotify',
+            slug: 'spotify',
+            apiBase: 'https://api.spotify.com/v1',
+            authType: 'oauth2',
+            deliveryMethod: 'api',
+            processingTime: '2-5 business days',
+            region: 'global',
+            category: 'streaming',
+            requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['wav', 'flac'] },
+            status: 'active',
+          },
+          {
+            name: 'Apple Music',
+            slug: 'apple-music',
+            apiBase: 'https://api.music.apple.com/v1',
+            authType: 'jwt',
+            deliveryMethod: 'api',
+            processingTime: '2-5 business days',
+            region: 'global',
+            category: 'streaming',
+            requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['wav', 'flac'] },
+            status: 'active',
+          },
+          {
+            name: 'YouTube Music',
+            slug: 'youtube-music',
+            apiBase: 'https://www.googleapis.com/youtube/v3',
+            authType: 'oauth2',
+            deliveryMethod: 'api',
+            processingTime: '1-3 business days',
+            region: 'global',
+            category: 'streaming',
+            requirements: { isrc: true, upc: true, metadata: ['title', 'artist'], audioFormats: ['wav', 'mp3'] },
+            status: 'active',
+          },
+          {
+            name: 'Amazon Music',
+            slug: 'amazon-music',
+            apiBase: 'https://api.amazon.com/music',
+            authType: 'api_key',
+            deliveryMethod: 'api',
+            processingTime: '3-7 business days',
+            region: 'global',
+            category: 'streaming',
+            requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['wav', 'flac'] },
+            status: 'active',
+          },
+          {
+            name: 'Tidal',
+            slug: 'tidal',
+            authType: 'api_key',
+            deliveryMethod: 'ftp',
+            processingTime: '5-10 business days',
+            region: 'global',
+            category: 'streaming',
+            requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['wav', 'flac'] },
+            status: 'active',
+          },
+          {
+            name: 'Deezer',
+            slug: 'deezer',
+            authType: 'api_key',
+            deliveryMethod: 'api',
+            processingTime: '3-5 business days',
+            region: 'global',
+            category: 'streaming',
+            requirements: { isrc: true, metadata: ['title', 'artist'], audioFormats: ['wav', 'mp3'] },
+            status: 'active',
+          },
+          {
+            name: 'Pandora',
+            slug: 'pandora',
+            authType: 'api_key',
+            deliveryMethod: 'api',
+            processingTime: '7-14 business days',
+            region: 'us',
+            category: 'streaming',
+            requirements: { isrc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['wav'] },
+            status: 'active',
+          },
+          {
+            name: 'TikTok',
+            slug: 'tiktok',
+            apiBase: 'https://open-api.tiktok.com',
+            authType: 'oauth2',
+            deliveryMethod: 'api',
+            processingTime: '1-2 business days',
+            region: 'global',
+            category: 'social',
+            requirements: { metadata: ['title', 'artist'], audioFormats: ['mp3', 'wav'] },
+            status: 'active',
+          },
+          {
+            name: 'Instagram',
+            slug: 'instagram',
+            apiBase: 'https://graph.instagram.com',
+            authType: 'oauth2',
+            deliveryMethod: 'api',
+            processingTime: '1-2 business days',
+            region: 'global',
+            category: 'social',
+            requirements: { metadata: ['title', 'artist'], audioFormats: ['mp3'] },
+            status: 'active',
+          },
+          {
+            name: 'Facebook',
+            slug: 'facebook',
+            apiBase: 'https://graph.facebook.com',
+            authType: 'oauth2',
+            deliveryMethod: 'api',
+            processingTime: '1-2 business days',
+            region: 'global',
+            category: 'social',
+            requirements: { metadata: ['title', 'artist'], audioFormats: ['mp3'] },
+            status: 'active',
+          },
+          {
+            name: 'iHeartRadio',
+            slug: 'iheartradio',
+            authType: 'api_key',
+            deliveryMethod: 'ftp',
+            processingTime: '7-14 business days',
+            region: 'us',
+            category: 'streaming',
+            requirements: { isrc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['wav'] },
+            status: 'active',
+          },
+          {
+            name: 'Napster',
+            slug: 'napster',
+            authType: 'api_key',
+            deliveryMethod: 'ftp',
+            processingTime: '5-10 business days',
+            region: 'global',
+            category: 'streaming',
+            requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['wav'] },
+            status: 'active',
+          },
+          {
+            name: 'Anghami',
+            slug: 'anghami',
+            authType: 'api_key',
+            deliveryMethod: 'api',
+            processingTime: '3-7 business days',
+            region: 'mena',
+            category: 'streaming',
+            requirements: { isrc: true, metadata: ['title', 'artist'], audioFormats: ['mp3', 'wav'] },
+            status: 'active',
+          },
+          {
+            name: 'Boomplay',
+            slug: 'boomplay',
+            authType: 'api_key',
+            deliveryMethod: 'api',
+            processingTime: '3-5 business days',
+            region: 'africa',
+            category: 'streaming',
+            requirements: { isrc: true, metadata: ['title', 'artist'], audioFormats: ['mp3', 'wav'] },
+            status: 'active',
+          },
+          {
+            name: 'SoundCloud',
+            slug: 'soundcloud',
+            apiBase: 'https://api.soundcloud.com',
+            authType: 'oauth2',
+            deliveryMethod: 'api',
+            processingTime: '1-2 business days',
+            region: 'global',
+            category: 'streaming',
+            requirements: { metadata: ['title', 'artist'], audioFormats: ['mp3', 'wav'] },
+            status: 'active',
+          },
+          {
+            name: 'Amazon MP3',
+            slug: 'amazon-mp3',
+            authType: 'api_key',
+            deliveryMethod: 'ftp',
+            processingTime: '5-10 business days',
+            region: 'global',
+            category: 'store',
+            requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['wav'] },
+            status: 'active',
+          },
+        ];
+
+        // Insert providers, ignoring duplicates (based on slug uniqueness)
+        for (const provider of providers) {
+          try {
+            await db.insert(distroProviders).values(provider).onConflictDoNothing();
+          } catch (error) {
+            console.error(`Failed to insert provider ${provider.name}:`, error);
+          }
+        }
+      },
+      'seedDSPProviders'
     );
   }
 }

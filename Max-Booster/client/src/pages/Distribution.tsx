@@ -61,6 +61,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { SiSpotify, SiApple, SiYoutube, SiAmazon, SiTidal, SiSoundcloud, SiTiktok, SiInstagram, SiFacebook } from 'react-icons/si';
+import { ReleaseWizard } from '@/components/distribution/ReleaseWizard';
 
 // DistroKid Clone Interfaces
 interface Release {
@@ -898,12 +899,16 @@ export default function Distribution() {
 
             {/* Main Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <TabsList className="grid w-full grid-cols-7 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                 <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-overview">
                   Overview
                 </TabsTrigger>
                 <TabsTrigger value="releases" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-releases">
                   My Releases
+                </TabsTrigger>
+                <TabsTrigger value="new-release" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-new-release">
+                  <Plus className="w-4 h-4 mr-1" />
+                  New Release
                 </TabsTrigger>
                 <TabsTrigger value="analytics" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-analytics">
                   Analytics
@@ -1211,6 +1216,20 @@ export default function Distribution() {
                     ))}
                   </div>
                 )}
+              </TabsContent>
+
+              <TabsContent value="new-release" className="space-y-6">
+                <ReleaseWizard
+                  onComplete={() => {
+                    toast({
+                      title: 'Success!',
+                      description: 'Your release has been submitted for distribution.',
+                    });
+                    setActiveTab('releases');
+                    queryClient.invalidateQueries({ queryKey: ['/api/distribution/releases'] });
+                  }}
+                  onCancel={() => setActiveTab('releases')}
+                />
               </TabsContent>
 
               <TabsContent value="analytics" className="space-y-6">
