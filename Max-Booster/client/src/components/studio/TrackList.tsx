@@ -187,6 +187,44 @@ const SortableTrackRow = memo(function SortableTrackRow({
   };
 
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('application/json'));
+      
+      // Handle sample drops - create audio clip on timeline
+      if (data.type === 'sample') {
+        console.log('Dropped sample onto track:', { trackId: track.id, sample: data });
+        // TODO: Create audio clip on this track at current playhead position
+        // This would call a callback to add a new clip to the track
+      }
+      
+      // Handle plugin drops - add to track's effect chain
+      if (data.type === 'plugin') {
+        console.log('Dropped plugin onto track:', { trackId: track.id, plugin: data });
+        // TODO: Add plugin to track's effect chain
+        // This would call a callback to add the plugin to the track
+      }
+    } catch (error) {
+      console.error('Error handling drop:', error);
+    }
+  };
 
   return (
     <ContextMenu>
@@ -209,15 +247,18 @@ const SortableTrackRow = memo(function SortableTrackRow({
             className="w-48 sm:w-56 md:w-64 border-r flex flex-col overflow-hidden" 
             style={{ 
               height: isExpanded ? `${track.height || 100}px` : '40px',
-              background: 'var(--track-header-bg)',
-              borderColor: 'var(--studio-border)',
-              transition: 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              boxShadow: 'var(--studio-shadow-md)',
+              background: isDragOver ? 'var(--studio-accent-muted)' : 'var(--track-header-bg)',
+              borderColor: isDragOver ? 'var(--studio-accent)' : 'var(--studio-border)',
+              transition: 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s, border-color 0.2s',
+              boxShadow: isDragOver ? '0 0 20px var(--studio-accent)' : 'var(--studio-shadow-md)',
             }}
             whileHover={{
-              background: 'var(--track-header-hover)',
-              boxShadow: 'var(--studio-shadow-lg)',
+              background: isDragOver ? 'var(--studio-accent-muted)' : 'var(--track-header-hover)',
+              boxShadow: isDragOver ? '0 0 20px var(--studio-accent)' : 'var(--studio-shadow-lg)',
             }}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
             layout
           >
             {/* Track Color Strip */}

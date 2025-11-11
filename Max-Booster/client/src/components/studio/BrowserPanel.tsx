@@ -63,6 +63,21 @@ interface BrowserTreeItemProps {
 function BrowserTreeItem({ item, level, onSelect, selectedId }: BrowserTreeItemProps) {
   const [isExpanded, setIsExpanded] = useState(level === 0);
 
+  const handleDragStart = (e: React.DragEvent) => {
+    if (item.type === 'folder') {
+      e.preventDefault();
+      return;
+    }
+    
+    e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      id: item.id,
+      name: item.name,
+      type: item.type,
+      fileUrl: item.fileUrl,
+    }));
+  };
+
   const getIcon = () => {
     switch (item.type) {
       case 'folder':
@@ -81,6 +96,8 @@ function BrowserTreeItem({ item, level, onSelect, selectedId }: BrowserTreeItemP
   return (
     <div>
       <div
+        draggable={item.type !== 'folder'}
+        onDragStart={handleDragStart}
         className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-white/5 rounded transition-colors ${
           selectedId === item.id ? 'bg-white/10' : ''
         }`}
