@@ -8,6 +8,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { 
   ChevronLeft, 
@@ -21,7 +24,10 @@ import {
   Globe,
   Calendar,
   Users,
-  Eye
+  Eye,
+  Sparkles,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 
 import { MetadataForm } from './MetadataForm';
@@ -100,6 +106,8 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['spotify', 'apple-music', 'youtube-music']);
   const [releaseDate, setReleaseDate] = useState<Date | null>(null);
   const [royaltySplits, setRoyaltySplits] = useState<any[]>([]);
+  const [createPreSave, setCreatePreSave] = useState(true);
+  const [preSaveSlug, setPreSaveSlug] = useState('');
 
   // Save as draft mutation
   const saveDraftMutation = useMutation({
@@ -189,14 +197,54 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
       }));
 
       const response = await apiRequest('POST', '/api/distribution/releases', formData);
-      return response.json();
+      const releaseData = await response.json();
+
+      // Create HyperFollow campaign if enabled
+      if (createPreSave && releaseData.id) {
+        const slug = preSaveSlug || metadataData.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').substring(0, 50);
+        
+        const hyperFollowData = new FormData();
+        if (artwork) {
+          hyperFollowData.append('headerImage', artwork);
+        }
+        
+        hyperFollowData.append('data', JSON.stringify({
+          title: metadataData.title,
+          artistName: metadataData.artistName,
+          slug,
+          releaseId: releaseData.id,
+          collectEmails: true,
+          platforms: selectedPlatforms.map(platformId => ({
+            id: platformId,
+            name: platformId.charAt(0).toUpperCase() + platformId.slice(1).replace('-', ' '),
+            enabled: true,
+            url: '',
+          })),
+          socialLinks: [],
+          theme: {
+            primaryColor: '#8B5CF6',
+            backgroundColor: '#0F0F0F',
+            textColor: '#FFFFFF',
+            buttonStyle: 'rounded' as const,
+          },
+        }));
+
+        try {
+          await apiRequest('POST', '/api/distribution/hyperfollow', hyperFollowData);
+        } catch (error) {
+          console.error('Failed to create HyperFollow campaign:', error);
+        }
+      }
+
+      return releaseData;
     },
     onSuccess: () => {
       toast({
         title: 'Release submitted!',
-        description: 'Your release has been submitted for distribution.',
+        description: createPreSave ? 'Your release and pre-save campaign have been created!' : 'Your release has been submitted for distribution.',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/distribution/releases'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/distribution/hyperfollow'] });
       onComplete?.();
     },
     onError: (error: any) => {
@@ -393,6 +441,61 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
                 releaseDate={releaseDate}
                 onChange={setReleaseDate}
               />
+              
+              {/* HyperFollow Pre-Save Campaign */}
+              <Card className="border-primary/20">
+                <CardContent className="pt-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <Label htmlFor="create-presave" className="text-base font-semibold">
+                          Create Pre-Save Campaign
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Build hype with a shareable landing page before release
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      id="create-presave"
+                      checked={createPreSave}
+                      onCheckedChange={setCreatePreSave}
+                    />
+                  </div>
+
+                  {createPreSave && (
+                    <div className="space-y-3 pl-13">
+                      <div className="space-y-2">
+                        <Label htmlFor="presave-slug">Campaign URL Slug</Label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">maxbooster.com/pre-save/</span>
+                          <Input
+                            id="presave-slug"
+                            placeholder={metadataData.title.toLowerCase().replace(/\s+/g, '-')}
+                            value={preSaveSlug}
+                            onChange={(e) => setPreSaveSlug(e.target.value)}
+                            className="flex-1"
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Leave empty to auto-generate from release title
+                        </p>
+                      </div>
+                      
+                      <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                        <p className="text-sm text-blue-500">
+                          <strong>What's included:</strong> Customizable landing page with platform pre-save buttons, 
+                          email capture, social sharing, and real-time analytics tracking.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               <RoyaltySplitManager
                 splits={royaltySplits}
                 onChange={setRoyaltySplits}
@@ -438,6 +541,26 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
                     {releaseDate ? releaseDate.toLocaleDateString() : 'Not set'}
                   </p>
                 </div>
+
+                {createPreSave && (
+                  <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      <h4 className="font-medium">Pre-Save Campaign</h4>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Campaign URL:</span>
+                        <code className="bg-background px-2 py-1 rounded text-xs">
+                          maxbooster.com/pre-save/{preSaveSlug || metadataData.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').substring(0, 50)}
+                        </code>
+                      </div>
+                      <p className="text-muted-foreground">
+                        Your pre-save landing page will be created automatically with your release artwork and platform links.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">

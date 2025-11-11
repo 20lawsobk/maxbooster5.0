@@ -89,6 +89,14 @@ export interface IStorage {
   createHyperFollowPage(data: any): Promise<any>;
   getUserHyperFollowPages(userId: string): Promise<any[]>;
 
+  // HyperFollow operations
+  getHyperFollowPages(userId: string): Promise<any[]>;
+  getHyperFollowPage(id: string): Promise<any | undefined>;
+  getHyperFollowPageBySlug(slug: string): Promise<any | undefined>;
+  updateHyperFollowPage(id: string, data: any): Promise<any>;
+  deleteHyperFollowPage(id: string): Promise<void>;
+  trackHyperFollowEvent(slug: string, eventType: string, data?: any): Promise<void>;
+
   // Distribution Provider operations
   getAllDistroProviders(): Promise<any[]>;
   getDistroProvider(id: string): Promise<any | undefined>;
@@ -97,6 +105,7 @@ export interface IStorage {
   getDistroDispatch(id: string): Promise<any | undefined>;
   createDistroDispatch(dispatch: any): Promise<any>;
   updateDistroDispatch(id: string, updates: any): Promise<any>;
+  getDistroDispatchStatuses(releaseId: string): Promise<any[]>;
 
   // Distribution Releases operations
   getDistroReleases(userId: string): Promise<DistroRelease[]>;
@@ -1463,6 +1472,102 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
+  async getHyperFollowPages(userId: string): Promise<any[]> {
+    return this.getUserHyperFollowPages(userId);
+  }
+
+  async getHyperFollowPage(id: string): Promise<any | undefined> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [page] = await db
+          .select()
+          .from(hyperFollowPages)
+          .where(eq(hyperFollowPages.id, id));
+        return page;
+      },
+      'getHyperFollowPage'
+    );
+  }
+
+  async getHyperFollowPageBySlug(slug: string): Promise<any | undefined> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [page] = await db
+          .select()
+          .from(hyperFollowPages)
+          .where(eq(hyperFollowPages.slug, slug));
+        return page;
+      },
+      'getHyperFollowPageBySlug'
+    );
+  }
+
+  async updateHyperFollowPage(id: string, data: any): Promise<any> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [updated] = await db
+          .update(hyperFollowPages)
+          .set({ ...data, updatedAt: new Date() })
+          .where(eq(hyperFollowPages.id, id))
+          .returning();
+        return updated;
+      },
+      'updateHyperFollowPage'
+    );
+  }
+
+  async deleteHyperFollowPage(id: string): Promise<void> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        await db
+          .delete(hyperFollowPages)
+          .where(eq(hyperFollowPages.id, id));
+      },
+      'deleteHyperFollowPage'
+    );
+  }
+
+  async trackHyperFollowEvent(slug: string, eventType: string, data?: any): Promise<void> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const page = await this.getHyperFollowPageBySlug(slug);
+        if (!page) return;
+
+        const currentLinks = page.links || {};
+        const analytics = currentLinks.analytics || {
+          pageViews: 0,
+          preSaves: 0,
+          emailSignups: 0,
+          platformClicks: {}
+        };
+
+        if (eventType === 'pageView') {
+          analytics.pageViews = (analytics.pageViews || 0) + 1;
+        } else if (eventType === 'preSave') {
+          analytics.preSaves = (analytics.preSaves || 0) + 1;
+        } else if (eventType === 'emailSignup') {
+          analytics.emailSignups = (analytics.emailSignups || 0) + 1;
+        } else if (eventType === 'platformClick' && data?.platform) {
+          analytics.platformClicks = analytics.platformClicks || {};
+          analytics.platformClicks[data.platform] = (analytics.platformClicks[data.platform] || 0) + 1;
+        }
+
+        const updatedLinks = {
+          ...currentLinks,
+          analytics
+        };
+
+        await db
+          .update(hyperFollowPages)
+          .set({ 
+            links: updatedLinks
+          })
+          .where(eq(hyperFollowPages.slug, slug));
+      },
+      'trackHyperFollowEvent'
+    );
+  }
+
   // Distribution Provider operations
   async getAllDistroProviders(): Promise<any[]> {
     return this.executeWithCircuitBreaker(
@@ -1561,6 +1666,19 @@ export class DatabaseStorage implements IStorage {
         return updatedDispatch;
       },
       'updateDistroDispatch'
+    );
+  }
+
+  async getDistroDispatchStatuses(releaseId: string): Promise<any[]> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        return await db
+          .select()
+          .from(distroDispatch)
+          .where(eq(distroDispatch.releaseId, releaseId))
+          .orderBy(asc(distroDispatch.createdAt));
+      },
+      'getDistroDispatchStatuses'
     );
   }
 

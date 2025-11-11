@@ -408,4 +408,576 @@ router.post('/releases/:id/schedule', requireAuth, async (req: Request, res: Res
   }
 });
 
+// ===========================
+// HYPERFOLLOW CAMPAIGN ENDPOINTS
+// ===========================
+
+const hyperFollowSchema = z.object({
+  title: z.string().min(1),
+  artistName: z.string().min(1),
+  slug: z.string().min(3).max(50).regex(/^[a-z0-9-]+$/),
+  description: z.string().optional(),
+  headerImage: z.string().optional(),
+  releaseId: z.string().optional(),
+  collectEmails: z.boolean().default(true),
+  platforms: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    enabled: z.boolean(),
+    url: z.string().optional(),
+  })),
+  socialLinks: z.array(z.object({
+    platform: z.string(),
+    url: z.string(),
+  })).optional(),
+  theme: z.object({
+    primaryColor: z.string(),
+    backgroundColor: z.string(),
+    textColor: z.string(),
+    buttonStyle: z.enum(['rounded', 'square', 'pill']),
+  }),
+});
+
+// POST /api/distribution/hyperfollow - Create campaign
+router.post('/hyperfollow', requireAuth, upload.single('headerImage'), async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const file = req.file;
+    
+    const data = hyperFollowSchema.parse(JSON.parse(req.body.data));
+
+    const headerImageUrl = file ? `/uploads/distribution/${file.filename}` : data.headerImage;
+
+    const campaign = await storage.createHyperFollowPage({
+      userId,
+      title: data.title,
+      slug: data.slug,
+      imageUrl: headerImageUrl,
+      links: {
+        platforms: data.platforms,
+        socialLinks: data.socialLinks,
+        artistName: data.artistName,
+        description: data.description,
+        releaseId: data.releaseId,
+        collectEmails: data.collectEmails,
+        theme: data.theme,
+        analytics: {
+          pageViews: 0,
+          preSaves: 0,
+          emailSignups: 0,
+          platformClicks: {},
+        },
+        emailList: [],
+      },
+    });
+
+    res.json(campaign);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.errors });
+    }
+    console.error('Error creating HyperFollow campaign:', error);
+    res.status(500).json({ error: 'Failed to create campaign' });
+  }
+});
+
+// GET /api/distribution/hyperfollow - List user campaigns
+router.get('/hyperfollow', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const campaigns = await storage.getHyperFollowPages(userId);
+    res.json(campaigns);
+  } catch (error) {
+    console.error('Error fetching HyperFollow campaigns:', error);
+    res.status(500).json({ error: 'Failed to fetch campaigns' });
+  }
+});
+
+// GET /api/distribution/hyperfollow/:slug - Get campaign by slug (public endpoint)
+router.get('/hyperfollow/:slug', async (req: Request, res: Response) => {
+  try {
+    const { slug } = req.params;
+    const campaign = await storage.getHyperFollowPageBySlug(slug);
+    
+    if (!campaign) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+
+    res.json(campaign);
+  } catch (error) {
+    console.error('Error fetching HyperFollow campaign:', error);
+    res.status(500).json({ error: 'Failed to fetch campaign' });
+  }
+});
+
+// PATCH /api/distribution/hyperfollow/:id - Update campaign
+router.patch('/hyperfollow/:id', requireAuth, upload.single('headerImage'), async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const { id } = req.params;
+    const file = req.file;
+
+    const campaign = await storage.getHyperFollowPage(id);
+    if (!campaign || campaign.userId !== userId) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+
+    const data = hyperFollowSchema.partial().parse(JSON.parse(req.body.data || '{}'));
+
+    const headerImageUrl = file 
+      ? `/uploads/distribution/${file.filename}` 
+      : data.headerImage || campaign.imageUrl;
+
+    const updatedCampaign = await storage.updateHyperFollowPage(id, {
+      title: data.title || campaign.title,
+      slug: data.slug || campaign.slug,
+      imageUrl: headerImageUrl,
+      links: {
+        ...(campaign.links as any),
+        platforms: data.platforms || (campaign.links as any).platforms,
+        socialLinks: data.socialLinks || (campaign.links as any).socialLinks,
+        artistName: data.artistName || (campaign.links as any).artistName,
+        description: data.description !== undefined ? data.description : (campaign.links as any).description,
+        collectEmails: data.collectEmails !== undefined ? data.collectEmails : (campaign.links as any).collectEmails,
+        theme: data.theme || (campaign.links as any).theme,
+      },
+    });
+
+    res.json(updatedCampaign);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.errors });
+    }
+    console.error('Error updating HyperFollow campaign:', error);
+    res.status(500).json({ error: 'Failed to update campaign' });
+  }
+});
+
+// DELETE /api/distribution/hyperfollow/:id - Delete campaign
+router.delete('/hyperfollow/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const { id } = req.params;
+
+    const campaign = await storage.getHyperFollowPage(id);
+    if (!campaign || campaign.userId !== userId) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+
+    await storage.deleteHyperFollowPage(id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting HyperFollow campaign:', error);
+    res.status(500).json({ error: 'Failed to delete campaign' });
+  }
+});
+
+// POST /api/distribution/hyperfollow/:slug/track - Track visitor (analytics)
+router.post('/hyperfollow/:slug/track', async (req: Request, res: Response) => {
+  try {
+    const { slug } = req.params;
+    const { eventType, platform, email } = z.object({
+      eventType: z.enum(['pageView', 'preSave', 'emailSignup', 'platformClick']),
+      platform: z.string().optional(),
+      email: z.string().email().optional(),
+    }).parse(req.body);
+
+    const campaign = await storage.getHyperFollowPageBySlug(slug);
+    if (!campaign) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+
+    const links = campaign.links as any;
+    const analytics = links.analytics || {
+      pageViews: 0,
+      preSaves: 0,
+      emailSignups: 0,
+      platformClicks: {},
+    };
+
+    // Update analytics
+    if (eventType === 'pageView') {
+      analytics.pageViews = (analytics.pageViews || 0) + 1;
+    } else if (eventType === 'preSave') {
+      analytics.preSaves = (analytics.preSaves || 0) + 1;
+    } else if (eventType === 'emailSignup' && email) {
+      analytics.emailSignups = (analytics.emailSignups || 0) + 1;
+      const emailList = links.emailList || [];
+      if (!emailList.includes(email)) {
+        emailList.push(email);
+        links.emailList = emailList;
+      }
+    } else if (eventType === 'platformClick' && platform) {
+      analytics.platformClicks = analytics.platformClicks || {};
+      analytics.platformClicks[platform] = (analytics.platformClicks[platform] || 0) + 1;
+    }
+
+    // Save updated analytics
+    await storage.updateHyperFollowPage(campaign.id, {
+      links: {
+        ...links,
+        analytics,
+      },
+    });
+
+    res.json({ success: true, analytics });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.errors });
+    }
+    console.error('Error tracking HyperFollow event:', error);
+    res.status(500).json({ error: 'Failed to track event' });
+  }
+});
+
+// ===========================
+// RELEASE STATUS & MONITORING ENDPOINTS
+// ===========================
+
+// GET /api/distribution/releases/:id/status - Get delivery status per DSP
+router.get('/releases/:id/status', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const { id } = req.params;
+
+    const release = await storage.getDistroRelease(id);
+    if (!release || release.artistId !== userId) {
+      return res.status(404).json({ error: 'Release not found' });
+    }
+
+    // Get dispatch status for all platforms
+    const statuses = await storage.getDistroDispatchStatuses(id);
+    
+    // Calculate overall progress
+    const liveCount = statuses.filter((s: any) => s.status === 'live').length;
+    const totalCount = statuses.length || 1;
+    const overallProgress = (liveCount / totalCount) * 100;
+
+    res.json({
+      statuses: statuses.map((status: any) => ({
+        platform: status.providerId,
+        platformName: status.providerName || status.providerId,
+        status: status.status,
+        externalId: status.externalId,
+        estimatedGoLive: status.estimatedGoLive,
+        deliveredAt: status.deliveredAt,
+        liveAt: status.liveAt,
+        errorMessage: status.error,
+        errorResolution: status.errorResolution,
+        lastChecked: status.updatedAt,
+      })),
+      overallProgress: Math.round(overallProgress),
+    });
+  } catch (error) {
+    console.error('Error fetching release status:', error);
+    res.status(500).json({ error: 'Failed to fetch release status' });
+  }
+});
+
+// POST /api/distribution/releases/:id/check-status - Force status refresh
+router.post('/releases/:id/check-status', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const { id } = req.params;
+
+    const release = await storage.getDistroRelease(id);
+    if (!release || release.artistId !== userId) {
+      return res.status(404).json({ error: 'Release not found' });
+    }
+
+    // Trigger status refresh from DSPs
+    await distributionService.refreshReleaseStatus(id);
+
+    res.json({ success: true, message: 'Status refresh initiated' });
+  } catch (error) {
+    console.error('Error refreshing release status:', error);
+    res.status(500).json({ error: 'Failed to refresh release status' });
+  }
+});
+
+// ===========================
+// DDEX PACKAGE ENDPOINTS
+// ===========================
+
+import { ddexPackageService } from '../services/ddexPackageService';
+import { createWriteStream } from 'fs';
+import { pipeline } from 'stream/promises';
+
+// POST /api/distribution/releases/:id/ddex/preview - Generate and preview XML
+router.post('/releases/:id/ddex/preview', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const { id } = req.params;
+
+    const release = await storage.getDistroRelease(id);
+    if (!release || release.artistId !== userId) {
+      return res.status(404).json({ error: 'Release not found' });
+    }
+
+    const tracks = await storage.getDistroTracks(id);
+
+    const metadata = release.metadata as any;
+    const xml = await ddexPackageService.generateDDEXXML(
+      {
+        id: release.id,
+        title: release.title || '',
+        artistName: metadata.artistName,
+        releaseType: metadata.releaseType,
+        upc: release.upc || '',
+        releaseDate: release.releaseDate?.toISOString().split('T')[0] || '',
+        labelName: metadata.labelName,
+        copyrightYear: metadata.copyrightYear,
+        copyrightOwner: metadata.copyrightOwner,
+        publishingRights: metadata.publishingRights,
+        primaryGenre: metadata.primaryGenre,
+        secondaryGenre: metadata.secondaryGenre,
+        isExplicit: metadata.isExplicit,
+        coverArtPath: release.coverArtUrl,
+        territories: metadata.territories,
+      },
+      tracks.map((track: any, index: number) => ({
+        id: track.id,
+        title: track.title,
+        isrc: track.isrc || '',
+        trackNumber: index + 1,
+        duration: track.duration || 0,
+        audioFilePath: track.audioUrl,
+        explicit: track.metadata?.explicit || false,
+        lyrics: track.metadata?.lyrics,
+        primaryArtist: metadata.artistName,
+        featuredArtists: track.metadata?.featuredArtists,
+        songwriters: track.metadata?.songwriters,
+        producers: track.metadata?.producers,
+      }))
+    );
+
+    // Validate XML
+    const validation = await ddexPackageService.validateDDEXXML(xml);
+
+    res.json({
+      xml,
+      validation,
+    });
+  } catch (error) {
+    console.error('Error generating DDEX preview:', error);
+    res.status(500).json({ error: 'Failed to generate DDEX preview' });
+  }
+});
+
+// GET /api/distribution/releases/:id/ddex/download - Download DDEX package (.zip)
+router.get('/releases/:id/ddex/download', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const { id } = req.params;
+
+    const release = await storage.getDistroRelease(id);
+    if (!release || release.artistId !== userId) {
+      return res.status(404).json({ error: 'Release not found' });
+    }
+
+    const tracks = await storage.getDistroTracks(id);
+    const metadata = release.metadata as any;
+
+    const outputPath = path.join(uploadDir, `ddex_${id}_${Date.now()}.zip`);
+
+    await ddexPackageService.createDDEXPackage(
+      {
+        id: release.id,
+        title: release.title || '',
+        artistName: metadata.artistName,
+        releaseType: metadata.releaseType,
+        upc: release.upc || '',
+        releaseDate: release.releaseDate?.toISOString().split('T')[0] || '',
+        labelName: metadata.labelName,
+        copyrightYear: metadata.copyrightYear,
+        copyrightOwner: metadata.copyrightOwner,
+        publishingRights: metadata.publishingRights,
+        primaryGenre: metadata.primaryGenre,
+        secondaryGenre: metadata.secondaryGenre,
+        isExplicit: metadata.isExplicit,
+        coverArtPath: release.coverArtUrl,
+        territories: metadata.territories,
+      },
+      tracks.map((track: any, index: number) => ({
+        id: track.id,
+        title: track.title,
+        isrc: track.isrc || '',
+        trackNumber: index + 1,
+        duration: track.duration || 0,
+        audioFilePath: path.join(process.cwd(), track.audioUrl),
+        explicit: track.metadata?.explicit || false,
+        lyrics: track.metadata?.lyrics,
+        primaryArtist: metadata.artistName,
+        featuredArtists: track.metadata?.featuredArtists,
+        songwriters: track.metadata?.songwriters,
+        producers: track.metadata?.producers,
+      })),
+      outputPath
+    );
+
+    res.download(outputPath, `${release.title}_DDEX.zip`, (err) => {
+      if (err) {
+        console.error('Error downloading DDEX package:', err);
+      }
+      // Clean up file after download
+      fs.unlinkSync(outputPath);
+    });
+  } catch (error) {
+    console.error('Error creating DDEX package:', error);
+    res.status(500).json({ error: 'Failed to create DDEX package' });
+  }
+});
+
+// POST /api/distribution/releases/:id/submit - Submit release for distribution
+router.post('/releases/:id/submit', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const { id } = req.params;
+
+    const release = await storage.getDistroRelease(id);
+    if (!release || release.artistId !== userId) {
+      return res.status(404).json({ error: 'Release not found' });
+    }
+
+    // Update release status to submitted
+    await storage.updateDistroRelease(id, { metadata: { ...(release.metadata as any), status: 'submitted' } });
+
+    // Create dispatch records for each selected platform
+    const metadata = release.metadata as any;
+    const selectedPlatforms = metadata.selectedPlatforms || [];
+
+    for (const platformSlug of selectedPlatforms) {
+      const provider = await storage.getDSPProviderBySlug(platformSlug);
+      if (provider) {
+        await storage.createDistroDispatch({
+          releaseId: id,
+          providerId: provider.id,
+          status: 'queued',
+        });
+      }
+    }
+
+    res.json({ success: true, message: 'Release submitted for distribution' });
+  } catch (error) {
+    console.error('Error submitting release:', error);
+    res.status(500).json({ error: 'Failed to submit release' });
+  }
+});
+
+// ===========================
+// TAKEDOWN ENDPOINTS
+// ===========================
+
+const takedownSchema = z.object({
+  reason: z.string().min(1),
+  explanation: z.string().optional(),
+  platforms: z.array(z.string()).optional(),
+  allPlatforms: z.boolean().default(true),
+});
+
+// POST /api/distribution/releases/:id/takedown - Request takedown
+router.post('/releases/:id/takedown', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const { id } = req.params;
+
+    const release = await storage.getDistroRelease(id);
+    if (!release || release.artistId !== userId) {
+      return res.status(404).json({ error: 'Release not found' });
+    }
+
+    const data = takedownSchema.parse(req.body);
+
+    // Update dispatch statuses for takedown
+    const statuses = await storage.getDistroDispatchStatuses(id);
+    const platformsToTakedown = data.allPlatforms 
+      ? statuses.map((s: any) => s.providerId)
+      : data.platforms || [];
+
+    for (const status of statuses) {
+      if (platformsToTakedown.includes(status.providerId)) {
+        await storage.updateDistroDispatch(status.id, {
+          status: 'takedown_requested',
+          logs: JSON.stringify({
+            reason: data.reason,
+            explanation: data.explanation,
+            requestedAt: new Date().toISOString(),
+          }),
+        });
+      }
+    }
+
+    // Log takedown request
+    await storage.createAuditLog({
+      userId,
+      action: 'release_takedown_requested',
+      resourceType: 'release',
+      resourceId: id,
+      metadata: {
+        reason: data.reason,
+        explanation: data.explanation,
+        platforms: platformsToTakedown,
+      },
+    });
+
+    res.json({ 
+      success: true, 
+      message: 'Takedown request submitted',
+      estimatedCompletionDays: 14,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.errors });
+    }
+    console.error('Error requesting takedown:', error);
+    res.status(500).json({ error: 'Failed to request takedown' });
+  }
+});
+
+// GET /api/distribution/releases/:id/takedown-status - Check takedown progress
+router.get('/releases/:id/takedown-status', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const { id } = req.params;
+
+    const release = await storage.getDistroRelease(id);
+    if (!release || release.artistId !== userId) {
+      return res.status(404).json({ error: 'Release not found' });
+    }
+
+    const statuses = await storage.getDistroDispatchStatuses(id);
+    const takedownStatuses = statuses
+      .filter((s: any) => s.status === 'takedown_requested' || s.status === 'removed')
+      .map((s: any) => {
+        const logs = s.logs ? JSON.parse(s.logs) : {};
+        return {
+          platform: s.providerId,
+          platformName: s.providerName,
+          status: s.status,
+          requestedAt: logs.requestedAt,
+          completedAt: logs.completedAt,
+          reason: logs.reason,
+          explanation: logs.explanation,
+        };
+      });
+
+    const allCompleted = takedownStatuses.every((s: any) => s.status === 'removed');
+    const totalRequested = takedownStatuses.length;
+    const totalCompleted = takedownStatuses.filter((s: any) => s.status === 'removed').length;
+
+    res.json({
+      statuses: takedownStatuses,
+      summary: {
+        totalRequested,
+        totalCompleted,
+        allCompleted,
+        progressPercentage: totalRequested > 0 ? (totalCompleted / totalRequested) * 100 : 0,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching takedown status:', error);
+    res.status(500).json({ error: 'Failed to fetch takedown status' });
+  }
+});
+
 export default router;
