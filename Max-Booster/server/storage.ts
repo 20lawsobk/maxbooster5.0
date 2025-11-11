@@ -5718,6 +5718,460 @@ export class DatabaseStorage implements IStorage {
               features: ['9-drawbars', 'key-click', 'percussion', 'rotary-cabinet']
             }
           },
+
+          // === LIMITERS & MAXIMIZERS ===
+          {
+            slug: 'brickwall-limiter',
+            name: 'Brickwall Limiter',
+            kind: 'limiter',
+            version: '2.0.0',
+            manifest: {
+              description: 'Transparent brickwall limiter with look-ahead and true-peak detection',
+              manufacturer: 'Max Booster',
+              tags: ['limiter', 'mastering', 'loudness'],
+              type: 'Brickwall',
+              character: 'transparent',
+              features: ['true-peak-detection', 'look-ahead', 'oversampling', 'auto-release']
+            }
+          },
+          {
+            slug: 'multiband-maximizer',
+            name: 'Multiband Maximizer',
+            kind: 'limiter',
+            version: '2.0.0',
+            manifest: {
+              description: 'Advanced multiband maximizer with intelligent spectral limiting',
+              manufacturer: 'Max Booster',
+              tags: ['limiter', 'mastering', 'loudness'],
+              type: 'Multiband',
+              character: 'powerful',
+              features: ['4-band-limiting', 'spectral-shaping', 'isp-technology', 'loudness-metering']
+            }
+          },
+          {
+            slug: 'vintage-tape-limiter',
+            name: 'Vintage Tape Limiter',
+            kind: 'limiter',
+            version: '2.0.0',
+            manifest: {
+              description: 'Analog tape-style limiter with natural compression and warmth',
+              manufacturer: 'Max Booster',
+              tags: ['limiter', 'vintage', 'analog'],
+              type: 'Analog',
+              character: 'warm',
+              features: ['tape-saturation', 'soft-clipping', 'high-frequency-rolloff', 'bias-control']
+            }
+          },
+
+          // === GATES & EXPANDERS ===
+          {
+            slug: 'precision-gate',
+            name: 'Precision Gate',
+            kind: 'gate',
+            version: '2.0.0',
+            manifest: {
+              description: 'Professional noise gate with look-ahead and hysteresis control',
+              manufacturer: 'Max Booster',
+              tags: ['gate', 'dynamics', 'noise-reduction'],
+              type: 'Gate',
+              character: 'precise',
+              features: ['look-ahead', 'hysteresis', 'sidechain-filter', 'hold-time']
+            }
+          },
+          {
+            slug: 'transient-gate',
+            name: 'Transient Gate',
+            kind: 'gate',
+            version: '2.0.0',
+            manifest: {
+              description: 'Intelligent transient gate with envelope follower and ducking',
+              manufacturer: 'Max Booster',
+              tags: ['gate', 'transient', 'dynamics'],
+              type: 'Transient',
+              character: 'adaptive',
+              features: ['transient-detection', 'envelope-follower', 'ducking-mode', 'frequency-dependent']
+            }
+          },
+          {
+            slug: 'downward-expander',
+            name: 'Downward Expander',
+            kind: 'gate',
+            version: '2.0.0',
+            manifest: {
+              description: 'Smooth downward expander for natural dynamic range expansion',
+              manufacturer: 'Max Booster',
+              tags: ['expander', 'dynamics', 'mixing'],
+              type: 'Expander',
+              character: 'smooth',
+              features: ['soft-knee', 'ratio-control', 'range-limiting', 'sidechain']
+            }
+          },
+
+          // === DE-ESSERS ===
+          {
+            slug: 'surgical-de-esser',
+            name: 'Surgical De-Esser',
+            kind: 'de-esser',
+            version: '2.0.0',
+            manifest: {
+              description: 'Precision de-esser with multi-band detection and transparency',
+              manufacturer: 'Max Booster',
+              tags: ['de-esser', 'vocal', 'dynamics'],
+              type: 'Surgical',
+              character: 'transparent',
+              features: ['multi-band-detection', 'listen-mode', 'auto-threshold', 'split-band']
+            }
+          },
+          {
+            slug: 'vintage-de-esser',
+            name: 'Vintage De-Esser',
+            kind: 'de-esser',
+            version: '2.0.0',
+            manifest: {
+              description: 'Classic de-esser with analog warmth and musical character',
+              manufacturer: 'Max Booster',
+              tags: ['de-esser', 'vocal', 'vintage'],
+              type: 'Vintage',
+              character: 'warm',
+              features: ['frequency-dependent', 'ratio-control', 'sidechain-eq', 'analog-modeling']
+            }
+          },
+
+          // === PITCH CORRECTION & VOCAL ===
+          {
+            slug: 'auto-pitch-pro',
+            name: 'Auto Pitch Pro',
+            kind: 'pitch',
+            version: '2.0.0',
+            manifest: {
+              description: 'Professional pitch correction with scale detection and formant preservation',
+              manufacturer: 'Max Booster',
+              tags: ['pitch', 'vocal', 'auto-tune'],
+              type: 'Auto-Tune',
+              character: 'precise',
+              features: ['real-time-correction', 'scale-detection', 'formant-preservation', 'vibrato-control']
+            }
+          },
+          {
+            slug: 'harmony-generator',
+            name: 'Harmony Generator',
+            kind: 'pitch',
+            version: '2.0.0',
+            manifest: {
+              description: 'Intelligent harmony generator with voice modeling and doubling',
+              manufacturer: 'Max Booster',
+              tags: ['pitch', 'vocal', 'harmony'],
+              type: 'Harmony',
+              character: 'natural',
+              features: ['auto-harmony', 'voice-doubling', 'humanization', '4-voice-polyphony']
+            }
+          },
+          {
+            slug: 'vocal-rider',
+            name: 'Vocal Rider',
+            kind: 'vocal',
+            version: '2.0.0',
+            manifest: {
+              description: 'Automatic vocal level riding for consistent vocal presence',
+              manufacturer: 'Max Booster',
+              tags: ['vocal', 'automation', 'mixing'],
+              type: 'Automation',
+              character: 'intelligent',
+              features: ['auto-gain-riding', 'target-range', 'sensitivity-control', 'music-threshold']
+            }
+          },
+          {
+            slug: 'vocal-channel-strip',
+            name: 'Vocal Channel Strip',
+            kind: 'vocal',
+            version: '2.0.0',
+            manifest: {
+              description: 'Complete vocal chain with EQ, compression, de-essing, and effects',
+              manufacturer: 'Max Booster',
+              tags: ['vocal', 'channel-strip', 'processing'],
+              type: 'Channel-Strip',
+              character: 'complete',
+              features: ['eq', 'compression', 'de-esser', 'saturation', 'reverb', 'delay']
+            }
+          },
+
+          // === GUITAR & BASS AMP SIMULATORS ===
+          {
+            slug: 'legendary-guitar-amp',
+            name: 'Legendary Guitar Amp',
+            kind: 'amp',
+            version: '2.0.0',
+            manifest: {
+              description: 'Premium guitar amp simulator with 50+ classic amp models and cabinets',
+              manufacturer: 'Max Booster',
+              tags: ['amp', 'guitar', 'simulation'],
+              type: 'Guitar',
+              character: 'versatile',
+              features: ['50-amp-models', 'cabinet-simulation', 'mic-positions', 'room-ambience']
+            }
+          },
+          {
+            slug: 'bass-amp-suite',
+            name: 'Bass Amp Suite',
+            kind: 'amp',
+            version: '2.0.0',
+            manifest: {
+              description: 'Professional bass amp simulator with classic SVT, Eden, and Ampeg models',
+              manufacturer: 'Max Booster',
+              tags: ['amp', 'bass', 'simulation'],
+              type: 'Bass',
+              character: 'punchy',
+              features: ['bass-amp-models', 'di-simulation', 'cabinet-modeling', 'eq-shaping']
+            }
+          },
+          {
+            slug: 'pedal-board',
+            name: 'Pedal Board',
+            kind: 'amp',
+            version: '2.0.0',
+            manifest: {
+              description: 'Virtual pedalboard with 30+ classic guitar pedals and stompboxes',
+              manufacturer: 'Max Booster',
+              tags: ['pedal', 'guitar', 'effects'],
+              type: 'Pedalboard',
+              character: 'creative',
+              features: ['30-pedals', 'signal-chain', 'true-bypass', 'vintage-modeling']
+            }
+          },
+
+          // === STEREO IMAGING & WIDTH ===
+          {
+            slug: 'stereo-imager-pro',
+            name: 'Stereo Imager Pro',
+            kind: 'stereo',
+            version: '2.0.0',
+            manifest: {
+              description: 'Advanced stereo imaging with multi-band width control and mono compatibility',
+              manufacturer: 'Max Booster',
+              tags: ['stereo', 'imaging', 'mastering'],
+              type: 'Imager',
+              character: 'precise',
+              features: ['multiband-width', 'mid-side-processing', 'mono-check', 'correlation-meter']
+            }
+          },
+          {
+            slug: 'haas-widener',
+            name: 'Haas Widener',
+            kind: 'stereo',
+            version: '2.0.0',
+            manifest: {
+              description: 'Haas effect-based stereo widener with delay and phase manipulation',
+              manufacturer: 'Max Booster',
+              tags: ['stereo', 'widening', 'creative'],
+              type: 'Widener',
+              character: 'spacious',
+              features: ['haas-effect', 'micro-delay', 'phase-offset', 'frequency-dependent']
+            }
+          },
+          {
+            slug: 'mid-side-processor',
+            name: 'Mid-Side Processor',
+            kind: 'stereo',
+            version: '2.0.0',
+            manifest: {
+              description: 'Dedicated mid-side processor with independent processing chains',
+              manufacturer: 'Max Booster',
+              tags: ['stereo', 'mid-side', 'mastering'],
+              type: 'Mid-Side',
+              character: 'surgical',
+              features: ['mid-side-split', 'independent-eq', 'width-control', 'mono-compatibility']
+            }
+          },
+
+          // === METERING & ANALYSIS ===
+          {
+            slug: 'spectrum-analyzer-pro',
+            name: 'Spectrum Analyzer Pro',
+            kind: 'metering',
+            version: '2.0.0',
+            manifest: {
+              description: 'Professional spectrum analyzer with FFT display and peak hold',
+              manufacturer: 'Max Booster',
+              tags: ['metering', 'analysis', 'visualization'],
+              type: 'Analyzer',
+              character: 'precise',
+              features: ['fft-spectrum', 'peak-hold', 'sonogram', 'masking-curves']
+            }
+          },
+          {
+            slug: 'loudness-meter',
+            name: 'Loudness Meter',
+            kind: 'metering',
+            version: '2.0.0',
+            manifest: {
+              description: 'Broadcast-standard loudness meter with LUFS, true-peak, and dynamic range',
+              manufacturer: 'Max Booster',
+              tags: ['metering', 'loudness', 'mastering'],
+              type: 'Loudness',
+              character: 'standard',
+              features: ['lufs-metering', 'true-peak', 'dynamic-range', 'history-graph']
+            }
+          },
+          {
+            slug: 'phase-correlation-meter',
+            name: 'Phase Correlation Meter',
+            kind: 'metering',
+            version: '2.0.0',
+            manifest: {
+              description: 'Goniometer and correlation meter for stereo field analysis',
+              manufacturer: 'Max Booster',
+              tags: ['metering', 'phase', 'stereo'],
+              type: 'Phase',
+              character: 'technical',
+              features: ['goniometer', 'correlation-meter', 'vector-scope', 'mono-compatibility-check']
+            }
+          },
+
+          // === UTILITY PLUGINS ===
+          {
+            slug: 'precision-gain',
+            name: 'Precision Gain',
+            kind: 'utility',
+            version: '2.0.0',
+            manifest: {
+              description: 'High-precision gain control with phase inversion and balance',
+              manufacturer: 'Max Booster',
+              tags: ['utility', 'gain', 'mixing'],
+              type: 'Gain',
+              character: 'transparent',
+              features: ['0.1db-precision', 'phase-invert', 'left-right-balance', 'dc-offset-removal']
+            }
+          },
+          {
+            slug: 'mono-stereo-converter',
+            name: 'Mono-Stereo Converter',
+            kind: 'utility',
+            version: '2.0.0',
+            manifest: {
+              description: 'Flexible mono/stereo conversion with channel routing and summing',
+              manufacturer: 'Max Booster',
+              tags: ['utility', 'routing', 'mixing'],
+              type: 'Converter',
+              character: 'flexible',
+              features: ['mono-summing', 'stereo-splitting', 'channel-swap', 'mid-side-decode']
+            }
+          },
+          {
+            slug: 'phase-alignment-tool',
+            name: 'Phase Alignment Tool',
+            kind: 'utility',
+            version: '2.0.0',
+            manifest: {
+              description: 'Automatic phase alignment with polarity detection and delay compensation',
+              manufacturer: 'Max Booster',
+              tags: ['utility', 'phase', 'mixing'],
+              type: 'Phase',
+              character: 'precise',
+              features: ['auto-alignment', 'polarity-detection', 'delay-compensation', 'correlation-display']
+            }
+          },
+
+          // === CREATIVE EFFECTS ===
+          {
+            slug: 'granular-processor',
+            name: 'Granular Processor',
+            kind: 'creative',
+            version: '2.0.0',
+            manifest: {
+              description: 'Advanced granular synthesizer with cloud processing and time-stretching',
+              manufacturer: 'Max Booster',
+              tags: ['creative', 'granular', 'experimental'],
+              type: 'Granular',
+              character: 'experimental',
+              features: ['grain-synthesis', 'cloud-density', 'time-stretching', 'grain-randomization']
+            }
+          },
+          {
+            slug: 'glitch-machine',
+            name: 'Glitch Machine',
+            kind: 'creative',
+            version: '2.0.0',
+            manifest: {
+              description: 'Rhythmic glitch processor with stutter, repeat, and buffer effects',
+              manufacturer: 'Max Booster',
+              tags: ['creative', 'glitch', 'rhythmic'],
+              type: 'Glitch',
+              character: 'chaotic',
+              features: ['stutter-engine', 'buffer-repeat', 'tape-stop', 'pattern-sequencer']
+            }
+          },
+          {
+            slug: 'ring-modulator',
+            name: 'Ring Modulator',
+            kind: 'creative',
+            version: '2.0.0',
+            manifest: {
+              description: 'Vintage ring modulator with carrier oscillator and sideband filtering',
+              manufacturer: 'Max Booster',
+              tags: ['creative', 'modulation', 'vintage'],
+              type: 'Ring-Mod',
+              character: 'metallic',
+              features: ['carrier-oscillator', 'sideband-filter', 'mix-control', 'lfo-modulation']
+            }
+          },
+          {
+            slug: 'frequency-shifter',
+            name: 'Frequency Shifter',
+            kind: 'creative',
+            version: '2.0.0',
+            manifest: {
+              description: 'Precision frequency shifter with harmonic dissonance and stereo offset',
+              manufacturer: 'Max Booster',
+              tags: ['creative', 'frequency', 'experimental'],
+              type: 'Frequency-Shift',
+              character: 'dissonant',
+              features: ['linear-shifting', 'feedback-loop', 'stereo-offset', 'mix-control']
+            }
+          },
+
+          // === CHANNEL STRIPS & PREAMPS ===
+          {
+            slug: 'british-console-channel',
+            name: 'British Console Channel',
+            kind: 'channel-strip',
+            version: '2.0.0',
+            manifest: {
+              description: 'Legendary British console channel with EQ, dynamics, and transformer coloration',
+              manufacturer: 'Max Booster',
+              tags: ['channel-strip', 'console', 'vintage'],
+              type: 'Console',
+              character: 'warm',
+              features: ['preamp-modeling', '4-band-eq', 'compressor', 'gate', 'transformer-saturation']
+            }
+          },
+          {
+            slug: 'american-studio-preamp',
+            name: 'American Studio Preamp',
+            kind: 'channel-strip',
+            version: '2.0.0',
+            manifest: {
+              description: 'Classic American studio preamp with clean gain and minimal coloration',
+              manufacturer: 'Max Booster',
+              tags: ['preamp', 'studio', 'transparent'],
+              type: 'Preamp',
+              character: 'clean',
+              features: ['ultra-clean-gain', 'input-impedance', 'phase-reverse', 'pad-control']
+            }
+          },
+          {
+            slug: 'tube-preamp-suite',
+            name: 'Tube Preamp Suite',
+            kind: 'channel-strip',
+            version: '2.0.0',
+            manifest: {
+              description: 'Vintage tube preamp collection with multiple tube types and drive stages',
+              manufacturer: 'Max Booster',
+              tags: ['preamp', 'tube', 'vintage'],
+              type: 'Tube',
+              character: 'colored',
+              features: ['multiple-tube-models', 'drive-stages', 'output-transformer', 'bias-control']
+            }
+          },
         ];
 
         // Insert all plugins in one batch
@@ -6620,6 +7074,157 @@ export class DatabaseStorage implements IStorage {
         return token.expiresAt > now;
       },
       'verifyJWTToken'
+    );
+  }
+
+  // ============================================================================
+  // USER ASSET MANAGEMENT
+  // ============================================================================
+
+  async createUserAsset(asset: InsertUserAsset): Promise<UserAsset> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [created] = await db.insert(userAssets).values(asset).returning();
+        return created;
+      },
+      'createUserAsset'
+    );
+  }
+
+  async getUserAssets(
+    userId: string,
+    assetType?: string,
+    folderId?: string,
+    search?: string,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<UserAsset[]> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        let query = db
+          .select()
+          .from(userAssets)
+          .where(eq(userAssets.userId, userId));
+
+        if (assetType) {
+          query = query.where(eq(userAssets.assetType, assetType));
+        }
+
+        if (folderId) {
+          query = query.where(eq(userAssets.folderId, folderId));
+        }
+
+        if (search) {
+          query = query.where(
+            or(
+              sql`${userAssets.name} ILIKE ${'%' + search + '%'}`,
+              sql`${userAssets.description} ILIKE ${'%' + search + '%'}`
+            )
+          );
+        }
+
+        const results = await query
+          .orderBy(desc(userAssets.createdAt))
+          .limit(limit)
+          .offset(offset);
+
+        return results;
+      },
+      'getUserAssets'
+    );
+  }
+
+  async getUserAssetById(id: string): Promise<UserAsset | undefined> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [asset] = await db
+          .select()
+          .from(userAssets)
+          .where(eq(userAssets.id, id))
+          .limit(1);
+        return asset;
+      },
+      'getUserAssetById'
+    );
+  }
+
+  async deleteUserAsset(id: string): Promise<void> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        await db.delete(userAssets).where(eq(userAssets.id, id));
+      },
+      'deleteUserAsset'
+    );
+  }
+
+  async createAssetFolder(folder: InsertAssetFolder): Promise<AssetFolder> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [created] = await db.insert(assetFolders).values(folder).returning();
+        return created;
+      },
+      'createAssetFolder'
+    );
+  }
+
+  async getUserAssetFolders(userId: string): Promise<AssetFolder[]> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        return await db
+          .select()
+          .from(assetFolders)
+          .where(eq(assetFolders.userId, userId))
+          .orderBy(assetFolders.path);
+      },
+      'getUserAssetFolders'
+    );
+  }
+
+  async getAssetFolderById(id: string): Promise<AssetFolder | undefined> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [folder] = await db
+          .select()
+          .from(assetFolders)
+          .where(eq(assetFolders.id, id))
+          .limit(1);
+        return folder;
+      },
+      'getAssetFolderById'
+    );
+  }
+
+  async deleteAssetFolder(id: string): Promise<void> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        await db.delete(assetFolders).where(eq(assetFolders.id, id));
+      },
+      'deleteAssetFolder'
+    );
+  }
+
+  async addAssetTag(assetId: string, tag: string): Promise<AssetTag> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [created] = await db
+          .insert(assetTags)
+          .values({ assetId, tag })
+          .returning();
+        return created;
+      },
+      'addAssetTag'
+    );
+  }
+
+  async getAssetTags(assetId: string): Promise<AssetTag[]> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        return await db
+          .select()
+          .from(assetTags)
+          .where(eq(assetTags.assetId, assetId));
+      },
+      'getAssetTags'
     );
   }
 

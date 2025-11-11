@@ -10210,6 +10210,296 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     }
   });
 
+  // ============================================================================
+  // USER ASSET MANAGEMENT - Samples, Plugins, Audio Files
+  // ============================================================================
+
+  // Configure asset upload with strict file validation
+  const assetUpload = multer({
+    storage: multer.diskStorage({
+      destination: path.join(uploadDir, 'user-assets'),
+      filename: (req, file, cb) => {
+        const uniqueSuffix = `${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        const sanitizedName = sanitizeFilename(file.originalname);
+        const ext = path.extname(sanitizedName).toLowerCase();
+        cb(null, `${uniqueSuffix}${ext}`);
+      }
+    }),
+    limits: {
+      fileSize: 500 * 1024 * 1024, // 500MB limit for samples
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedAudioMimes = ['audio/wav', 'audio/x-wav', 'audio/mpeg', 'audio/mp3', 'audio/flac', 'audio/aiff', 'audio/x-aiff', 'audio/ogg'];
+      const allowedPluginMimes = ['application/json', 'application/zip', 'application/x-zip-compressed'];
+      const allowedMimes = [...allowedAudioMimes, ...allowedPluginMimes];
+      
+      const allowedExts = ['.wav', '.mp3', '.flac', '.aiff', '.aif', '.ogg', '.json', '.zip'];
+      const ext = path.extname(file.originalname).toLowerCase();
+      
+      if (allowedMimes.includes(file.mimetype) && allowedExts.includes(ext)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Allowed: WAV, MP3, FLAC, AIFF, OGG, JSON, ZIP'));
+      }
+    }
+  });
+
+  // Ensure user-assets directory exists
+  const userAssetsDir = path.join(uploadDir, 'user-assets');
+  if (!fs.existsSync(userAssetsDir)) {
+    fs.mkdirSync(userAssetsDir, { recursive: true });
+  }
+
+  // Helper function to sanitize asset responses (remove internal file paths)
+  const sanitizeAssetResponse = (asset: any) => {
+    const { filePath, ...sanitized } = asset;
+    return {
+      ...sanitized,
+      fileUrl: `/api/assets/${asset.id}/download`,
+    };
+  };
+
+  // POST /api/assets/upload - Upload user asset
+  app.post('/api/assets/upload', requireAuth, assetUpload.single('assetFile'), async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ error: 'Asset file is required' });
+      }
+
+      const { name, description, assetType, folderId, tags } = req.body;
+      
+      // Determine asset type from file if not provided
+      const detectedType = assetType || (file.mimetype.startsWith('audio/') ? 'sample' : 'plugin');
+      
+      // Create asset record
+      const asset = await storage.createUserAsset({
+        userId,
+        folderId: folderId || null,
+        name: name || file.originalname,
+        description: description || null,
+        assetType: detectedType,
+        fileType: path.extname(file.originalname).substring(1),
+        filePath: file.path,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        metadata: {}
+      });
+
+      // Add tags if provided
+      if (tags && typeof tags === 'string') {
+        const tagArray = tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+        for (const tag of tagArray) {
+          await storage.addAssetTag(asset.id, tag);
+        }
+      }
+
+      res.status(201).json(sanitizeAssetResponse(asset));
+    } catch (error) {
+      console.error('Error uploading asset:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to upload asset' });
+    }
+  });
+
+  // GET /api/assets - List user assets
+  app.get('/api/assets', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { assetType, folderId, search, limit = '50', offset = '0' } = req.query;
+      
+      const assets = await storage.getUserAssets(
+        userId,
+        assetType as string,
+        folderId as string,
+        search as string,
+        parseInt(limit as string),
+        parseInt(offset as string)
+      );
+
+      res.json(assets.map(sanitizeAssetResponse));
+    } catch (error) {
+      console.error('Error fetching assets:', error);
+      res.status(500).json({ error: 'Failed to fetch assets' });
+    }
+  });
+
+  // GET /api/assets/:id - Get asset details
+  app.get('/api/assets/:id', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { id } = req.params;
+      
+      const asset = await storage.getUserAssetById(id);
+      
+      if (!asset || asset.userId !== userId) {
+        return res.status(404).json({ error: 'Asset not found' });
+      }
+
+      // Get tags for this asset
+      const tags = await storage.getAssetTags(id);
+      
+      res.json({ ...sanitizeAssetResponse(asset), tags });
+    } catch (error) {
+      console.error('Error fetching asset:', error);
+      res.status(500).json({ error: 'Failed to fetch asset' });
+    }
+  });
+
+  // GET /api/assets/:id/download - Download asset file
+  app.get('/api/assets/:id/download', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { id } = req.params;
+      
+      const asset = await storage.getUserAssetById(id);
+      
+      if (!asset || asset.userId !== userId) {
+        return res.status(404).json({ error: 'Asset not found' });
+      }
+
+      if (!fs.existsSync(asset.filePath)) {
+        return res.status(404).json({ error: 'File not found on server' });
+      }
+
+      // Set appropriate headers
+      res.setHeader('Content-Type', asset.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${asset.name}"`);
+      res.setHeader('Content-Length', asset.fileSize.toString());
+      
+      // Stream the file
+      const fileStream = fs.createReadStream(asset.filePath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error('Error downloading asset:', error);
+      res.status(500).json({ error: 'Failed to download asset' });
+    }
+  });
+
+  // DELETE /api/assets/:id - Delete asset
+  app.delete('/api/assets/:id', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { id } = req.params;
+      
+      const asset = await storage.getUserAssetById(id);
+      
+      if (!asset || asset.userId !== userId) {
+        return res.status(404).json({ error: 'Asset not found' });
+      }
+
+      // Delete file from filesystem
+      if (fs.existsSync(asset.filePath)) {
+        fs.unlinkSync(asset.filePath);
+      }
+
+      // Delete database record (cascades to tags)
+      await storage.deleteUserAsset(id);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting asset:', error);
+      res.status(500).json({ error: 'Failed to delete asset' });
+    }
+  });
+
+  // POST /api/assets/folders - Create folder
+  app.post('/api/assets/folders', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { name, parentId } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ error: 'Folder name is required' });
+      }
+
+      // Build path based on parent
+      let folderPath = `/${name}`;
+      if (parentId) {
+        const parent = await storage.getAssetFolderById(parentId);
+        if (!parent || parent.userId !== userId) {
+          return res.status(404).json({ error: 'Parent folder not found' });
+        }
+        folderPath = `${parent.path}/${name}`;
+      }
+
+      const folder = await storage.createAssetFolder({
+        userId,
+        parentId: parentId || null,
+        name,
+        path: folderPath
+      });
+
+      res.status(201).json(folder);
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      res.status(500).json({ error: 'Failed to create folder' });
+    }
+  });
+
+  // GET /api/assets/folders - List folders
+  app.get('/api/assets/folders', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const folders = await storage.getUserAssetFolders(userId);
+      res.json(folders);
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+      res.status(500).json({ error: 'Failed to fetch folders' });
+    }
+  });
+
+  // DELETE /api/assets/folders/:id - Delete folder
+  app.delete('/api/assets/folders/:id', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { id } = req.params;
+      
+      const folder = await storage.getAssetFolderById(id);
+      
+      if (!folder || folder.userId !== userId) {
+        return res.status(404).json({ error: 'Folder not found' });
+      }
+
+      // Check if folder has assets
+      const assets = await storage.getUserAssets(userId, undefined, id);
+      if (assets.length > 0) {
+        return res.status(400).json({ error: 'Cannot delete folder with assets. Move or delete assets first.' });
+      }
+
+      await storage.deleteAssetFolder(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting folder:', error);
+      res.status(500).json({ error: 'Failed to delete folder' });
+    }
+  });
+
+  // POST /api/assets/:id/tags - Add tag to asset
+  app.post('/api/assets/:id/tags', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { id } = req.params;
+      const { tag } = req.body;
+      
+      if (!tag) {
+        return res.status(400).json({ error: 'Tag is required' });
+      }
+
+      const asset = await storage.getUserAssetById(id);
+      if (!asset || asset.userId !== userId) {
+        return res.status(404).json({ error: 'Asset not found' });
+      }
+
+      const assetTag = await storage.addAssetTag(id, tag);
+      res.status(201).json(assetTag);
+    } catch (error) {
+      console.error('Error adding tag:', error);
+      res.status(500).json({ error: 'Failed to add tag' });
+    }
+  });
+
   // 24/7 Reliability monitoring endpoints
   setupReliabilityEndpoints(app);
 
