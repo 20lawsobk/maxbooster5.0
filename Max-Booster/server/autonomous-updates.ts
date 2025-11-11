@@ -574,9 +574,13 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
 
   private async optimizeDatabaseQueries(): Promise<any> {
     const avgQueryTime = this.performanceBaseline.get('avg_db_query_time') || 100;
-    const currentQueryTime = 80 + Math.random() * 40;
+    const seed = `db_query_${Date.now()}`;
+    const currentQueryTime = this.deterministicValue(seed, 80, 120);
     
     const improvement = ((avgQueryTime - currentQueryTime) / avgQueryTime * 100);
+    
+    const queriesAnalyzedSeed = `queries_${Date.now()}`;
+    const queriesAnalyzed = Math.floor(this.deterministicValue(queriesAnalyzedSeed, 500, 1000));
     
     const task = await storage.createOptimizationTask({
       taskType: 'db_query',
@@ -586,7 +590,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         before: { avgQueryTime: avgQueryTime.toFixed(2) + 'ms' },
         after: { avgQueryTime: currentQueryTime.toFixed(2) + 'ms' },
         improvement: improvement.toFixed(1) + '%',
-        queriesAnalyzed: Math.floor(500 + Math.random() * 500)
+        queriesAnalyzed
       },
       executedAt: new Date(),
       completedAt: new Date()
@@ -612,7 +616,8 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
 
   private async optimizeAIParameters(): Promise<any> {
     const avgResponseTime = this.performanceBaseline.get('avg_ai_response_time') || 500;
-    const currentResponseTime = 400 + Math.random() * 200;
+    const seed = `ai_response_${Date.now()}`;
+    const currentResponseTime = this.deterministicValue(seed, 400, 600);
     
     const improvement = ((avgResponseTime - currentResponseTime) / avgResponseTime * 100);
     
@@ -650,7 +655,11 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
 
   private async optimizeFeatureUsage(): Promise<any> {
     const features = ['studio', 'distribution', 'social', 'analytics', 'marketplace'];
-    const underutilizedFeatures = features.filter(() => Math.random() > 0.6);
+    const seed = Date.now();
+    const underutilizedFeatures = features.filter((feature, idx) => {
+      const featureSeed = `${feature}_${seed}_${idx}`;
+      return this.deterministicValue(featureSeed, 0, 1) > 0.6;
+    });
     
     if (underutilizedFeatures.length > 0) {
       const task = await storage.createOptimizationTask({
@@ -1319,9 +1328,15 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
   }
 
   private async analyzeRollbackImpact(modelId: string, targetVersionId: string): Promise<any> {
+    const usersSeed = `${modelId}_${targetVersionId}_users`;
+    const downtimeSeed = `${modelId}_${targetVersionId}_downtime`;
+    
+    const affectedUsers = Math.floor(this.deterministicValue(usersSeed, 15000, 20000));
+    const estimatedDowntime = Math.floor(this.deterministicValue(downtimeSeed, 0, 30));
+    
     return {
-      affectedUsers: 15000 + Math.floor(Math.random() * 5000),
-      estimatedDowntime: Math.floor(Math.random() * 30),
+      affectedUsers,
+      estimatedDowntime,
       dataLoss: false,
       requiresRetraining: false,
       performanceChange: {
