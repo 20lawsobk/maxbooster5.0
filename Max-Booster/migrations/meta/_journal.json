@@ -8,6 +8,13 @@
       "when": 1762832681837,
       "tag": "0000_wandering_champions",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1762878577243,
+      "tag": "0001_steady_sharon_carter",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { users, projects, analytics, notifications, releases, tracks, trackAnalysis, collaborators, earnings, hyperFollowPages, studioProjects, studioTracks, audioClips, midiClips, virtualInstruments, audioEffects, mixBusses, automationData, markers, lyrics, generatedMelodies, adCampaigns, adInsights, adCreatives, adAIRuns, adCampaignVariants, adPlatformAccounts, adDeliveryLogs, adKillRules, adRuleExecutions, socialAccounts, socialCampaigns, posts, socialMetrics, payouts, listings, likes, orders, payoutEvents, passwordResetTokens, sessions, pluginCatalog, autosaves, exportJobs, distributionPackages, distributionTracks, studioConversions, studioCollabSessions, studioCollabSnapshots, projectCollaborators, projectRoyaltySplits, revenueEvents, royaltyLedger, royaltyPayments, collaboratorTaxProfiles, revenueImportHistory, forecastSnapshots, trendEvents, modelVersions, optimizationTasks, payoutSettings, paymentMethods, uploadSessions, isrcRegistry, upcRegistry, jwtTokens, refreshTokens, tokenRevocations, permissions, webhookEvents, webhookAttempts, webhookDeadLetterQueue, logEvents, royaltySplits, distroReleases, distroTracks, distroProviders, distroDispatch, type User, type InsertUser, type Project, type InsertProject, type Analytics, type InsertAnalytics, type Notification, type InsertNotification, type Release, type InsertRelease, type Track, type InsertTrack, type TrackAnalysis, type InsertTrackAnalysis, type StudioProject, type InsertStudioProject, type StudioTrack, type InsertStudioTrack, type AudioClip, type InsertAudioClip, type MidiClip, type InsertMidiClip, type VirtualInstrument, type InsertVirtualInstrument, type AudioEffect, type InsertAudioEffect, type MixBus, type InsertMixBus, type AutomationData, type InsertAutomationData, type Marker, type InsertMarker, type Lyrics, type InsertLyrics, type GeneratedMelody, type InsertGeneratedMelody, type AdCampaign, type InsertAdCampaign, type AdInsights, type InsertAdInsights, type AdCreative, type InsertAdCreative, type AdAIRun, type InsertAdAIRun, type AdCampaignVariant, type DistroRelease, type InsertDistroRelease, type DistroTrack, type InsertDistroTrack, type InsertAdCampaignVariant, type AdPlatformAccount, type InsertAdPlatformAccount, type AdDeliveryLog, type InsertAdDeliveryLog, type AdKillRule, type InsertAdKillRule, type AdRuleExecution, type InsertAdRuleExecution, type Payout, type InsertPayout, type Listing, type Order, type Autosave, type InsertAutosave, type DistributionPackage, type InsertDistributionPackage, type DistributionTrack, type InsertDistributionTrack, type StudioCollabSession, type InsertStudioCollabSession, type StudioCollabSnapshot, type InsertStudioCollabSnapshot, type ProjectCollaborator, type InsertProjectCollaborator, type ProjectRoyaltySplit, type InsertProjectRoyaltySplit, type RevenueEvent, type InsertRevenueEvent, type RoyaltyLedger, type InsertRoyaltyLedger, type RoyaltyPayment, type InsertRoyaltyPayment, type CollaboratorTaxProfile, type InsertCollaboratorTaxProfile, type RevenueImportHistory, type InsertRevenueImportHistory, type ForecastSnapshot, type InsertForecastSnapshot, type TrendEvent, type InsertTrendEvent, type ModelVersion, type InsertModelVersion, type OptimizationTask, type InsertOptimizationTask, type PayoutSettings, type InsertPayoutSettings, type PaymentMethod, type InsertPaymentMethod, type UploadSession, type InsertUploadSession, type ISRCRegistry, type InsertISRCRegistry, type UPCRegistry, type InsertUPCRegistry, type JWTToken, type InsertJWTToken, type RefreshToken, type InsertRefreshToken, type TokenRevocation, type InsertTokenRevocation, type Permission, type InsertPermission, type WebhookAttempt, type InsertWebhookAttempt, type WebhookDeadLetterQueue, type InsertWebhookDeadLetterQueue, type LogEvent, type InsertLogEvent, type RoyaltySplit, aiModels, aiModelVersions, trainingDatasets, inferenceRuns, performanceMetrics, explanationLogs, featureFlags, type AIModel, type InsertAIModel, type AIModelVersion, type InsertAIModelVersion, type TrainingDataset, type InsertTrainingDataset, type InferenceRun, type InsertInferenceRun, type PerformanceMetric, type InsertPerformanceMetric, type ExplanationLog, type InsertExplanationLog, type FeatureFlag, type InsertFeatureFlag, type InsertRoyaltySplit } from "@shared/schema";
+import { users, projects, analytics, notifications, releases, tracks, trackAnalysis, collaborators, earnings, hyperFollowPages, studioProjects, studioTracks, audioClips, midiClips, virtualInstruments, audioEffects, mixBusses, automationData, markers, lyrics, generatedMelodies, adCampaigns, adInsights, adCreatives, adAIRuns, adCampaignVariants, adPlatformAccounts, adDeliveryLogs, adKillRules, adRuleExecutions, adCompetitorIntelligence, adAudienceSegments, adCreativePredictions, adConversions, socialAccounts, socialCampaigns, posts, socialMetrics, payouts, listings, likes, orders, payoutEvents, passwordResetTokens, sessions, pluginCatalog, autosaves, exportJobs, distributionPackages, distributionTracks, studioConversions, studioCollabSessions, studioCollabSnapshots, projectCollaborators, projectRoyaltySplits, revenueEvents, royaltyLedger, royaltyPayments, collaboratorTaxProfiles, revenueImportHistory, forecastSnapshots, trendEvents, modelVersions, optimizationTasks, payoutSettings, paymentMethods, uploadSessions, isrcRegistry, upcRegistry, jwtTokens, refreshTokens, tokenRevocations, permissions, webhookEvents, webhookAttempts, webhookDeadLetterQueue, logEvents, royaltySplits, distroReleases, distroTracks, distroProviders, distroDispatch, socialInfluencerScores, socialViralTracking, socialNetworkAnalysis, type User, type InsertUser, type Project, type InsertProject, type Analytics, type InsertAnalytics, type Notification, type InsertNotification, type Release, type InsertRelease, type Track, type InsertTrack, type TrackAnalysis, type InsertTrackAnalysis, type StudioProject, type InsertStudioProject, type StudioTrack, type InsertStudioTrack, type AudioClip, type InsertAudioClip, type MidiClip, type InsertMidiClip, type VirtualInstrument, type InsertVirtualInstrument, type AudioEffect, type InsertAudioEffect, type MixBus, type InsertMixBus, type AutomationData, type InsertAutomationData, type Marker, type InsertMarker, type Lyrics, type InsertLyrics, type GeneratedMelody, type InsertGeneratedMelody, type SocialInfluencerScore, type InsertSocialInfluencerScore, type SocialViralTracking, type InsertSocialViralTracking, type SocialNetworkAnalysis, type InsertSocialNetworkAnalysis, type AdCampaign, type InsertAdCampaign, type AdInsights, type InsertAdInsights, type AdCreative, type InsertAdCreative, type AdCompetitorIntelligence, type InsertAdCompetitorIntelligence, type AdAudienceSegment, type InsertAdAudienceSegment, type AdCreativePrediction, type InsertAdCreativePrediction, type AdConversion, type InsertAdConversion, type AdAIRun, type InsertAdAIRun, type AdCampaignVariant, type DistroRelease, type InsertDistroRelease, type DistroTrack, type InsertDistroTrack, type InsertAdCampaignVariant, type AdPlatformAccount, type InsertAdPlatformAccount, type AdDeliveryLog, type InsertAdDeliveryLog, type AdKillRule, type InsertAdKillRule, type AdRuleExecution, type InsertAdRuleExecution, type Payout, type InsertPayout, type Listing, type Order, type Autosave, type InsertAutosave, type DistributionPackage, type InsertDistributionPackage, type DistributionTrack, type InsertDistributionTrack, type StudioCollabSession, type InsertStudioCollabSession, type StudioCollabSnapshot, type InsertStudioCollabSnapshot, type ProjectCollaborator, type InsertProjectCollaborator, type ProjectRoyaltySplit, type InsertProjectRoyaltySplit, type RevenueEvent, type InsertRevenueEvent, type RoyaltyLedger, type InsertRoyaltyLedger, type RoyaltyPayment, type InsertRoyaltyPayment, type CollaboratorTaxProfile, type InsertCollaboratorTaxProfile, type RevenueImportHistory, type InsertRevenueImportHistory, type ForecastSnapshot, type InsertForecastSnapshot, type TrendEvent, type InsertTrendEvent, type ModelVersion, type InsertModelVersion, type OptimizationTask, type InsertOptimizationTask, type PayoutSettings, type InsertPayoutSettings, type PaymentMethod, type InsertPaymentMethod, type UploadSession, type InsertUploadSession, type ISRCRegistry, type InsertISRCRegistry, type UPCRegistry, type InsertUPCRegistry, type JWTToken, type InsertJWTToken, type RefreshToken, type InsertRefreshToken, type TokenRevocation, type InsertTokenRevocation, type Permission, type InsertPermission, type WebhookAttempt, type InsertWebhookAttempt, type WebhookDeadLetterQueue, type InsertWebhookDeadLetterQueue, type LogEvent, type InsertLogEvent, type RoyaltySplit, aiModels, aiModelVersions, trainingDatasets, inferenceRuns, performanceMetrics, explanationLogs, featureFlags, aiCanaryDeployments, aiRetrainingSchedules, aiRetrainingRuns, aiDeploymentHistory, type AIModel, type InsertAIModel, type AIModelVersion, type InsertAIModelVersion, type TrainingDataset, type InsertTrainingDataset, type InferenceRun, type InsertInferenceRun, type PerformanceMetric, type InsertPerformanceMetric, type ExplanationLog, type InsertExplanationLog, type FeatureFlag, type InsertFeatureFlag, type AICanaryDeployment, type InsertAICanaryDeployment, type AIRetrainingSchedule, type InsertAIRetrainingSchedule, type AIRetrainingRun, type InsertAIRetrainingRun, type AIDeploymentHistory, type InsertAIDeploymentHistory, type InsertRoyaltySplit } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, sql, and, gte, lte, or, like } from "drizzle-orm";
 import { databaseResilience } from "./reliability/database-resilience";
@@ -284,6 +284,22 @@ export interface IStorage {
   getSocialPosts(userId: string): Promise<any[]>;
   getSocialInsights(userId: string): Promise<any>;
   getSocialActivity(userId: string): Promise<any[]>;
+
+  // Social Amplification Professional Features operations
+  createInfluencerScore(score: any): Promise<any>;
+  getInfluencerScore(userId: string, platform: string): Promise<any | undefined>;
+  updateInfluencerScore(id: string, updates: any): Promise<any>;
+  getUserInfluencerScores(userId: string): Promise<any[]>;
+  
+  createViralTracking(tracking: any): Promise<any>;
+  getViralTracking(postId: string): Promise<any | undefined>;
+  updateViralTracking(id: string, updates: any): Promise<any>;
+  getPostViralMetrics(postId: string): Promise<any | undefined>;
+  
+  createNetworkAnalysis(analysis: any): Promise<any>;
+  getNetworkAnalysis(userId: string, platform: string): Promise<any | undefined>;
+  updateNetworkAnalysis(id: string, updates: any): Promise<any>;
+  getUserNetworkAnalyses(userId: string): Promise<any[]>;
 
   // Marketplace operations - userId is varchar (string), listingId is uuid (string)
   getMarketplaceBeats(filters: any, sortBy?: string): Promise<any[]>;
@@ -622,6 +638,12 @@ export interface IStorage {
   createFeatureFlag(flag: InsertFeatureFlag): Promise<FeatureFlag>;
   getFeatureFlag(flagName: string): Promise<FeatureFlag | undefined>;
   updateFeatureFlag(id: string, updates: Partial<FeatureFlag>): Promise<FeatureFlag>;
+  
+  // AI Deployment & Lifecycle operations
+  createCanaryDeployment(deployment: InsertAICanaryDeployment): Promise<AICanaryDeployment>;
+  createRetrainingSchedule(schedule: InsertAIRetrainingSchedule): Promise<AIRetrainingSchedule>;
+  createRetrainingRun(run: InsertAIRetrainingRun): Promise<AIRetrainingRun>;
+  createDeploymentHistory(history: InsertAIDeploymentHistory): Promise<AIDeploymentHistory>;
 }
 
 // Simple in-memory cache with TTL for frequently-accessed data
@@ -3334,6 +3356,162 @@ export class DatabaseStorage implements IStorage {
         }));
       },
       'getSocialActivity'
+    );
+  }
+
+  // Social Amplification Professional Features operations
+  async createInfluencerScore(score: any): Promise<any> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [created] = await db
+          .insert(socialInfluencerScores)
+          .values(score)
+          .returning();
+        return created;
+      },
+      'createInfluencerScore'
+    );
+  }
+
+  async getInfluencerScore(userId: string, platform: string): Promise<any | undefined> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [score] = await db
+          .select()
+          .from(socialInfluencerScores)
+          .where(and(eq(socialInfluencerScores.userId, userId), eq(socialInfluencerScores.platform, platform)))
+          .orderBy(desc(socialInfluencerScores.lastAnalyzedAt))
+          .limit(1);
+        return score;
+      },
+      'getInfluencerScore'
+    );
+  }
+
+  async updateInfluencerScore(id: string, updates: any): Promise<any> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [updated] = await db
+          .update(socialInfluencerScores)
+          .set({ ...updates, updatedAt: new Date() })
+          .where(eq(socialInfluencerScores.id, id))
+          .returning();
+        return updated;
+      },
+      'updateInfluencerScore'
+    );
+  }
+
+  async getUserInfluencerScores(userId: string): Promise<any[]> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        return await db
+          .select()
+          .from(socialInfluencerScores)
+          .where(eq(socialInfluencerScores.userId, userId))
+          .orderBy(desc(socialInfluencerScores.lastAnalyzedAt));
+      },
+      'getUserInfluencerScores'
+    );
+  }
+
+  async createViralTracking(tracking: any): Promise<any> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [created] = await db
+          .insert(socialViralTracking)
+          .values(tracking)
+          .returning();
+        return created;
+      },
+      'createViralTracking'
+    );
+  }
+
+  async getViralTracking(postId: string): Promise<any | undefined> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [tracking] = await db
+          .select()
+          .from(socialViralTracking)
+          .where(eq(socialViralTracking.postId, postId))
+          .limit(1);
+        return tracking;
+      },
+      'getViralTracking'
+    );
+  }
+
+  async updateViralTracking(id: string, updates: any): Promise<any> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [updated] = await db
+          .update(socialViralTracking)
+          .set({ ...updates, updatedAt: new Date() })
+          .where(eq(socialViralTracking.id, id))
+          .returning();
+        return updated;
+      },
+      'updateViralTracking'
+    );
+  }
+
+  async getPostViralMetrics(postId: string): Promise<any | undefined> {
+    return this.getViralTracking(postId);
+  }
+
+  async createNetworkAnalysis(analysis: any): Promise<any> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [created] = await db
+          .insert(socialNetworkAnalysis)
+          .values(analysis)
+          .returning();
+        return created;
+      },
+      'createNetworkAnalysis'
+    );
+  }
+
+  async getNetworkAnalysis(userId: string, platform: string): Promise<any | undefined> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [analysis] = await db
+          .select()
+          .from(socialNetworkAnalysis)
+          .where(and(eq(socialNetworkAnalysis.userId, userId), eq(socialNetworkAnalysis.platform, platform)))
+          .orderBy(desc(socialNetworkAnalysis.lastAnalyzedAt))
+          .limit(1);
+        return analysis;
+      },
+      'getNetworkAnalysis'
+    );
+  }
+
+  async updateNetworkAnalysis(id: string, updates: any): Promise<any> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const [updated] = await db
+          .update(socialNetworkAnalysis)
+          .set({ ...updates, updatedAt: new Date() })
+          .where(eq(socialNetworkAnalysis.id, id))
+          .returning();
+        return updated;
+      },
+      'updateNetworkAnalysis'
+    );
+  }
+
+  async getUserNetworkAnalyses(userId: string): Promise<any[]> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        return await db
+          .select()
+          .from(socialNetworkAnalysis)
+          .where(eq(socialNetworkAnalysis.userId, userId))
+          .orderBy(desc(socialNetworkAnalysis.lastAnalyzedAt));
+      },
+      'getUserNetworkAnalyses'
     );
   }
 
@@ -8532,6 +8710,46 @@ export class DatabaseStorage implements IStorage {
         return updated;
       },
       'updateFeatureFlag'
+    );
+  }
+
+  async createCanaryDeployment(deployment: InsertAICanaryDeployment): Promise<AICanaryDeployment> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(aiCanaryDeployments).values(deployment).returning();
+        return created;
+      },
+      'createCanaryDeployment'
+    );
+  }
+
+  async createRetrainingSchedule(schedule: InsertAIRetrainingSchedule): Promise<AIRetrainingSchedule> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(aiRetrainingSchedules).values(schedule).returning();
+        return created;
+      },
+      'createRetrainingSchedule'
+    );
+  }
+
+  async createRetrainingRun(run: InsertAIRetrainingRun): Promise<AIRetrainingRun> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(aiRetrainingRuns).values(run).returning();
+        return created;
+      },
+      'createRetrainingRun'
+    );
+  }
+
+  async createDeploymentHistory(history: InsertAIDeploymentHistory): Promise<AIDeploymentHistory> {
+    return databaseResilience.executeWithRetry(
+      async () => {
+        const [created] = await db.insert(aiDeploymentHistory).values(history).returning();
+        return created;
+      },
+      'createDeploymentHistory'
     );
   }
 }

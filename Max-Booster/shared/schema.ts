@@ -835,6 +835,136 @@ export const adInsights = pgTable("ad_insights", {
   createdAtIdx: index("ad_insights_created_at_idx").on(table.createdAt),
 }));
 
+// Ad Competitor Intelligence table - Track competitor performance and strategies
+export const adCompetitorIntelligence = pgTable("ad_competitor_intelligence", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id, { onDelete: "cascade" }),
+  competitorName: varchar("competitor_name", { length: 255 }).notNull(),
+  platform: varchar("platform", { length: 50 }).notNull(),
+  postingFrequency: decimal("posting_frequency", { precision: 5, scale: 2 }),
+  avgEngagementRate: decimal("avg_engagement_rate", { precision: 5, scale: 4 }),
+  avgLikes: integer("avg_likes"),
+  avgComments: integer("avg_comments"),
+  avgShares: integer("avg_shares"),
+  contentTypes: jsonb("content_types").$type<{ type: string; percentage: number }[]>(),
+  topHashtags: text("top_hashtags").array(),
+  postingTimes: jsonb("posting_times").$type<{ day: string; hour: number; count: number }[]>(),
+  strengths: text("strengths").array(),
+  weaknesses: text("weaknesses").array(),
+  contentGaps: text("content_gaps").array(),
+  opportunities: text("opportunities").array(),
+  analysisData: jsonb("analysis_data"),
+  analyzedAt: timestamp("analyzed_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("ad_competitor_intelligence_user_id_idx").on(table.userId),
+  competitorNameIdx: index("ad_competitor_intelligence_competitor_name_idx").on(table.competitorName),
+  platformIdx: index("ad_competitor_intelligence_platform_idx").on(table.platform),
+  analyzedAtIdx: index("ad_competitor_intelligence_analyzed_at_idx").on(table.analyzedAt),
+}));
+
+// Ad Audience Segments table - Deterministic audience clustering for targeting
+export const adAudienceSegments = pgTable("ad_audience_segments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: integer("campaign_id").notNull().references(() => adCampaigns.id, { onDelete: "cascade" }),
+  segmentName: varchar("segment_name", { length: 255 }).notNull(),
+  segmentIndex: integer("segment_index").notNull(),
+  size: integer("size").notNull(),
+  demographics: jsonb("demographics").$type<{
+    ageRange: string;
+    gender: string;
+    location: string[];
+    income: string;
+  }>(),
+  interests: text("interests").array(),
+  behaviors: jsonb("behaviors").$type<{
+    engagementLevel: string;
+    purchaseIntent: string;
+    contentPreferences: string[];
+  }>(),
+  engagementHistory: jsonb("engagement_history").$type<{
+    avgSessionDuration: number;
+    pageViews: number;
+    interactions: number;
+  }>(),
+  characteristics: text("characteristics").array(),
+  targetingRecommendations: jsonb("targeting_recommendations").$type<{
+    platforms: string[];
+    contentTypes: string[];
+    messagingTone: string;
+    callToAction: string;
+  }>(),
+  predictedValue: decimal("predicted_value", { precision: 10, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  campaignIdIdx: index("ad_audience_segments_campaign_id_idx").on(table.campaignId),
+  segmentIndexIdx: index("ad_audience_segments_segment_index_idx").on(table.segmentIndex),
+  createdAtIdx: index("ad_audience_segments_created_at_idx").on(table.createdAt),
+}));
+
+// Ad Creative Predictions table - Store performance predictions for validation
+export const adCreativePredictions = pgTable("ad_creative_predictions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  creativeId: varchar("creative_id", { length: 255 }).notNull().references(() => adCreatives.id, { onDelete: "cascade" }),
+  targetAudienceId: varchar("target_audience_id", { length: 255 }).references(() => adAudienceSegments.id),
+  predictedCTR: decimal("predicted_ctr", { precision: 5, scale: 4 }).notNull(),
+  predictedEngagementRate: decimal("predicted_engagement_rate", { precision: 5, scale: 4 }).notNull(),
+  predictedConversionRate: decimal("predicted_conversion_rate", { precision: 5, scale: 4 }).notNull(),
+  predictedViralityScore: integer("predicted_virality_score").notNull(),
+  ctrConfidenceInterval: jsonb("ctr_confidence_interval").$type<{ lower: number; upper: number }>(),
+  engagementConfidenceInterval: jsonb("engagement_confidence_interval").$type<{ lower: number; upper: number }>(),
+  conversionConfidenceInterval: jsonb("conversion_confidence_interval").$type<{ lower: number; upper: number }>(),
+  features: jsonb("features").$type<{
+    visualElements: string[];
+    copyLength: number;
+    ctaPlacement: string;
+    emotionalTone: string;
+    colorScheme: string;
+  }>(),
+  comparisonData: jsonb("comparison_data").$type<{
+    historicalAvg: number;
+    percentile: number;
+    similarCreatives: number;
+  }>(),
+  actualCTR: decimal("actual_ctr", { precision: 5, scale: 4 }),
+  actualEngagementRate: decimal("actual_engagement_rate", { precision: 5, scale: 4 }),
+  actualConversionRate: decimal("actual_conversion_rate", { precision: 5, scale: 4 }),
+  validatedAt: timestamp("validated_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  creativeIdIdx: index("ad_creative_predictions_creative_id_idx").on(table.creativeId),
+  targetAudienceIdIdx: index("ad_creative_predictions_target_audience_id_idx").on(table.targetAudienceId),
+  createdAtIdx: index("ad_creative_predictions_created_at_idx").on(table.createdAt),
+}));
+
+// Ad Conversions table - Track conversions with attribution
+export const adConversions = pgTable("ad_conversions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: integer("campaign_id").notNull().references(() => adCampaigns.id, { onDelete: "cascade" }),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id, { onDelete: "set null" }),
+  creativeId: varchar("creative_id", { length: 255 }).references(() => adCreatives.id, { onDelete: "set null" }),
+  audienceSegmentId: varchar("audience_segment_id", { length: 255 }).references(() => adAudienceSegments.id, { onDelete: "set null" }),
+  conversionType: varchar("conversion_type", { length: 50 }).notNull(),
+  conversionValue: decimal("conversion_value", { precision: 10, scale: 2 }).notNull(),
+  attributionModel: varchar("attribution_model", { length: 50 }).notNull().default("last_click"),
+  touchpoints: jsonb("touchpoints").$type<Array<{
+    timestamp: string;
+    platform: string;
+    creativeId: string;
+    interaction: string;
+  }>>(),
+  costPerConversion: decimal("cost_per_conversion", { precision: 10, scale: 2 }),
+  roas: decimal("roas", { precision: 10, scale: 2 }),
+  metadata: jsonb("metadata"),
+  convertedAt: timestamp("converted_at").defaultNow().notNull(),
+}, (table) => ({
+  campaignIdIdx: index("ad_conversions_campaign_id_idx").on(table.campaignId),
+  userIdIdx: index("ad_conversions_user_id_idx").on(table.userId),
+  creativeIdIdx: index("ad_conversions_creative_id_idx").on(table.creativeId),
+  audienceSegmentIdIdx: index("ad_conversions_audience_segment_id_idx").on(table.audienceSegmentId),
+  conversionTypeIdx: index("ad_conversions_conversion_type_idx").on(table.conversionType),
+  convertedAtIdx: index("ad_conversions_converted_at_idx").on(table.convertedAt),
+}));
+
 // Distribution & Marketplace Tables
 
 // Distribution Packages for DSP metadata export
@@ -1437,6 +1567,135 @@ export const securityThreats = pgTable("security_threats", {
   detectedAtIdx: index("security_threats_detected_at_idx").on(table.detectedAt),
 }));
 
+// Security Behavior Profiles - User behavioral analytics
+export const securityBehaviorProfiles = pgTable("security_behavior_profiles", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  sessionId: varchar("session_id", { length: 255 }),
+  loginTimes: jsonb("login_times"), // Array of typical login hours
+  locations: jsonb("locations"), // Array of typical geolocations {country, city, lat, lng}
+  devices: jsonb("devices"), // Array of known devices {userAgent, fingerprint}
+  actionSequences: jsonb("action_sequences"), // Common action patterns
+  typingPatterns: jsonb("typing_patterns"), // Keystroke dynamics {avgSpeed, rhythm}
+  riskScore: integer("risk_score").default(0), // 0-100
+  baselineEstablished: boolean("baseline_established").default(false),
+  profileVersion: integer("profile_version").default(1),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("security_behavior_profiles_user_id_idx").on(table.userId),
+  sessionIdIdx: index("security_behavior_profiles_session_id_idx").on(table.sessionId),
+  riskScoreIdx: index("security_behavior_profiles_risk_score_idx").on(table.riskScore),
+  lastUpdatedIdx: index("security_behavior_profiles_last_updated_idx").on(table.lastUpdated),
+}));
+
+// Security Anomalies - ML-detected anomalies
+export const securityAnomalies = pgTable("security_anomalies", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  sessionId: varchar("session_id", { length: 255 }),
+  actionType: varchar("action_type", { length: 100 }).notNull(),
+  features: jsonb("features").notNull(), // {timeOfDay, location, device, frequency, sequence}
+  anomalyScore: real("anomaly_score").notNull(), // 0-1
+  anomalyType: varchar("anomaly_type", { length: 100 }), // time_based, location_based, pattern_based
+  explanation: text("explanation"), // Human-readable explanation
+  featureImportance: jsonb("feature_importance"), // {feature: importance}
+  autoBlocked: boolean("auto_blocked").default(false),
+  falsePositive: boolean("false_positive"),
+  reviewedBy: varchar("reviewed_by", { length: 255 }),
+  modelVersion: varchar("model_version", { length: 50 }),
+  detectedAt: timestamp("detected_at").defaultNow().notNull(),
+  reviewedAt: timestamp("reviewed_at"),
+  metadata: jsonb("metadata"),
+}, (table) => ({
+  userIdIdx: index("security_anomalies_user_id_idx").on(table.userId),
+  sessionIdIdx: index("security_anomalies_session_id_idx").on(table.sessionId),
+  anomalyScoreIdx: index("security_anomalies_anomaly_score_idx").on(table.anomalyScore),
+  autoBlockedIdx: index("security_anomalies_auto_blocked_idx").on(table.autoBlocked),
+  detectedAtIdx: index("security_anomalies_detected_at_idx").on(table.detectedAt),
+}));
+
+// Security Zero-Day Alerts - Zero-day threat predictions
+export const securityZeroDayAlerts = pgTable("security_zero_day_alerts", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  payload: jsonb("payload").notNull(),
+  source: varchar("source", { length: 255 }).notNull(),
+  threatLevel: varchar("threat_level", { length: 20 }).notNull(), // none, low, medium, high, critical
+  threatSignatures: jsonb("threat_signatures"), // Matched signatures
+  heuristicAnalysis: jsonb("heuristic_analysis"), // Analysis results
+  obfuscationDetected: boolean("obfuscation_detected").default(false),
+  suspiciousHeaders: jsonb("suspicious_headers"),
+  responseRecommendation: varchar("response_recommendation", { length: 255 }),
+  autoResponse: varchar("auto_response", { length: 255 }), // block, monitor, alert
+  cveReferences: jsonb("cve_references"), // Related CVEs
+  patternMatchScore: real("pattern_match_score"),
+  modelVersion: varchar("model_version", { length: 50 }),
+  detectedAt: timestamp("detected_at").defaultNow().notNull(),
+  respondedAt: timestamp("responded_at"),
+  metadata: jsonb("metadata"),
+}, (table) => ({
+  threatLevelIdx: index("security_zero_day_alerts_threat_level_idx").on(table.threatLevel),
+  sourceIdx: index("security_zero_day_alerts_source_idx").on(table.source),
+  detectedAtIdx: index("security_zero_day_alerts_detected_at_idx").on(table.detectedAt),
+  autoResponseIdx: index("security_zero_day_alerts_auto_response_idx").on(table.autoResponse),
+}));
+
+// Security Penetration Test Results - Automated pen testing
+export const securityPenTestResults = pgTable("security_pen_test_results", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  testId: varchar("test_id", { length: 255 }).notNull().unique(),
+  targetEndpoint: varchar("target_endpoint", { length: 500 }),
+  testType: varchar("test_type", { length: 100 }).notNull(), // sql_injection, xss, csrf, auth_bypass, etc
+  testPayload: jsonb("test_payload"),
+  vulnerabilityDetected: boolean("vulnerability_detected").default(false),
+  vulnerabilityScore: real("vulnerability_score"), // CVSS-like 0-10
+  vulnerabilitySeverity: varchar("vulnerability_severity", { length: 20 }), // low, medium, high, critical
+  exploitSuccess: boolean("exploit_success").default(false),
+  remediationSuggestion: text("remediation_suggestion"),
+  affectedComponents: jsonb("affected_components"),
+  testDuration: integer("test_duration"), // milliseconds
+  requestsSent: integer("requests_sent"),
+  responseAnalysis: jsonb("response_analysis"),
+  frequency: varchar("frequency", { length: 50 }), // daily, weekly, on-demand
+  scheduledBy: varchar("scheduled_by", { length: 255 }),
+  executedAt: timestamp("executed_at").defaultNow().notNull(),
+  metadata: jsonb("metadata"),
+}, (table) => ({
+  testIdIdx: index("security_pen_test_results_test_id_idx").on(table.testId),
+  testTypeIdx: index("security_pen_test_results_test_type_idx").on(table.testType),
+  vulnerabilityDetectedIdx: index("security_pen_test_results_vulnerability_detected_idx").on(table.vulnerabilityDetected),
+  vulnerabilitySeverityIdx: index("security_pen_test_results_vulnerability_severity_idx").on(table.vulnerabilitySeverity),
+  executedAtIdx: index("security_pen_test_results_executed_at_idx").on(table.executedAt),
+}));
+
+// Security Compliance Reports - SOC2, GDPR, PCI-DSS compliance
+export const securityComplianceReports = pgTable("security_compliance_reports", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  reportId: varchar("report_id", { length: 255 }).notNull().unique(),
+  standard: varchar("standard", { length: 100 }).notNull(), // SOC2, GDPR, PCI-DSS
+  dateRange: jsonb("date_range").notNull(), // {startDate, endDate}
+  auditLogs: jsonb("audit_logs"), // Summary of audit logs analyzed
+  securityControls: jsonb("security_controls"), // Controls evaluated
+  accessControls: jsonb("access_controls"), // Access control status
+  encryptionStatus: jsonb("encryption_status"), // Encryption assessment
+  gapAnalysis: jsonb("gap_analysis"), // Compliance gaps identified
+  complianceScore: real("compliance_score"), // 0-100
+  passedControls: integer("passed_controls"),
+  failedControls: integer("failed_controls"),
+  findings: jsonb("findings"), // Detailed findings
+  recommendations: jsonb("recommendations"), // Remediation recommendations
+  exportFormat: varchar("export_format", { length: 20 }), // pdf, json, csv
+  exportPath: varchar("export_path", { length: 500 }),
+  generatedBy: varchar("generated_by", { length: 255 }),
+  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+  metadata: jsonb("metadata"),
+}, (table) => ({
+  reportIdIdx: index("security_compliance_reports_report_id_idx").on(table.reportId),
+  standardIdx: index("security_compliance_reports_standard_idx").on(table.standard),
+  complianceScoreIdx: index("security_compliance_reports_compliance_score_idx").on(table.complianceScore),
+  generatedAtIdx: index("security_compliance_reports_generated_at_idx").on(table.generatedAt),
+}));
+
 // AI Music Suite Additions
 
 // Audio Assets
@@ -1765,6 +2024,21 @@ export const hashtagResearch = pgTable("hashtag_research", {
   hashtagIdx: index("hashtag_research_hashtag_idx").on(table.hashtag),
   platformIdx: index("hashtag_research_platform_idx").on(table.platform),
   trendingIdx: index("hashtag_research_trending_idx").on(table.trending),
+}));
+
+// User Brand Voices - AI-learned brand voice profiles
+export const userBrandVoices = pgTable("user_brand_voices", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+  voiceProfile: jsonb("voice_profile").notNull(), // {tone, emojiUsage, hashtagPatterns, sentenceLength, vocabulary}
+  confidenceScore: real("confidence_score").default(0).notNull(), // 0-100, improves with more posts
+  postsAnalyzed: integer("posts_analyzed").default(0).notNull(),
+  lastAnalyzedAt: timestamp("last_analyzed_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("user_brand_voices_user_id_idx").on(table.userId),
+  confidenceScoreIdx: index("user_brand_voices_confidence_score_idx").on(table.confidenceScore),
 }));
 
 // Story Schedules - Scheduling for Stories/Reels/Short-form content
@@ -2359,6 +2633,92 @@ export const personalNetworkImpacts = pgTable("personal_network_impacts", {
 }));
 
 // ============================================================================
+// PROFESSIONAL SOCIAL AMPLIFICATION FEATURES
+// ============================================================================
+
+// Social Influencer Scores - Professional influencer analysis
+export const socialInfluencerScores = pgTable("social_influencer_scores", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  platform: varchar("platform", { length: 50 }).notNull(),
+  influencerScore: real("influencer_score").notNull(), // 0-100
+  followerCount: integer("follower_count").default(0),
+  engagementRate: real("engagement_rate").default(0), // 0-1
+  contentQualityScore: real("content_quality_score").default(0), // 0-100
+  nicheAuthority: real("niche_authority").default(0), // 0-100
+  audienceAuthenticity: real("audience_authenticity").default(0), // 0-100 (fake follower detection)
+  fakeFollowerPercentage: real("fake_follower_percentage").default(0), // 0-1
+  anomalyPatterns: jsonb("anomaly_patterns"), // Detected suspicious patterns
+  categoryBreakdown: jsonb("category_breakdown"), // Score breakdown by category
+  collaborationPotential: varchar("collaboration_potential", { length: 50 }), // low, medium, high, very_high
+  suggestedCollaborationTypes: jsonb("suggested_collaboration_types"), // Array of collaboration suggestions
+  lastAnalyzedAt: timestamp("last_analyzed_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("social_influencer_scores_user_id_idx").on(table.userId),
+  platformIdx: index("social_influencer_scores_platform_idx").on(table.platform),
+  influencerScoreIdx: index("social_influencer_scores_influencer_score_idx").on(table.influencerScore),
+  lastAnalyzedIdx: index("social_influencer_scores_last_analyzed_idx").on(table.lastAnalyzedAt),
+}));
+
+// Social Viral Tracking - Cascade and viral coefficient analysis
+export const socialViralTracking = pgTable("social_viral_tracking", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  postId: varchar("post_id", { length: 255 }).notNull(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  platform: varchar("platform", { length: 50 }).notNull(),
+  campaignId: integer("campaign_id").references(() => adCampaigns.id, { onDelete: 'cascade' }),
+  viralCoefficient: real("viral_coefficient").notNull(), // shares per impression × conversion rate
+  cascadeDepth: integer("cascade_depth").default(0), // How many levels of sharing
+  totalShares: integer("total_shares").default(0),
+  totalImpressions: integer("total_impressions").default(0),
+  conversionRate: real("conversion_rate").default(0), // 0-1
+  superSpreaders: jsonb("super_spreaders"), // Array of users who amplified significantly
+  cascadeLevels: jsonb("cascade_levels"), // Distribution across cascade levels
+  viralityTrend: varchar("virality_trend", { length: 50 }), // rising, plateauing, declining
+  peakViralityAt: timestamp("peak_virality_at"),
+  currentPhase: varchar("current_phase", { length: 50 }), // initial, growth, viral, plateau, decline
+  projectedFinalReach: integer("projected_final_reach"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  postIdIdx: index("social_viral_tracking_post_id_idx").on(table.postId),
+  userIdIdx: index("social_viral_tracking_user_id_idx").on(table.userId),
+  platformIdx: index("social_viral_tracking_platform_idx").on(table.platform),
+  campaignIdIdx: index("social_viral_tracking_campaign_id_idx").on(table.campaignId),
+  viralCoefficientIdx: index("social_viral_tracking_viral_coefficient_idx").on(table.viralCoefficient),
+}));
+
+// Social Network Analysis - Network effect modeling and optimization
+export const socialNetworkAnalysis = pgTable("social_network_analysis", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  platform: varchar("platform", { length: 50 }).notNull(),
+  connectionCount: integer("connection_count").default(0),
+  networkValue: decimal("network_value", { precision: 15, scale: 2 }).default("0"), // Metcalfe's Law value
+  networkValueModel: varchar("network_value_model", { length: 50 }), // metcalfe, reeds_law, sarnoff
+  keyNodes: jsonb("key_nodes"), // High betweenness centrality nodes
+  clusteringCoefficient: real("clustering_coefficient").default(0), // Network density
+  betweennessCentrality: real("betweenness_centrality").default(0), // User's importance in network
+  eigenvectorCentrality: real("eigenvector_centrality").default(0), // Connection quality
+  networkGrowthRate: real("network_growth_rate").default(0), // Connections per month
+  optimalConnectionStrategies: jsonb("optimal_connection_strategies"), // Recommendations
+  reachMultiplier: real("reach_multiplier").default(1.0), // Network amplification factor
+  communityBridges: jsonb("community_bridges"), // Users connecting different communities
+  networkHealthScore: real("network_health_score").default(0), // 0-100
+  predictedGrowth: jsonb("predicted_growth"), // 30/60/90 day projections
+  lastAnalyzedAt: timestamp("last_analyzed_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("social_network_analysis_user_id_idx").on(table.userId),
+  platformIdx: index("social_network_analysis_platform_idx").on(table.platform),
+  networkValueIdx: index("social_network_analysis_network_value_idx").on(table.networkValue),
+  lastAnalyzedIdx: index("social_network_analysis_last_analyzed_idx").on(table.lastAnalyzedAt),
+}));
+
+// ============================================================================
 // AI GOVERNANCE & MODEL MANAGEMENT
 // ============================================================================
 
@@ -2506,6 +2866,272 @@ export const featureFlags = pgTable("feature_flags", {
   flagNameIdx: index("feature_flags_flag_name_idx").on(table.flagName),
   isEnabledIdx: index("feature_flags_is_enabled_idx").on(table.isEnabled),
   modelIdIdx: index("feature_flags_model_id_idx").on(table.modelId),
+}));
+
+// AI Metric Predictions - Time series forecasting for key metrics
+export const aiMetricPredictions = pgTable("ai_metric_predictions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  modelId: uuid("model_id").notNull().references(() => aiModels.id),
+  versionId: uuid("version_id").notNull().references(() => aiModelVersions.id),
+  metricName: varchar("metric_name", { length: 100 }).notNull(), // user_growth, revenue, engagement, churn_rate, conversion_rate
+  metricType: varchar("metric_type", { length: 50 }).notNull(), // count, currency, percentage, rate
+  horizon: varchar("horizon", { length: 20 }).notNull(), // 7d, 30d, 90d, 365d
+  forecastDate: timestamp("forecast_date").notNull(), // Date of the forecast
+  predictedValue: decimal("predicted_value", { precision: 15, scale: 2 }).notNull(),
+  confidenceLevel: real("confidence_level").notNull(), // 0.95, 0.99
+  lowerBound: decimal("lower_bound", { precision: 15, scale: 2 }).notNull(),
+  upperBound: decimal("upper_bound", { precision: 15, scale: 2 }).notNull(),
+  algorithm: varchar("algorithm", { length: 100 }).notNull(), // exponential_smoothing, linear_regression, seasonal_decomposition
+  seasonalityDetected: boolean("seasonality_detected").default(false),
+  trendDirection: varchar("trend_direction", { length: 20 }), // upward, downward, stable
+  metadata: jsonb("metadata"), // Additional algorithm-specific data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("ai_metric_predictions_user_id_idx").on(table.userId),
+  metricNameIdx: index("ai_metric_predictions_metric_name_idx").on(table.metricName),
+  forecastDateIdx: index("ai_metric_predictions_forecast_date_idx").on(table.forecastDate),
+  horizonIdx: index("ai_metric_predictions_horizon_idx").on(table.horizon),
+  modelIdIdx: index("ai_metric_predictions_model_id_idx").on(table.modelId),
+  userMetricHorizonIdx: index("ai_metric_predictions_user_metric_horizon_idx").on(table.userId, table.metricName, table.horizon),
+}));
+
+// AI Cohort Analysis - Cohort performance analysis
+export const aiCohortAnalysis = pgTable("ai_cohort_analysis", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  modelId: uuid("model_id").notNull().references(() => aiModels.id),
+  versionId: uuid("version_id").notNull().references(() => aiModelVersions.id),
+  cohortType: varchar("cohort_type", { length: 100 }).notNull(), // registration_date, subscription_plan, acquisition_channel, user_segment
+  cohortIdentifier: varchar("cohort_identifier", { length: 255 }).notNull(), // e.g., "2024-01", "premium_plan", "facebook_ads"
+  cohortStartDate: timestamp("cohort_start_date").notNull(),
+  cohortSize: integer("cohort_size").notNull(),
+  metricType: varchar("metric_type", { length: 100 }).notNull(), // retention_rate, ltv, engagement, churn, conversion
+  daysSinceCohortStart: integer("days_since_cohort_start").notNull(), // 1, 7, 30, 90, 365
+  metricValue: decimal("metric_value", { precision: 15, scale: 2 }).notNull(),
+  retentionRate: real("retention_rate"), // Percentage of cohort still active
+  averageLTV: decimal("average_ltv", { precision: 10, scale: 2 }),
+  averageEngagement: real("average_engagement"), // Engagement score
+  churnRate: real("churn_rate"), // Percentage churned
+  conversionRate: real("conversion_rate"), // Conversion percentage
+  comparisonToAverage: real("comparison_to_average"), // Performance vs all cohorts (percentage)
+  visualizationData: jsonb("visualization_data"), // Heatmap and chart data
+  metadata: jsonb("metadata"),
+  analyzedAt: timestamp("analyzed_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("ai_cohort_analysis_user_id_idx").on(table.userId),
+  cohortTypeIdx: index("ai_cohort_analysis_cohort_type_idx").on(table.cohortType),
+  cohortIdentifierIdx: index("ai_cohort_analysis_cohort_identifier_idx").on(table.cohortIdentifier),
+  metricTypeIdx: index("ai_cohort_analysis_metric_type_idx").on(table.metricType),
+  analyzedAtIdx: index("ai_cohort_analysis_analyzed_at_idx").on(table.analyzedAt),
+  cohortTypeIdentifierIdx: index("ai_cohort_analysis_type_identifier_idx").on(table.cohortType, table.cohortIdentifier),
+}));
+
+// AI Churn Predictions - User churn risk prediction
+export const aiChurnPredictions = pgTable("ai_churn_predictions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  modelId: uuid("model_id").notNull().references(() => aiModels.id),
+  versionId: uuid("version_id").notNull().references(() => aiModelVersions.id),
+  churnProbability: real("churn_probability").notNull(), // 0-1 (0-100%)
+  riskLevel: varchar("risk_level", { length: 20 }).notNull(), // low, medium, high, critical
+  timeWindow: integer("time_window").notNull(), // Days likely to churn within
+  topRiskFactors: jsonb("top_risk_factors").notNull(), // [{factor: string, importance: number, value: any}]
+  engagementScore: real("engagement_score"), // Current engagement level
+  engagementTrend: varchar("engagement_trend", { length: 20 }), // increasing, stable, declining
+  paymentFailures: integer("payment_failures").default(0),
+  supportTickets: integer("support_tickets").default(0),
+  lastActivityDays: integer("last_activity_days"), // Days since last activity
+  featureUsageScore: real("feature_usage_score"), // 0-1 feature adoption
+  retentionRecommendations: jsonb("retention_recommendations").notNull(), // [{title, description, priority, expectedImpact}]
+  confidenceScore: real("confidence_score").notNull(), // Model confidence 0-1
+  predictedAt: timestamp("predicted_at").defaultNow().notNull(),
+  validUntil: timestamp("valid_until"), // Prediction expiry
+}, (table) => ({
+  userIdIdx: index("ai_churn_predictions_user_id_idx").on(table.userId),
+  riskLevelIdx: index("ai_churn_predictions_risk_level_idx").on(table.riskLevel),
+  churnProbabilityIdx: index("ai_churn_predictions_churn_probability_idx").on(table.churnProbability),
+  predictedAtIdx: index("ai_churn_predictions_predicted_at_idx").on(table.predictedAt),
+  validUntilIdx: index("ai_churn_predictions_valid_until_idx").on(table.validUntil),
+}));
+
+// AI Revenue Forecasts - Revenue prediction and scenario analysis
+export const aiRevenueForecasts = pgTable("ai_revenue_forecasts", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  modelId: uuid("model_id").notNull().references(() => aiModels.id),
+  versionId: uuid("version_id").notNull().references(() => aiModelVersions.id),
+  forecastPeriod: varchar("forecast_period", { length: 20 }).notNull(), // daily, weekly, monthly, quarterly, yearly
+  forecastDate: timestamp("forecast_date").notNull(), // Period being forecasted
+  revenueType: varchar("revenue_type", { length: 50 }).notNull(), // mrr, arr, total_revenue
+  baseCaseForecast: decimal("base_case_forecast", { precision: 15, scale: 2 }).notNull(),
+  bestCaseForecast: decimal("best_case_forecast", { precision: 15, scale: 2 }).notNull(),
+  worstCaseForecast: decimal("worst_case_forecast", { precision: 15, scale: 2 }).notNull(),
+  confidenceLevel: real("confidence_level").notNull(),
+  breakdownByPlan: jsonb("breakdown_by_plan"), // {plan_name: amount}
+  breakdownByChannel: jsonb("breakdown_by_channel"), // {channel_name: amount}
+  breakdownByRegion: jsonb("breakdown_by_region"), // {region: amount}
+  breakdownBySegment: jsonb("breakdown_by_segment"), // {segment: amount}
+  seasonalityAdjustment: real("seasonality_adjustment"), // Seasonal factor applied
+  monthOverMonthGrowth: real("month_over_month_growth"), // MoM growth percentage
+  yearOverYearGrowth: real("year_over_year_growth"), // YoY growth percentage
+  growthTrend: varchar("growth_trend", { length: 20 }), // accelerating, steady, decelerating
+  metadata: jsonb("metadata"),
+  forecastedAt: timestamp("forecasted_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("ai_revenue_forecasts_user_id_idx").on(table.userId),
+  forecastPeriodIdx: index("ai_revenue_forecasts_forecast_period_idx").on(table.forecastPeriod),
+  forecastDateIdx: index("ai_revenue_forecasts_forecast_date_idx").on(table.forecastDate),
+  revenueTypeIdx: index("ai_revenue_forecasts_revenue_type_idx").on(table.revenueType),
+  forecastedAtIdx: index("ai_revenue_forecasts_forecasted_at_idx").on(table.forecastedAt),
+}));
+
+// AI Anomaly Detections - Metric anomaly detection with root cause analysis
+export const aiAnomalyDetections = pgTable("ai_anomaly_detections", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  modelId: uuid("model_id").notNull().references(() => aiModels.id),
+  versionId: uuid("version_id").notNull().references(() => aiModelVersions.id),
+  metricName: varchar("metric_name", { length: 100 }).notNull(),
+  anomalyType: varchar("anomaly_type", { length: 50 }).notNull(), // spike, drop, trend_break, seasonal_deviation
+  severity: varchar("severity", { length: 20 }).notNull(), // low, medium, high, critical
+  expectedValue: decimal("expected_value", { precision: 15, scale: 2 }).notNull(),
+  actualValue: decimal("actual_value", { precision: 15, scale: 2 }).notNull(),
+  deviationPercentage: real("deviation_percentage").notNull(),
+  deviationScore: real("deviation_score").notNull(), // Statistical significance score
+  rootCauseAnalysis: jsonb("root_cause_analysis").notNull(), // [{cause: string, likelihood: number, evidence: string[]}]
+  correlatedEvents: jsonb("correlated_events"), // [{event_type, event_date, correlation_score}]
+  correlatedCampaigns: jsonb("correlated_campaigns"), // Related marketing campaigns
+  seasonalityFactor: real("seasonality_factor"), // Expected seasonal variance
+  revenueImpact: decimal("revenue_impact", { precision: 15, scale: 2 }), // Estimated revenue impact
+  userImpact: integer("user_impact"), // Number of users affected
+  alertSent: boolean("alert_sent").default(false),
+  alertSentAt: timestamp("alert_sent_at"),
+  acknowledgedBy: varchar("acknowledged_by").references(() => users.id),
+  acknowledgedAt: timestamp("acknowledged_at"),
+  resolutionNotes: text("resolution_notes"),
+  detectedAt: timestamp("detected_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("ai_anomaly_detections_user_id_idx").on(table.userId),
+  metricNameIdx: index("ai_anomaly_detections_metric_name_idx").on(table.metricName),
+  anomalyTypeIdx: index("ai_anomaly_detections_anomaly_type_idx").on(table.anomalyType),
+  severityIdx: index("ai_anomaly_detections_severity_idx").on(table.severity),
+  detectedAtIdx: index("ai_anomaly_detections_detected_at_idx").on(table.detectedAt),
+  alertSentIdx: index("ai_anomaly_detections_alert_sent_idx").on(table.alertSent),
+  acknowledgedAtIdx: index("ai_anomaly_detections_acknowledged_at_idx").on(table.acknowledgedAt),
+}));
+
+// ============================================================================
+// AI MODEL DEPLOYMENT & LIFECYCLE MANAGEMENT (Phase 2C)
+// ============================================================================
+
+// AI Canary Deployments - Gradual rollout tracking for AI models
+export const aiCanaryDeployments = pgTable("ai_canary_deployments", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  modelId: uuid("model_id").notNull().references(() => aiModels.id, { onDelete: 'cascade' }),
+  versionId: uuid("version_id").notNull().references(() => aiModelVersions.id, { onDelete: 'cascade' }),
+  rolloutPercentage: integer("rollout_percentage").notNull().default(5), // Current rollout percentage
+  targetPercentage: integer("target_percentage").notNull().default(100), // Target percentage
+  stage: varchar("stage", { length: 50 }).notNull().default("initial"), // initial, expanding, stable, complete, rolling_back
+  userSegment: jsonb("user_segment"), // User selection criteria for canary
+  performanceComparison: jsonb("performance_comparison"), // New vs old version metrics
+  successCriteria: jsonb("success_criteria"), // Thresholds for auto-advancement
+  autoAdvance: boolean("auto_advance").default(true), // Auto-advance to next stage if criteria met
+  rollbackTriggered: boolean("rollback_triggered").default(false),
+  rollbackReason: text("rollback_reason"),
+  startedAt: timestamp("started_at").defaultNow().notNull(),
+  lastAdvancedAt: timestamp("last_advanced_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  modelIdIdx: index("ai_canary_deployments_model_id_idx").on(table.modelId),
+  versionIdIdx: index("ai_canary_deployments_version_id_idx").on(table.versionId),
+  stageIdx: index("ai_canary_deployments_stage_idx").on(table.stage),
+  rolloutPercentageIdx: index("ai_canary_deployments_rollout_percentage_idx").on(table.rolloutPercentage),
+}));
+
+// AI Retraining Schedules - Automated model retraining configuration
+export const aiRetrainingSchedules = pgTable("ai_retraining_schedules", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  modelId: uuid("model_id").notNull().references(() => aiModels.id, { onDelete: 'cascade' }),
+  triggerType: varchar("trigger_type", { length: 50 }).notNull(), // scheduled, performance_drop, data_drift, manual
+  frequency: varchar("frequency", { length: 50 }), // daily, weekly, monthly, quarterly (for scheduled type)
+  performanceThreshold: jsonb("performance_threshold"), // {metric: threshold} for performance_drop
+  driftThreshold: real("drift_threshold"), // Threshold for data drift detection
+  isActive: boolean("is_active").default(true),
+  lastTriggeredAt: timestamp("last_triggered_at"),
+  nextScheduledRun: timestamp("next_scheduled_run"),
+  requiresApproval: boolean("requires_approval").default(false), // Manual approval gate
+  notificationEmails: text("notification_emails").array(), // Email list for notifications
+  retrainingConfig: jsonb("retraining_config"), // Training hyperparameters, data sources
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  modelIdIdx: index("ai_retraining_schedules_model_id_idx").on(table.modelId),
+  triggerTypeIdx: index("ai_retraining_schedules_trigger_type_idx").on(table.triggerType),
+  isActiveIdx: index("ai_retraining_schedules_is_active_idx").on(table.isActive),
+  nextScheduledRunIdx: index("ai_retraining_schedules_next_scheduled_run_idx").on(table.nextScheduledRun),
+}));
+
+// AI Retraining Runs - Execution logs for retraining jobs
+export const aiRetrainingRuns = pgTable("ai_retraining_runs", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  scheduleId: uuid("schedule_id").notNull().references(() => aiRetrainingSchedules.id, { onDelete: 'cascade' }),
+  modelId: uuid("model_id").notNull().references(() => aiModels.id, { onDelete: 'cascade' }),
+  previousVersionId: uuid("previous_version_id").references(() => aiModelVersions.id),
+  newVersionId: uuid("new_version_id").references(() => aiModelVersions.id),
+  status: varchar("status", { length: 50 }).notNull().default("pending"), // pending, running, validating, completed, failed, cancelled
+  triggerReason: text("trigger_reason").notNull(),
+  datasetInfo: jsonb("dataset_info"), // Training data details
+  trainingMetrics: jsonb("training_metrics"), // Loss, accuracy during training
+  validationMetrics: jsonb("validation_metrics"), // Test set performance
+  qualityChecksPassed: boolean("quality_checks_passed"),
+  qualityCheckResults: jsonb("quality_check_results"),
+  approvedBy: varchar("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  deployedToProduction: boolean("deployed_to_production").default(false),
+  executionTimeMs: integer("execution_time_ms"),
+  errorMessage: text("error_message"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  scheduleIdIdx: index("ai_retraining_runs_schedule_id_idx").on(table.scheduleId),
+  modelIdIdx: index("ai_retraining_runs_model_id_idx").on(table.modelId),
+  statusIdx: index("ai_retraining_runs_status_idx").on(table.status),
+  createdAtIdx: index("ai_retraining_runs_created_at_idx").on(table.createdAt),
+}));
+
+// AI Deployment History - Audit trail for all model deployments
+export const aiDeploymentHistory = pgTable("ai_deployment_history", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  modelId: uuid("model_id").notNull().references(() => aiModels.id, { onDelete: 'cascade' }),
+  versionId: uuid("version_id").notNull().references(() => aiModelVersions.id, { onDelete: 'cascade' }),
+  deploymentType: varchar("deployment_type", { length: 50 }).notNull(), // immediate, canary, scheduled, rollback
+  strategy: varchar("strategy", { length: 50 }).notNull(), // blue_green, rolling, canary, instant
+  environment: varchar("environment", { length: 50 }).notNull().default("production"), // development, staging, production
+  previousVersionId: uuid("previous_version_id").references(() => aiModelVersions.id),
+  canaryDeploymentId: uuid("canary_deployment_id").references(() => aiCanaryDeployments.id),
+  preDeploymentChecks: jsonb("pre_deployment_checks"), // Validation results
+  postDeploymentChecks: jsonb("post_deployment_checks"), // Health check results
+  performanceBeforeDeployment: jsonb("performance_before_deployment"),
+  performanceAfterDeployment: jsonb("performance_after_deployment"),
+  rollbackTriggered: boolean("rollback_triggered").default(false),
+  rollbackReason: text("rollback_reason"),
+  deployedBy: varchar("deployed_by").references(() => users.id),
+  approvedBy: varchar("approved_by").references(() => users.id),
+  deploymentNotes: text("deployment_notes"),
+  affectedUsers: integer("affected_users"), // Number of users impacted
+  downtime: integer("downtime"), // Downtime in seconds
+  deployedAt: timestamp("deployed_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+}, (table) => ({
+  modelIdIdx: index("ai_deployment_history_model_id_idx").on(table.modelId),
+  versionIdIdx: index("ai_deployment_history_version_id_idx").on(table.versionId),
+  deploymentTypeIdx: index("ai_deployment_history_deployment_type_idx").on(table.deploymentType),
+  environmentIdx: index("ai_deployment_history_environment_idx").on(table.environment),
+  deployedAtIdx: index("ai_deployment_history_deployed_at_idx").on(table.deployedAt),
+  rollbackTriggeredIdx: index("ai_deployment_history_rollback_triggered_idx").on(table.rollbackTriggered),
 }));
 
 // Insert Schemas
@@ -2789,6 +3415,32 @@ export const insertSecurityThreatSchema = createInsertSchema(securityThreats).om
   id: true,
 });
 
+export const insertSecurityBehaviorProfileSchema = createInsertSchema(securityBehaviorProfiles).omit({
+  id: true,
+  createdAt: true,
+  lastUpdated: true,
+});
+
+export const insertSecurityAnomalySchema = createInsertSchema(securityAnomalies).omit({
+  id: true,
+  detectedAt: true,
+});
+
+export const insertSecurityZeroDayAlertSchema = createInsertSchema(securityZeroDayAlerts).omit({
+  id: true,
+  detectedAt: true,
+});
+
+export const insertSecurityPenTestResultSchema = createInsertSchema(securityPenTestResults).omit({
+  id: true,
+  executedAt: true,
+});
+
+export const insertSecurityComplianceReportSchema = createInsertSchema(securityComplianceReports).omit({
+  id: true,
+  generatedAt: true,
+});
+
 export const insertSystemFlagSchema = createInsertSchema(systemFlags);
 
 export const insertAssetSchema = createInsertSchema(assets).omit({
@@ -2933,6 +3585,11 @@ export type InsertSecurityFinding = z.infer<typeof insertSecurityFindingSchema>;
 export type InsertPatch = z.infer<typeof insertPatchSchema>;
 export type InsertIpBlacklist = z.infer<typeof insertIpBlacklistSchema>;
 export type InsertSecurityThreat = z.infer<typeof insertSecurityThreatSchema>;
+export type InsertSecurityBehaviorProfile = z.infer<typeof insertSecurityBehaviorProfileSchema>;
+export type InsertSecurityAnomaly = z.infer<typeof insertSecurityAnomalySchema>;
+export type InsertSecurityZeroDayAlert = z.infer<typeof insertSecurityZeroDayAlertSchema>;
+export type InsertSecurityPenTestResult = z.infer<typeof insertSecurityPenTestResultSchema>;
+export type InsertSecurityComplianceReport = z.infer<typeof insertSecurityComplianceReportSchema>;
 export type InsertSystemFlag = z.infer<typeof insertSystemFlagSchema>;
 export type InsertAsset = z.infer<typeof insertAssetSchema>;
 export type InsertClip = z.infer<typeof insertClipSchema>;
@@ -3003,6 +3660,11 @@ export type SecurityFinding = typeof securityFindings.$inferSelect;
 export type Patch = typeof patches.$inferSelect;
 export type IpBlacklist = typeof ipBlacklist.$inferSelect;
 export type SecurityThreat = typeof securityThreats.$inferSelect;
+export type SecurityBehaviorProfile = typeof securityBehaviorProfiles.$inferSelect;
+export type SecurityAnomaly = typeof securityAnomalies.$inferSelect;
+export type SecurityZeroDayAlert = typeof securityZeroDayAlerts.$inferSelect;
+export type SecurityPenTestResult = typeof securityPenTestResults.$inferSelect;
+export type SecurityComplianceReport = typeof securityComplianceReports.$inferSelect;
 export type SystemFlag = typeof systemFlags.$inferSelect;
 export type Asset = typeof assets.$inferSelect;
 export type Clip = typeof clips.$inferSelect;
@@ -3464,6 +4126,22 @@ export type InsertAdRuleExecution = z.infer<typeof insertAdRuleExecutionSchema>;
 export type AdInsights = typeof adInsights.$inferSelect;
 export type InsertAdInsights = z.infer<typeof insertAdInsightsSchema>;
 
+export type AdCompetitorIntelligence = typeof adCompetitorIntelligence.$inferSelect;
+export const insertAdCompetitorIntelligenceSchema = createInsertSchema(adCompetitorIntelligence).omit({ id: true, analyzedAt: true });
+export type InsertAdCompetitorIntelligence = z.infer<typeof insertAdCompetitorIntelligenceSchema>;
+
+export type AdAudienceSegment = typeof adAudienceSegments.$inferSelect;
+export const insertAdAudienceSegmentSchema = createInsertSchema(adAudienceSegments).omit({ id: true, createdAt: true });
+export type InsertAdAudienceSegment = z.infer<typeof insertAdAudienceSegmentSchema>;
+
+export type AdCreativePrediction = typeof adCreativePredictions.$inferSelect;
+export const insertAdCreativePredictionSchema = createInsertSchema(adCreativePredictions).omit({ id: true, createdAt: true });
+export type InsertAdCreativePrediction = z.infer<typeof insertAdCreativePredictionSchema>;
+
+export type AdConversion = typeof adConversions.$inferSelect;
+export const insertAdConversionSchema = createInsertSchema(adConversions).omit({ id: true, convertedAt: true });
+export type InsertAdConversion = z.infer<typeof insertAdConversionSchema>;
+
 // Additional Advertisement AI validation schemas
 export const intakeContentSchema = z.object({
   contentType: z.enum(['text', 'image', 'video', 'carousel']),
@@ -3606,6 +4284,10 @@ export type HashtagResearch = typeof hashtagResearch.$inferSelect;
 export const insertHashtagResearchSchema = createInsertSchema(hashtagResearch).omit({ id: true, createdAt: true });
 export type InsertHashtagResearch = z.infer<typeof insertHashtagResearchSchema>;
 
+export type UserBrandVoice = typeof userBrandVoices.$inferSelect;
+export const insertUserBrandVoiceSchema = createInsertSchema(userBrandVoices).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertUserBrandVoice = z.infer<typeof insertUserBrandVoiceSchema>;
+
 export type StorySchedule = typeof storySchedules.$inferSelect;
 export const insertStoryScheduleSchema = createInsertSchema(storySchedules).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertStorySchedule = z.infer<typeof insertStoryScheduleSchema>;
@@ -3712,6 +4394,19 @@ export type PersonalNetworkImpact = typeof personalNetworkImpacts.$inferSelect;
 export const insertPersonalNetworkImpactSchema = createInsertSchema(personalNetworkImpacts).omit({ id: true, createdAt: true });
 export type InsertPersonalNetworkImpact = z.infer<typeof insertPersonalNetworkImpactSchema>;
 
+// Social Amplification Professional Features Types
+export type SocialInfluencerScore = typeof socialInfluencerScores.$inferSelect;
+export const insertSocialInfluencerScoreSchema = createInsertSchema(socialInfluencerScores).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertSocialInfluencerScore = z.infer<typeof insertSocialInfluencerScoreSchema>;
+
+export type SocialViralTracking = typeof socialViralTracking.$inferSelect;
+export const insertSocialViralTrackingSchema = createInsertSchema(socialViralTracking).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertSocialViralTracking = z.infer<typeof insertSocialViralTrackingSchema>;
+
+export type SocialNetworkAnalysis = typeof socialNetworkAnalysis.$inferSelect;
+export const insertSocialNetworkAnalysisSchema = createInsertSchema(socialNetworkAnalysis).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertSocialNetworkAnalysis = z.infer<typeof insertSocialNetworkAnalysisSchema>;
+
 // ============================================================================
 // AI GOVERNANCE & MODEL MANAGEMENT - Type Exports
 // ============================================================================
@@ -3743,3 +4438,39 @@ export type InsertExplanationLog = z.infer<typeof insertExplanationLogSchema>;
 export type FeatureFlag = typeof featureFlags.$inferSelect;
 export const insertFeatureFlagSchema = createInsertSchema(featureFlags).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertFeatureFlag = z.infer<typeof insertFeatureFlagSchema>;
+
+export type AIMetricPrediction = typeof aiMetricPredictions.$inferSelect;
+export const insertAIMetricPredictionSchema = createInsertSchema(aiMetricPredictions).omit({ id: true, createdAt: true });
+export type InsertAIMetricPrediction = z.infer<typeof insertAIMetricPredictionSchema>;
+
+export type AICohortAnalysis = typeof aiCohortAnalysis.$inferSelect;
+export const insertAICohortAnalysisSchema = createInsertSchema(aiCohortAnalysis).omit({ id: true, analyzedAt: true });
+export type InsertAICohortAnalysis = z.infer<typeof insertAICohortAnalysisSchema>;
+
+export type AIChurnPrediction = typeof aiChurnPredictions.$inferSelect;
+export const insertAIChurnPredictionSchema = createInsertSchema(aiChurnPredictions).omit({ id: true, predictedAt: true });
+export type InsertAIChurnPrediction = z.infer<typeof insertAIChurnPredictionSchema>;
+
+export type AIRevenueForecast = typeof aiRevenueForecasts.$inferSelect;
+export const insertAIRevenueForecastSchema = createInsertSchema(aiRevenueForecasts).omit({ id: true, forecastedAt: true });
+export type InsertAIRevenueForecast = z.infer<typeof insertAIRevenueForecastSchema>;
+
+export type AIAnomalyDetection = typeof aiAnomalyDetections.$inferSelect;
+export const insertAIAnomalyDetectionSchema = createInsertSchema(aiAnomalyDetections).omit({ id: true, detectedAt: true });
+export type InsertAIAnomalyDetection = z.infer<typeof insertAIAnomalyDetectionSchema>;
+
+export type AICanaryDeployment = typeof aiCanaryDeployments.$inferSelect;
+export const insertAICanaryDeploymentSchema = createInsertSchema(aiCanaryDeployments).omit({ id: true, createdAt: true });
+export type InsertAICanaryDeployment = z.infer<typeof insertAICanaryDeploymentSchema>;
+
+export type AIRetrainingSchedule = typeof aiRetrainingSchedules.$inferSelect;
+export const insertAIRetrainingScheduleSchema = createInsertSchema(aiRetrainingSchedules).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertAIRetrainingSchedule = z.infer<typeof insertAIRetrainingScheduleSchema>;
+
+export type AIRetrainingRun = typeof aiRetrainingRuns.$inferSelect;
+export const insertAIRetrainingRunSchema = createInsertSchema(aiRetrainingRuns).omit({ id: true, createdAt: true });
+export type InsertAIRetrainingRun = z.infer<typeof insertAIRetrainingRunSchema>;
+
+export type AIDeploymentHistory = typeof aiDeploymentHistory.$inferSelect;
+export const insertAIDeploymentHistorySchema = createInsertSchema(aiDeploymentHistory).omit({ id: true });
+export type InsertAIDeploymentHistory = z.infer<typeof insertAIDeploymentHistorySchema>;
