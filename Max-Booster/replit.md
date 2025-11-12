@@ -86,6 +86,7 @@ Comprehensive 10 billion user architecture documented in `SCALING_ARCHITECTURE.m
 **Documentation:**
 - `PRODUCTION_READINESS_PLAN.md`: 4-phase roadmap to production-readiness
 - `SCALING_ARCHITECTURE.md`: Complete technical specifications for 10B users
+- `docs/production/REDIS_AND_CDN.md`: Redis cluster and CDN deployment guide for global scale
 
 ## Google OAuth One-Click Signup (November 12, 2025)
 

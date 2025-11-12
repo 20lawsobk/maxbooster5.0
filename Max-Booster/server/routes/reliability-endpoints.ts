@@ -4,6 +4,7 @@ import { processMonitor } from '../reliability/process-monitor';
 import { databaseResilience } from '../reliability/database-resilience';
 import { memoryManager } from '../reliability/memory-manager';
 import { maxBooster247 } from '../reliability-system';
+import { getQueryTelemetry } from '../db';
 
 // Enhanced health check endpoints for 24/7 monitoring
 export function setupReliabilityEndpoints(app: Express): void {
@@ -13,6 +14,7 @@ export function setupReliabilityEndpoints(app: Express): void {
     try {
       const systemHealth = reliabilityCoordinator.getSystemHealth();
       const uptimeStats = reliabilityCoordinator.getUptimeStats();
+      const queryMetrics = getQueryTelemetry();
       
       res.json({
         status: systemHealth.status,
@@ -25,7 +27,16 @@ export function setupReliabilityEndpoints(app: Express): void {
           processMonitor: 'active',
           memoryManager: 'active', 
           databaseResilience: 'active',
-          autoRecovery: 'enabled'
+          autoRecovery: 'enabled',
+          queryTelemetry: 'active'
+        },
+        database: {
+          queries: {
+            total: queryMetrics.totalQueries,
+            slow: queryMetrics.slowQueries,
+            p95Ms: queryMetrics.p95Latency,
+            avgMs: queryMetrics.averageTime
+          }
         }
       });
     } catch (error) {
@@ -146,6 +157,72 @@ export function setupReliabilityEndpoints(app: Express): void {
     }
   });
 
+  // Database query telemetry metrics
+  app.get('/api/system/database/metrics', (req: Request, res: Response) => {
+    try {
+      const metrics = getQueryTelemetry();
+      
+      // Generate recommendations based on metrics
+      const recommendations: string[] = [];
+      
+      if (metrics.slowQueries > 0) {
+        const slowPercentage = (metrics.slowQueries / metrics.totalQueries) * 100;
+        if (slowPercentage > 10) {
+          recommendations.push('HIGH: Over 10% of queries are slow (>100ms). Consider adding database indexes or optimizing query logic.');
+        } else if (slowPercentage > 5) {
+          recommendations.push('MEDIUM: 5-10% of queries are slow. Monitor closely and investigate slow query patterns.');
+        } else {
+          recommendations.push('LOW: Less than 5% of queries are slow. Performance is acceptable but monitor trends.');
+        }
+      }
+      
+      if (metrics.p95Latency > 200) {
+        recommendations.push('HIGH: P95 latency exceeds 200ms. Database performance degradation detected.');
+      } else if (metrics.p95Latency > 100) {
+        recommendations.push('MEDIUM: P95 latency is between 100-200ms. Consider query optimization.');
+      }
+      
+      if (metrics.averageTime > 50) {
+        recommendations.push('MEDIUM: Average query time exceeds 50ms. Review query efficiency.');
+      }
+      
+      if (metrics.totalQueries === 0) {
+        recommendations.push('INFO: No queries recorded in the last 15 minutes. System may be idle or telemetry just started.');
+      }
+      
+      res.json({
+        status: 'success',
+        metrics: {
+          totalQueries: metrics.totalQueries,
+          slowQueries: metrics.slowQueries,
+          slowQueryPercentage: metrics.totalQueries > 0 
+            ? Math.round((metrics.slowQueries / metrics.totalQueries) * 10000) / 100 
+            : 0,
+          p95LatencyMs: metrics.p95Latency,
+          averageTimeMs: metrics.averageTime,
+          slowestQuery: metrics.slowestQuery ? {
+            sql: metrics.slowestQuery.sql,
+            durationMs: metrics.slowestQuery.duration
+          } : null,
+          windowMinutes: metrics.windowMinutes,
+          lastRefresh: metrics.lastRefresh
+        },
+        recommendations,
+        monitoring: {
+          telemetryStatus: 'active',
+          measurementMethod: 'instrumented pool with actual query timing',
+          slowQueryThreshold: '100ms'
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        error: 'Database query metrics unavailable',
+        message: (error as Error).message
+      });
+    }
+  });
+
   // System metrics for Prometheus/Grafana integration
   app.get('/api/system/metrics', (req: Request, res: Response) => {
     try {
@@ -229,4 +306,5 @@ export function setupReliabilityEndpoints(app: Express): void {
   console.log('   GET /api/system/process - Process monitoring details');
   console.log('   GET /api/system/memory - Memory monitoring details');
   console.log('   GET /api/system/database - Database monitoring details');
+  console.log('   GET /api/system/database/metrics - Database query telemetry');
 }
