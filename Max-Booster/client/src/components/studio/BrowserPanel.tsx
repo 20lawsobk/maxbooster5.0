@@ -208,7 +208,7 @@ export function BrowserPanel() {
     enabled: browserActiveTab === 'plugins',
   });
 
-  // Fetch native plugins from catalog
+  // Fetch native plugins from catalog (immutable data - cache for 1 hour)
   const { data: nativePlugins = [], isLoading: nativePluginsLoading } = useQuery({
     queryKey: ['/api/studio/plugins'],
     queryFn: async () => {
@@ -217,6 +217,8 @@ export function BrowserPanel() {
       return response.json();
     },
     enabled: browserActiveTab === 'plugins',
+    staleTime: 60 * 60 * 1000, // 1 hour - plugin catalog is immutable
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours - keep in cache longer
   });
 
   // Convert user assets to browser items
