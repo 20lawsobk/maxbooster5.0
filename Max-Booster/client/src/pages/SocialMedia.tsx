@@ -63,6 +63,7 @@ import { SiFacebook, SiInstagram, SiYoutube, SiTiktok, SiLinkedin, SiThreads, Si
 import { ContentCalendarView } from '@/components/social/ContentCalendarView';
 import { SchedulePostDialog, SchedulePostData } from '@/components/social/SchedulePostDialog';
 import { PostTimelineView } from '@/components/social/PostTimelineView';
+import { AutopilotDashboard } from '@/components/autopilot/autopilot-dashboard';
 
 // Social Media Platform Interfaces
 interface SocialPlatform {
@@ -1912,141 +1913,7 @@ export default function SocialMedia() {
 
               {/* Autopilot Tab */}
               <TabsContent value="autopilot" className="space-y-6">
-                <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <Bot className="w-5 h-5 mr-2 text-blue-600" />
-                        Autopilot Status
-                      </div>
-                      {autopilotStatus?.isRunning ? (
-                        <Badge className="bg-green-100 text-green-800">
-                          <Activity className="w-3 h-3 mr-1" />
-                          Active
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">Inactive</Badge>
-                      )}
-                    </CardTitle>
-                    <p className="text-sm text-gray-600">Automated social media posting and content generation</p>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {autopilotLoading ? (
-                      <div className="flex items-center justify-center py-8">
-                        <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
-                      </div>
-                    ) : (
-                      <>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm text-gray-600">Posting Frequency</span>
-                              <Calendar className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <p className="text-lg font-bold capitalize">{autopilotStatus?.config?.postingFrequency || 'Not set'}</p>
-                          </div>
-                          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm text-gray-600">Brand Voice</span>
-                              <MessageCircle className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <p className="text-lg font-bold capitalize">{autopilotStatus?.config?.brandVoice || 'Not set'}</p>
-                          </div>
-                          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm text-gray-600">Connected Platforms</span>
-                              <Globe className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <p className="text-lg font-bold">{autopilotStatus?.config?.platforms?.length || 0}</p>
-                          </div>
-                          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm text-gray-600">Auto Publish</span>
-                              <Zap className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <p className="text-lg font-bold">{autopilotStatus?.config?.autoPublish ? 'Enabled' : 'Disabled'}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex gap-3 pt-4">
-                          {autopilotStatus?.isRunning ? (
-                            <Button
-                              variant="destructive"
-                              onClick={() => stopAutopilotMutation.mutate()}
-                              disabled={stopAutopilotMutation.isPending}
-                              data-testid="button-stop-autopilot"
-                            >
-                              {stopAutopilotMutation.isPending ? (
-                                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                              ) : (
-                                <XCircle className="w-4 h-4 mr-2" />
-                              )}
-                              Stop Autopilot
-                            </Button>
-                          ) : (
-                            <Button
-                              onClick={() => startAutopilotMutation.mutate()}
-                              disabled={startAutopilotMutation.isPending}
-                              data-testid="button-start-autopilot"
-                            >
-                              {startAutopilotMutation.isPending ? (
-                                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                              ) : (
-                                <Play className="w-4 h-4 mr-2" />
-                              )}
-                              Start Autopilot
-                            </Button>
-                          )}
-                          <Button variant="outline" onClick={() => setActiveTab('create')}>
-                            <Settings className="w-4 h-4 mr-2" />
-                            Configure
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Activity Log */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Activity className="w-5 h-5 mr-2 text-blue-600" />
-                      Recent Activity
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {autopilotStatus?.status?.recentJobs && autopilotStatus.status.recentJobs.length > 0 ? (
-                      <div className="space-y-3">
-                        {autopilotStatus.status.recentJobs.map((job: any, idx: number) => (
-                          <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                            <div className="flex items-center space-x-3">
-                              {job.status === 'completed' ? (
-                                <CheckCircle className="w-5 h-5 text-green-600" />
-                              ) : job.status === 'failed' ? (
-                                <XCircle className="w-5 h-5 text-red-600" />
-                              ) : (
-                                <Clock className="w-5 h-5 text-yellow-600" />
-                              )}
-                              <div>
-                                <p className="font-medium text-sm">{job.type}</p>
-                                <p className="text-xs text-gray-600">{job.platform}</p>
-                              </div>
-                            </div>
-                            <Badge variant={job.status === 'completed' ? 'default' : 'outline'}>
-                              {job.status}
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <Bot className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                        <p className="text-muted-foreground">No activity yet. Start autopilot to begin.</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <AutopilotDashboard />
               </TabsContent>
             </Tabs>
       </div>

@@ -23,12 +23,14 @@ import {
   Trash2,
   Upload,
   Eye,
-  EyeOff
+  EyeOff,
+  Link as LinkIcon
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient as qc } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { PlatformConnections } from "@/components/social/platform-connections";
 import ChangePasswordDialog from "@/components/dialogs/ChangePasswordDialog";
 import TwoFactorSetupDialog from "@/components/dialogs/TwoFactorSetupDialog";
 import PaymentUpdateDialog from "@/components/dialogs/PaymentUpdateDialog";
@@ -457,7 +459,7 @@ export default function Settings() {
 
       {/* Main Content */}
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="profile" data-testid="tab-profile">
             <User className="w-4 h-4 mr-2" />
             Profile
@@ -481,6 +483,10 @@ export default function Settings() {
           <TabsTrigger value="security" data-testid="tab-security">
             <Shield className="w-4 h-4 mr-2" />
             Security
+          </TabsTrigger>
+          <TabsTrigger value="platforms" data-testid="tab-platforms">
+            <LinkIcon className="w-4 h-4 mr-2" />
+            Platforms
           </TabsTrigger>
         </TabsList>
 
@@ -1071,6 +1077,10 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="platforms" className="space-y-6">
+          <PlatformConnections />
         </TabsContent>
       </Tabs>
 
