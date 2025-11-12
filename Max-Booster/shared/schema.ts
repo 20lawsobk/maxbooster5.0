@@ -4313,6 +4313,20 @@ export const completeOnboardingSchema = z.object({
   hasCompletedOnboarding: z.boolean(),
 });
 
+export const updateOnboardingCompleteSchema = z.object({
+  hasCompletedOnboarding: z.boolean(),
+  onboardingData: z.object({
+    accountType: z.enum(['solo_artist', 'band', 'producer', 'label']),
+    goals: z.array(z.string()),
+    userLevel: z.enum(['beginner', 'intermediate', 'advanced']),
+    connectedAccounts: z.object({
+      streaming: z.boolean(),
+      social: z.boolean(),
+    }),
+    preferSimplifiedView: z.boolean(),
+  }),
+});
+
 // Subscription Validation Schemas
 export const createSubscriptionSchema = z.object({
   priceId: z.string().min(1),

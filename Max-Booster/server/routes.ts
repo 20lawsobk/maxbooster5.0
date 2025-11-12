@@ -62,6 +62,7 @@ import {
   subscribePushSchema,
   updateOnboardingSchema,
   completeOnboardingSchema,
+  updateOnboardingCompleteSchema,
   createSubscriptionSchema,
   updateAdminNotificationsSchema,
   updateAdminMaintenanceSchema,
@@ -2178,6 +2179,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         link: '/dashboard',
         metadata: { welcome: true }
       });
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post('/api/auth/update-onboarding', requireAuth, async (req, res) => {
+    try {
+      const validation = updateOnboardingCompleteSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: validation.error.flatten().fieldErrors 
+        });
+      }
+      
+      const user = req.user as any;
+      const data = validation.data;
+      
+      await storage.updateUser(user.id, {
+        hasCompletedOnboarding: data.hasCompletedOnboarding,
+        onboardingData: data.onboardingData
+      });
+
+      if (data.hasCompletedOnboarding) {
+        await storage.createNotification({
+          userId: user.id,
+          type: 'system',
+          title: '🎉 Welcome to Max Booster!',
+          message: 'Your account setup is complete. Explore all the features to boost your music career!',
+          read: false,
+          link: '/dashboard',
+          metadata: { welcome: true }
+        });
+      }
       
       res.json({ success: true });
     } catch (error: any) {
