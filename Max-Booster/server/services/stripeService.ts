@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { storage } from "../storage";
+import { getStripePriceIds } from "./stripeSetup.js";
 
 // Defensive check: Fail fast if Stripe key is invalid
 const stripeKey = process.env.STRIPE_SECRET_KEY;
@@ -112,13 +113,8 @@ export class StripeService {
   }
 
   private getPriceId(tier: 'monthly' | 'yearly' | 'lifetime'): string {
-    // In production, these would be actual Stripe price IDs
-    const priceIds = {
-      monthly: process.env.STRIPE_MONTHLY_PRICE_ID || 'price_monthly',
-      yearly: process.env.STRIPE_YEARLY_PRICE_ID || 'price_yearly',
-      lifetime: process.env.STRIPE_LIFETIME_PRICE_ID || 'price_lifetime'
-    };
-
+    // Get actual Stripe price IDs created during server initialization
+    const priceIds = getStripePriceIds();
     return priceIds[tier];
   }
 

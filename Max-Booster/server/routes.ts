@@ -2408,53 +2408,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sig = req.headers['stripe-signature'];
       const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
       
+      // PRODUCTION SECURITY: Webhook secret is REQUIRED
       if (!webhookSecret) {
-        console.warn('⚠️  STRIPE_WEBHOOK_SECRET not configured - webhook signature verification disabled');
-        return res.status(500).json({ error: 'Webhook not configured' });
+        console.error('🚨 STRIPE_WEBHOOK_SECRET not configured - webhooks disabled for security');
+        console.error('🚨 To enable payment webhooks: Set STRIPE_WEBHOOK_SECRET in environment secrets');
+        console.error('🚨 Get it from: https://dashboard.stripe.com/webhooks');
+        return res.status(503).json({ 
+          error: 'Webhook endpoint not configured. Contact system administrator.' 
+        });
       }
       
       if (!sig) {
+        console.error('⚠️  Webhook request missing stripe-signature header');
         return res.status(400).json({ error: 'Missing stripe-signature header' });
       }
 
-      // Verify webhook signature for security
-      let event;
+      // Verify webhook signature for security (CRITICAL: prevents forged events)
+      let event: Stripe.Event;
       try {
         event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
       } catch (err: any) {
-        console.error('⚠️  Webhook signature verification failed:', err.message);
-        return res.status(400).json({ error: `Webhook Error: ${err.message}` });
+        console.error('🚨 Webhook signature verification FAILED:', err.message);
+        auditLogger.logSecurityEvent(req, 'WEBHOOK_SIGNATURE_FAILED', 'critical', {
+          error: err.message
+        });
+        return res.status(400).json({ error: `Webhook signature verification failed: ${err.message}` });
       }
 
-      // Handle the event based on type
-      switch (event.type) {
-        case 'checkout.session.completed':
-          const session = event.data.object;
-          console.log('✅ Payment successful:', session.id);
-          // Log security event
-          auditLogger.logSecurityEvent(req, 'PAYMENT_COMPLETED', 'medium', {
-            sessionId: session.id,
-            customerEmail: session.customer_email
-          });
-          break;
-        
-        case 'customer.subscription.updated':
-        case 'customer.subscription.deleted':
-          const subscription = event.data.object;
-          console.log(`📝 Subscription ${event.type}:`, subscription.id);
-          // Log security event
-          auditLogger.logSecurityEvent(req, 'SUBSCRIPTION_UPDATED', 'low', {
-            subscriptionId: subscription.id
-          });
-          break;
-        
-        default:
-          console.log(`Unhandled event type: ${event.type}`);
-      }
+      console.log(`✅ Stripe webhook received: ${event.type}`);
+
+      // Delegate to StripeService for business logic
+      await stripeService.handleWebhook(event);
+
+      // Log security event for all webhooks
+      auditLogger.logSecurityEvent(req, 'WEBHOOK_PROCESSED', 'low', {
+        eventType: event.type,
+        eventId: event.id
+      });
 
       res.json({ received: true });
     } catch (error: any) {
-      console.error('Webhook error:', error);
+      console.error('❌ Webhook processing error:', error);
+      auditLogger.logSecurityEvent(req, 'WEBHOOK_PROCESSING_ERROR', 'high', {
+        error: error.message
+      });
       res.status(500).json({ error: error.message });
     }
   });
