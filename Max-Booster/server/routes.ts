@@ -661,6 +661,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Export user data (GDPR compliance)
+  app.get('/api/auth/export-data', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const user = req.user as any;
+
+      // Gather all user data
+      const [projects, assets, royalties, notifications] = await Promise.all([
+        storage.getUserProjectsWithStudio(userId, { page: 1, limit: 1000, studioOnly: false }),
+        storage.getUserAssets(userId, undefined, undefined, undefined, 1000, 0),
+        storage.getUserEarnings(userId),
+        storage.getNotifications(userId, 1000, 0)
+      ]);
+
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          fullName: user.fullName,
+          role: user.role,
+          subscriptionPlan: user.subscriptionPlan,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt
+        },
+        projects: projects.data,
+        assets: assets,
+        royalties: royalties,
+        notifications: notifications
+      };
+
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="maxbooster-data-${userId}-${Date.now()}.json"`);
+      res.json(exportData);
+    } catch (error: any) {
+      console.error('Error exporting user data:', error);
+      res.status(500).json({ error: 'Failed to export data' });
+    }
+  });
+
   // JWT Auth routes
   app.post('/api/auth/token', requireAuth, async (req, res) => {
     try {
@@ -3481,6 +3522,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Error fetching plugin catalog:', error);
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // User Sample Assets
+  app.get('/api/studio/samples', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const samples = await storage.getUserAssets(userId, 'sample', undefined, undefined, 100, 0);
+      res.json(samples.map(sample => ({
+        id: sample.id,
+        name: sample.name,
+        fileUrl: sample.fileUrl,
+        fileType: sample.fileType,
+        fileSize: sample.fileSize,
+        duration: sample.duration,
+        createdAt: sample.createdAt
+      })));
+    } catch (error: any) {
+      console.error('Error fetching samples:', error);
+      res.status(500).json({ error: 'Failed to fetch samples' });
+    }
+  });
+
+  // Recent Files (recently accessed audio clips and projects)
+  app.get('/api/studio/recent-files', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      // Get user's recent projects (last 10)
+      const recentProjects = await storage.getUserProjectsWithStudio(userId, { page: 1, limit, studioOnly: false });
+      
+      const recentFiles = recentProjects.data.map((project: any) => ({
+        id: project.id,
+        name: project.title,
+        type: 'project',
+        filePath: project.filePath,
+        audioUrl: filePathToUrl(project.filePath),
+        updatedAt: project.updatedAt,
+        createdAt: project.createdAt
+      }));
+      
+      res.json(recentFiles);
+    } catch (error: any) {
+      console.error('Error fetching recent files:', error);
+      res.status(500).json({ error: 'Failed to fetch recent files' });
     }
   });
 
