@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import SimplifiedDashboardComponent from '@/components/onboarding/SimplifiedDashboard';
@@ -9,7 +9,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 
 export default function SimplifiedDashboard() {
   const { user, isLoading } = useRequireAuth();
-  const [, navigate] = useNavigate();
+  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -31,7 +31,7 @@ export default function SimplifiedDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/onboarding-status'] });
-      navigate('/dashboard');
+      setLocation('/dashboard');
       toast({
         title: 'Upgraded Successfully',
         description: 'You now have access to all advanced features!',
@@ -53,9 +53,9 @@ export default function SimplifiedDashboard() {
   useEffect(() => {
     if (onboardingStatus?.hasCompletedOnboarding && 
         onboardingStatus?.onboardingData?.preferSimplifiedView === false) {
-      navigate('/dashboard');
+      setLocation('/dashboard');
     }
-  }, [onboardingStatus, navigate]);
+  }, [onboardingStatus, setLocation]);
 
   if (isLoading || !user) {
     return (

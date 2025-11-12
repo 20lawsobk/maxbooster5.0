@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +26,7 @@ interface SimplifiedDashboardProps {
 }
 
 export default function SimplifiedDashboard({ onUpgrade, userLevel }: SimplifiedDashboardProps) {
-  const [, navigate] = useNavigate();
+  const [, setLocation] = useLocation();
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
 
   const quickActions = [
@@ -184,7 +184,7 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
                               size="sm" 
                               className="mt-3" 
                               variant="outline"
-                              onClick={() => navigate(action.href)}
+                              onClick={() => setLocation(action.href)}
                             >
                               Get Started
                               <ArrowRight className="w-3 h-3 ml-1" />

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRequireSubscription } from '@/hooks/useRequireAuth';
 import { AppLayout } from '@/components/layout/AppLayout';
-import Onboarding from '@/components/Onboarding';
+import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 import SimplifiedDashboard from '@/components/onboarding/SimplifiedDashboard';
 import FeatureDiscovery from '@/components/feature-discovery/FeatureDiscovery';
 import FeatureSpotlight from '@/components/feature-discovery/FeatureSpotlight';
@@ -325,10 +325,9 @@ function DashboardContent({ user }: { user: any }) {
   // Show onboarding flow
   if (showOnboarding) {
     return (
-      <Onboarding 
+      <OnboardingFlow 
         onComplete={handleOnboardingComplete}
         onSkip={handleOnboardingSkip}
-        isOpen={showOnboarding}
       />
     );
   }
