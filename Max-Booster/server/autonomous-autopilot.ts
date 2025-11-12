@@ -32,15 +32,17 @@ export class AutonomousAutopilot extends EventEmitter {
   private optimalTimingCache: Map<string, number[]> = new Map();
   private topicPerformanceMap: Map<string, number> = new Map();
   private adaptiveLearningData: Map<string, any> = new Map();
+  private userId: string;
 
-  constructor() {
+  constructor(userId: string) {
     super();
+    this.userId = userId;
     this.config = this.getDefaultConfig();
     this.initializeAutonomousLearning();
   }
 
-  static createForSocialAndAds(): AutonomousAutopilot {
-    const engine = new AutonomousAutopilot();
+  static createForSocialAndAds(userId: string): AutonomousAutopilot {
+    const engine = new AutonomousAutopilot(userId);
     engine.updateAutonomousConfig({
       enabled: false,
       minPostsPerDay: 3,
@@ -53,8 +55,8 @@ export class AutonomousAutopilot extends EventEmitter {
     return engine;
   }
 
-  static createForAutonomousUpdates(): AutonomousAutopilot {
-    const engine = new AutonomousAutopilot();
+  static createForAutonomousUpdates(userId: string): AutonomousAutopilot {
+    const engine = new AutonomousAutopilot(userId);
     engine.updateAutonomousConfig({
       enabled: false,
       minPostsPerDay: 1,
@@ -67,8 +69,8 @@ export class AutonomousAutopilot extends EventEmitter {
     return engine;
   }
 
-  static createForSecurityIT(): AutonomousAutopilot {
-    const engine = new AutonomousAutopilot();
+  static createForSecurityIT(userId: string): AutonomousAutopilot {
+    const engine = new AutonomousAutopilot(userId);
     engine.updateAutonomousConfig({
       enabled: false,
       minPostsPerDay: 0,
@@ -246,7 +248,7 @@ export class AutonomousAutopilot extends EventEmitter {
       } as any;
 
       // Publish immediately (fully autonomous)
-      const publishResults = await platformAPI.publishContent(savedContent, [platform]);
+      const publishResults = await platformAPI.publishContent(savedContent, [platform], this.userId);
       const successfulPublish = publishResults.find((r: any) => r.success);
 
       if (successfulPublish) {
@@ -425,7 +427,7 @@ export class AutonomousAutopilot extends EventEmitter {
 
   private async analyzeContentPerformance(contentId: string, postId: string, platform: string): Promise<void> {
     try {
-      const analytics = await platformAPI.collectEngagementData(postId, platform);
+      const analytics = await platformAPI.collectEngagementData(postId, platform, this.userId);
       
       if (analytics) {
         // Persist analytics via external API if available (optional)

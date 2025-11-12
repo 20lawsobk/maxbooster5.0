@@ -36,14 +36,16 @@ export class AutopilotEngine extends EventEmitter {
   private schedulerInterval: NodeJS.Timeout | null = null;
   private contentQueue: Map<string, any[]> = new Map();
   private performanceData: Map<string, any> = new Map();
+  private userId: string;
 
-  constructor() {
+  constructor(userId: string) {
     super();
+    this.userId = userId;
     this.config = this.getDefaultConfig();
   }
 
-  static createForSocialAndAds(): AutopilotEngine {
-    const engine = new AutopilotEngine();
+  static createForSocialAndAds(userId: string): AutopilotEngine {
+    const engine = new AutopilotEngine(userId);
     engine.configure({
       enabled: false,
       platforms: ['Twitter', 'Instagram', 'TikTok', 'Facebook', 'LinkedIn'],
@@ -57,8 +59,8 @@ export class AutopilotEngine extends EventEmitter {
     return engine;
   }
 
-  static createForAutonomousUpdates(): AutopilotEngine {
-    const engine = new AutopilotEngine();
+  static createForAutonomousUpdates(userId: string): AutopilotEngine {
+    const engine = new AutopilotEngine(userId);
     engine.configure({
       enabled: false,
       platforms: ['Twitter', 'LinkedIn'],
@@ -72,8 +74,8 @@ export class AutopilotEngine extends EventEmitter {
     return engine;
   }
 
-  static createForSecurityIT(): AutopilotEngine {
-    const engine = new AutopilotEngine();
+  static createForSecurityIT(userId: string): AutopilotEngine {
+    const engine = new AutopilotEngine(userId);
     engine.configure({
       enabled: false,
       platforms: ['Twitter', 'LinkedIn'],
@@ -386,7 +388,7 @@ export class AutopilotEngine extends EventEmitter {
     
     if (this.config.autoPublish) {
       // Publish immediately
-      const results = await platformAPI.publishContent(content, [job.platform]);
+      const results = await platformAPI.publishContent(content, [job.platform], this.userId);
       const successfulResults = results.filter((r: any) => r.success);
       
       if (successfulResults.length > 0) {
@@ -420,7 +422,7 @@ export class AutopilotEngine extends EventEmitter {
     const { contentId, postId } = job.data;
     
     // Collect real engagement data
-    const analytics = await platformAPI.collectEngagementData(postId, job.platform);
+    const analytics = await platformAPI.collectEngagementData(postId, job.platform, this.userId);
     
     if (analytics) {
       // Store performance data for learning

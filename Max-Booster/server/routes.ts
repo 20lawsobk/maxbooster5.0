@@ -7389,8 +7389,8 @@ app.post("/api/autopilot/configure", requireAuth, async (req, res) => {
     let userEngines = userAutopilotInstances.get(userId);
     if (!userEngines) {
       userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(),
-        autonomous: AutonomousAutopilot.createForSocialAndAds()
+        autopilot: AutopilotEngine.createForSocialAndAds(userId),
+        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
       };
       userAutopilotInstances.set(userId, userEngines);
     }
@@ -7415,8 +7415,8 @@ app.get("/api/autopilot/status", requireAuth, async (req, res) => {
     let userEngines = userAutopilotInstances.get(userId);
     if (!userEngines) {
       userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(),
-        autonomous: AutonomousAutopilot.createForSocialAndAds()
+        autopilot: AutopilotEngine.createForSocialAndAds(userId),
+        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
       };
       userAutopilotInstances.set(userId, userEngines);
     }
@@ -7442,8 +7442,8 @@ app.post("/api/autopilot/start", requireAuth, async (req, res) => {
     let userEngines = userAutopilotInstances.get(userId);
     if (!userEngines) {
       userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(),
-        autonomous: AutonomousAutopilot.createForSocialAndAds()
+        autopilot: AutopilotEngine.createForSocialAndAds(userId),
+        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
       };
       userAutopilotInstances.set(userId, userEngines);
     }
@@ -7492,8 +7492,8 @@ app.post("/api/autopilot/autonomous/configure", requireAuth, async (req, res) =>
     let userEngines = userAutopilotInstances.get(userId);
     if (!userEngines) {
       userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(),
-        autonomous: AutonomousAutopilot.createForSocialAndAds()
+        autopilot: AutopilotEngine.createForSocialAndAds(userId),
+        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
       };
       userAutopilotInstances.set(userId, userEngines);
     }
@@ -7518,8 +7518,8 @@ app.get("/api/autopilot/autonomous/status", requireAuth, async (req, res) => {
     let userEngines = userAutopilotInstances.get(userId);
     if (!userEngines) {
       userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(),
-        autonomous: AutonomousAutopilot.createForSocialAndAds()
+        autopilot: AutopilotEngine.createForSocialAndAds(userId),
+        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
       };
       userAutopilotInstances.set(userId, userEngines);
     }
@@ -7545,8 +7545,8 @@ app.post("/api/autopilot/autonomous/start", requireAuth, async (req, res) => {
     let userEngines = userAutopilotInstances.get(userId);
     if (!userEngines) {
       userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(),
-        autonomous: AutonomousAutopilot.createForSocialAndAds()
+        autopilot: AutopilotEngine.createForSocialAndAds(userId),
+        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
       };
       userAutopilotInstances.set(userId, userEngines);
     }
@@ -7594,8 +7594,8 @@ app.get("/api/autopilot/social/status", requireAuth, async (req, res) => {
     let userEngines = userAutopilotInstances.get(userId);
     if (!userEngines) {
       userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(),
-        autonomous: AutonomousAutopilot.createForSocialAndAds()
+        autopilot: AutopilotEngine.createForSocialAndAds(userId),
+        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
       };
       userAutopilotInstances.set(userId, userEngines);
     }
@@ -7622,8 +7622,8 @@ app.post("/api/autopilot/social/start", requireAuth, async (req, res) => {
     let userEngines = userAutopilotInstances.get(userId);
     if (!userEngines) {
       userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(),
-        autonomous: AutonomousAutopilot.createForSocialAndAds()
+        autopilot: AutopilotEngine.createForSocialAndAds(userId),
+        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
       };
       userAutopilotInstances.set(userId, userEngines);
     }
@@ -7671,8 +7671,8 @@ app.get("/api/auto/social/status", requireAuth, async (req, res) => {
     let userEngines = userAutopilotInstances.get(userId);
     if (!userEngines) {
       userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(),
-        autonomous: AutonomousAutopilot.createForSocialAndAds()
+        autopilot: AutopilotEngine.createForSocialAndAds(userId),
+        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
       };
       userAutopilotInstances.set(userId, userEngines);
     }
@@ -7699,8 +7699,8 @@ app.post("/api/auto/social/start", requireAuth, async (req, res) => {
     let userEngines = userAutopilotInstances.get(userId);
     if (!userEngines) {
       userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(),
-        autonomous: AutonomousAutopilot.createForSocialAndAds()
+        autopilot: AutopilotEngine.createForSocialAndAds(userId),
+        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
       };
       userAutopilotInstances.set(userId, userEngines);
     }
