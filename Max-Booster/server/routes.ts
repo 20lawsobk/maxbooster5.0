@@ -3455,6 +3455,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Native Plugin Catalog
+  app.get('/api/studio/plugins', requireAuth, async (req, res) => {
+    try {
+      const { category } = req.query;
+      const plugins = await storage.getPluginCatalog(category as string | undefined);
+      res.json(plugins);
+    } catch (error: any) {
+      console.error('Error fetching plugin catalog:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Mix Bus Management
   app.get('/api/studio/projects/:projectId/mix-busses', requireAuth, async (req, res) => {
     try {
