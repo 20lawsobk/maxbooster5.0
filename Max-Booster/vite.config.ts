@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, splitVendorChunkPlugin } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
     runtimeErrorOverlay(),
+    splitVendorChunkPlugin(),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
@@ -30,6 +31,30 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    target: "es2019",
+    minify: "esbuild",
+    cssCodeSplit: true,
+    reportCompressedSize: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('wouter')) {
+              return 'vendor';
+            }
+            if (id.includes('recharts') || id.includes('victory')) {
+              return 'charts';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'ui';
+            }
+          }
+          if (id.includes('/components/studio/') || id.includes('/lib/audioEngine') || id.includes('/lib/studioStore')) {
+            return 'studio';
+          }
+        },
+      },
+    },
   },
   server: {
     fs: {

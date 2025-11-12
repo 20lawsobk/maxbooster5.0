@@ -34,6 +34,9 @@ const app = express();
 // Trust proxy for rate limiting accuracy
 app.set('trust proxy', 1);
 
+// Enable strong ETags for better caching
+app.set('etag', 'strong');
+
 // Security headers
 app.use(helmet({
   contentSecurityPolicy: {
@@ -88,6 +91,14 @@ const uploadLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Cache headers middleware for API routes
+const cacheHeadersMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  if (req.path.startsWith('/api/')) {
+    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+  }
+  next();
+};
+
 // Apply rate limiting
 // Apply strict auth limiter only to login/register endpoints (not logout or /me)
 app.use('/api/auth/login', authLimiter);
@@ -96,8 +107,20 @@ app.use('/api/auth/forgot-password', authLimiter);
 app.use('/api/projects/upload', uploadLimiter);
 app.use('/api', generalLimiter);
 
-// Compression for better performance
-app.use(compression());
+// Apply cache headers to API routes
+app.use('/api', cacheHeadersMiddleware);
+
+// Enhanced compression for better performance
+app.use(compression({
+  threshold: 1024,
+  level: 6,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
 
 // Request logging
 app.use(morgan('combined', {
