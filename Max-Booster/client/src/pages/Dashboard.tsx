@@ -7,6 +7,7 @@ import SimplifiedDashboard from '@/components/onboarding/SimplifiedDashboard';
 import FeatureDiscovery from '@/components/feature-discovery/FeatureDiscovery';
 import FeatureSpotlight from '@/components/feature-discovery/FeatureSpotlight';
 import { UserOverviewPanel } from '@/components/dashboard/UserOverviewPanel';
+import { SmartNextActionWidget } from '@/components/dashboard/SmartNextActionWidget';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -385,6 +386,9 @@ function DashboardContent({ user }: { user: any }) {
 
             {/* User Overview Panel */}
             <UserOverviewPanel user={user} />
+
+            {/* Smart Next Action Widget */}
+            <SmartNextActionWidget />
 
             {/* AI Performance Banner */}
             {aiInsights && (

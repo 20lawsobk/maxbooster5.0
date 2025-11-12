@@ -7840,6 +7840,132 @@ app.get("/api/dashboard/comprehensive", requireAuth, async (req, res) => {
   }
 });
 
+// Smart Next Action Widget
+app.get("/api/dashboard/next-action", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.user as any).id;
+    const user = req.user as any;
+    
+    const [projectsCount] = await db
+      .select({ count: count() })
+      .from(projects)
+      .where(eq(projects.userId, userId));
+    
+    const [tracksCount] = await db
+      .select({ count: count() })
+      .from(tracks)
+      .where(sql`${tracks.projectId} IN (SELECT id FROM ${projects} WHERE ${projects.userId} = ${userId})`);
+    
+    const [releasesCount] = await db
+      .select({ count: count() })
+      .from(releases)
+      .where(eq(releases.userId, userId));
+    
+    const [campaignsCount] = await db
+      .select({ count: count() })
+      .from(socialCampaigns)
+      .where(and(
+        eq(socialCampaigns.userId, userId),
+        sql`${socialCampaigns.status} != 'completed'`
+      ));
+    
+    const totalProjects = Number(projectsCount?.count || 0);
+    const totalTracks = Number(tracksCount?.count || 0);
+    const totalReleases = Number(releasesCount?.count || 0);
+    const totalCampaigns = Number(campaignsCount?.count || 0);
+    
+    const hasSocialMedia = !!(
+      user.facebookToken || 
+      user.instagramToken || 
+      user.twitterToken || 
+      user.youtubeToken || 
+      user.tiktokToken
+    );
+    
+    let recommendation;
+    
+    if (totalProjects === 0) {
+      recommendation = {
+        action: 'create_project',
+        title: 'Create Your First Project',
+        description: 'Start your music journey by creating your first project in the studio.',
+        ctaText: 'Go to Studio',
+        ctaLink: '/studio',
+        reason: 'Every great artist starts with a single project. Let\'s get you started!',
+        icon: 'Music',
+        priority: 'high'
+      };
+    } else if (totalTracks === 0) {
+      const [firstProject] = await db
+        .select()
+        .from(projects)
+        .where(eq(projects.userId, userId))
+        .orderBy(desc(projects.createdAt))
+        .limit(1);
+      
+      recommendation = {
+        action: 'add_tracks',
+        title: `Add Tracks to "${firstProject?.title || 'Your Project'}"`,
+        description: 'Upload or create audio tracks to bring your project to life.',
+        ctaText: 'Add Tracks',
+        ctaLink: `/studio?project=${firstProject?.id || ''}`,
+        reason: 'Your project needs audio content to share with the world.',
+        icon: 'Upload',
+        priority: 'high'
+      };
+    } else if (totalReleases === 0) {
+      recommendation = {
+        action: 'distribute',
+        title: 'Distribute Your Music',
+        description: 'Get your music on Spotify, Apple Music, and all major platforms.',
+        ctaText: 'Start Distribution',
+        ctaLink: '/distribution',
+        reason: 'Your music deserves to be heard! Distribute it to reach millions of listeners.',
+        icon: 'Globe',
+        priority: 'high'
+      };
+    } else if (!hasSocialMedia) {
+      recommendation = {
+        action: 'promote_social',
+        title: 'Connect Social Media',
+        description: 'Promote your music by connecting your social media accounts.',
+        ctaText: 'Connect Accounts',
+        ctaLink: '/social-media',
+        reason: 'Social media is essential for building your fanbase and promoting your releases.',
+        icon: 'Share2',
+        priority: 'medium'
+      };
+    } else if (totalCampaigns === 0) {
+      recommendation = {
+        action: 'launch_ads',
+        title: 'Launch Your First Ad Campaign',
+        description: 'Boost your reach with AI-powered advertising campaigns.',
+        ctaText: 'Create Campaign',
+        ctaLink: '/advertising',
+        reason: 'Advertising helps you reach new audiences and grow your fanbase faster.',
+        icon: 'Megaphone',
+        priority: 'medium'
+      };
+    } else {
+      recommendation = {
+        action: 'check_analytics',
+        title: 'Check Your Analytics',
+        description: 'Review your performance metrics and insights.',
+        ctaText: 'View Analytics',
+        ctaLink: '/analytics',
+        reason: 'Stay on top of your growth with detailed analytics and AI insights.',
+        icon: 'BarChart3',
+        priority: 'low'
+      };
+    }
+    
+    res.json(recommendation);
+  } catch (error) {
+    console.error('Error fetching next action:', error);
+    res.status(500).json({ error: 'Failed to fetch next action' });
+  }
+});
+
 // Analytics Overview with Caching
 app.get("/api/analytics/overview", requireAuth, async (req, res) => {
   try {
