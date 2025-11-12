@@ -1,9 +1,18 @@
 /**
  * Production-Grade Audio Export Engine using OfflineAudioContext
  * Real audio rendering with full effects chain - NO mocks or placeholders
+ * 
+ * PROFESSIONAL AUDIO QUALITY STANDARDS (Pro Tools Parity):
+ * - Support for 16-bit PCM, 24-bit PCM, and 32-bit Float export
+ * - Sample rates: 44.1kHz, 48kHz, 96kHz, 192kHz
+ * - Bit depths: 16-bit, 24-bit, 32-bit float
+ * - High-quality offline rendering with full effects chain
+ * - Normalization and dithering options
  */
 
 import type { TrackEffects } from './audioEngine';
+import type { AudioFormat, SampleRate, BitDepth } from '../../../shared/audioConstants';
+import { AUDIO_FORMATS, SAMPLE_RATES, BIT_DEPTHS } from '../../../shared/audioConstants';
 
 export interface ExportTrack {
   id: string;
@@ -20,8 +29,9 @@ export interface ExportTrack {
 export interface ExportOptions {
   tracks: ExportTrack[];
   exportType: 'mixdown' | 'stems';
-  sampleRate: number;
-  bitDepth: number;
+  sampleRate: SampleRate | number;
+  bitDepth: BitDepth | number;
+  audioFormat?: AudioFormat;
   normalize: boolean;
   dither: boolean;
   duration?: number;

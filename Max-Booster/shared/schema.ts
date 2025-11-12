@@ -14,6 +14,11 @@ export const paymentStatusEnum = pgEnum('payment_status', [
   'pending', 'processing', 'completed', 'failed', 'cancelled'
 ]);
 
+// Audio format types for professional audio quality
+export const audioFormatEnum = pgEnum('audio_format', [
+  'pcm16', 'pcm24', 'float32'
+]);
+
 // Users table - VARCHAR ID (existing database)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -117,6 +122,9 @@ export const projects = pgTable("projects", {
   key: varchar("key", { length: 10 }).default("C"),
   sampleRate: integer("sample_rate").default(48000),
   bitDepth: integer("bit_depth").default(24),
+  audioFormat: audioFormatEnum("audio_format").default("pcm24"),
+  maxTracks: integer("max_tracks").default(256),
+  bufferSize: integer("buffer_size").default(256),
   masterVolume: real("master_volume").default(0.8),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -1388,17 +1396,42 @@ export const schedules = pgTable("schedules", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Scheduled Post Batches - For bulk scheduling (Hootsuite parity)
+export const scheduledPostBatches = pgTable("scheduled_post_batches", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  totalPosts: integer("total_posts").notNull(),
+  processedPosts: integer("processed_posts").default(0),
+  successfulPosts: integer("successful_posts").default(0),
+  failedPosts: integer("failed_posts").default(0),
+  status: varchar("status", { length: 32 }).default("pending"),
+  validationErrors: jsonb("validation_errors"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+}, (table) => ({
+  userIdIdx: index("scheduled_post_batches_user_id_idx").on(table.userId),
+  statusIdx: index("scheduled_post_batches_status_idx").on(table.status),
+  createdAtIdx: index("scheduled_post_batches_created_at_idx").on(table.createdAt),
+  userStatusIdx: index("scheduled_post_batches_user_status_idx").on(table.userId, table.status),
+}));
+
 // Published Posts
 export const posts = pgTable("posts", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   campaignId: uuid("campaign_id").notNull(),
   scheduleId: uuid("schedule_id"),
+  batchId: uuid("batch_id"),
   platform: varchar("platform", { length: 32 }).notNull(),
   socialAccountId: uuid("social_account_id").notNull(),
   variantId: uuid("variant_id"),
+  content: text("content"),
+  mediaUrls: jsonb("media_urls"),
   status: varchar("status", { length: 32 }).default("scheduled"),
   externalPostId: varchar("external_post_id", { length: 256 }),
   error: text("error"),
+  retryCount: integer("retry_count").default(0),
   scheduledAt: timestamp("scheduled_at"),
   publishedAt: timestamp("published_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -1407,8 +1440,11 @@ export const posts = pgTable("posts", {
   platformIdx: index("posts_platform_idx").on(table.platform),
   statusIdx: index("posts_status_idx").on(table.status),
   socialAccountIdIdx: index("posts_social_account_id_idx").on(table.socialAccountId),
+  batchIdIdx: index("posts_batch_id_idx").on(table.batchId),
   campaignPlatformScheduledIdx: index("posts_campaign_platform_scheduled_idx").on(table.campaignId, table.platform, table.scheduledAt),
   socialAccountStatusIdx: index("posts_social_account_status_idx").on(table.socialAccountId, table.status),
+  batchStatusIdx: index("posts_batch_status_idx").on(table.batchId, table.status),
+  scheduledAtStatusIdx: index("posts_scheduled_at_status_idx").on(table.scheduledAt, table.status),
 }));
 
 // Social Metrics
@@ -3575,6 +3611,12 @@ export const insertScheduleSchema = createInsertSchema(schedules).omit({
   createdAt: true,
 });
 
+export const insertScheduledPostBatchSchema = createInsertSchema(scheduledPostBatches).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertPostSchema = createInsertSchema(posts).omit({
   id: true,
   createdAt: true,
@@ -4103,6 +4145,28 @@ export const generateContentSchema = z.object({
 export const generateFromUrlSchema = z.object({
   url: z.string().url(),
   platforms: z.array(z.string()).min(1),
+});
+
+export const bulkSchedulePostSchema = z.object({
+  posts: z.array(z.object({
+    platform: z.string().min(1),
+    content: z.string().min(1),
+    mediaUrls: z.array(z.string()).optional(),
+    scheduledAt: z.string().optional(),
+    socialAccountId: z.string().optional(),
+    campaignId: z.string().optional(),
+  })).min(1).max(500),
+  metadata: z.record(z.any()).optional(),
+});
+
+export const bulkValidatePostSchema = z.object({
+  posts: z.array(z.object({
+    platform: z.string().min(1),
+    content: z.string().min(1),
+    mediaUrls: z.array(z.string()).optional(),
+    scheduledAt: z.string().optional(),
+    socialAccountId: z.string().optional(),
+  })).min(1).max(500),
 });
 
 // Marketplace Validation Schemas

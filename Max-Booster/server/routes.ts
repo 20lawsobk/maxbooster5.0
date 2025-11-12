@@ -28,6 +28,7 @@ analyticsRedisClient.on('connect', () => console.log('✅ Analytics Redis connec
 import { setupReliabilityEndpoints } from "./routes/reliability-endpoints";
 import studioMarkersRouter from "./routes/studioMarkers";
 import distributionRoutes from "./routes/distribution";
+import socialBulkRoutes from "./routes/socialBulk";
 import { createSessionStore, getSessionConfig } from "./middleware/sessionConfig";
 import { ConnectionGuard } from './middleware/connectionGuard';
 import { globalRateLimiter, criticalEndpointLimiter } from './middleware/globalRateLimiter';
@@ -487,6 +488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register studio marker routes
   app.use('/api/studio', studioMarkersRouter);
   app.use('/api/distribution', distributionRoutes);
+  app.use('/api/social/bulk', socialBulkRoutes);
 
   // Authentication routes - Legacy registration blocked for payment-first workflow
   app.post('/api/auth/register', async (req, res) => {

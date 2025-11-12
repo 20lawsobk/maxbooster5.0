@@ -8,6 +8,19 @@ import { storageService } from './storageService.js';
 import os from 'os';
 import { queueService } from './queueService.js';
 import type { AudioConvertJobData, AudioMixJobData, AudioJobResult } from './queueService.js';
+import {
+  AUDIO_FORMATS,
+  SAMPLE_RATES,
+  BIT_DEPTHS,
+  FFMPEG_CODECS,
+  isSupportedSampleRate,
+  isSupportedBitDepth,
+  isSupportedFormat,
+  validateAudioConfig,
+  type AudioFormat,
+  type SampleRate,
+  type BitDepth,
+} from '../../shared/audioConstants.js';
 
 export interface JobResponse {
   jobId: string;
@@ -30,6 +43,35 @@ export interface AudioAnalysis {
 }
 
 export class AudioService {
+  /**
+   * Validate audio quality parameters
+   * Ensures sample rate, bit depth, and format are supported
+   */
+  validateAudioQuality(config: {
+    sampleRate?: number;
+    bitDepth?: number;
+    audioFormat?: string;
+  }): { valid: boolean; errors: string[] } {
+    return validateAudioConfig({
+      sampleRate: config.sampleRate,
+      bitDepth: config.bitDepth,
+      format: config.audioFormat,
+    });
+  }
+
+  /**
+   * Get FFmpeg codec for audio format
+   */
+  getFFmpegCodec(audioFormat: AudioFormat, bitDepth?: BitDepth): string {
+    if (audioFormat === AUDIO_FORMATS.FLOAT32) {
+      return FFMPEG_CODECS.float32;
+    } else if (audioFormat === AUDIO_FORMATS.PCM24) {
+      return FFMPEG_CODECS.pcm24;
+    } else {
+      return FFMPEG_CODECS.pcm16;
+    }
+  }
+
   async generateUploadUrl(userId: string, fileName: string, fileType: string): Promise<any> {
     try {
       // Generate a unique file ID and upload URL
@@ -239,15 +281,35 @@ export class AudioService {
     };
   }
 
-  async processAudioConversion(data: AudioConvertJobData): Promise<AudioJobResult> {
-    const { filePath: inputPath, format: outputFormat, quality = 'high' } = data;
+  async processAudioConversion(data: AudioConvertJobData & { 
+    sampleRate?: SampleRate; 
+    bitDepth?: BitDepth; 
+    audioFormat?: AudioFormat;
+  }): Promise<AudioJobResult> {
+    const { 
+      filePath: inputPath, 
+      format: outputFormat, 
+      quality = 'high',
+      sampleRate = SAMPLE_RATES.SR_48000,
+      bitDepth = BIT_DEPTHS.BD_24,
+      audioFormat = AUDIO_FORMATS.PCM24
+    } = data;
+    
     const tempOutputPath = path.join(os.tmpdir(), `converted_${randomUUID()}.${outputFormat}`);
     
     try {
-      console.log(`Converting ${inputPath} to ${outputFormat} format`);
+      console.log(`Converting ${inputPath} to ${outputFormat} format (${audioFormat}, ${sampleRate}Hz, ${bitDepth}-bit)`);
+      
+      // Validate audio configuration
+      const validation = this.validateAudioQuality({ sampleRate, bitDepth, audioFormat });
+      if (!validation.valid) {
+        throw new Error(`Invalid audio configuration: ${validation.errors.join(', ')}`);
+      }
       
       const options = {
-        sampleRate: 48000,
+        sampleRate,
+        bitDepth,
+        audioFormat,
         bitrate: quality === 'high' ? '320k' : quality === 'medium' ? '192k' : '128k',
         channels: 2
       };
@@ -255,13 +317,16 @@ export class AudioService {
       await new Promise<void>((resolve, reject) => {
         let command = ffmpeg(inputPath);
         
-        // Apply format-specific settings
+        // Apply format-specific settings with professional audio quality
         switch (outputFormat.toLowerCase()) {
           case 'wav':
+            // WAV supports PCM16, PCM24, and Float32
+            const wavCodec = this.getFFmpegCodec(audioFormat as AudioFormat, bitDepth);
             command = command
-              .audioCodec('pcm_s16le')
+              .audioCodec(wavCodec)
               .audioFrequency(options.sampleRate)
               .audioChannels(options.channels);
+            console.log(`  WAV export: ${wavCodec} @ ${options.sampleRate}Hz`);
             break;
           case 'mp3':
             command = command
