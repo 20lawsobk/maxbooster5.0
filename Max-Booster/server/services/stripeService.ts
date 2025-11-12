@@ -2,17 +2,31 @@ import Stripe from "stripe";
 import { storage } from "../storage";
 import { getStripePriceIds } from "./stripeSetup.js";
 
-// Defensive check: Fail fast if Stripe key is invalid
-const stripeKey = process.env.STRIPE_SECRET_KEY;
-if (!stripeKey || !stripeKey.startsWith('sk_')) {
+// Support both production and testing Stripe keys (same logic as routes.ts)
+let actualStripeKey: string | undefined;
+if (process.env.NODE_ENV === 'production') {
+  // Production: Only use STRIPE_SECRET_KEY
+  if (process.env.STRIPE_SECRET_KEY?.startsWith('sk_')) {
+    actualStripeKey = process.env.STRIPE_SECRET_KEY;
+  }
+} else {
+  // Development: Try TESTING_STRIPE_SECRET_KEY first, then STRIPE_SECRET_KEY
+  if (process.env.TESTING_STRIPE_SECRET_KEY?.startsWith('sk_')) {
+    actualStripeKey = process.env.TESTING_STRIPE_SECRET_KEY;
+  } else if (process.env.STRIPE_SECRET_KEY?.startsWith('sk_')) {
+    actualStripeKey = process.env.STRIPE_SECRET_KEY;
+  }
+}
+
+if (!actualStripeKey) {
   console.error('❌ STRIPE CONFIGURATION ERROR in stripeService.ts:');
-  console.error('   Missing or invalid STRIPE_SECRET_KEY.');
-  console.error('   Expected format: sk_test_... or sk_live_...');
-  console.error('   Current value prefix:', stripeKey?.substring(0, 7) || 'undefined');
+  console.error('   Missing or invalid Stripe secret key.');
+  console.error('   Expected: STRIPE_SECRET_KEY (production) or TESTING_STRIPE_SECRET_KEY (development)');
+  console.error('   Format: sk_test_... or sk_live_...');
   throw new Error('Invalid Stripe configuration - cannot initialize payment service');
 }
 
-const stripe = new Stripe(stripeKey, {
+const stripe = new Stripe(actualStripeKey, {
   apiVersion: "2025-08-27.basil",
 });
 

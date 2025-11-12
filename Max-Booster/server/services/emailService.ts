@@ -11,6 +11,32 @@ interface InvitationEmailData {
   inviteType: 'collaboration' | 'team' | 'general';
 }
 
+interface WelcomeEmailData {
+  firstName: string;
+  email: string;
+}
+
+interface PasswordResetEmailData {
+  firstName: string;
+  resetLink: string;
+  expiresIn: string;
+}
+
+interface DistributionNotificationData {
+  firstName: string;
+  releaseName: string;
+  platforms: string[];
+  status: 'submitted' | 'processing' | 'live' | 'failed';
+  errorMessage?: string;
+}
+
+interface SubscriptionEmailData {
+  firstName: string;
+  plan: string;
+  amount: string;
+  nextBillingDate?: string;
+}
+
 class EmailService {
   private isInitialized = false;
 
@@ -308,6 +334,268 @@ class EmailService {
       const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
       emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
       console.error('❌ Failed to send ticket status update email:', errorMessage);
+      return false;
+    }
+  }
+
+  async sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.warn('⚠️  SendGrid not initialized, skipping welcome email');
+      return false;
+    }
+
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'welcome@maxbooster.ai';
+    const html = `
+<!DOCTYPE html>
+<html>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+  <div style="background-color: #f3f4f6; padding: 40px 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px;">🎵 Welcome to Max Booster!</h1>
+      </div>
+      <div style="padding: 30px;">
+        <p>Hi ${data.firstName},</p>
+        <p>Welcome to <strong>Max Booster</strong> – your all-in-one music career management platform!</p>
+        <p>You now have access to:</p>
+        <ul style="color: #4b5563; line-height: 1.8;">
+          <li>🎹 <strong>Studio One-Inspired DAW</strong> – Professional music production in your browser</li>
+          <li>🌍 <strong>Distribution to 34+ Platforms</strong> – Spotify, Apple Music, YouTube Music, and more</li>
+          <li>📱 <strong>Social Media Management</strong> – Schedule posts across all platforms</li>
+          <li>💰 <strong>Marketplace</strong> – Sell beats, samples, and services</li>
+          <li>📊 <strong>Analytics</strong> – Track your growth and earnings</li>
+        </ul>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="https://maxbooster.ai/dashboard" style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px;">Go to Dashboard</a>
+        </div>
+        <p>Let's make some amazing music together! 🎶</p>
+        <p>Best,<br>The Max Booster Team</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    const emailData = {
+      to: data.email,
+      from: fromEmail,
+      subject: '🎵 Welcome to Max Booster - Your Music Career Starts Here!',
+      html,
+      text: `Hi ${data.firstName},\n\nWelcome to Max Booster!\n\nYou now have access to our complete platform including Studio, Distribution, Social Media Management, Marketplace, and Analytics.\n\nGet started: https://maxbooster.ai/dashboard\n\nBest,\nThe Max Booster Team`
+    };
+
+    const startTime = Date.now();
+    try {
+      await sgMail.send(emailData);
+      const deliveryTime = Date.now() - startTime;
+      emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
+      console.log(`📧 Welcome email sent to ${data.email}`);
+      return true;
+    } catch (error: any) {
+      const deliveryTime = Date.now() - startTime;
+      const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
+      emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
+      console.error('❌ Failed to send welcome email:', errorMessage);
+      return false;
+    }
+  }
+
+  async sendPasswordResetEmail(data: PasswordResetEmailData, to: string): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.warn('⚠️  SendGrid not initialized, skipping password reset email');
+      return false;
+    }
+
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'security@maxbooster.ai';
+    const html = `
+<!DOCTYPE html>
+<html>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+  <div style="background-color: #f3f4f6; padding: 40px 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px;">🔒 Password Reset Request</h1>
+      </div>
+      <div style="padding: 30px;">
+        <p>Hi ${data.firstName},</p>
+        <p>We received a request to reset your Max Booster password. Click the button below to create a new password:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${data.resetLink}" style="display: inline-block; padding: 12px 30px; background: #dc2626; color: white; text-decoration: none; border-radius: 6px;">Reset Password</a>
+        </div>
+        <p><strong>This link expires in ${data.expiresIn}.</strong></p>
+        <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;">
+          <p style="margin: 0; font-weight: bold;">⚠️ Security Notice:</p>
+          <ul style="margin: 10px 0 0 0;">
+            <li>If you didn't request this reset, please ignore this email</li>
+            <li>Never share this link with anyone</li>
+            <li>Max Booster will never ask for your password via email</li>
+          </ul>
+        </div>
+        <p style="word-break: break-all; font-size: 12px; color: #666;">Alternatively, copy this link: ${data.resetLink}</p>
+        <p>Best,<br>The Max Booster Team</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    const emailData = {
+      to,
+      from: fromEmail,
+      subject: '🔒 Reset Your Max Booster Password',
+      html,
+      text: `Hi ${data.firstName},\n\nWe received a request to reset your password.\n\nReset link: ${data.resetLink}\n\nThis link expires in ${data.expiresIn}.\n\nIf you didn't request this, please ignore this email.\n\nBest,\nThe Max Booster Team`
+    };
+
+    const startTime = Date.now();
+    try {
+      await sgMail.send(emailData);
+      const deliveryTime = Date.now() - startTime;
+      emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
+      console.log(`📧 Password reset email sent to ${to}`);
+      return true;
+    } catch (error: any) {
+      const deliveryTime = Date.now() - startTime;
+      const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
+      emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
+      console.error('❌ Failed to send password reset email:', errorMessage);
+      return false;
+    }
+  }
+
+  async sendDistributionNotification(data: DistributionNotificationData, to: string): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.warn('⚠️  SendGrid not initialized, skipping distribution notification');
+      return false;
+    }
+
+    const statusEmojis = {
+      submitted: '📤',
+      processing: '⚙️',
+      live: '🎉',
+      failed: '❌'
+    };
+
+    const statusTitles = {
+      submitted: 'Release Submitted',
+      processing: 'Release Processing',
+      live: 'Release is Live!',
+      failed: 'Distribution Failed'
+    };
+
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'distribution@maxbooster.ai';
+    const platformsTags = data.platforms.map(p => `<span style="display: inline-block; background: #e0e7ff; color: #4c51bf; padding: 5px 12px; border-radius: 12px; margin: 3px; font-size: 13px;">${p}</span>`).join('');
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+  <div style="background-color: #f3f4f6; padding: 40px 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px;">${statusEmojis[data.status]} ${statusTitles[data.status]}</h1>
+      </div>
+      <div style="padding: 30px;">
+        <p>Hi ${data.firstName},</p>
+        <p>Your release "<strong>${data.releaseName}</strong>" ${data.status === 'live' ? 'is now live!' : `status: ${data.status}`}</p>
+        <div style="background: white; padding: 15px; border-radius: 4px; margin: 15px 0;">
+          <strong>Platforms:</strong><br>
+          ${platformsTags}
+        </div>
+        ${data.status === 'failed' && data.errorMessage ? `
+        <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;">
+          <strong>Error Details:</strong><br>${data.errorMessage}
+        </div>
+        ` : ''}
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="https://maxbooster.ai/distribution" style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px;">View Distribution Status</a>
+        </div>
+        <p>Best,<br>The Max Booster Team</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    const emailData = {
+      to,
+      from: fromEmail,
+      subject: `${statusEmojis[data.status]} ${statusTitles[data.status]}: ${data.releaseName}`,
+      html,
+      text: `Hi ${data.firstName},\n\nYour release "${data.releaseName}" status: ${data.status}\n\nPlatforms: ${data.platforms.join(', ')}\n\n${data.errorMessage || ''}\n\nView status: https://maxbooster.ai/distribution\n\nBest,\nThe Max Booster Team`
+    };
+
+    const startTime = Date.now();
+    try {
+      await sgMail.send(emailData);
+      const deliveryTime = Date.now() - startTime;
+      emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
+      console.log(`📧 Distribution notification sent to ${to}`);
+      return true;
+    } catch (error: any) {
+      const deliveryTime = Date.now() - startTime;
+      const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
+      emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
+      console.error('❌ Failed to send distribution notification:', errorMessage);
+      return false;
+    }
+  }
+
+  async sendSubscriptionConfirmation(data: SubscriptionEmailData, to: string): Promise<boolean> {
+    if (!this.isInitialized) {
+      console.warn('⚠️  SendGrid not initialized, skipping subscription confirmation');
+      return false;
+    }
+
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'billing@maxbooster.ai';
+    const html = `
+<!DOCTYPE html>
+<html>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+  <div style="background-color: #f3f4f6; padding: 40px 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px;">🎉 Subscription Confirmed!</h1>
+      </div>
+      <div style="padding: 30px;">
+        <p>Hi ${data.firstName},</p>
+        <p>Thank you for subscribing to Max Booster! Your payment has been processed successfully.</p>
+        <div style="background: white; border: 2px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center;">
+          <h2 style="margin: 0; color: #667eea;">${data.plan}</h2>
+          <div style="font-size: 36px; font-weight: bold; color: #667eea; margin: 10px 0;">${data.amount}</div>
+          ${data.nextBillingDate ? `<p style="margin: 0; color: #666;">Next billing: ${data.nextBillingDate}</p>` : '<p style="margin: 0; color: #666;">Lifetime Access</p>'}
+        </div>
+        <p>You now have full access to all Max Booster features!</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="https://maxbooster.ai/dashboard" style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px;">Go to Dashboard</a>
+        </div>
+        <p>Best,<br>The Max Booster Team</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    const emailData = {
+      to,
+      from: fromEmail,
+      subject: '🎉 Welcome to Max Booster! Your Subscription is Active',
+      html,
+      text: `Hi ${data.firstName},\n\nThank you for subscribing to Max Booster!\n\nPlan: ${data.plan}\nAmount: ${data.amount}\n${data.nextBillingDate ? `Next billing: ${data.nextBillingDate}` : 'Lifetime Access'}\n\nView dashboard: https://maxbooster.ai/dashboard\n\nBest,\nThe Max Booster Team`
+    };
+
+    const startTime = Date.now();
+    try {
+      await sgMail.send(emailData);
+      const deliveryTime = Date.now() - startTime;
+      emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
+      console.log(`📧 Subscription confirmation sent to ${to}`);
+      return true;
+    } catch (error: any) {
+      const deliveryTime = Date.now() - startTime;
+      const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
+      emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
+      console.error('❌ Failed to send subscription confirmation:', errorMessage);
       return false;
     }
   }
