@@ -46,10 +46,6 @@ externalPort = 3001
 localPort = 40077
 externalPort = 3000
 
-[[ports]]
-localPort = 42875
-externalPort = 4200
-
 [deployment]
 deploymentTarget = "autoscale"
 run = ["bash", "-c", "cd Max-Booster && npm run start"]
