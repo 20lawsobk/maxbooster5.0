@@ -60,9 +60,9 @@ import {
   X
 } from 'lucide-react';
 import { SiFacebook, SiInstagram, SiYoutube, SiTiktok, SiLinkedin, SiThreads, SiGoogle } from 'react-icons/si';
-import { ContentCalendarView } from '@/components/Social/ContentCalendarView';
-import { SchedulePostDialog, SchedulePostData } from '@/components/Social/SchedulePostDialog';
-import { PostTimelineView } from '@/components/Social/PostTimelineView';
+import { ContentCalendarView } from '@/components/social/ContentCalendarView';
+import { SchedulePostDialog, SchedulePostData } from '@/components/social/SchedulePostDialog';
+import { PostTimelineView } from '@/components/social/PostTimelineView';
 
 // Social Media Platform Interfaces
 interface SocialPlatform {
