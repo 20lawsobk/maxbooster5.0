@@ -59,14 +59,14 @@ export default function Landing() {
             90-Day Money Back Guarantee
           </Badge>
           <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-8">
-            Boost Your Music Career with
+            Replace $45,000+/year in Tools with
             <span className="block bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-              AI-Powered Tools
+              Autonomous AI Systems
             </span>
           </h1>
           <p className="text-xl text-gray-600 mb-6 max-w-3xl mx-auto">
-            The complete platform for music artists. Create, distribute, promote, and monetize your music 
-            with cutting-edge AI assistance, analytics, and automation tools.
+            Professional AI Studio • Autonomous Social Media Autopilot • Zero-Cost Advertisement Autopilot • 
+            Beat Marketplace • Analytics • Distribution (Dec 2025) — all for $468/year
           </p>
           <p className="text-lg font-medium text-green-600 mb-8">
             Purchase with confidence • 90-day money-back guarantee
@@ -143,14 +143,14 @@ export default function Landing() {
               },
               {
                 icon: Share2,
-                title: "Social Media Automation",
-                description: "Auto-generate and schedule optimized posts across Facebook, Instagram, TikTok, and more.",
+                title: "Social Media Autopilot (24/7)",
+                description: "Autonomous AI creates content, posts, and optimizes engagement 24/7 — zero manual work required.",
                 color: "from-green-500 to-teal-500"
               },
               {
                 icon: Megaphone,
-                title: "Smart Advertising",
-                description: "AI-powered ad campaigns that boost performance by 100% across all major platforms.",
+                title: "Advertisement Autopilot (Zero Cost)",
+                description: "Autonomous AI creates and optimizes campaigns with organic amplification — no ad spend required.",
                 color: "from-orange-500 to-red-500"
               },
               {

@@ -16,19 +16,19 @@ export default function Pricing() {
       description: 'Perfect for getting started',
       popular: false,
       features: [
-        'Complete AI-Powered Studio Access',
-        'Unlimited Active Projects',
+        'Professional AI Music Studio (DAW)',
+        'Autonomous Social Media Autopilot (24/7)',
+        'Autonomous Advertisement Autopilot (Zero Ad Spend)',
+        'Beat Marketplace & Licensing',
         'Professional Analytics Dashboard',
-        'Advanced Social Media Management',
-        'Distribution to All Major Platforms',
-        'AI Mastering & Audio Enhancement',
-        'Royalty Tracking & Analytics',
-        'Beat Marketplace Access',
-        'Custom Branding & White-label',
+        'Distribution to 100+ Platforms (Dec 2025)',
+        'AI Mixing & Mastering',
+        'Royalty Tracking & Splits',
+        'Email Marketing System',
+        'Unlimited Active Projects',
         'Premium Content Library',
-        'Early Access to New Features',
-        'Email & Chat Support',
-        'Cloud Storage'
+        'Cloud Storage',
+        'Email & Chat Support'
       ]
     },
     {
@@ -41,19 +41,19 @@ export default function Pricing() {
       description: 'Save $120/year with annual billing',
       popular: true,
       features: [
-        'Complete AI-Powered Studio Access',
-        'Unlimited Active Projects',
+        'Professional AI Music Studio (DAW)',
+        'Autonomous Social Media Autopilot (24/7)',
+        'Autonomous Advertisement Autopilot (Zero Ad Spend)',
+        'Beat Marketplace & Licensing',
         'Professional Analytics Dashboard',
-        'Advanced Social Media Management',
-        'Distribution to All Major Platforms',
-        'AI Mastering & Audio Enhancement',
-        'Royalty Tracking & Analytics',
-        'Beat Marketplace Access',
-        'Custom Branding & White-label',
+        'Distribution to 100+ Platforms (Dec 2025)',
+        'AI Mixing & Mastering',
+        'Royalty Tracking & Splits',
+        'Email Marketing System',
+        'Unlimited Active Projects',
         'Premium Content Library',
-        'Early Access to New Features',
-        'Email & Chat Support',
-        'Cloud Storage'
+        'Cloud Storage',
+        'Email & Chat Support'
       ]
     },
     {
@@ -64,19 +64,19 @@ export default function Pricing() {
       description: 'Pay once, access forever',
       popular: false,
       features: [
-        'Complete AI-Powered Studio Access',
-        'Unlimited Active Projects',
+        'Professional AI Music Studio (DAW)',
+        'Autonomous Social Media Autopilot (24/7)',
+        'Autonomous Advertisement Autopilot (Zero Ad Spend)',
+        'Beat Marketplace & Licensing',
         'Professional Analytics Dashboard',
-        'Advanced Social Media Management',
-        'Distribution to All Major Platforms',
-        'AI Mastering & Audio Enhancement',
-        'Royalty Tracking & Analytics',
-        'Beat Marketplace Access',
-        'Custom Branding & White-label',
+        'Distribution to 100+ Platforms (Dec 2025)',
+        'AI Mixing & Mastering',
+        'Royalty Tracking & Splits',
+        'Email Marketing System',
+        'Unlimited Active Projects',
         'Premium Content Library',
-        'Early Access to New Features',
-        'Email & Chat Support',
-        'Cloud Storage'
+        'Cloud Storage',
+        'Email & Chat Support'
       ]
     }
   ];
@@ -157,8 +157,8 @@ export default function Pricing() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Choose the plan that fits your needs. All plans include the core AI features, 
-            studio access, and music distribution capabilities.
+            Replace $45,000+/year in tools and labor. Get professional AI studio, autonomous autopilots 
+            for social media & advertising, marketplace, analytics, and distribution (Dec 2025).
           </p>
           <div className="flex items-center justify-center space-x-4 flex-wrap gap-2">
             <div className="flex items-center text-sm text-gray-600 font-medium">
@@ -291,15 +291,15 @@ export default function Pricing() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {[
-                    { feature: 'Complete AI-Powered Studio', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'Active Projects', monthly: 'Unlimited', yearly: 'Unlimited', lifetime: 'Unlimited' },
+                    { feature: 'AI Music Studio (DAW)', monthly: true, yearly: true, lifetime: true },
+                    { feature: 'Social Media Autopilot (24/7)', monthly: true, yearly: true, lifetime: true },
+                    { feature: 'Advertisement Autopilot (Zero Cost)', monthly: true, yearly: true, lifetime: true },
+                    { feature: 'Beat Marketplace & Licensing', monthly: true, yearly: true, lifetime: true },
                     { feature: 'Professional Analytics', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'Social Media Management', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'Distribution to All Platforms', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'AI Mastering & Enhancement', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'Beat Marketplace Access', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'Custom Branding', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'Premium Content Library', monthly: true, yearly: true, lifetime: true },
+                    { feature: 'Distribution (Dec 2025)', monthly: true, yearly: true, lifetime: true },
+                    { feature: 'AI Mixing & Mastering', monthly: true, yearly: true, lifetime: true },
+                    { feature: 'Email Marketing', monthly: true, yearly: true, lifetime: true },
+                    { feature: 'Active Projects', monthly: 'Unlimited', yearly: 'Unlimited', lifetime: 'Unlimited' },
                     { feature: 'Cloud Storage', monthly: 'Included', yearly: 'Included', lifetime: 'Included' },
                     { feature: 'Support Level', monthly: 'Email & Chat', yearly: 'Email & Chat', lifetime: 'Email & Chat' },
                   ].map((row, index) => (

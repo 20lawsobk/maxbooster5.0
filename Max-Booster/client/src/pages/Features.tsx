@@ -87,22 +87,25 @@ export default function Features() {
         </div>
       </section>
 
-      {/* Distribution Features */}
+      {/* Distribution Features - COMING DECEMBER 2025 */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Globe className="h-12 w-12 mx-auto mb-4 text-green-600" />
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Distribution & Royalties</h2>
-            <p className="text-lg text-gray-600">Get your music on every major platform</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Distribution & Royalties
+              <span className="block text-sm text-green-600 mt-2">🎄 Launching December 25, 2025</span>
+            </h2>
+            <p className="text-lg text-gray-600">Get your music on 100+ platforms including Spotify, Apple Music, and YouTube</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { title: "Global Distribution", description: "Spotify, Apple Music, YouTube Music, Amazon, and 150+ more" },
+              { title: "Global Distribution", description: "Spotify, Apple Music, YouTube Music, Amazon, TikTok, and 100+ more platforms" },
               { title: "Instant Payouts", description: "Stripe integration for real-time royalty payments" },
               { title: "Split Payments", description: "Automatic revenue sharing with collaborators" },
-              { title: "Release Tracking", description: "Monitor distribution status across all DSPs" },
+              { title: "Release Tracking", description: "Monitor distribution status across all DSPs in real-time" },
               { title: "ISRC/UPC Generation", description: "Automatic code generation for all releases" },
-              { title: "Analytics Dashboard", description: "Real-time streaming and revenue analytics" }
+              { title: "Analytics Dashboard", description: "Real-time streaming and revenue analytics across all platforms" }
             ].map((feature, i) => (
               <Card key={i} className="hover-lift">
                 <CardContent className="p-6">
@@ -115,22 +118,29 @@ export default function Features() {
         </div>
       </section>
 
-      {/* Social & Advertising */}
+      {/* Social & Advertising - AUTONOMOUS AUTOPILOTS */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Share2 className="h-12 w-12 mx-auto mb-4 text-purple-600" />
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Social Media & Advertising</h2>
-            <p className="text-lg text-gray-600">AI-powered promotion that actually works</p>
+            <div className="inline-flex items-center space-x-3 mb-4">
+              <Zap className="h-12 w-12 text-purple-600 animate-pulse" />
+              <Share2 className="h-12 w-12 text-blue-600" />
+              <Megaphone className="h-12 w-12 text-pink-600" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Autonomous AI Autopilots
+              <span className="block text-sm text-purple-600 mt-2">Replace $40,000+/year in labor</span>
+            </h2>
+            <p className="text-lg text-gray-600">True "set and forget" AI systems that work 24/7 while you sleep</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { title: "Multi-Platform Posting", description: "Facebook, Instagram, X, TikTok, YouTube, LinkedIn, Threads, Google Business" },
-              { title: "AI Content Generation", description: "Generate text, images, videos, and audio from prompts or URLs" },
-              { title: "A/B Testing", description: "Automated variant testing with reinforcement learning optimization" },
-              { title: "Smart Scheduling", description: "AI-optimized posting times for maximum engagement" },
-              { title: "Campaign Analytics", description: "Real-time metrics tracking across all platforms" },
-              { title: "Zero Ad Spend", description: "Maximize organic reach without paid advertising" }
+              { title: "Social Media Autopilot (24/7)", description: "Autonomously creates content, posts, optimizes timing, learns from metrics, adapts to trends - zero manual work required" },
+              { title: "Advertisement Autopilot (Zero Cost)", description: "Autonomously creates and optimizes campaigns, organic amplification, network effects, viral mechanics - no ad spend" },
+              { title: "Multi-Platform Integration", description: "Facebook, Instagram, X, TikTok, YouTube, LinkedIn, Threads, Google Business" },
+              { title: "AI Content Generation", description: "Generate text, images, videos, and audio from prompts or URLs with DALL-E, ChatGPT, and more" },
+              { title: "A/B Testing & Learning", description: "Automated variant testing with reinforcement learning that continuously improves performance" },
+              { title: "Real-Time Analytics", description: "Track engagement, reach, conversions across all platforms with actionable insights" }
             ].map((feature, i) => (
               <Card key={i} className="hover-lift">
                 <CardContent className="p-6">

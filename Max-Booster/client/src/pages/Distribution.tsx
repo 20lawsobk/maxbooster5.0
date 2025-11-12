@@ -786,8 +786,37 @@ export default function Distribution() {
   return (
     <AppLayout>
           <div className="max-w-7xl mx-auto space-y-8">
+            {/* Coming Soon Banner */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-200 dark:border-green-700 rounded-2xl p-8 shadow-xl">
+              <div className="flex items-center justify-center space-x-6">
+                <Sparkles className="h-16 w-16 text-green-600 dark:text-green-400 flex-shrink-0 animate-pulse" />
+                <div className="text-center">
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                    🎄 Distribution Coming December 25, 2025
+                  </h2>
+                  <p className="text-lg text-gray-700 dark:text-gray-300 mb-4">
+                    We're finalizing partnerships with Spotify, Apple Music, YouTube Music, and 100+ platforms. 
+                    In the meantime, enjoy full access to our <strong>AI Music Studio</strong>, <strong>Autonomous Social Media Autopilot</strong>, 
+                    <strong>Zero-Cost Advertisement Autopilot</strong>, <strong>Beat Marketplace</strong>, and <strong>Professional Analytics</strong>!
+                  </p>
+                  <div className="flex items-center justify-center space-x-3 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                      <span>Early subscribers get lifetime access</span>
+                    </div>
+                    <span>•</span>
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 mr-2 text-blue-500" />
+                      <span>Coming in ~6 weeks</span>
+                    </div>
+                  </div>
+                </div>
+                <Sparkles className="h-16 w-16 text-green-600 dark:text-green-400 flex-shrink-0 animate-pulse" />
+              </div>
+            </div>
+
             {/* Header Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200/60 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200/60 dark:border-gray-700 opacity-60">
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
