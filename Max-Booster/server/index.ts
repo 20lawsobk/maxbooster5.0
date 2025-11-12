@@ -91,11 +91,35 @@ const uploadLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Cache headers middleware for API routes
+// Cache headers middleware for API routes (SAFE: only for non-personalized GET endpoints)
 const cacheHeadersMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  if (req.path.startsWith('/api/')) {
-    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+  // Only cache GET and HEAD requests (never cache mutations)
+  // HEAD must be treated same as GET since they share HTTP caches
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    return next();
   }
+  
+  // IMPORTANT: req.path doesn't include /api prefix when middleware is mounted at /api
+  // So we check the path WITHOUT the /api prefix
+  const publicEndpoints = [
+    '/studio/plugins', // Plugin catalog (same for all users) - no /api prefix!
+  ];
+  
+  // Check if endpoint is in public whitelist
+  const isPublicEndpoint = publicEndpoints.some(endpoint => req.path.startsWith(endpoint));
+  
+  if (isPublicEndpoint) {
+    // Public endpoints can use shared caching
+    res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+  } else {
+    // All other authenticated endpoints use private caching only
+    // This prevents CDN/shared caching of personalized data
+    res.set('Cache-Control', 'private, max-age=60, stale-while-revalidate=300');
+    // Use vary() to append without overwriting existing Vary headers
+    res.vary('Authorization');
+    res.vary('Cookie'); // Also vary by cookie since we use session cookies
+  }
+  
   next();
 };
 
