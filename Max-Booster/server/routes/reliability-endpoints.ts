@@ -7,7 +7,7 @@ import { maxBooster247 } from '../reliability-system';
 import { getQueryTelemetry } from '../db';
 
 // Enhanced health check endpoints for 24/7 monitoring
-export function setupReliabilityEndpoints(app: Express): void {
+export function setupReliabilityEndpoints(app: Express, requireAuth?: any): void {
   
   // System health dashboard - comprehensive status
   app.get('/api/system/health', (req: Request, res: Response) => {
@@ -32,10 +32,10 @@ export function setupReliabilityEndpoints(app: Express): void {
         },
         database: {
           queries: {
-            total: queryMetrics.totalQueries,
-            slow: queryMetrics.slowQueries,
+            total: queryMetrics.windowedQueries,
+            slow: queryMetrics.windowedSlow,
             p95Ms: queryMetrics.p95Latency,
-            avgMs: queryMetrics.averageTime
+            avgMs: queryMetrics.windowedAverage
           }
         }
       });
@@ -157,16 +157,19 @@ export function setupReliabilityEndpoints(app: Express): void {
     }
   });
 
-  // Database query telemetry metrics
-  app.get('/api/system/database/metrics', (req: Request, res: Response) => {
+  // Database query telemetry metrics (authenticated users only for security)
+  const metricsHandler = requireAuth ? requireAuth : (req: any, res: any, next: any) => next();
+  app.get('/api/system/database/metrics', metricsHandler, (req: Request, res: Response) => {
     try {
       const metrics = getQueryTelemetry();
       
       // Generate recommendations based on metrics
       const recommendations: string[] = [];
       
-      if (metrics.slowQueries > 0) {
-        const slowPercentage = (metrics.slowQueries / metrics.totalQueries) * 100;
+      if (metrics.windowedSlow > 0) {
+        const slowPercentage = metrics.windowedQueries > 0 
+          ? (metrics.windowedSlow / metrics.windowedQueries) * 100 
+          : 0;
         if (slowPercentage > 10) {
           recommendations.push('HIGH: Over 10% of queries are slow (>100ms). Consider adding database indexes or optimizing query logic.');
         } else if (slowPercentage > 5) {
@@ -182,36 +185,47 @@ export function setupReliabilityEndpoints(app: Express): void {
         recommendations.push('MEDIUM: P95 latency is between 100-200ms. Consider query optimization.');
       }
       
-      if (metrics.averageTime > 50) {
+      if (metrics.windowedAverage > 50) {
         recommendations.push('MEDIUM: Average query time exceeds 50ms. Review query efficiency.');
       }
       
-      if (metrics.totalQueries === 0) {
+      if (metrics.windowedQueries === 0) {
         recommendations.push('INFO: No queries recorded in the last 15 minutes. System may be idle or telemetry just started.');
       }
       
       res.json({
         status: 'success',
         metrics: {
-          totalQueries: metrics.totalQueries,
-          slowQueries: metrics.slowQueries,
-          slowQueryPercentage: metrics.totalQueries > 0 
-            ? Math.round((metrics.slowQueries / metrics.totalQueries) * 10000) / 100 
-            : 0,
-          p95LatencyMs: metrics.p95Latency,
-          averageTimeMs: metrics.averageTime,
+          windowed: {
+            totalQueries: metrics.windowedQueries,
+            slowQueries: metrics.windowedSlow,
+            slowQueryPercentage: metrics.windowedQueries > 0 
+              ? Math.round((metrics.windowedSlow / metrics.windowedQueries) * 10000) / 100 
+              : 0,
+            p95LatencyMs: metrics.p95Latency,
+            averageTimeMs: metrics.windowedAverage,
+            windowMinutes: metrics.windowMinutes
+          },
+          lifetime: {
+            totalQueries: metrics.lifetimeTotal,
+            slowQueries: metrics.lifetimeSlow,
+            slowQueryPercentage: metrics.lifetimeTotal > 0 
+              ? Math.round((metrics.lifetimeSlow / metrics.lifetimeTotal) * 10000) / 100 
+              : 0,
+            averageTimeMs: metrics.lifetimeAverage
+          },
           slowestQuery: metrics.slowestQuery ? {
-            sql: metrics.slowestQuery.sql,
+            sqlHash: metrics.slowestQuery.sqlHash,
             durationMs: metrics.slowestQuery.duration
           } : null,
-          windowMinutes: metrics.windowMinutes,
           lastRefresh: metrics.lastRefresh
         },
         recommendations,
         monitoring: {
           telemetryStatus: 'active',
-          measurementMethod: 'instrumented pool with actual query timing',
-          slowQueryThreshold: '100ms'
+          measurementMethod: 'instrumented pool with ring buffer (bounded memory)',
+          slowQueryThreshold: '100ms',
+          securityNote: 'SQL text hashed for security - no raw SQL exposed'
         }
       });
     } catch (error) {

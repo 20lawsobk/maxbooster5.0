@@ -11255,7 +11255,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   });
 
   // 24/7 Reliability monitoring endpoints
-  setupReliabilityEndpoints(app);
+  setupReliabilityEndpoints(app, requireAuth);
 
   // Health endpoint for agent monitoring
   app.get('/health', (req, res) => {

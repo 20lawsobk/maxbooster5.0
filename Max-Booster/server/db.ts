@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
 import { config } from './config/defaults.js';
+import { createHash } from 'crypto';
 
 neonConfig.webSocketConstructor = ws;
 
@@ -13,6 +14,10 @@ if (!config.database.url) {
 }
 
 // Database Query Telemetry with bounded ring buffer (O(1) memory, O(1) updates)
+// NOTE: Current implementation scales to ~1M QPM. For multi-billion QPM (10B users):
+// - Increase sampling tiers to 1-in-10k/100k
+// - Scale ring buffer size with sample rate OR use per-tier reservoirs
+// - Target: <1000 writes/sec overhead, preserve 15-min window fidelity
 interface QueryRecord {
   timestamp: number;
   sqlHash: string; // Only store hash for security
@@ -29,26 +34,23 @@ class QueryTelemetry {
   private lifetimeSlow = 0;
   private runningSum = 0;
   private slowestEver: { sqlHash: string; duration: number } | null = null;
+  
+  // Sampling for high-QPS scenarios (store 1 in N queries)
+  private sampleRate = 1; // Start with 100% sampling
+  private queriesSinceLastSample = 0;
+  private trackingStartTime = Date.now(); // Fixed timestamp for QPS calculation
 
   private hashSql(sql: string): string {
-    // Simple hash for SQL identification without exposing content
-    let hash = 0;
-    for (let i = 0; i < Math.min(sql.length, 100); i++) {
-      hash = ((hash << 5) - hash) + sql.charCodeAt(i);
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    return `sql_${Math.abs(hash).toString(16)}`;
+    // Cryptographic hash for SQL identification - prevents collision spoofing
+    const hash = createHash('sha256').update(sql).digest('hex');
+    return `sql_${hash.substring(0, 16)}`; // First 16 chars of SHA-256
   }
 
   recordQuery(sql: string, duration: number): void {
     const now = Date.now();
     const sqlHash = this.hashSql(sql);
     
-    // Add to ring buffer (overwrites oldest when full)
-    this.ringBuffer[this.bufferIndex] = { timestamp: now, sqlHash, duration };
-    this.bufferIndex = (this.bufferIndex + 1) % this.maxSize;
-    
-    // Update running aggregates
+    // Update running aggregates (always track for accurate lifetime stats)
     this.lifetimeTotal++;
     this.runningSum += duration;
     
@@ -60,6 +62,35 @@ class QueryTelemetry {
     // Track slowest query
     if (!this.slowestEver || duration > this.slowestEver.duration) {
       this.slowestEver = { sqlHash, duration };
+    }
+    
+    // Adaptive sampling: At high QPS, sample queries instead of storing all
+    // This keeps memory bounded while preserving statistical accuracy
+    this.queriesSinceLastSample++;
+    
+    // Auto-adjust sample rate based on QPS (every 10,000 queries)
+    if (this.lifetimeTotal % 10000 === 0) {
+      const elapsedMs = Math.max(1, Date.now() - this.trackingStartTime);
+      const avgQueriesPerMinute = (this.lifetimeTotal / elapsedMs) * 60000;
+      
+      if (avgQueriesPerMinute > 1000000) { // >1M QPM = extremely high load
+        this.sampleRate = 1000; // Sample 1 in 1000 queries
+      } else if (avgQueriesPerMinute > 100000) { // >100K QPM = very high load
+        this.sampleRate = 100; // Sample 1 in 100 queries
+      } else if (avgQueriesPerMinute > 10000) { // >10K QPM = high load
+        this.sampleRate = 10; // Sample 1 in 10 queries
+      } else if (avgQueriesPerMinute > 1000) { // >1K QPM = medium load
+        this.sampleRate = 5; // Sample 1 in 5 queries
+      } else {
+        this.sampleRate = 1; // Sample all queries at low load
+      }
+    }
+    
+    // Add to ring buffer with sampling (overwrites oldest when full)
+    if (this.queriesSinceLastSample >= this.sampleRate) {
+      this.ringBuffer[this.bufferIndex] = { timestamp: now, sqlHash, duration };
+      this.bufferIndex = (this.bufferIndex + 1) % this.maxSize;
+      this.queriesSinceLastSample = 0;
     }
   }
 
