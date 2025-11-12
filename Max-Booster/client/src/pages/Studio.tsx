@@ -62,6 +62,7 @@ import { TransportBar } from '@/components/studio/TransportBar';
 import { BrowserPanel } from '@/components/studio/BrowserPanel';
 import { InspectorPanel } from '@/components/studio/InspectorPanel';
 import { RoutingMatrix } from '@/components/studio/RoutingMatrix';
+import StudioTutorial from '@/components/studio/StudioTutorial';
 
 const TRACK_COLORS = [
   '#4ade80', '#60a5fa', '#f87171', '#fbbf24', '#a78bfa',
@@ -199,6 +200,7 @@ export default function Studio() {
   const [showAnalysisPanel, setShowAnalysisPanel] = useState(false);
   const [visualizerMode, setVisualizerMode] = useState<'waveform' | 'spectrum'>('waveform');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dawContainerRef = useRef<HTMLDivElement>(null);
@@ -233,6 +235,11 @@ export default function Studio() {
   const { data: tracks = [], isLoading: isLoadingTracks } = useQuery<StudioTrack[]>({
     queryKey: ['/api/studio/projects', selectedProject?.id, 'tracks'],
     enabled: !!selectedProject,
+  });
+
+  const { data: userPreferences } = useQuery<any>({
+    queryKey: ['/api/user/preferences'],
+    enabled: !!user,
   });
 
   const { data: samples = [] } = useQuery<any[]>({ queryKey: ['/api/studio/samples'] });
@@ -694,6 +701,18 @@ export default function Studio() {
       setIsLyricsLoaded(true);
     }
   }, [projectLyrics]);
+
+  useEffect(() => {
+    if (userPreferences && selectedProject) {
+      const tutorialCompleted = userPreferences.tutorialCompleted?.studio;
+      if (!tutorialCompleted) {
+        const timer = setTimeout(() => {
+          setShowTutorial(true);
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [userPreferences, selectedProject]);
 
   // Load project from URL parameter on mount
   useEffect(() => {
@@ -1352,6 +1371,7 @@ export default function Studio() {
               onToolSelect={() => {}}
               onZoomIn={() => setZoom(z => Math.min(z * 1.2, 5))}
               onZoomOut={() => setZoom(z => Math.max(z / 1.2, 0.1))}
+              onShowTutorial={() => setShowTutorial(true)}
               onZoomReset={() => setZoom(1)}
               onProjectChange={(projectId) => {
                 const project = projects.find((p: any) => p.id === projectId);
@@ -1561,7 +1581,7 @@ export default function Studio() {
                                 </Button>
                               </div>
                             </div>
-                            <div className="flex-1 bg-[#1a1a1a] relative">
+                            <div className="flex-1 bg-[#1a1a1a] relative timeline-container">
                               <Timeline
                                 currentTime={controller.transport.currentTime}
                                 loopEnabled={controller.transport.loopEnabled}
@@ -1599,7 +1619,7 @@ export default function Studio() {
                               </div>
                             </div>
                           )}
-                          <ScrollArea className="flex-1">
+                          <ScrollArea className="flex-1 track-list-container">
                             <TrackList
                               tracks={displayTracks}
                               trackClips={controller.trackClips}
@@ -1617,15 +1637,17 @@ export default function Studio() {
                           </ScrollArea>
                         </div>
                       ) : (
-                        <MixerPanel
-                          tracks={displayTracks}
-                          projectId={selectedProject?.id}
-                          onMuteToggle={handleMuteToggle}
-                          onSoloToggle={handleSoloToggle}
-                          onVolumeChange={handleVolumeChange}
-                          onPanChange={handlePanChange}
-                          onMasterVolumeChange={handleMasterVolumeChange}
-                        />
+                        <div className="mixer-panel h-full">
+                          <MixerPanel
+                            tracks={displayTracks}
+                            projectId={selectedProject?.id}
+                            onMuteToggle={handleMuteToggle}
+                            onSoloToggle={handleSoloToggle}
+                            onVolumeChange={handleVolumeChange}
+                            onPanChange={handlePanChange}
+                            onMasterVolumeChange={handleMasterVolumeChange}
+                          />
+                        </div>
                       )}
                     </div>
 
@@ -1662,22 +1684,24 @@ export default function Studio() {
           }
           
           browser={
-            browserVisible ? <BrowserPanel /> : null
+            browserVisible ? <div className="browser-panel h-full"><BrowserPanel /></div> : null
           }
           
           dock={
-            <TransportBar
-              armedTracksCount={displayTracks.filter(t => t.armed).length}
-              onUndo={() => console.log('Undo')}
-              onRedo={() => console.log('Redo')}
-              canUndo={false}
-              canRedo={false}
-              onPlay={handlePlay}
-              onPause={handlePause}
-              onStop={handleStop}
-              onRecord={() => controller.transport.isRecording ? controller.stopRecording() : controller.startRecording()}
-              onSeek={(time) => controller.seek(time)}
-            />
+            <div className="transport-container">
+              <TransportBar
+                armedTracksCount={displayTracks.filter(t => t.armed).length}
+                onUndo={() => console.log('Undo')}
+                onRedo={() => console.log('Redo')}
+                canUndo={false}
+                canRedo={false}
+                onPlay={handlePlay}
+                onPause={handlePause}
+                onStop={handleStop}
+                onRecord={() => controller.transport.isRecording ? controller.stopRecording() : controller.startRecording()}
+                onSeek={(time) => controller.seek(time)}
+              />
+            </div>
           }
           
           inspectorCollapsed={!inspectorVisible}
@@ -2179,6 +2203,13 @@ export default function Studio() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {showTutorial && (
+          <StudioTutorial
+            onComplete={() => setShowTutorial(false)}
+            onSkip={() => setShowTutorial(false)}
+          />
+        )}
 
       </div>
       )}

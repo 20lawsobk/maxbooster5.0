@@ -10270,7 +10270,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     }
   });
 
-  // Get user preferences (theme, language, timezone)
+  // Get user preferences (theme, language, timezone, tutorial state)
   app.get('/api/auth/preferences', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
@@ -10283,7 +10283,40 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       const preferences = user.onboardingData?.preferences || {
         theme: 'dark',
         language: 'en',
-        timezone: 'UTC'
+        timezone: 'UTC',
+        tutorialCompleted: {
+          studio: false,
+          dashboard: false,
+          distribution: false,
+        }
+      };
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error('Error fetching preferences:', error);
+      res.status(500).json({ error: 'Failed to fetch preferences' });
+    }
+  });
+
+  // Alias for easier access from components
+  app.get('/api/user/preferences', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // Extract preferences from onboardingData or use defaults
+      const preferences = user.onboardingData?.preferences || {
+        theme: 'dark',
+        language: 'en',
+        timezone: 'UTC',
+        tutorialCompleted: {
+          studio: false,
+          dashboard: false,
+          distribution: false,
+        }
       };
       
       res.json(preferences);
@@ -10310,12 +10343,63 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         return res.status(404).json({ error: 'User not found' });
       }
       
-      // Store preferences in onboardingData
+      // Store preferences in onboardingData with deep merge for tutorialCompleted
       const onboardingData = user.onboardingData || {};
-      onboardingData.preferences = { ...onboardingData.preferences, ...validation.data };
+      const currentPreferences = onboardingData.preferences || {};
+      
+      // Deep merge tutorialCompleted
+      if (validation.data.tutorialCompleted) {
+        const currentTutorialCompleted = currentPreferences.tutorialCompleted || {};
+        validation.data.tutorialCompleted = {
+          ...currentTutorialCompleted,
+          ...validation.data.tutorialCompleted
+        };
+      }
+      
+      onboardingData.preferences = { ...currentPreferences, ...validation.data };
       
       await storage.updateUser(userId, { onboardingData });
-      res.json(validation.data);
+      res.json(onboardingData.preferences);
+    } catch (error) {
+      console.error('Error updating preferences:', error);
+      res.status(500).json({ error: 'Failed to update preferences' });
+    }
+  });
+
+  // Alias for easier access from components
+  app.post('/api/user/preferences', requireAuth, async (req, res) => {
+    try {
+      const validation = updateUserPreferencesSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: validation.error.flatten().fieldErrors 
+        });
+      }
+      
+      const userId = (req.user as any).id;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // Store preferences in onboardingData with deep merge for tutorialCompleted
+      const onboardingData = user.onboardingData || {};
+      const currentPreferences = onboardingData.preferences || {};
+      
+      // Deep merge tutorialCompleted
+      if (validation.data.tutorialCompleted) {
+        const currentTutorialCompleted = currentPreferences.tutorialCompleted || {};
+        validation.data.tutorialCompleted = {
+          ...currentTutorialCompleted,
+          ...validation.data.tutorialCompleted
+        };
+      }
+      
+      onboardingData.preferences = { ...currentPreferences, ...validation.data };
+      
+      await storage.updateUser(userId, { onboardingData });
+      res.json(onboardingData.preferences);
     } catch (error) {
       console.error('Error updating preferences:', error);
       res.status(500).json({ error: 'Failed to update preferences' });

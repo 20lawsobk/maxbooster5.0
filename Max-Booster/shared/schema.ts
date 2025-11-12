@@ -4624,6 +4624,11 @@ export const updateUserPreferencesSchema = z.object({
   theme: z.enum(['light', 'dark']).optional(),
   language: z.string().optional(),
   timezone: z.string().optional(),
+  tutorialCompleted: z.object({
+    studio: z.boolean().optional(),
+    dashboard: z.boolean().optional(),
+    distribution: z.boolean().optional(),
+  }).optional(),
 });
 
 // ====================================

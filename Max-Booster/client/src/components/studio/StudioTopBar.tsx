@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import {
   MousePointer2, Scissors, Trash2, ZoomIn, ZoomOut, Grid3x3, Settings,
-  Activity, Cpu, Clock, Upload, Save, Plus, FolderOpen
+  Activity, Cpu, Clock, Upload, Save, Plus, FolderOpen, HelpCircle
 } from 'lucide-react';
 
 interface Project {
@@ -35,6 +35,7 @@ interface StudioTopBarProps {
   onCreateProject?: (title: string) => void;
   onUploadFile?: () => void;
   onSaveProject?: () => void;
+  onShowTutorial?: () => void;
   isSaving?: boolean;
 }
 
@@ -55,6 +56,7 @@ export function StudioTopBar({
   onCreateProject,
   onUploadFile,
   onSaveProject,
+  onShowTutorial,
   isSaving = false,
 }: StudioTopBarProps) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -409,6 +411,24 @@ export function StudioTopBar({
         </div>
 
         <Separator orientation="vertical" className="h-6" style={{ backgroundColor: 'var(--studio-border)' }} />
+
+        {onShowTutorial && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onClick={onShowTutorial}
+                data-testid="button-show-tutorial"
+                style={{ color: 'var(--studio-text)' }}
+              >
+                <HelpCircle className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Show Studio Tutorial</TooltipContent>
+          </Tooltip>
+        )}
 
         {onOpenSettings && (
           <Button
