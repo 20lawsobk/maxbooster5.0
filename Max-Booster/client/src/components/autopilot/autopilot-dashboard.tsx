@@ -29,33 +29,29 @@ export function AutopilotDashboard() {
     refetchInterval: 30000,
   });
 
-  const { data: autopilotConfig } = useQuery({
-    queryKey: ["/api/autopilot/config"],
-  });
-
   const toggleAutopilotMutation = useMutation({
-    mutationFn: async (enabled: boolean) => {
-      const response = await fetch("/api/autopilot/toggle", {
+    mutationFn: async (shouldStart: boolean) => {
+      const endpoint = shouldStart ? "/api/autopilot/start" : "/api/autopilot/stop";
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled }),
       });
-      if (!response.ok) throw new Error("Failed to toggle autopilot");
+      if (!response.ok) throw new Error(`Failed to ${shouldStart ? 'start' : 'stop'} autopilot`);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, shouldStart) => {
       queryClient.invalidateQueries({ queryKey: ["/api/autopilot/status"] });
       toast({
         title: "Autopilot Updated",
-        description: autopilotStatus?.isRunning ? "Autopilot paused" : "Autopilot activated",
+        description: shouldStart ? "Autopilot activated" : "Autopilot paused",
       });
     },
   });
 
   const updateConfigMutation = useMutation({
     mutationFn: async (config: any) => {
-      const response = await fetch("/api/autopilot/config", {
-        method: "PUT",
+      const response = await fetch("/api/autopilot/configure", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
@@ -63,7 +59,7 @@ export function AutopilotDashboard() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/autopilot/config"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/autopilot/status"] });
       toast({
         title: "Configuration Updated",
         description: "Autopilot settings saved successfully",
@@ -73,7 +69,7 @@ export function AutopilotDashboard() {
   });
 
   const isRunning = autopilotStatus?.isRunning || false;
-  const config = autopilotConfig || {
+  const config = autopilotStatus?.config || {
     enabled: false,
     platforms: [],
     postingFrequency: "daily",

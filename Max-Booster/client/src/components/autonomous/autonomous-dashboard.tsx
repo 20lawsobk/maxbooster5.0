@@ -26,37 +26,33 @@ export function AutonomousDashboard() {
   const [isConfiguring, setIsConfiguring] = useState(false);
 
   const { data: autonomousStatus } = useQuery({
-    queryKey: ["/api/autonomous/status"],
+    queryKey: ["/api/autopilot/autonomous/status"],
     refetchInterval: 30000,
   });
 
-  const { data: autonomousConfig } = useQuery({
-    queryKey: ["/api/autonomous/config"],
-  });
-
   const toggleAutonomousMutation = useMutation({
-    mutationFn: async (enabled: boolean) => {
-      const response = await fetch("/api/autonomous/toggle", {
+    mutationFn: async (shouldStart: boolean) => {
+      const endpoint = shouldStart ? "/api/autopilot/autonomous/start" : "/api/autopilot/autonomous/stop";
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled }),
       });
-      if (!response.ok) throw new Error("Failed to toggle autonomous mode");
+      if (!response.ok) throw new Error(`Failed to ${shouldStart ? 'start' : 'stop'} autonomous mode`);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/autonomous/status"] });
+    onSuccess: (_, shouldStart) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/autopilot/autonomous/status"] });
       toast({
         title: "Autonomous Mode Updated",
-        description: autonomousStatus?.isRunning ? "Autonomous mode paused" : "Autonomous mode activated - AI will handle everything",
+        description: shouldStart ? "Autonomous mode activated - AI will handle everything" : "Autonomous mode paused",
       });
     },
   });
 
   const updateAutonomousConfigMutation = useMutation({
     mutationFn: async (config: any) => {
-      const response = await fetch("/api/autonomous/config", {
-        method: "PUT",
+      const response = await fetch("/api/autopilot/autonomous/configure", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
@@ -64,7 +60,7 @@ export function AutonomousDashboard() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/autonomous/config"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/autopilot/autonomous/status"] });
       toast({
         title: "Configuration Updated",
         description: "Autonomous settings saved successfully",
@@ -74,7 +70,7 @@ export function AutonomousDashboard() {
   });
 
   const isRunning = autonomousStatus?.isRunning || false;
-  const config = autonomousConfig || {
+  const config = autonomousStatus?.config || {
     enabled: false,
     minPostsPerDay: 3,
     maxPostsPerDay: 8,
