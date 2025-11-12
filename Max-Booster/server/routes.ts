@@ -11,20 +11,12 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import { WebSocketServer, WebSocket } from "ws";
-import { Redis } from 'ioredis';
 import { config } from './config/defaults.js';
 import { storage } from "./storage";
 import { auditLogger } from "./middleware/auditLogger";
+import { createLegacyGracefulRedisClient } from "./lib/gracefulRedis";
 
-const analyticsRedisClient = new Redis(config.redis.url, {
-  retryStrategy: (times) => {
-    if (times > config.redis.maxRetries) return null;
-    return Math.min(times * config.redis.retryDelay, 3000);
-  },
-});
-
-analyticsRedisClient.on('error', (err) => console.error('Analytics Redis Error:', err));
-analyticsRedisClient.on('connect', () => console.log('✅ Analytics Redis connected'));
+const analyticsRedisClient = createLegacyGracefulRedisClient('Analytics');
 import { setupReliabilityEndpoints } from "./routes/reliability-endpoints";
 import studioMarkersRouter from "./routes/studioMarkers";
 import distributionRoutes from "./routes/distribution";

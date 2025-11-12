@@ -14,6 +14,9 @@ import { Queue, Worker, Job, QueueEvents } from 'bullmq';
 import { config } from '../config/defaults.js';
 import { Redis } from 'ioredis';
 
+const isDevelopment = config.nodeEnv === 'development';
+let hasLoggedWarning = false;
+
 // Job data types
 export interface AudioConvertJobData {
   userId: string;
@@ -61,10 +64,10 @@ export interface CSVImportResult {
   duration: number;
 }
 
-// Create Redis connection for BullMQ
+// Create Redis connection for BullMQ with graceful error handling
 function createRedisConnection() {
   const redisUrl = config.redis.url;
-  return new Redis(redisUrl, {
+  const redisClient = new Redis(redisUrl, {
     maxRetriesPerRequest: null, // BullMQ requirement
     retryStrategy: (times) => {
       if (times > config.redis.maxRetries) {
@@ -72,7 +75,31 @@ function createRedisConnection() {
       }
       return Math.min(times * config.redis.retryDelay, 3000);
     },
+    lazyConnect: true,
+    showFriendlyErrorStack: false, // Suppress internal ioredis error logging
   });
+
+  redisClient.on('error', (err) => {
+    if (isDevelopment) {
+      if (!hasLoggedWarning) {
+        console.warn(`⚠️  Queue Service: Redis unavailable (${err.message}), queues will use fallback behavior`);
+        hasLoggedWarning = true;
+      }
+    } else {
+      console.error(`❌ Queue Service Redis Error:`, err.message);
+    }
+  });
+
+  redisClient.on('connect', () => {
+    if (isDevelopment) {
+      console.log(`✅ Queue Service Redis connected`);
+    }
+  });
+
+  // Don't call connect() - let it connect lazily on first use
+  // This prevents promise rejection errors from being logged
+  
+  return redisClient;
 }
 
 /**

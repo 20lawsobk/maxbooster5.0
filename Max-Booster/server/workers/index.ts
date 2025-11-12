@@ -24,6 +24,9 @@ import type {
   EmailJobData,
 } from '../services/queueService.js';
 
+const isDevelopment = config.nodeEnv === 'development';
+let hasLoggedWarning = false;
+
 // Initialize services
 const audioService = new AudioService();
 const csvImportService = new RoyaltiesCSVImportService();
@@ -37,10 +40,10 @@ if (process.env.SENDGRID_API_KEY) {
   console.warn('⚠️  SendGrid API key not configured. Email worker will fail to send emails.');
 }
 
-// Create Redis connection for BullMQ
+// Create Redis connection for BullMQ with graceful error handling
 function createRedisConnection(): Redis {
   const redisUrl = config.redis.url;
-  return new Redis(redisUrl, {
+  const redisClient = new Redis(redisUrl, {
     maxRetriesPerRequest: null, // BullMQ requirement
     retryStrategy: (times) => {
       if (times > config.redis.maxRetries) {
@@ -48,7 +51,31 @@ function createRedisConnection(): Redis {
       }
       return Math.min(times * config.redis.retryDelay, 3000);
     },
+    lazyConnect: true,
+    showFriendlyErrorStack: false, // Suppress internal ioredis error logging
   });
+
+  redisClient.on('error', (err) => {
+    if (isDevelopment) {
+      if (!hasLoggedWarning) {
+        console.warn(`⚠️  Workers: Redis unavailable (${err.message}), workers will use fallback behavior`);
+        hasLoggedWarning = true;
+      }
+    } else {
+      console.error(`❌ Workers Redis Error:`, err.message);
+    }
+  });
+
+  redisClient.on('connect', () => {
+    if (isDevelopment) {
+      console.log(`✅ Workers Redis connected`);
+    }
+  });
+
+  // Don't call connect() - let it connect lazily on first use
+  // This prevents promise rejection errors from being logged
+  
+  return redisClient;
 }
 
 const connection = createRedisConnection();

@@ -1,8 +1,8 @@
 import * as Y from 'yjs';
 import { storage } from '../storage';
 import crypto from 'crypto';
-import { Redis } from 'ioredis';
 import { config } from '../config/defaults.js';
+import { createLegacyGracefulRedisClient } from '../lib/gracefulRedis.js';
 
 // Yjs document structure:
 // {
@@ -17,18 +17,7 @@ function generateHash(data: Uint8Array): string {
 }
 
 // Redis client for Yjs document caching (shared across all server instances)
-const redisClient = new Redis(config.redis.url, {
-  retryStrategy: (times) => {
-    if (times > config.redis.maxRetries) {
-      console.error('Redis connection failed after max retries');
-      return null;
-    }
-    return Math.min(times * config.redis.retryDelay, 3000);
-  },
-});
-
-redisClient.on('error', (err) => console.error('Redis Error:', err));
-redisClient.on('connect', () => console.log('✅ Yjs Redis connected'));
+const redisClient = createLegacyGracefulRedisClient('Yjs Collaboration');
 
 export class YjsCollaborationService {
   private saveTimers: Map<string, NodeJS.Timeout> = new Map();

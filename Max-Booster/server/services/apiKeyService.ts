@@ -1,22 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
-import { Redis } from 'ioredis';
 import { db } from '../db';
 import { apiKeys, apiUsage, insertApiKeySchema, insertApiUsageSchema } from '@shared/schema';
 import { eq, and, desc, sql, gte } from 'drizzle-orm';
 import { config } from '../config/defaults';
+import { createLegacyGracefulRedisClient } from '../lib/gracefulRedis';
 
 // Redis client for rate limiting
-const redisClient = new Redis(config.redis.url, {
-  retryStrategy: (times) => {
-    if (times > config.redis.maxRetries) return null;
-    return Math.min(times * config.redis.retryDelay, 3000);
-  },
-});
-
-redisClient.on('error', (err) => console.error('API Rate Limiter Redis Error:', err));
-redisClient.on('connect', () => console.log('✅ API Rate Limiter Redis connected'));
+const redisClient = createLegacyGracefulRedisClient('API Rate Limiter');
 
 // Extended Express Request with API key info
 export interface ApiKeyRequest extends Request {

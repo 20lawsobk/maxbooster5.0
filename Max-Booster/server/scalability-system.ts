@@ -7,6 +7,9 @@ import * as os from 'os';
 
 const execAsync = promisify(exec);
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+let hasLoggedWarning = false;
+
 // Scalability Optimization System
 export class ScalabilitySystem {
   private static instance: ScalabilitySystem;
@@ -31,10 +34,30 @@ export class ScalabilitySystem {
         port: parseInt(process.env.REDIS_PORT || '6379'),
         maxRetriesPerRequest: 3,
         lazyConnect: true,
+        showFriendlyErrorStack: false, // Suppress internal ioredis error logging
         retryStrategy(times: number) {
+          if (times > 10) return null;
           const delay = Math.min(times * 50, 2000);
           return delay;
         },
+      });
+
+      // Add graceful error handling
+      this.redis.on('error', (err) => {
+        if (isDevelopment) {
+          if (!hasLoggedWarning) {
+            console.warn(`⚠️  Scalability System: Redis unavailable (${err.message}), using degraded mode`);
+            hasLoggedWarning = true;
+          }
+        } else {
+          console.error(`❌ Scalability System Redis Error:`, err.message);
+        }
+      });
+
+      this.redis.on('connect', () => {
+        if (isDevelopment) {
+          console.log(`✅ Scalability System Redis connected`);
+        }
       });
     }
 

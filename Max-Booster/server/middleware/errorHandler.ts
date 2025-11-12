@@ -169,6 +169,17 @@ export function asyncHandler(fn: Function) {
 // Handle unhandled promise rejections with graceful shutdown
 export function handleUnhandledRejection(server?: any) {
   process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
+    // Suppress Redis connection errors in development (graceful degradation)
+    const isRedisError = reason?.message?.includes('ECONNREFUSED') && 
+                         (reason?.message?.includes('6379') || reason?.code === 'ECONNREFUSED') ||
+                         reason?.message?.includes('Redis') ||
+                         reason?.message?.includes('Connection is closed');
+    
+    if (isRedisError && process.env.NODE_ENV === 'development') {
+      // Silently ignore Redis connection errors in development
+      return;
+    }
+
     console.error('🚨 UNHANDLED PROMISE REJECTION:', {
       reason,
       stack: reason?.stack,

@@ -6,6 +6,9 @@ import { posts, scheduledPostBatches, socialAccounts } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 
+const isDevelopment = config.nodeEnv === 'development';
+let hasLoggedWarning = false;
+
 export interface SocialPostJobData {
   postId: string;
   batchId?: string;
@@ -44,7 +47,7 @@ const PLATFORM_RATE_LIMITS = {
 
 function createRedisConnection() {
   const redisUrl = config.redis.url;
-  return new Redis(redisUrl, {
+  const redisClient = new Redis(redisUrl, {
     maxRetriesPerRequest: null,
     retryStrategy: (times) => {
       if (times > config.redis.maxRetries) {
@@ -52,7 +55,31 @@ function createRedisConnection() {
       }
       return Math.min(times * config.redis.retryDelay, 3000);
     },
+    lazyConnect: true,
+    showFriendlyErrorStack: false, // Suppress internal ioredis error logging
   });
+
+  redisClient.on('error', (err) => {
+    if (isDevelopment) {
+      if (!hasLoggedWarning) {
+        console.warn(`⚠️  Social Queue Service: Redis unavailable (${err.message}), queues will use fallback behavior`);
+        hasLoggedWarning = true;
+      }
+    } else {
+      console.error(`❌ Social Queue Service Redis Error:`, err.message);
+    }
+  });
+
+  redisClient.on('connect', () => {
+    if (isDevelopment) {
+      console.log(`✅ Social Queue Service Redis connected`);
+    }
+  });
+
+  // Don't call connect() - let it connect lazily on first use
+  // This prevents promise rejection errors from being logged
+  
+  return redisClient;
 }
 
 class SocialQueueService {

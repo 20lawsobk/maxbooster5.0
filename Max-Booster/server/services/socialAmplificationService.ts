@@ -2,18 +2,10 @@ import { AIAdvertisingEngine } from '../ai-advertising.js';
 import { AutonomousAutopilot } from '../autonomous-autopilot.js';
 import { customAI } from '../custom-ai-engine.js';
 import { storage } from '../storage.js';
-import { Redis } from 'ioredis';
 import { config } from '../config/defaults.js';
+import { createLegacyGracefulRedisClient } from '../lib/gracefulRedis.js';
 
-const redisClient = new Redis(config.redis.url, {
-  retryStrategy: (times) => {
-    if (times > config.redis.maxRetries) return null;
-    return Math.min(times * config.redis.retryDelay, 3000);
-  },
-});
-
-redisClient.on('error', (err) => console.error('SocialAmplification Redis Error:', err));
-redisClient.on('connect', () => console.log('✅ SocialAmplification Redis connected'));
+const redisClient = createLegacyGracefulRedisClient('Social Amplification');
 
 /**
  * REVOLUTIONARY ZERO-COST SOCIAL AMPLIFICATION SYSTEM

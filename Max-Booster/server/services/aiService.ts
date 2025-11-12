@@ -3,18 +3,9 @@
 // Implements deterministic AI processing for social content, advertising, and audio analysis
 
 import { nanoid } from 'nanoid';
-import { Redis } from 'ioredis';
-import { config } from '../config/defaults.js';
+import { createLegacyGracefulRedisClient } from '../lib/gracefulRedis.js';
 
-const redisClient = new Redis(config.redis.url, {
-  retryStrategy: (times) => {
-    if (times > config.redis.maxRetries) return null;
-    return Math.min(times * config.redis.retryDelay, 3000);
-  },
-});
-
-redisClient.on('error', (err) => console.error('AIService Redis Error:', err));
-redisClient.on('connect', () => console.log('✅ AIService Redis connected'));
+const redisClient = createLegacyGracefulRedisClient('AIService');
 
 interface SocialContentOptions {
   platform?: 'twitter' | 'instagram' | 'youtube' | 'tiktok' | 'facebook' | 'linkedin';
@@ -211,7 +202,10 @@ export class AIService {
         )
       ]);
     } catch (error) {
-      console.error('Failed to initialize AI service data in Redis:', error);
+      // Silently handle Redis initialization errors in development (graceful degradation)
+      if (process.env.NODE_ENV !== 'development') {
+        console.error('Failed to initialize AI service data in Redis:', error);
+      }
     }
   }
 

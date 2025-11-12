@@ -1,3 +1,6 @@
+// IMPORTANT: Import console error filter FIRST, before any Redis clients are created
+import './lib/consoleErrorFilter.js';
+
 import express, { type Request, Response, NextFunction } from "express";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
