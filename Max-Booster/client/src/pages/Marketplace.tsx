@@ -17,6 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { StemsManager } from '@/components/StemsManager';
+import { PayoutDashboard } from '@/components/marketplace/PayoutDashboard';
 import {
   Music,
   Play,
@@ -592,7 +593,7 @@ export default function Marketplace() {
 
             {/* Main Interface */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className={`grid w-full ${user ? 'grid-cols-5' : 'grid-cols-2'} bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700`}>
+              <TabsList className={`grid w-full ${user ? 'grid-cols-6' : 'grid-cols-2'} bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700`}>
                 <TabsTrigger value="browse" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-browse-beats">
                   Browse Beats
                 </TabsTrigger>
@@ -609,6 +610,9 @@ export default function Marketplace() {
                     </TabsTrigger>
                     <TabsTrigger value="sales" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-sales">
                       Sales
+                    </TabsTrigger>
+                    <TabsTrigger value="payouts" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-payouts">
+                      Payouts
                     </TabsTrigger>
                   </>
                 )}
@@ -1332,6 +1336,11 @@ export default function Marketplace() {
                     </CardContent>
                   </Card>
                 )}
+              </TabsContent>
+
+              {/* Payouts Tab */}
+              <TabsContent value="payouts" className="space-y-6">
+                <PayoutDashboard />
               </TabsContent>
             </Tabs>
           </div>

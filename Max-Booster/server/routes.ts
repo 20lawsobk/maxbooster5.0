@@ -29,6 +29,11 @@ import { setupReliabilityEndpoints } from "./routes/reliability-endpoints";
 import studioMarkersRouter from "./routes/studioMarkers";
 import distributionRoutes from "./routes/distribution";
 import socialBulkRoutes from "./routes/socialBulk";
+import socialApprovalsRoutes from "./routes/socialApprovals";
+import storefrontRoutes from "./routes/storefront";
+import payoutRoutes from "./routes/payouts";
+import developerApiRoutes from "./routes/developerApi";
+import analyticsApiRoutes from "./routes/api/v1/analytics";
 import { createSessionStore, getSessionConfig } from "./middleware/sessionConfig";
 import { ConnectionGuard } from './middleware/connectionGuard';
 import { globalRateLimiter, criticalEndpointLimiter } from './middleware/globalRateLimiter';
@@ -489,6 +494,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/studio', studioMarkersRouter);
   app.use('/api/distribution', distributionRoutes);
   app.use('/api/social/bulk', socialBulkRoutes);
+  app.use('/api/social/approvals', socialApprovalsRoutes);
+  app.use('/api/storefront', storefrontRoutes);
+  app.use('/api/payouts', payoutRoutes);
+  
+  // Developer API routes (API key management and analytics endpoints)
+  app.use('/api/developer', developerApiRoutes);
+  app.use('/api/v1/analytics', analyticsApiRoutes);
 
   // Authentication routes - Legacy registration blocked for payment-first workflow
   app.post('/api/auth/register', async (req, res) => {

@@ -19,6 +19,21 @@ export const audioFormatEnum = pgEnum('audio_format', [
   'pcm16', 'pcm24', 'float32'
 ]);
 
+// Approval status types for social media workflow
+export const approvalStatusEnum = pgEnum('approval_status', [
+  'draft', 'pending_review', 'approved', 'rejected', 'published'
+]);
+
+// User role types for social media workflow
+export const userRoleEnum = pgEnum('user_role', [
+  'content_creator', 'reviewer', 'manager', 'admin'
+]);
+
+// API tier types for developer API
+export const apiTierEnum = pgEnum('api_tier', [
+  'free', 'pro', 'enterprise'
+]);
+
 // Users table - VARCHAR ID (existing database)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -33,6 +48,7 @@ export const users = pgTable("users", {
   stripeConnectedAccountId: varchar("stripe_connected_account_id", { length: 255 }),
   stripeBankAccountId: varchar("stripe_bank_account_id", { length: 255 }),
   totalPayouts: decimal("total_payouts", { precision: 10, scale: 2 }).default("0"),
+  availableBalance: decimal("available_balance", { precision: 10, scale: 2 }).default("0"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   username: varchar("username", { length: 255 }),
@@ -63,6 +79,7 @@ export const users = pgTable("users", {
   pushSubscription: jsonb("push_subscription"),
   hasCompletedOnboarding: boolean("has_completed_onboarding").default(false),
   onboardingData: jsonb("onboarding_data"),
+  socialRole: userRoleEnum("social_role").default("content_creator"),
 });
 
 // Password Reset Tokens table
@@ -180,6 +197,50 @@ export const analyticsAnomalies = pgTable("analytics_anomalies", {
   severityIdx: index("analytics_anomalies_severity_idx").on(table.severity),
   detectedAtIdx: index("analytics_anomalies_detected_at_idx").on(table.detectedAt),
   acknowledgedAtIdx: index("analytics_anomalies_acknowledged_at_idx").on(table.acknowledgedAt),
+}));
+
+// ============================================================================
+// DEVELOPER API SYSTEM - API Keys & Usage Tracking
+// ============================================================================
+
+// API Keys table - Developer API access management
+// SECURITY: Only hashed API keys are stored, never plaintext
+export const apiKeys = pgTable("api_keys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  keyName: varchar("key_name", { length: 255 }).notNull(),
+  hashedApiKey: text("hashed_api_key").notNull().unique(),
+  tier: apiTierEnum("tier").default("free").notNull(),
+  rateLimit: integer("rate_limit").default(100).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  lastUsedAt: timestamp("last_used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at"),
+}, (table) => ({
+  userIdIdx: index("api_keys_user_id_idx").on(table.userId),
+  hashedApiKeyIdx: index("api_keys_hashed_api_key_idx").on(table.hashedApiKey),
+  tierIdx: index("api_keys_tier_idx").on(table.tier),
+  isActiveIdx: index("api_keys_is_active_idx").on(table.isActive),
+  userActiveIdx: index("api_keys_user_active_idx").on(table.userId, table.isActive),
+}));
+
+// API Usage table - Track API request usage for billing and analytics
+export const apiUsage = pgTable("api_usage", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  apiKeyId: varchar("api_key_id", { length: 255 }).notNull(),
+  endpoint: varchar("endpoint", { length: 500 }).notNull(),
+  method: varchar("method", { length: 10 }).notNull(),
+  statusCode: integer("status_code").notNull(),
+  responseTime: integer("response_time"),
+  requestCount: integer("request_count").default(1).notNull(),
+  date: timestamp("date").defaultNow().notNull(),
+  metadata: jsonb("metadata"),
+}, (table) => ({
+  apiKeyIdIdx: index("api_usage_api_key_id_idx").on(table.apiKeyId),
+  endpointIdx: index("api_usage_endpoint_idx").on(table.endpoint),
+  dateIdx: index("api_usage_date_idx").on(table.date),
+  apiKeyDateIdx: index("api_usage_api_key_date_idx").on(table.apiKeyId, table.date),
+  apiKeyEndpointDateIdx: index("api_usage_api_key_endpoint_date_idx").on(table.apiKeyId, table.endpoint, table.date),
 }));
 
 // Notifications table
@@ -1099,6 +1160,142 @@ export const payoutEvents = pgTable("payout_events", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Instant Payouts (BeatStars T+0 Payout System)
+export const instantPayouts = pgTable("instant_payouts", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 10 }).default("usd").notNull(),
+  stripePayoutId: varchar("stripe_payout_id", { length: 255 }),
+  status: varchar("status", { length: 50 }).default("pending").notNull(),
+  requestedAt: timestamp("requested_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+  failureReason: text("failure_reason"),
+  metadata: jsonb("metadata"),
+}, (table) => ({
+  userIdIdx: index("instant_payouts_user_id_idx").on(table.userId),
+  statusIdx: index("instant_payouts_status_idx").on(table.status),
+  requestedAtIdx: index("instant_payouts_requested_at_idx").on(table.requestedAt),
+  userStatusIdx: index("instant_payouts_user_status_idx").on(table.userId, table.status),
+}));
+
+// ============================================================================
+// CUSTOM STOREFRONT SYSTEM (BeatStars parity)
+// ============================================================================
+
+// Storefront Templates (pre-built themes)
+export const storefrontTemplates = pgTable("storefront_templates", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  previewUrl: text("preview_url"),
+  thumbnailUrl: text("thumbnail_url"),
+  customizationOptions: jsonb("customization_options").$type<{
+    colors?: { primary?: boolean; secondary?: boolean; background?: boolean; text?: boolean };
+    fonts?: { heading?: string[]; body?: string[] };
+    layout?: { headerStyle?: string[]; gridColumns?: number[] };
+    sections?: { about?: boolean; featured?: boolean; contact?: boolean };
+  }>().default(sql`'{}'::jsonb`),
+  isPremium: boolean("is_premium").default(false),
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  isActiveIdx: index("storefront_templates_is_active_idx").on(table.isActive),
+  sortOrderIdx: index("storefront_templates_sort_order_idx").on(table.sortOrder),
+}));
+
+// Artist/Producer Storefronts
+export const storefronts = pgTable("storefronts", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: varchar("name", { length: 200 }).notNull(),
+  slug: varchar("slug", { length: 100 }).notNull().unique(),
+  templateId: uuid("template_id").references(() => storefrontTemplates.id),
+  customization: jsonb("customization").$type<{
+    colors?: { primary?: string; secondary?: string; background?: string; text?: string };
+    fonts?: { heading?: string; body?: string };
+    layout?: { headerStyle?: string; gridColumns?: number };
+    logo?: string;
+    banner?: string;
+    avatar?: string;
+    bio?: string;
+    socialLinks?: { instagram?: string; twitter?: string; youtube?: string; soundcloud?: string };
+  }>().default(sql`'{}'::jsonb`),
+  seo: jsonb("seo").$type<{
+    title?: string;
+    description?: string;
+    keywords?: string[];
+    ogImage?: string;
+  }>().default(sql`'{}'::jsonb`),
+  isActive: boolean("is_active").default(true),
+  isPublic: boolean("is_public").default(true),
+  views: integer("views").default(0),
+  uniqueVisitors: integer("unique_visitors").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("storefronts_user_id_idx").on(table.userId),
+  slugIdx: index("storefronts_slug_idx").on(table.slug),
+  isActiveIdx: index("storefronts_is_active_idx").on(table.isActive),
+  isPublicIdx: index("storefronts_is_public_idx").on(table.isPublic),
+  templateIdIdx: index("storefronts_template_id_idx").on(table.templateId),
+}));
+
+// Membership Tiers (subscription plans for customers)
+export const membershipTiers = pgTable("membership_tiers", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  storefrontId: uuid("storefront_id").notNull().references(() => storefronts.id, { onDelete: 'cascade' }),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  priceCents: integer("price_cents").notNull(),
+  currency: varchar("currency", { length: 10 }).default("usd"),
+  interval: varchar("interval", { length: 20 }).notNull().default("month"),
+  benefits: jsonb("benefits").$type<{
+    exclusiveContent?: boolean;
+    earlyAccess?: boolean;
+    discounts?: { percentage: number };
+    customPerks?: string[];
+  }>().default(sql`'{}'::jsonb`),
+  stripePriceId: varchar("stripe_price_id", { length: 255 }),
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  maxSubscribers: integer("max_subscribers"),
+  currentSubscribers: integer("current_subscribers").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  storefrontIdIdx: index("membership_tiers_storefront_id_idx").on(table.storefrontId),
+  isActiveIdx: index("membership_tiers_is_active_idx").on(table.isActive),
+  sortOrderIdx: index("membership_tiers_sort_order_idx").on(table.sortOrder),
+  storefrontActiveIdx: index("membership_tiers_storefront_active_idx").on(table.storefrontId, table.isActive),
+}));
+
+// Customer Memberships (active subscriptions)
+export const customerMemberships = pgTable("customer_memberships", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  customerId: varchar("customer_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  tierId: uuid("tier_id").notNull().references(() => membershipTiers.id, { onDelete: 'cascade' }),
+  storefrontId: uuid("storefront_id").notNull().references(() => storefronts.id, { onDelete: 'cascade' }),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
+  status: varchar("status", { length: 50 }).notNull().default("active"),
+  startsAt: timestamp("starts_at").notNull().defaultNow(),
+  endsAt: timestamp("ends_at"),
+  canceledAt: timestamp("canceled_at"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  metadata: jsonb("metadata").default(sql`'{}'::jsonb`),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  customerIdIdx: index("customer_memberships_customer_id_idx").on(table.customerId),
+  tierIdIdx: index("customer_memberships_tier_id_idx").on(table.tierId),
+  storefrontIdIdx: index("customer_memberships_storefront_id_idx").on(table.storefrontId),
+  statusIdx: index("customer_memberships_status_idx").on(table.status),
+  customerStatusIdx: index("customer_memberships_customer_status_idx").on(table.customerId, table.status),
+  storefrontStatusIdx: index("customer_memberships_storefront_status_idx").on(table.storefrontId, table.status),
+}));
+
 // Distribution Releases (DistroKid-style)
 export const distroReleases = pgTable("distro_releases", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1429,6 +1626,11 @@ export const posts = pgTable("posts", {
   content: text("content"),
   mediaUrls: jsonb("media_urls"),
   status: varchar("status", { length: 32 }).default("scheduled"),
+  approvalStatus: approvalStatusEnum("approval_status").default("draft"),
+  submittedBy: varchar("submitted_by", { length: 255 }),
+  reviewedBy: varchar("reviewed_by", { length: 255 }),
+  reviewedAt: timestamp("reviewed_at"),
+  rejectionReason: text("rejection_reason"),
   externalPostId: varchar("external_post_id", { length: 256 }),
   error: text("error"),
   retryCount: integer("retry_count").default(0),
@@ -1439,12 +1641,34 @@ export const posts = pgTable("posts", {
   campaignIdIdx: index("posts_campaign_id_idx").on(table.campaignId),
   platformIdx: index("posts_platform_idx").on(table.platform),
   statusIdx: index("posts_status_idx").on(table.status),
+  approvalStatusIdx: index("posts_approval_status_idx").on(table.approvalStatus),
+  reviewedByIdx: index("posts_reviewed_by_idx").on(table.reviewedBy),
+  submittedByIdx: index("posts_submitted_by_idx").on(table.submittedBy),
   socialAccountIdIdx: index("posts_social_account_id_idx").on(table.socialAccountId),
   batchIdIdx: index("posts_batch_id_idx").on(table.batchId),
   campaignPlatformScheduledIdx: index("posts_campaign_platform_scheduled_idx").on(table.campaignId, table.platform, table.scheduledAt),
   socialAccountStatusIdx: index("posts_social_account_status_idx").on(table.socialAccountId, table.status),
   batchStatusIdx: index("posts_batch_status_idx").on(table.batchId, table.status),
   scheduledAtStatusIdx: index("posts_scheduled_at_status_idx").on(table.scheduledAt, table.status),
+}));
+
+// Approval History - Audit trail for post approvals
+export const approvalHistory = pgTable("approval_history", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  postId: uuid("post_id").notNull(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  action: varchar("action", { length: 50 }).notNull(),
+  fromStatus: approvalStatusEnum("from_status"),
+  toStatus: approvalStatusEnum("to_status").notNull(),
+  comment: text("comment"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  postIdIdx: index("approval_history_post_id_idx").on(table.postId),
+  userIdIdx: index("approval_history_user_id_idx").on(table.userId),
+  actionIdx: index("approval_history_action_idx").on(table.action),
+  createdAtIdx: index("approval_history_created_at_idx").on(table.createdAt),
+  postIdCreatedAtIdx: index("approval_history_post_id_created_at_idx").on(table.postId, table.createdAt),
 }));
 
 // Social Metrics
@@ -3493,6 +3717,17 @@ export const insertPayoutSchema = createInsertSchema(payouts).omit({
   createdAt: true,
 });
 
+export const insertInstantPayoutSchema = createInsertSchema(instantPayouts).omit({
+  id: true,
+  requestedAt: true,
+  completedAt: true,
+});
+
+export const requestInstantPayoutSchema = z.object({
+  amount: z.number().positive().max(100000),
+  currency: z.string().optional().default("usd"),
+});
+
 export const insertTrackSchema = createInsertSchema(tracks).omit({
   id: true,
   createdAt: true,
@@ -3548,6 +3783,45 @@ export const insertOrderSchema = createInsertSchema(orders).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertStorefrontTemplateSchema = createInsertSchema(storefrontTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateStorefrontTemplateSchema = insertStorefrontTemplateSchema.partial();
+
+export const insertStorefrontSchema = createInsertSchema(storefronts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  views: true,
+  uniqueVisitors: true,
+});
+
+export const updateStorefrontSchema = insertStorefrontSchema.partial().omit({ userId: true });
+
+export const insertMembershipTierSchema = createInsertSchema(membershipTiers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  currentSubscribers: true,
+});
+
+export const updateMembershipTierSchema = insertMembershipTierSchema.partial().omit({ storefrontId: true });
+
+export const insertCustomerMembershipSchema = createInsertSchema(customerMemberships).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateCustomerMembershipSchema = insertCustomerMembershipSchema.partial().omit({
+  customerId: true,
+  tierId: true,
+  storefrontId: true,
 });
 
 export const insertPayoutEventSchema = createInsertSchema(payoutEvents).omit({
@@ -3620,6 +3894,26 @@ export const insertScheduledPostBatchSchema = createInsertSchema(scheduledPostBa
 export const insertPostSchema = createInsertSchema(posts).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertApprovalHistorySchema = createInsertSchema(approvalHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const submitForReviewSchema = z.object({
+  postId: z.string().uuid(),
+});
+
+export const approvePostSchema = z.object({
+  postId: z.string().uuid(),
+  comment: z.string().optional(),
+});
+
+export const rejectPostSchema = z.object({
+  postId: z.string().uuid(),
+  reason: z.string().min(1, "Rejection reason is required"),
+  comment: z.string().optional(),
 });
 
 export const insertSocialMetricSchema = createInsertSchema(socialMetrics).omit({
@@ -3826,6 +4120,8 @@ export type InsertAnalyticsAnomaly = z.infer<typeof insertAnalyticsAnomalySchema
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type InsertRelease = z.infer<typeof insertReleaseSchema>;
 export type InsertPayout = z.infer<typeof insertPayoutSchema>;
+export type InsertInstantPayout = z.infer<typeof insertInstantPayoutSchema>;
+export type RequestInstantPayout = z.infer<typeof requestInstantPayoutSchema>;
 export type InsertTrack = z.infer<typeof insertTrackSchema>;
 export type InsertTrackAnalysis = z.infer<typeof insertTrackAnalysisSchema>;
 export type InsertAdCampaign = z.infer<typeof insertAdCampaignSchema>;
@@ -3834,6 +4130,14 @@ export type InsertDistributionTrack = z.infer<typeof insertDistributionTrackSche
 export type InsertListing = z.infer<typeof insertListingSchema>;
 export type InsertRoyaltySplit = z.infer<typeof insertRoyaltySplitSchema>;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
+export type InsertStorefrontTemplate = z.infer<typeof insertStorefrontTemplateSchema>;
+export type UpdateStorefrontTemplate = z.infer<typeof updateStorefrontTemplateSchema>;
+export type InsertStorefront = z.infer<typeof insertStorefrontSchema>;
+export type UpdateStorefront = z.infer<typeof updateStorefrontSchema>;
+export type InsertMembershipTier = z.infer<typeof insertMembershipTierSchema>;
+export type UpdateMembershipTier = z.infer<typeof updateMembershipTierSchema>;
+export type InsertCustomerMembership = z.infer<typeof insertCustomerMembershipSchema>;
+export type UpdateCustomerMembership = z.infer<typeof updateCustomerMembershipSchema>;
 export type InsertPayoutEvent = z.infer<typeof insertPayoutEventSchema>;
 export type InsertDistroRelease = z.infer<typeof insertDistroReleaseSchema>;
 export type InsertDistroTrack = z.infer<typeof insertDistroTrackSchema>;
@@ -3913,6 +4217,11 @@ export type Listing = typeof listings.$inferSelect;
 export type RoyaltySplit = typeof royaltySplits.$inferSelect;
 export type Order = typeof orders.$inferSelect;
 export type PayoutEvent = typeof payoutEvents.$inferSelect;
+export type InstantPayout = typeof instantPayouts.$inferSelect;
+export type StorefrontTemplate = typeof storefrontTemplates.$inferSelect;
+export type Storefront = typeof storefronts.$inferSelect;
+export type MembershipTier = typeof membershipTiers.$inferSelect;
+export type CustomerMembership = typeof customerMemberships.$inferSelect;
 export type DistroRelease = typeof distroReleases.$inferSelect;
 export type DistroTrack = typeof distroTracks.$inferSelect;
 export type DistroProvider = typeof distroProviders.$inferSelect;
@@ -4807,3 +5116,17 @@ export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({ id: true, createdAt: true });
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+
+// ============================================================================
+// DEVELOPER API SYSTEM - Type Exports
+// ============================================================================
+
+export type ApiKey = typeof apiKeys.$inferSelect;
+export const insertApiKeySchema = createInsertSchema(apiKeys).omit({ id: true, createdAt: true, hashedKey: true });
+export const updateApiKeySchema = insertApiKeySchema.partial();
+export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
+export type UpdateApiKey = z.infer<typeof updateApiKeySchema>;
+
+export type ApiUsage = typeof apiUsage.$inferSelect;
+export const insertApiUsageSchema = createInsertSchema(apiUsage).omit({ id: true, date: true });
+export type InsertApiUsage = z.infer<typeof insertApiUsageSchema>;

@@ -3,6 +3,7 @@ import { db } from "../db";
 import { nanoid } from "nanoid";
 import Stripe from "stripe";
 import { type Order as DBOrder } from "@shared/schema";
+import { instantPayoutService } from "./instantPayoutService";
 
 // Initialize Stripe
 const stripe = process.env.STRIPE_SECRET_KEY?.startsWith('sk_')
@@ -213,6 +214,12 @@ export class MarketplaceService {
         status: 'completed',
         stripePaymentIntentId: paymentIntentId,
       });
+
+      // Update seller's available balance
+      if (dbOrder.sellerId && dbOrder.amountCents) {
+        const amountUSD = dbOrder.amountCents / 100;
+        await instantPayoutService.updateAvailableBalance(dbOrder.sellerId, amountUSD);
+      }
 
       // Generate license document
       await this.generateLicense(orderId);

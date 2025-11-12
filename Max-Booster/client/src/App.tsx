@@ -48,6 +48,7 @@ const Projects = lazy(() => import("@/pages/Projects"));
 const Royalties = lazy(() => import("@/pages/Royalties"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
 const Subscribe = lazy(() => import("@/pages/Subscribe"));
+const DeveloperApi = lazy(() => import("@/pages/DeveloperApi"));
 
 function Router() {
   return (
@@ -62,6 +63,7 @@ function Router() {
       <Route path="/projects" component={Projects} />
       <Route path="/analytics/ai" component={AIDashboard} />
       <Route path="/analytics" component={Analytics} />
+      <Route path="/developer-api" component={DeveloperApi} />
       <Route path="/social-media" component={SocialMedia} />
       <Route path="/advertising" component={Advertisement} />
       <Route path="/marketplace" component={Marketplace} />
