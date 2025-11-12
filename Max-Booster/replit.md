@@ -4,6 +4,25 @@ Max Booster is a comprehensive AI-powered music artist career management platfor
 
 # Recent Changes
 
+## DAW Browser Panel Plugin Catalog Fix (November 12, 2025)
+
+**Issue:** Only 10 plugins displaying in DAW browser panel instead of all 41 plugins from database.
+
+**Root Cause:**
+- Duplicate `/api/studio/plugins` endpoint definitions in routes.ts (lines 3459 and 8599)
+- Endpoint at line 8599 returned grouped object format: `{ "eq": [...], "dynamics": [...] }`
+- BrowserPanel.tsx expected flat array with `category` field: `[{ id, name, category: "eq" }, ...]`
+- Frontend code defaulted to 'Other' category when `category` field was missing
+
+**Fix Applied:**
+- Removed duplicate endpoint at line 8599
+- Updated primary endpoint at line 3462 to map `kind` field to `category` field
+- Added plugin catalog seeding on first load
+- Added enriched response with description, manufacturer, version, and tags
+- All 41 plugins now display correctly across 11 categories (dynamics, distortion, reverb, delay, eq, modulation, synth, organ, piano, sampler, drum)
+
+**Sample Catalog Status:** 0 samples (user hasn't uploaded any yet - upload functionality working)
+
 ## Production Readiness & 10 Billion User Scaling (November 12, 2025)
 
 **Professional Feature Parity Achieved:**

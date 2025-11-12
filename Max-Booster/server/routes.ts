@@ -3459,8 +3459,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/studio/plugins', requireAuth, async (req, res) => {
     try {
       const { category } = req.query;
+      
+      // Seed catalog if empty (first-time setup)
+      await storage.seedPluginCatalog();
+      
       const plugins = await storage.getPluginCatalog(category as string | undefined);
-      res.json(plugins);
+      
+      // Map 'kind' to 'category' for frontend compatibility
+      const pluginsWithCategory = plugins.map(plugin => ({
+        id: plugin.id,
+        name: plugin.name,
+        category: plugin.kind,
+        type: plugin.kind,
+        version: plugin.version,
+        description: plugin.manifest?.description || '',
+        manufacturer: plugin.manifest?.manufacturer || 'Max Booster',
+        tags: plugin.manifest?.tags || []
+      }));
+      
+      res.json(pluginsWithCategory);
     } catch (error: any) {
       console.error('Error fetching plugin catalog:', error);
       res.status(500).json({ message: error.message });
@@ -8595,54 +8612,6 @@ app.delete("/api/social/posts/:id", requireAuth, async (req, res) => {
   }
 });
 
-// Studio Plugins Catalog - Query from database
-app.get("/api/studio/plugins", requireAuth, async (req, res) => {
-  try {
-    const { category } = req.query;
-    
-    // Seed catalog if empty (first-time setup)
-    await storage.seedPluginCatalog();
-    
-    // Get plugins from database
-    const plugins = await storage.getPluginCatalog(category as string);
-    
-    // Group by category for frontend compatibility
-    if (!category) {
-      const grouped = plugins.reduce((acc, plugin) => {
-        const kind = plugin.kind;
-        if (!acc[kind]) {
-          acc[kind] = [];
-        }
-        acc[kind].push({
-          id: plugin.id,
-          name: plugin.name,
-          type: plugin.kind,
-          description: plugin.manifest.description || '',
-          manufacturer: plugin.manifest.manufacturer || 'Max Booster',
-          version: plugin.version,
-          tags: plugin.manifest.tags || []
-        });
-        return acc;
-      }, {} as Record<string, any[]>);
-      
-      res.json(grouped);
-    } else {
-      // Return single category
-      res.json(plugins.map(plugin => ({
-        id: plugin.id,
-        name: plugin.name,
-        type: plugin.kind,
-        description: plugin.manifest.description || '',
-        manufacturer: plugin.manifest.manufacturer || 'Max Booster',
-        version: plugin.version,
-        tags: plugin.manifest.tags || []
-      })));
-    }
-  } catch (error) {
-    console.error('Error fetching studio plugins:', error);
-    res.status(500).json({ error: 'Failed to fetch studio plugins' });
-  }
-});
 
 // Marketplace Producer Profiles
 app.get("/api/marketplace/producers", requireAuth, async (req, res) => {
