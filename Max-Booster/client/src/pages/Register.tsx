@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { Logo } from '@/components/ui/Logo';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
@@ -22,6 +23,7 @@ import {
   Shield,
   Clock
 } from 'lucide-react';
+import { FaGoogle } from 'react-icons/fa';
 
 export default function Register() {
   const [, navigate] = useLocation();
@@ -61,6 +63,10 @@ export default function Register() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleSignup = () => {
+    window.location.href = '/api/auth/google';
   };
 
   const benefits = [
@@ -209,6 +215,19 @@ export default function Register() {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </form>
+
+            <Separator className="my-4" />
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleSignup}
+              data-testid="button-google-signup"
+            >
+              <FaGoogle className="mr-2 h-4 w-4" />
+              Sign up with Google
+            </Button>
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-3">

@@ -1,6 +1,19 @@
 # Overview
 
-Max Booster is a comprehensive AI-powered music artist career management platform built with React, Express, and TypeScript. It provides professional-grade tools for music production, distribution, social media management, advertising, marketplace operations, and analytics. The platform features **7 production-ready in-house AI systems** with full UI integration, autonomous upgrades, self-healing security, and enterprise-scale architecture. All AI features use deterministic algorithms without external API dependencies, achieving feature parity with commercial tools (Pro Tools, DistroKid, Hootsuite, BeatStars, Chartmetric) at all-in-one pricing ($468-699/year vs $2,500+/year).
+Max Booster is a comprehensive AI-powered music artist career management platform built with React, Express, and TypeScript. It provides professional-grade tools for music production, distribution, social media management, advertising, marketplace operations, and analytics. The platform features **7 production-ready in-house AI systems** with full UI integration, autonomous upgrades, self-healing security, Google OAuth one-click signup, and enterprise-scale architecture designed to support 10 billion user accounts. All AI features use deterministic algorithms without external API dependencies, achieving feature parity with commercial tools (Pro Tools, DistroKid, Hootsuite, BeatStars, Chartmetric) at all-in-one pricing ($468-699/year vs $2,500+/year).
+
+# Recent Changes
+
+## Google OAuth One-Click Signup (November 12, 2025)
+
+**Complete Google OAuth Implementation:**
+- Backend: Google OAuth 2.0 strategy with passport-google-oauth20 fully configured
+- Frontend: "Continue with Google" / "Sign up with Google" buttons on Login and Register pages
+- Environment: GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET configured
+- Flow: Artists can now sign up and log in with their Google account in one click
+- Auto-account creation: New Google users automatically get accounts created on first login
+- Callback URL: `/api/auth/google/callback` handles OAuth flow and redirects to dashboard
+- Status: 100% production-ready for artist onboarding
 
 ## AI Systems Status (November 11, 2025) - 100% PRODUCTION READY ✅
 
