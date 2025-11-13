@@ -232,7 +232,170 @@ export class InstantPayoutService {
   }
 
   /**
-   * Request instant payout (T+0 settlement) via Stripe Express
+   * Create instant transfer to seller's connected account (for marketplace sales)
+   * This is the CORRECT method for marketplace payouts - transfers FROM platform TO seller
+   */
+  async createInstantTransfer(
+    userId: string,
+    amount: number,
+    orderId: string,
+    platformFeePercentage: number = 10,
+    currency: string = 'usd'
+  ): Promise<PayoutResult> {
+    try {
+      if (!stripe) {
+        return {
+          success: false,
+          error: 'Stripe not configured',
+        };
+      }
+
+      // Verify Stripe account
+      const accountVerification = await this.verifyStripeAccount(userId);
+      if (!accountVerification.verified) {
+        // Seller not onboarded - store payout as pending
+        console.warn(`Seller ${userId} not onboarded to Stripe Connect. Payout delayed.`);
+        
+        await db.insert(notifications).values({
+          userId,
+          type: 'payout',
+          title: 'Payout Pending - Action Required',
+          message: `You have a pending payout of $${amount.toFixed(2)}, but you need to connect your bank account first to receive payments.`,
+          metadata: {
+            amount,
+            orderId,
+            action: 'connect_bank_account',
+          },
+        });
+
+        return {
+          success: false,
+          error: 'Seller must complete Stripe Connect onboarding',
+        };
+      }
+
+      // Calculate platform fee and seller amount
+      const platformFee = amount * (platformFeePercentage / 100);
+      const sellerAmount = amount - platformFee;
+
+      // Create payout record in database (pending)
+      const [payoutRecord] = await db
+        .insert(instantPayouts)
+        .values({
+          userId,
+          amount: sellerAmount.toString(),
+          currency,
+          status: 'pending',
+          metadata: {
+            orderId,
+            totalAmount: amount,
+            platformFee,
+            platformFeePercentage,
+          },
+        })
+        .returning();
+
+      try {
+        // Create TRANSFER from platform to seller's connected account
+        const transfer = await stripe.transfers.create({
+          amount: Math.round(sellerAmount * 100), // Convert to cents
+          currency,
+          destination: accountVerification.accountId!,
+          description: `Marketplace sale payout - Order #${orderId}`,
+          metadata: {
+            userId,
+            payoutId: payoutRecord.id,
+            orderId,
+            platformFee: platformFee.toFixed(2),
+          },
+        });
+
+        // Update payout record with Stripe transfer ID
+        await db
+          .update(instantPayouts)
+          .set({
+            stripePayoutId: transfer.id,
+            status: 'in_transit',
+            metadata: {
+              orderId,
+              totalAmount: amount,
+              platformFee,
+              platformFeePercentage,
+              transferId: transfer.id,
+              transferredAt: new Date().toISOString(),
+            },
+          })
+          .where(eq(instantPayouts.id, payoutRecord.id));
+
+        // Update seller's total payouts
+        await db
+          .update(users)
+          .set({
+            totalPayouts: sql`${users.totalPayouts} + ${sellerAmount}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, userId));
+
+        // Send success notification
+        await db.insert(notifications).values({
+          userId,
+          type: 'payout',
+          title: 'Payout Sent!',
+          message: `Your payout of $${sellerAmount.toFixed(2)} has been sent to your bank account and will arrive within 1-2 business days.`,
+          metadata: {
+            payoutId: payoutRecord.id,
+            amount: sellerAmount,
+            platformFee,
+            orderId,
+          },
+        });
+
+        return {
+          success: true,
+          payoutId: payoutRecord.id,
+          stripePayoutId: transfer.id,
+          amount: sellerAmount,
+        };
+      } catch (stripeError: any) {
+        // Update payout record as failed
+        await db
+          .update(instantPayouts)
+          .set({
+            status: 'failed',
+            failureReason: stripeError.message,
+          })
+          .where(eq(instantPayouts.id, payoutRecord.id));
+
+        // Send failure notification
+        await db.insert(notifications).values({
+          userId,
+          type: 'payout',
+          title: 'Payout Failed',
+          message: `Your payout failed: ${stripeError.message}. Please contact support if this continues.`,
+          metadata: {
+            payoutId: payoutRecord.id,
+            error: stripeError.message,
+            orderId,
+          },
+        });
+
+        return {
+          success: false,
+          error: stripeError.message || 'Transfer failed',
+        };
+      }
+    } catch (error: any) {
+      console.error('Error creating instant transfer:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to create transfer',
+      };
+    }
+  }
+
+  /**
+   * Request manual payout (for accumulated balance withdrawal)
+   * Uses Stripe Payouts to pay out FROM connected account TO bank
    */
   async requestInstantPayout(
     userId: string,
@@ -277,13 +440,12 @@ export class InstantPayoutService {
         .returning();
 
       try {
-        // Create instant payout via Stripe (T+0)
+        // Create payout via Stripe (pays from connected account to bank)
         const payout = await stripe.payouts.create(
           {
             amount: Math.round(amount * 100), // Convert to cents
             currency,
-            method: 'instant', // T+0 instant payout
-            description: `Instant payout for marketplace sales`,
+            description: `Manual payout withdrawal`,
             metadata: {
               userId,
               payoutId: payoutRecord.id,
@@ -321,8 +483,8 @@ export class InstantPayoutService {
         await db.insert(notifications).values({
           userId,
           type: 'payout',
-          title: 'Payout Initiated',
-          message: `Your instant payout of $${amount.toFixed(2)} has been initiated and will arrive within minutes.`,
+          title: 'Withdrawal Initiated',
+          message: `Your withdrawal of $${amount.toFixed(2)} has been initiated and will arrive within minutes.`,
           metadata: {
             payoutId: payoutRecord.id,
             amount,
@@ -351,8 +513,8 @@ export class InstantPayoutService {
         await db.insert(notifications).values({
           userId,
           type: 'payout',
-          title: 'Payout Failed',
-          message: `Your payout request failed: ${stripeError.message}`,
+          title: 'Withdrawal Failed',
+          message: `Your withdrawal request failed: ${stripeError.message}`,
           metadata: {
             payoutId: payoutRecord.id,
             error: stripeError.message,
@@ -453,7 +615,203 @@ export class InstantPayoutService {
   }
 
   /**
-   * Handle Stripe payout webhook events
+   * Handle Stripe transfer webhook events (for marketplace payouts)
+   */
+  async handleTransferWebhook(event: Stripe.Event): Promise<void> {
+    try {
+      const transfer = event.data.object as Stripe.Transfer;
+
+      // Find payout record by Stripe transfer ID
+      const [payoutRecord] = await db
+        .select()
+        .from(instantPayouts)
+        .where(eq(instantPayouts.stripePayoutId, transfer.id))
+        .limit(1);
+
+      if (!payoutRecord) {
+        console.log('Payout record not found for transfer webhook:', transfer.id);
+        return;
+      }
+
+      // Update status based on event type
+      let status = payoutRecord.status;
+      let completedAt = payoutRecord.completedAt;
+      let failureReason = payoutRecord.failureReason;
+
+      switch (event.type) {
+        case 'transfer.created':
+          status = 'in_transit';
+          console.log('Transfer created:', transfer.id);
+          break;
+
+        case 'transfer.paid':
+          status = 'completed';
+          completedAt = new Date();
+          
+          // Send success notification
+          await db.insert(notifications).values({
+            userId: payoutRecord.userId,
+            type: 'payout',
+            title: 'Money Received!',
+            message: `Your payout of $${Number(payoutRecord.amount).toFixed(2)} has been successfully transferred to your bank account.`,
+            metadata: {
+              payoutId: payoutRecord.id,
+              amount: payoutRecord.amount,
+              transferId: transfer.id,
+            },
+          });
+          break;
+
+        case 'transfer.failed':
+          status = 'failed';
+          failureReason = transfer.failure_message || 'Transfer failed';
+          
+          // Reverse the transfer - add back to seller's available balance
+          await db
+            .update(users)
+            .set({
+              availableBalance: sql`${users.availableBalance} + ${payoutRecord.amount}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(users.id, payoutRecord.userId));
+
+          // Send failure notification
+          await db.insert(notifications).values({
+            userId: payoutRecord.userId,
+            type: 'payout',
+            title: 'Payout Failed',
+            message: `Your payout of $${Number(payoutRecord.amount).toFixed(2)} failed: ${failureReason}. The amount has been returned to your available balance. Please ensure your bank account is verified.`,
+            metadata: {
+              payoutId: payoutRecord.id,
+              error: failureReason,
+              transferId: transfer.id,
+            },
+          });
+          break;
+
+        case 'transfer.reversed':
+          status = 'refunded';
+          
+          // Add back to seller's available balance
+          await db
+            .update(users)
+            .set({
+              availableBalance: sql`${users.availableBalance} + ${payoutRecord.amount}`,
+              totalPayouts: sql`${users.totalPayouts} - ${payoutRecord.amount}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(users.id, payoutRecord.userId));
+
+          // Send notification
+          await db.insert(notifications).values({
+            userId: payoutRecord.userId,
+            type: 'payout',
+            title: 'Payout Reversed',
+            message: `Your payout of $${Number(payoutRecord.amount).toFixed(2)} was reversed and the funds have been returned to your available balance.`,
+            metadata: {
+              payoutId: payoutRecord.id,
+              transferId: transfer.id,
+            },
+          });
+          break;
+      }
+
+      // Update payout record
+      await db
+        .update(instantPayouts)
+        .set({
+          status,
+          completedAt,
+          failureReason,
+        })
+        .where(eq(instantPayouts.id, payoutRecord.id));
+    } catch (error) {
+      console.error('Error handling transfer webhook:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle Stripe account webhook events (for Connect onboarding status)
+   */
+  async handleAccountWebhook(event: Stripe.Event): Promise<void> {
+    try {
+      const account = event.data.object as Stripe.Account;
+
+      // Find user by Stripe Connected Account ID
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.stripeConnectedAccountId, account.id))
+        .limit(1);
+
+      if (!user) {
+        console.log('User not found for account webhook:', account.id);
+        return;
+      }
+
+      switch (event.type) {
+        case 'account.updated':
+          // Check if account is now verified and can receive payouts
+          const canReceivePayouts = account.payouts_enabled && account.charges_enabled;
+          
+          if (canReceivePayouts && account.details_submitted) {
+            // Send success notification
+            await db.insert(notifications).values({
+              userId: user.id,
+              type: 'account',
+              title: 'Bank Account Connected!',
+              message: `Your bank account has been successfully connected. You can now receive instant payouts when you sell beats.`,
+              metadata: {
+                accountId: account.id,
+                payoutsEnabled: account.payouts_enabled,
+                chargesEnabled: account.charges_enabled,
+              },
+            });
+          } else if (!account.details_submitted) {
+            // Remind user to complete onboarding
+            await db.insert(notifications).values({
+              userId: user.id,
+              type: 'account',
+              title: 'Complete Bank Account Setup',
+              message: `Please complete your bank account setup to receive payouts from your sales.`,
+              metadata: {
+                accountId: account.id,
+                action: 'complete_onboarding',
+              },
+            });
+          }
+          break;
+
+        case 'account.application.deauthorized':
+          // User has disconnected their account
+          await db
+            .update(users)
+            .set({
+              stripeConnectedAccountId: null,
+              updatedAt: new Date(),
+            })
+            .where(eq(users.id, user.id));
+
+          await db.insert(notifications).values({
+            userId: user.id,
+            type: 'account',
+            title: 'Bank Account Disconnected',
+            message: `Your bank account has been disconnected. You will not be able to receive payouts until you reconnect it.`,
+            metadata: {
+              accountId: account.id,
+            },
+          });
+          break;
+      }
+    } catch (error) {
+      console.error('Error handling account webhook:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle Stripe payout webhook events (for manual withdrawals)
    */
   async handlePayoutWebhook(event: Stripe.Event): Promise<void> {
     try {
@@ -485,8 +843,8 @@ export class InstantPayoutService {
           await db.insert(notifications).values({
             userId: payoutRecord.userId,
             type: 'payout',
-            title: 'Payout Completed',
-            message: `Your payout of $${Number(payoutRecord.amount).toFixed(2)} has been completed and is on its way to your bank account.`,
+            title: 'Withdrawal Completed',
+            message: `Your withdrawal of $${Number(payoutRecord.amount).toFixed(2)} has been completed and is on its way to your bank account.`,
             metadata: {
               payoutId: payoutRecord.id,
               amount: payoutRecord.amount,
@@ -512,8 +870,8 @@ export class InstantPayoutService {
           await db.insert(notifications).values({
             userId: payoutRecord.userId,
             type: 'payout',
-            title: 'Payout Failed',
-            message: `Your payout failed: ${failureReason}. The amount has been returned to your available balance.`,
+            title: 'Withdrawal Failed',
+            message: `Your withdrawal failed: ${failureReason}. The amount has been returned to your available balance.`,
             metadata: {
               payoutId: payoutRecord.id,
               error: failureReason,

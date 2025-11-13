@@ -460,6 +460,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(403).json({ message: 'Admin access required' });
   };
 
+  const requirePremium = async (req: any, res: any, next: any) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ 
+        error: 'Authentication required',
+        message: 'Please log in to access this feature'
+      });
+    }
+
+    const GRACE_PERIOD_DAYS = 7;
+    const now = new Date();
+    const user = req.user;
+
+    if (user.role === 'admin' || user.isAdmin) {
+      return next();
+    }
+
+    const hasLifetimeAccess = user.subscriptionPlan === 'lifetime' || user.subscriptionTier === 'lifetime';
+    if (hasLifetimeAccess) {
+      return next();
+    }
+
+    const hasActiveSubscription = user.subscriptionStatus === 'active';
+    if (hasActiveSubscription) {
+      return next();
+    }
+
+    const trialEndDate = user.trialEndsAt ? new Date(user.trialEndsAt) : null;
+    const inActiveTrial = trialEndDate && trialEndDate > now;
+    if (inActiveTrial) {
+      return next();
+    }
+
+    const subscriptionEndDate = user.subscriptionEndsAt ? new Date(user.subscriptionEndsAt) : null;
+    if (subscriptionEndDate) {
+      const gracePeriodEnd = new Date(subscriptionEndDate);
+      gracePeriodEnd.setDate(gracePeriodEnd.getDate() + GRACE_PERIOD_DAYS);
+      
+      const inGracePeriod = now <= gracePeriodEnd;
+      if (inGracePeriod) {
+        const daysRemaining = Math.ceil((gracePeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        res.setHeader('X-Grace-Period-Days-Remaining', daysRemaining.toString());
+        return next();
+      }
+    }
+
+    return res.status(403).json({ 
+      error: 'Premium subscription required',
+      message: 'This feature requires an active premium subscription',
+      upgradeUrl: '/pricing',
+      subscriptionStatus: user.subscriptionStatus || 'none',
+      trialExpired: trialEndDate ? trialEndDate < now : false
+    });
+  };
+
   // Initialize Autopilot Engines
   const socialMediaAutopilot = AutopilotEngine.createForSocialAndAds();
   const autonomousAdvertisingAutopilot = AutonomousAutopilot.createForSocialAndAds();
@@ -1980,7 +2034,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics routes - specific routes first to prevent catch-all conflicts
-  app.get('/api/analytics/overview', requireAuth, async (req, res) => {
+  app.get('/api/analytics/overview', requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const dashboardStats = await storage.getDashboardStats(userId);
@@ -1996,7 +2050,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/analytics/dashboard', requireAuth, async (req, res) => {
+  app.get('/api/analytics/dashboard', requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const dashboardStats = await storage.getDashboardStats(userId);
@@ -5628,7 +5682,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/marketplace/beats", requireAuth, (req, res) => {
+  app.post("/api/marketplace/beats", requireAuth, requirePremium, (req, res) => {
     const beatData = req.body;
     const beat = {
       id: Date.now().toString(),
@@ -5656,7 +5710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(purchase);
   });
 
-  app.get("/api/marketplace/sales", requireAuth, async (req, res) => {
+  app.get("/api/marketplace/sales", requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { period, status, limit = 50, offset = 0 } = req.query;
@@ -6824,7 +6878,7 @@ app.get("/api/testing/coverage", requireAuth, (req, res) => {
 });
 
 // AI Advertising System Routes
-app.get("/api/advertising/campaigns", requireAuth, async (req, res) => {
+app.get("/api/advertising/campaigns", requireAuth, requirePremium, async (req, res) => {
   try {
     const campaigns = await storage.getUserAdCampaigns((req.user as any).id);
     res.json(campaigns);
@@ -6835,7 +6889,7 @@ app.get("/api/advertising/campaigns", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/advertising/campaigns", requireAuth, async (req, res) => {
+app.post("/api/advertising/campaigns", requireAuth, requirePremium, async (req, res) => {
   try {
     const validation = createCampaignSchema.safeParse(req.body);
     if (!validation.success) {
@@ -6887,7 +6941,7 @@ app.post("/api/advertising/campaigns", requireAuth, async (req, res) => {
   }
 });
 
-app.get("/api/advertising/ai-insights", requireAuth, async (req, res) => {
+app.get("/api/advertising/ai-insights", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     
@@ -7067,7 +7121,7 @@ app.get("/api/advertising/ai-insights", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/advertising/generate-content", requireAuth, async (req, res) => {
+app.post("/api/advertising/generate-content", requireAuth, requirePremium, async (req, res) => {
   try {
     const { musicData, targetAudience } = req.body;
     
@@ -7094,7 +7148,7 @@ app.post("/api/advertising/generate-content", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/advertising/optimize-campaign", requireAuth, async (req, res) => {
+app.post("/api/advertising/optimize-campaign", requireAuth, requirePremium, async (req, res) => {
   try {
     const { campaignId, performance } = req.body;
     
@@ -7118,7 +7172,7 @@ app.post("/api/advertising/optimize-campaign", requireAuth, async (req, res) => 
   }
 });
 
-app.get("/api/advertising/performance/:campaignId", requireAuth, async (req, res) => {
+app.get("/api/advertising/performance/:campaignId", requireAuth, requirePremium, async (req, res) => {
   try {
     const { campaignId } = req.params;
     const userId = (req.user as any).id;
@@ -7182,7 +7236,7 @@ app.get("/api/advertising/performance/:campaignId", requireAuth, async (req, res
 });
 
 // Upload image for advertising campaign
-app.post("/api/advertising/upload-image", requireAuth, upload.single('image'), async (req, res) => {
+app.post("/api/advertising/upload-image", requireAuth, requirePremium, upload.single('image'), async (req, res) => {
   try {
     const user = req.user as any;
     const file = req.file;
@@ -7209,7 +7263,7 @@ app.post("/api/advertising/upload-image", requireAuth, upload.single('image'), a
 
 // REVOLUTIONARY: Zero-Cost Social Amplification System
 // Uses user's connected social profiles to eliminate ad spend while achieving 100%+ better results
-app.post("/api/advertising/amplify-organic", requireAuth, async (req, res) => {
+app.post("/api/advertising/amplify-organic", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const { campaignId, musicData, connectedPlatforms } = req.body;
@@ -7247,7 +7301,7 @@ app.post("/api/advertising/amplify-organic", requireAuth, async (req, res) => {
 });
 
 // Get organic performance data for a campaign
-app.get("/api/advertising/organic-performance/:campaignId", requireAuth, async (req, res) => {
+app.get("/api/advertising/organic-performance/:campaignId", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const { campaignId } = req.params;
@@ -7280,7 +7334,7 @@ app.get("/api/advertising/organic-performance/:campaignId", requireAuth, async (
 });
 
 // Get comprehensive comparison: Organic vs Paid Advertising
-app.get("/api/advertising/performance-comparison/:campaignId", requireAuth, async (req, res) => {
+app.get("/api/advertising/performance-comparison/:campaignId", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const { campaignId } = req.params;
@@ -7334,7 +7388,7 @@ app.get("/api/advertising/performance-comparison/:campaignId", requireAuth, asyn
 // Advertisement AI System - New Routes for Complete Implementation
 
 // Content Intake - Upload content and create adCreative
-app.post("/api/advertising/intake", requireAuth, upload.array('assets', 10), async (req, res) => {
+app.post("/api/advertising/intake", requireAuth, requirePremium, upload.array('assets', 10), async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const { contentType, rawContent, campaignId } = req.body;
@@ -7364,7 +7418,7 @@ app.post("/api/advertising/intake", requireAuth, upload.array('assets', 10), asy
 });
 
 // Normalize creative for platforms
-app.post("/api/advertising/normalize", requireAuth, async (req, res) => {
+app.post("/api/advertising/normalize", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const { creativeId, platforms } = req.body;
@@ -7394,7 +7448,7 @@ app.post("/api/advertising/normalize", requireAuth, async (req, res) => {
 });
 
 // AI Amplification - Run AI on creative, create variants
-app.post("/api/advertising/amplify", requireAuth, async (req, res) => {
+app.post("/api/advertising/amplify", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const { creativeId, campaignId, platforms } = req.body;
@@ -7443,7 +7497,7 @@ app.post("/api/advertising/amplify", requireAuth, async (req, res) => {
 });
 
 // Organic Dispatch - Post variant organically via user's social profile
-app.post("/api/advertising/dispatch", requireAuth, async (req, res) => {
+app.post("/api/advertising/dispatch", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const { variantId, campaignId } = req.body;
@@ -7493,7 +7547,7 @@ app.post("/api/advertising/dispatch", requireAuth, async (req, res) => {
 });
 
 // Create kill rule
-app.post("/api/advertising/rules", requireAuth, async (req, res) => {
+app.post("/api/advertising/rules", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const { campaignId, ruleName, condition, action } = req.body;
@@ -7519,7 +7573,7 @@ app.post("/api/advertising/rules", requireAuth, async (req, res) => {
 });
 
 // Evaluate all rules for campaign
-app.post("/api/advertising/rules/evaluate", requireAuth, async (req, res) => {
+app.post("/api/advertising/rules/evaluate", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const { campaignId } = req.body;
@@ -7545,7 +7599,7 @@ app.post("/api/advertising/rules/evaluate", requireAuth, async (req, res) => {
 });
 
 // Get rule execution history
-app.get("/api/advertising/rules/:ruleId/executions", requireAuth, async (req, res) => {
+app.get("/api/advertising/rules/:ruleId/executions", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const { ruleId } = req.params;
@@ -7560,7 +7614,7 @@ app.get("/api/advertising/rules/:ruleId/executions", requireAuth, async (req, re
 });
 
 // Get user's creatives
-app.get("/api/advertising/creatives", requireAuth, async (req, res) => {
+app.get("/api/advertising/creatives", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     
@@ -7574,7 +7628,7 @@ app.get("/api/advertising/creatives", requireAuth, async (req, res) => {
 });
 
 // Get campaign variants
-app.get("/api/advertising/campaigns/:id/variants", requireAuth, async (req, res) => {
+app.get("/api/advertising/campaigns/:id/variants", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const campaignId = parseInt(req.params.id);
@@ -7594,7 +7648,7 @@ app.get("/api/advertising/campaigns/:id/variants", requireAuth, async (req, res)
 });
 
 // Get delivery logs for campaign
-app.get("/api/advertising/delivery/logs", requireAuth, async (req, res) => {
+app.get("/api/advertising/delivery/logs", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const { campaignId } = req.query;
@@ -8201,7 +8255,7 @@ app.get("/api/dashboard/next-action", requireAuth, async (req, res) => {
 });
 
 // Analytics Overview with Caching
-app.get("/api/analytics/overview", requireAuth, async (req, res) => {
+app.get("/api/analytics/overview", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const days = parseInt(req.query.days as string) || 30;
@@ -8228,7 +8282,7 @@ app.get("/api/analytics/overview", requireAuth, async (req, res) => {
 });
 
 // Comprehensive Analytics Routes
-app.get("/api/analytics/comprehensive", requireAuth, async (req, res) => {
+app.get("/api/analytics/comprehensive", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const days = parseInt(req.query.days as string) || 30;
@@ -8274,7 +8328,7 @@ app.get("/api/analytics/comprehensive", requireAuth, async (req, res) => {
 });
 
 // AI Insights Routes
-app.get("/api/ai/insights", requireAuth, async (req, res) => {
+app.get("/api/ai/insights", requireAuth, requirePremium, async (req, res) => {
   try {
     const user = req.user as any;
     
@@ -8300,7 +8354,7 @@ app.get("/api/ai/insights", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/ai/optimize-content", requireAuth, async (req, res) => {
+app.post("/api/ai/optimize-content", requireAuth, requirePremium, async (req, res) => {
   try {
     const user = req.user as any;
     
@@ -8341,7 +8395,7 @@ app.post("/api/ai/optimize-content", requireAuth, async (req, res) => {
 });
 
 // Analytics Export Route
-app.post("/api/analytics/export", requireAuth, async (req, res) => {
+app.post("/api/analytics/export", requireAuth, requirePremium, async (req, res) => {
   try {
     const { format, filters } = req.body;
     const userId = (req.user as any).id;
@@ -9105,7 +9159,7 @@ app.get("/api/marketplace/producers", requireAuth, async (req, res) => {
 });
 
 // Marketplace Sales Analytics
-app.get("/api/marketplace/sales-analytics", requireAuth, async (req, res) => {
+app.get("/api/marketplace/sales-analytics", requireAuth, requirePremium, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const analytics = await storage.getSalesAnalytics(userId);
@@ -9508,6 +9562,73 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       res.status(500).json({ error: "Failed to setup Stripe Connect" });
     }
   });
+
+  // Get Stripe Connect account status
+  app.get("/api/marketplace/connect/status", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const verification = await instantPayoutService.verifyStripeAccount(userId);
+      res.json({
+        verified: verification.verified,
+        accountId: verification.accountId,
+        onboardingRequired: !verification.verified,
+        error: verification.error,
+      });
+    } catch (error) {
+      console.error("Error checking Connect status:", error);
+      res.status(500).json({ error: "Failed to check Connect status" });
+    }
+  });
+
+  // Get payout history
+  app.get("/api/marketplace/payouts", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const payouts = await instantPayoutService.getPayoutHistory(userId, limit, offset);
+      res.json(payouts);
+    } catch (error) {
+      console.error("Error fetching payout history:", error);
+      res.status(500).json({ error: "Failed to fetch payout history" });
+    }
+  });
+
+  // Get earnings summary
+  app.get("/api/marketplace/earnings", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const earnings = await instantPayoutService.calculateAvailableBalance(userId);
+      res.json(earnings);
+    } catch (error) {
+      console.error("Error fetching earnings:", error);
+      res.status(500).json({ error: "Failed to fetch earnings" });
+    }
+  });
+
+  // Request manual payout/withdrawal
+  app.post("/api/marketplace/payouts/withdraw", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { amount } = req.body;
+
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ error: "Invalid amount" });
+      }
+
+      const result = await instantPayoutService.requestInstantPayout(userId, amount);
+      
+      if (!result.success) {
+        return res.status(400).json({ error: result.error });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error requesting withdrawal:", error);
+      res.status(500).json({ error: "Failed to request withdrawal" });
+    }
+  });
   
   // ============================================================================
   // SOCIAL & ADVERTISING AI ROUTES
@@ -9642,7 +9763,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   // ============================================================================
   
   // POST /api/social/calendar - Create scheduled post
-  app.post("/api/social/calendar", requireAuth, async (req, res) => {
+  app.post("/api/social/calendar", requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const validation = insertContentCalendarSchema.safeParse(req.body);
@@ -9670,7 +9791,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   });
 
   // GET /api/social/calendar - Get user's content calendar
-  app.get("/api/social/calendar", requireAuth, async (req, res) => {
+  app.get("/api/social/calendar", requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { startDate, endDate, platform, status } = req.query;
@@ -9732,7 +9853,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   });
 
   // GET /api/social/calendar/stats - Get calendar statistics
-  app.get("/api/social/calendar/stats", requireAuth, async (req, res) => {
+  app.get("/api/social/calendar/stats", requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const now = new Date();
@@ -9777,7 +9898,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   });
 
   // PUT /api/social/calendar/:postId - Update scheduled post
-  app.put("/api/social/calendar/:postId", requireAuth, async (req, res) => {
+  app.put("/api/social/calendar/:postId", requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { postId } = req.params;
@@ -9815,7 +9936,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   });
 
   // DELETE /api/social/calendar/:postId - Delete scheduled post
-  app.delete("/api/social/calendar/:postId", requireAuth, async (req, res) => {
+  app.delete("/api/social/calendar/:postId", requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { postId } = req.params;
@@ -9844,7 +9965,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   });
 
   // POST /api/social/calendar/:postId/publish - Manually publish now
-  app.post("/api/social/calendar/:postId/publish", requireAuth, async (req, res) => {
+  app.post("/api/social/calendar/:postId/publish", requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { postId } = req.params;
@@ -9858,19 +9979,34 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         return res.status(404).json({ error: "Post not found or unauthorized" });
       }
 
-      // Mock platform posting - simulate success
+      // Real platform posting using OAuth tokens
+      const { platformAPI } = await import('./platform-apis');
       const platforms = (existing.platforms as string[]) || [];
-      const mockResults = platforms.map(platform => ({
-        platform,
-        success: true,
-        postId: `${platform}_${Date.now()}`
-      }));
+      
+      // Extract first media URL if available (schema uses mediaUrls array)
+      const mediaUrls = existing.mediaUrls as string[] | null;
+      const firstMediaUrl = mediaUrls && mediaUrls.length > 0 ? mediaUrls[0] : null;
 
-      // Update status to published
+      const publishResults = await platformAPI.publishContent(
+        {
+          text: existing.content || '',
+          mediaUrl: firstMediaUrl,
+          hashtags: existing.hashtags as string[] || []
+        },
+        platforms,
+        userId
+      );
+
+      // Determine final status based on results
+      const allSuccess = publishResults.every(r => r.success);
+      const anySuccess = publishResults.some(r => r.success);
+      const finalStatus = allSuccess ? 'published' : (anySuccess ? 'published' : 'failed');
+
+      // Update status based on actual publish results
       const [published] = await db.update(contentCalendar)
         .set({
-          status: 'published',
-          publishedAt: new Date(),
+          status: finalStatus,
+          publishedAt: allSuccess || anySuccess ? new Date() : null,
           updatedAt: new Date()
         })
         .where(eq(contentCalendar.id, postId))
@@ -9878,7 +10014,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
 
       res.json({
         post: published,
-        publishResults: mockResults
+        publishResults
       });
     } catch (error) {
       console.error("Error publishing calendar post:", error);
@@ -10065,7 +10201,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   });
   
   // Run AI mixing
-  app.post("/api/studio/ai-mix", requireAuth, async (req, res) => {
+  app.post("/api/studio/ai-mix", requireAuth, requirePremium, async (req, res) => {
     try {
       const { trackId } = req.body;
       const result = await aiMusicService.runAIMix(trackId, (req.user as any).id);
@@ -10077,7 +10213,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   });
   
   // Run AI mastering
-  app.post("/api/studio/ai-master", requireAuth, async (req, res) => {
+  app.post("/api/studio/ai-master", requireAuth, requirePremium, async (req, res) => {
     try {
       const { projectId } = req.body;
       const result = await aiMusicService.runAIMaster(projectId, (req.user as any).id);

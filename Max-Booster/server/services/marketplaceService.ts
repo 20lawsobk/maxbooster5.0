@@ -251,10 +251,27 @@ export class MarketplaceService {
         stripePaymentIntentId: paymentIntentId,
       });
 
-      // Update seller's available balance
+      // Trigger INSTANT PAYOUT to seller via Stripe Transfer (T+0)
       if (dbOrder.sellerId && dbOrder.amountCents) {
-        const amountUSD = dbOrder.amountCents / 100;
-        await instantPayoutService.updateAvailableBalance(dbOrder.sellerId, amountUSD);
+        const totalAmount = dbOrder.amountCents / 100;
+        const platformFeePercentage = Number(process.env.PLATFORM_FEE_PERCENTAGE) || 10;
+
+        console.log(`Initiating instant payout for order ${orderId}: $${totalAmount} to seller ${dbOrder.sellerId}`);
+
+        // Create instant transfer to seller's connected account
+        const payoutResult = await instantPayoutService.createInstantTransfer(
+          dbOrder.sellerId,
+          totalAmount,
+          orderId,
+          platformFeePercentage
+        );
+
+        if (payoutResult.success) {
+          console.log(`✅ Instant payout successful: $${payoutResult.amount} transferred to seller ${dbOrder.sellerId}`);
+        } else {
+          console.warn(`⚠️ Instant payout failed for order ${orderId}: ${payoutResult.error}`);
+          // Payout failed but order still completes - seller can withdraw manually later
+        }
       }
 
       // Generate license document

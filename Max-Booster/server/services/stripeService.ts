@@ -134,7 +134,11 @@ export class StripeService {
 
   async handleWebhook(event: Stripe.Event) {
     try {
+      // Import instantPayoutService here to avoid circular dependency
+      const { instantPayoutService } = await import('./instantPayoutService');
+
       switch (event.type) {
+        // Subscription & payment events
         case 'payment_intent.succeeded':
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
           await this.handlePaymentSuccess(paymentIntent);
@@ -147,6 +151,30 @@ export class StripeService {
           const subscription = event.data.object as Stripe.Subscription;
           await this.handleSubscriptionCanceled(subscription);
           break;
+
+        // Marketplace payout events (Transfers)
+        case 'transfer.created':
+        case 'transfer.paid':
+        case 'transfer.failed':
+        case 'transfer.reversed':
+          await instantPayoutService.handleTransferWebhook(event);
+          break;
+
+        // Stripe Connect account events
+        case 'account.updated':
+        case 'account.application.deauthorized':
+          await instantPayoutService.handleAccountWebhook(event);
+          break;
+
+        // Manual payout events (for withdrawals)
+        case 'payout.paid':
+        case 'payout.failed':
+        case 'payout.canceled':
+          await instantPayoutService.handlePayoutWebhook(event);
+          break;
+
+        default:
+          console.log(`Unhandled webhook event type: ${event.type}`);
       }
     } catch (error) {
       console.error('Webhook error:', error);
