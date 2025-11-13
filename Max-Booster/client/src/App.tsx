@@ -39,13 +39,13 @@ const AIDashboard = lazy(() => import("@/pages/analytics/AIDashboard"));
 const SocialMedia = lazy(() => import("@/pages/SocialMedia"));
 const Advertisement = lazy(() => import("@/pages/Advertisement"));
 const DistributionComingSoon = lazy(() => import("@/pages/DistributionComingSoon"));
+const RoyaltiesComingSoon = lazy(() => import("@/pages/RoyaltiesComingSoon"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const SecurityDashboard = lazy(() => import("@/pages/admin/SecurityDashboard"));
 const SupportDashboard = lazy(() => import("@/pages/admin/SupportDashboard"));
 const Projects = lazy(() => import("@/pages/Projects"));
-const Royalties = lazy(() => import("@/pages/Royalties"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
 const Subscribe = lazy(() => import("@/pages/Subscribe"));
 const DeveloperApi = lazy(() => import("@/pages/DeveloperApi"));
@@ -69,7 +69,7 @@ function Router() {
       <Route path="/social-media" component={SocialMedia} />
       <Route path="/advertising" component={Advertisement} />
       <Route path="/marketplace" component={Marketplace} />
-      <Route path="/royalties" component={Royalties} />
+      <Route path="/royalties" component={RoyaltiesComingSoon} />
       <Route path="/studio/:projectId" component={Studio} />
       <Route path="/studio" component={Studio} />
       <Route path="/distribution" component={DistributionComingSoon} />
