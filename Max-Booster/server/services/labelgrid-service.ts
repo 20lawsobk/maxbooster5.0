@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { loggingService } from './loggingService';
+import { storage } from '../storage';
 
 export interface LabelGridRelease {
   title: string;
@@ -81,16 +82,21 @@ export interface LabelGridCodeResponse {
 class LabelGridService {
   private client: AxiosInstance;
   private apiToken: string | undefined;
-  private apiUrl: string;
+  private baseUrl: string;
+  private endpoints: any;
+  private authHeaderFormat: string;
   private webhookSecret: string | undefined;
   private isConfigured: boolean = false;
+  private configLoaded: boolean = false;
   private maxRetries: number = 3;
   private baseDelay: number = 1000;
 
   constructor() {
     this.apiToken = process.env.LABELGRID_API_TOKEN;
-    this.apiUrl = process.env.LABELGRID_API_URL || 'https://api.labelgrid.com';
+    this.baseUrl = process.env.LABELGRID_API_URL || 'https://api.labelgrid.com';
     this.webhookSecret = process.env.LABELGRID_WEBHOOK_SECRET;
+    this.endpoints = {};
+    this.authHeaderFormat = 'Bearer {token}';
 
     if (!this.apiToken) {
       console.warn('⚠️  LabelGrid API token not configured. Distribution features will use simulated mode.');
@@ -101,7 +107,7 @@ class LabelGridService {
     }
 
     this.client = axios.create({
-      baseURL: this.apiUrl,
+      baseURL: this.baseUrl,
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
@@ -116,6 +122,47 @@ class LabelGridService {
         return Promise.reject(error);
       }
     );
+
+    // Load config from database on initialization
+    this.loadConfig();
+  }
+
+  private async loadConfig() {
+    if (this.configLoaded) return;
+    
+    try {
+      const provider = await storage.getDistributionProvider('labelgrid');
+      
+      if (provider) {
+        this.baseUrl = provider.baseUrl;
+        this.endpoints = provider.endpoints;
+        this.authHeaderFormat = provider.authHeaderFormat || 'Bearer {token}';
+        this.webhookSecret = provider.webhookSecretKey || this.webhookSecret;
+        this.configLoaded = true;
+        
+        // Update axios client base URL
+        this.client.defaults.baseURL = this.baseUrl;
+        
+        console.log('✅ LabelGrid configuration loaded from database');
+        console.log(`   Base URL: ${this.baseUrl}`);
+        console.log(`   Endpoints configured: ${Object.keys(this.endpoints).length}`);
+      } else {
+        // Fallback to environment variables
+        this.baseUrl = process.env.LABELGRID_API_URL || 'https://api.labelgrid.com';
+        this.endpoints = {};
+        this.authHeaderFormat = 'Bearer {token}';
+        console.warn('⚠️  LabelGrid provider not found in database, using defaults');
+      }
+    } catch (error) {
+      console.error('Failed to load LabelGrid config from database:', error);
+      this.baseUrl = process.env.LABELGRID_API_URL || 'https://api.labelgrid.com';
+      this.endpoints = {};
+      this.authHeaderFormat = 'Bearer {token}';
+    }
+  }
+
+  private getEndpoint(key: string, fallback: string): string {
+    return this.endpoints[key] || fallback;
   }
 
   private async retryWithBackoff<T>(
@@ -167,16 +214,19 @@ class LabelGridService {
   }
 
   async createRelease(releaseData: LabelGridRelease): Promise<LabelGridReleaseResponse> {
+    await this.loadConfig();
+    
     if (!this.isConfigured) {
       console.warn('⚠️  LabelGrid not configured - returning simulated response');
       return this.simulateCreateRelease(releaseData);
     }
 
-    this.logApiCall('POST', '/releases', releaseData);
+    const endpoint = this.getEndpoint('createRelease', '/v1/releases');
+    this.logApiCall('POST', endpoint, releaseData);
 
     try {
       const response = await this.retryWithBackoff(async () => {
-        return await this.client.post<LabelGridReleaseResponse>('/v1/releases', {
+        return await this.client.post<LabelGridReleaseResponse>(endpoint, {
           title: releaseData.title,
           artist: releaseData.artist,
           release_date: releaseData.releaseDate,
@@ -217,18 +267,19 @@ class LabelGridService {
   }
 
   async getReleaseStatus(releaseId: string): Promise<LabelGridReleaseResponse> {
+    await this.loadConfig();
+    
     if (!this.isConfigured) {
       console.warn('⚠️  LabelGrid not configured - returning simulated response');
       return this.simulateGetReleaseStatus(releaseId);
     }
 
-    this.logApiCall('GET', `/releases/${releaseId}/status`);
+    const endpoint = this.getEndpoint('getReleaseStatus', `/v1/releases/:id/status`).replace(':id', releaseId);
+    this.logApiCall('GET', endpoint);
 
     try {
       const response = await this.retryWithBackoff(async () => {
-        return await this.client.get<LabelGridReleaseResponse>(
-          `/v1/releases/${releaseId}/status`
-        );
+        return await this.client.get<LabelGridReleaseResponse>(endpoint);
       });
 
       return response.data;
@@ -241,16 +292,19 @@ class LabelGridService {
   }
 
   async generateISRC(artist: string, title: string): Promise<LabelGridCodeResponse> {
+    await this.loadConfig();
+    
     if (!this.isConfigured) {
       console.warn('⚠️  LabelGrid not configured - generating local ISRC');
       return this.simulateGenerateISRC(artist, title);
     }
 
-    this.logApiCall('POST', '/codes/isrc', { artist, title });
+    const endpoint = this.getEndpoint('generateISRC', '/v1/codes/isrc');
+    this.logApiCall('POST', endpoint, { artist, title });
 
     try {
       const response = await this.retryWithBackoff(async () => {
-        return await this.client.post<LabelGridCodeResponse>('/v1/codes/isrc', {
+        return await this.client.post<LabelGridCodeResponse>(endpoint, {
           artist,
           title,
         });
@@ -272,16 +326,19 @@ class LabelGridService {
   }
 
   async generateUPC(releaseTitle: string): Promise<LabelGridCodeResponse> {
+    await this.loadConfig();
+    
     if (!this.isConfigured) {
       console.warn('⚠️  LabelGrid not configured - generating local UPC');
       return this.simulateGenerateUPC(releaseTitle);
     }
 
-    this.logApiCall('POST', '/codes/upc', { releaseTitle });
+    const endpoint = this.getEndpoint('generateUPC', '/v1/codes/upc');
+    this.logApiCall('POST', endpoint, { releaseTitle });
 
     try {
       const response = await this.retryWithBackoff(async () => {
-        return await this.client.post<LabelGridCodeResponse>('/v1/codes/upc', {
+        return await this.client.post<LabelGridCodeResponse>(endpoint, {
           release_title: releaseTitle,
         });
       });

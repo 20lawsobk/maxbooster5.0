@@ -2825,7 +2825,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================================
+  // ADMIN - Distribution Service Providers Configuration
+  // ============================================================================
+
+  // ADMIN ONLY - Insert/Update Distribution Provider API Configuration (e.g., LabelGrid, SonoSuite)
+  app.post('/api/admin/distribution-providers', requireAdmin, async (req, res) => {
+    try {
+      const providerData = req.body;
+      
+      // Validation - Required fields
+      if (!providerData.providerName || !providerData.providerSlug || !providerData.baseUrl) {
+        return res.status(400).json({ 
+          error: 'Missing required fields: providerName, providerSlug, baseUrl' 
+        });
+      }
+      
+      // Validate endpoints structure
+      if (!providerData.endpoints || typeof providerData.endpoints !== 'object') {
+        return res.status(400).json({ error: 'endpoints must be a valid JSON object' });
+      }
+      
+      // Validate authType
+      if (!providerData.authType) {
+        return res.status(400).json({ error: 'authType is required' });
+      }
+      
+      // Create or update provider
+      const provider = await storage.upsertDistributionProvider(providerData);
+      
+      console.log(`✅ Distribution provider ${provider.providerName} configured successfully`);
+      
+      res.json({ 
+        success: true, 
+        provider: {
+          id: provider.id,
+          name: provider.providerName,
+          slug: provider.providerSlug,
+          baseUrl: provider.baseUrl,
+          isActive: provider.isActive,
+          isDefault: provider.isDefault
+        }
+      });
+    } catch (error: any) {
+      console.error('Failed to configure distribution provider:', error);
+      res.status(500).json({ error: 'Failed to save provider configuration', details: error.message });
+    }
+  });
+
+  // ADMIN ONLY - Get all distribution providers
+  app.get('/api/admin/distribution-providers', requireAdmin, async (req, res) => {
+    try {
+      const providers = await db.select().from(distributionProviders);
+      res.json({ providers });
+    } catch (error: any) {
+      console.error('Failed to fetch distribution providers:', error);
+      res.status(500).json({ error: 'Failed to fetch providers', details: error.message });
+    }
+  });
+
+  // ADMIN ONLY - Set default provider
+  app.post('/api/admin/distribution-providers/:slug/set-default', requireAdmin, async (req, res) => {
+    try {
+      const { slug } = req.params;
+      
+      // Unset all defaults
+      await db.update(distributionProviders).set({ isDefault: false });
+      
+      // Set new default
+      const [provider] = await db
+        .update(distributionProviders)
+        .set({ isDefault: true, updatedAt: new Date() })
+        .where(eq(distributionProviders.providerSlug, slug))
+        .returning();
+      
+      if (!provider) {
+        return res.status(404).json({ error: 'Provider not found' });
+      }
+      
+      console.log(`✅ Set ${provider.providerName} as default distribution provider`);
+      
+      res.json({ success: true, provider });
+    } catch (error: any) {
+      console.error('Failed to set default provider:', error);
+      res.status(500).json({ error: 'Failed to set default provider', details: error.message });
+    }
+  });
+
+  // ============================================================================
   // DistroKid Clone - Distribution Routes
+  // ============================================================================
   
   // Get all releases for user
   app.get('/api/distribution/releases', requireAuth, async (req, res) => {

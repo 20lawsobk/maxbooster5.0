@@ -1358,6 +1358,47 @@ export const distroDispatch = pgTable("distro_dispatch", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Distribution Service Providers (LabelGrid, SonoSuite, etc.) - API Configuration Storage
+export const distributionProviders = pgTable("distribution_providers", {
+  id: serial("id").primaryKey(),
+  
+  // Provider identification
+  providerName: varchar("provider_name", { length: 100 }).notNull(),
+  providerSlug: varchar("provider_slug", { length: 50 }).notNull().unique(),
+  
+  // API Configuration
+  baseUrl: varchar("base_url", { length: 255 }).notNull(),
+  apiVersion: varchar("api_version", { length: 20 }),
+  
+  // Endpoints stored as JSON
+  endpoints: jsonb("endpoints").notNull(),
+  
+  // Authentication
+  authType: varchar("auth_type", { length: 50 }).notNull(),
+  authHeaderName: varchar("auth_header_name", { length: 100 }),
+  authHeaderFormat: varchar("auth_header_format", { length: 255 }),
+  
+  // Webhook configuration
+  webhookEvents: jsonb("webhook_events"),
+  webhookSecretKey: varchar("webhook_secret_key", { length: 255 }),
+  
+  // Provider metadata
+  supportedPlatforms: jsonb("supported_platforms"),
+  features: jsonb("features"),
+  
+  // Status
+  isActive: boolean("is_active").default(true).notNull(),
+  isDefault: boolean("is_default").default(false).notNull(),
+  
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  providerSlugIdx: index("distribution_providers_provider_slug_idx").on(table.providerSlug),
+  isActiveIdx: index("distribution_providers_is_active_idx").on(table.isActive),
+  isDefaultIdx: index("distribution_providers_is_default_idx").on(table.isDefault),
+}));
+
 // Upload Sessions for chunked uploads (500MB+ files)
 export const uploadSessions = pgTable("upload_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -3855,6 +3896,12 @@ export const insertDistroDispatchSchema = createInsertSchema(distroDispatch).omi
   updatedAt: true,
 });
 
+export const insertDistributionProviderSchema = createInsertSchema(distributionProviders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertWebhookEventSchema = createInsertSchema(webhookEvents).omit({
   id: true,
   createdAt: true,
@@ -4147,6 +4194,7 @@ export type InsertDistroRelease = z.infer<typeof insertDistroReleaseSchema>;
 export type InsertDistroTrack = z.infer<typeof insertDistroTrackSchema>;
 export type InsertDistroProvider = z.infer<typeof insertDistroProviderSchema>;
 export type InsertDistroDispatch = z.infer<typeof insertDistroDispatchSchema>;
+export type InsertDistributionProvider = z.infer<typeof insertDistributionProviderSchema>;
 export type InsertWebhookEvent = z.infer<typeof insertWebhookEventSchema>;
 export type InsertPlatformSetting = z.infer<typeof insertPlatformSettingSchema>;
 export type InsertSocialProvider = z.infer<typeof insertSocialProviderSchema>;
@@ -4230,6 +4278,7 @@ export type DistroRelease = typeof distroReleases.$inferSelect;
 export type DistroTrack = typeof distroTracks.$inferSelect;
 export type DistroProvider = typeof distroProviders.$inferSelect;
 export type DistroDispatch = typeof distroDispatch.$inferSelect;
+export type DistributionProvider = typeof distributionProviders.$inferSelect;
 export type WebhookEvent = typeof webhookEvents.$inferSelect;
 export type PlatformSetting = typeof platformSettings.$inferSelect;
 export type SocialProvider = typeof socialProviders.$inferSelect;

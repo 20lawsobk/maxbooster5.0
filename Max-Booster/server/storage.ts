@@ -106,6 +106,10 @@ export interface IStorage {
   createDistroDispatch(dispatch: any): Promise<any>;
   updateDistroDispatch(id: string, updates: any): Promise<any>;
   getDistroDispatchStatuses(releaseId: string): Promise<any[]>;
+  
+  // Distribution Service Providers (LabelGrid, SonoSuite) - API Configuration
+  getDistributionProvider(slug?: string): Promise<DistributionProvider | null>;
+  upsertDistributionProvider(data: InsertDistributionProvider): Promise<DistributionProvider>;
 
   // Distribution Releases operations
   getDistroReleases(userId: string): Promise<DistroRelease[]>;
@@ -1781,6 +1785,56 @@ export class DatabaseStorage implements IStorage {
           .orderBy(asc(distroDispatch.createdAt));
       },
       'getDistroDispatchStatuses'
+    );
+  }
+
+  // Distribution Service Providers (LabelGrid, SonoSuite) - API Configuration
+  async getDistributionProvider(slug?: string): Promise<any | null> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const provider = slug 
+          ? await db.query.distributionProviders.findFirst({
+              where: and(
+                eq(distributionProviders.providerSlug, slug),
+                eq(distributionProviders.isActive, true)
+              )
+            })
+          : await db.query.distributionProviders.findFirst({
+              where: and(
+                eq(distributionProviders.isActive, true),
+                eq(distributionProviders.isDefault, true)
+              )
+            });
+        
+        return provider || null;
+      },
+      'getDistributionProvider'
+    );
+  }
+
+  async upsertDistributionProvider(data: any): Promise<any> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        const existing = await db.query.distributionProviders.findFirst({
+          where: eq(distributionProviders.providerSlug, data.providerSlug)
+        });
+        
+        if (existing) {
+          const [updated] = await db
+            .update(distributionProviders)
+            .set({ ...data, updatedAt: new Date() })
+            .where(eq(distributionProviders.id, existing.id))
+            .returning();
+          return updated;
+        }
+        
+        const [created] = await db
+          .insert(distributionProviders)
+          .values(data)
+          .returning();
+        return created;
+      },
+      'upsertDistributionProvider'
     );
   }
 
