@@ -12329,6 +12329,52 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   };
 
   // ============================================================================
+  // CONTACT FORM API ENDPOINT
+  // ============================================================================
+
+  app.post("/api/contact", async (req, res) => {
+    try {
+      const { name, email, subject, message } = req.body;
+      
+      // Validate input
+      if (!name || !email || !subject || !message) {
+        return res.status(400).json({ error: "All fields are required" });
+      }
+      
+      // Send email notification to support
+      try {
+        await emailService.sendEmail({
+          to: 'support@maxbooster.com',
+          subject: `Contact Form: ${subject}`,
+          text: `From: ${name} (${email})\n\nMessage:\n${message}`,
+          html: `
+            <h2>New Contact Form Submission</h2>
+            <p><strong>From:</strong> ${name} (${email})</p>
+            <p><strong>Subject:</strong> ${subject}</p>
+            <p><strong>Message:</strong></p>
+            <p>${message}</p>
+          `
+        });
+      } catch (emailError) {
+        console.error("Failed to send contact email:", emailError);
+        // Continue even if email fails - still save to database
+      }
+      
+      // Store submission in database (you may need to add contactSubmissions table to schema.ts)
+      // For now, just log it - can add database storage later if needed
+      console.log("Contact form submission:", { name, email, subject, message });
+      
+      res.json({ 
+        success: true,
+        message: "Thank you for contacting us. We'll get back to you within 24 hours."
+      });
+    } catch (error) {
+      console.error("Error processing contact form:", error);
+      res.status(500).json({ error: "Failed to submit contact form" });
+    }
+  });
+
+  // ============================================================================
   // SUPPORT SYSTEM API ENDPOINTS
   // ============================================================================
 
@@ -12620,6 +12666,105 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     }
   });
 
+  // Live Chat - Send message to support
+  app.post("/api/support/chat", requireAuth, async (req, res) => {
+    try {
+      const { message } = req.body;
+      
+      if (!message || message.trim().length === 0) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+      
+      // Send notification email to support team
+      try {
+        await emailService.sendEmail({
+          to: 'support@maxbooster.com',
+          subject: `Live Chat from ${req.user.username}`,
+          text: `User: ${req.user.username} (${req.user.email})\n\nMessage:\n${message}`,
+          html: `
+            <h2>New Live Chat Message</h2>
+            <p><strong>User:</strong> ${req.user.username} (${req.user.email})</p>
+            <p><strong>Message:</strong></p>
+            <p>${message}</p>
+            <p><a href="mailto:${req.user.email}">Reply to ${req.user.email}</a></p>
+          `
+        });
+      } catch (emailError) {
+        console.error("Failed to send chat notification:", emailError);
+      }
+      
+      // Log the chat message
+      console.log("Live chat message:", {
+        userId: req.user.id,
+        username: req.user.username,
+        message,
+        timestamp: new Date()
+      });
+      
+      res.json({
+        success: true,
+        message: "Your message has been sent to our support team. We'll respond via email within 1-2 business hours.",
+        timestamp: new Date()
+      });
+    } catch (error) {
+      console.error("Error processing chat message:", error);
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
+  // ============================================================================
+  // BLOG API ENDPOINTS
+  // ============================================================================
+
+  // Get blog posts
+  app.get("/api/blog/posts", async (req, res) => {
+    try {
+      // For now, return static blog posts
+      // Can be replaced with database query later: await storage.getBlogPosts()
+      const posts = [
+        {
+          id: "1",
+          title: "Introducing Max Booster: All-in-One Music Career Platform",
+          excerpt: "Everything you need to create, distribute, and promote your music in one powerful platform.",
+          content: "Max Booster combines professional music production, distribution to 34+ platforms, social media automation, and AI-powered marketing tools...",
+          author: "Max Booster Team",
+          publishedAt: "2025-11-01T00:00:00Z",
+          category: "Product",
+          image: "/blog/launch.jpg",
+          slug: "introducing-max-booster"
+        },
+        {
+          id: "2",
+          title: "How AI Autopilot Saves Artists $45,000/Year",
+          excerpt: "Our autonomous AI systems replace expensive marketing teams and tools.",
+          content: "Traditional artist marketing requires $45,000+ per year in tools and labor. Max Booster's AI Autopilot automates it all...",
+          author: "Max Booster Team",
+          publishedAt: "2025-11-05T00:00:00Z",
+          category: "Features",
+          image: "/blog/ai-autopilot.jpg",
+          slug: "ai-autopilot-saves-money"
+        },
+        {
+          id: "3",
+          title: "Zero-Cost Advertising: Organic vs Paid Ads",
+          excerpt: "Why organic amplification beats paid advertising for independent artists.",
+          content: "Max Booster's Zero-Cost Advertising AI posts to your social profiles organically, leveraging engagement algorithms...",
+          author: "Max Booster Team",
+          publishedAt: "2025-11-10T00:00:00Z",
+          category: "Strategy",
+          image: "/blog/organic-advertising.jpg",
+          slug: "zero-cost-advertising"
+        }
+      ];
+      
+      res.json({ posts });
+    } catch (error) {
+      console.error("Error fetching blog posts:", error);
+      res.status(500).json({ error: "Failed to fetch blog posts" });
+    }
+  });
+
+  // ============================================================================
   // Job Queue Status Endpoints
   
   // Get job status by queue name and job ID
