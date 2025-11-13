@@ -171,7 +171,7 @@ export default function RoyaltiesComingSoon() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-2">
-                    Coming Q1 2026
+                    Coming December 2025
                   </h3>
                   <p className="text-gray-300">
                     Launching alongside our distribution feature with instant payout capabilities and full transparency across all revenue streams.

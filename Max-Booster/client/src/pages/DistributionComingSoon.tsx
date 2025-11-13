@@ -141,7 +141,7 @@ export default function DistributionComingSoon() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-2">
-                    Coming Q1 2026
+                    Coming December 2025
                   </h3>
                   <p className="text-gray-300">
                     We're finalizing partnerships with distribution networks to bring you the best rates and fastest delivery times in the industry.
