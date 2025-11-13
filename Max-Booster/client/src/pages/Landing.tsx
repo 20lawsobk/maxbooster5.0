@@ -59,13 +59,13 @@ export default function Landing() {
             90-Day Money Back Guarantee
           </Badge>
           <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-8">
-            Replace $45,000+/year in Tools with
+            All-In-One Music Career Platform
             <span className="block bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-              Autonomous AI Systems
+              Powered by AI
             </span>
           </h1>
           <p className="text-xl text-gray-600 mb-6 max-w-3xl mx-auto">
-            Professional AI Studio • Autonomous Social Media Autopilot • Zero-Cost Advertisement Autopilot • 
+            Professional AI Studio • AI-Assisted Social Media • Organic Marketing Tools • 
             Beat Marketplace • Analytics • Distribution (Dec 2025) — all for $468/year
           </p>
           <p className="text-lg font-medium text-green-600 mb-8">
@@ -92,15 +92,15 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Value Props Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { label: 'Active Artists', value: '10K+', icon: Users },
-              { label: 'Songs Distributed', value: '500K+', icon: Music },
-              { label: 'Revenue Generated', value: '$2M+', icon: DollarSign },
-              { label: 'Success Rate', value: '95%', icon: TrendingUp },
+              { label: 'Integrated Tools', value: '7+', icon: Sparkles },
+              { label: 'Platforms Supported', value: '8+', icon: Share2 },
+              { label: 'Money Back Guarantee', value: '90 Days', icon: Shield },
+              { label: 'Price per Year', value: '$468', icon: DollarSign },
             ].map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -143,20 +143,20 @@ export default function Landing() {
               },
               {
                 icon: Share2,
-                title: "Social Media Autopilot (24/7)",
-                description: "Autonomous AI creates content, posts, and optimizes engagement 24/7 — zero manual work required.",
+                title: "AI Social Media Manager",
+                description: "AI-powered content creation and scheduling for Facebook, Instagram, X, TikTok, LinkedIn, and Threads with approval workflows.",
                 color: "from-green-500 to-teal-500"
               },
               {
                 icon: Megaphone,
-                title: "Advertisement Autopilot (Zero Cost)",
-                description: "Autonomous AI creates and optimizes campaigns with organic amplification — no ad spend required.",
+                title: "Organic Marketing Tools",
+                description: "AI-assisted campaign creation and optimization through your connected social accounts — no paid advertising required.",
                 color: "from-orange-500 to-red-500"
               },
               {
                 icon: DollarSign,
-                title: "Royalty Management",
-                description: "Automated royalty collection and distribution with Stripe integration for instant payouts.",
+                title: "Royalty Management (Dec 2025)",
+                description: "Coming soon: Automated royalty collection and distribution with Stripe integration for instant payouts.",
                 color: "from-indigo-500 to-blue-500"
               },
               {
@@ -202,10 +202,10 @@ export default function Landing() {
               },
               {
                 name: "Yearly",
-                price: "$39",
-                period: "/month",
-                originalPrice: "$49",
-                description: "Save $120/year with annual billing",
+                price: "$468",
+                period: "/year",
+                originalPrice: "$588",
+                description: "Billed annually ($39/month)",
                 features: ["All AI Tools", "Unlimited Projects", "Advanced Analytics", "Cloud Storage"],
                 popular: true
               },
@@ -263,46 +263,43 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* What You Get */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Trusted by Top Artists
+              What's Included
             </h2>
+            <p className="text-xl text-gray-600">
+              Everything you need to create, promote, and monetize your music
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                name: "Sarah Johnson",
-                role: "Independent Artist",
-                content: "Max Booster transformed my music career. The AI tools helped me create professional-quality tracks, and the analytics showed me exactly where to focus my efforts.",
-                rating: 5
+                icon: Sparkles,
+                title: "AI-Powered Studio",
+                content: "Professional DAW with AI mixing and mastering tools, multi-track editing, effects, and cloud storage for all your projects."
               },
               {
-                name: "Mike Chen",
-                role: "Producer",
-                content: "The marketplace feature is incredible. I've sold over $10k worth of beats in just 3 months. The platform handles everything seamlessly.",
-                rating: 5
+                icon: Share2,
+                title: "Social Media Manager",
+                content: "Connect Facebook, Instagram, X, TikTok, LinkedIn, Threads, and YouTube. AI-assisted content creation with approval workflows."
               },
               {
-                name: "Luna Rodriguez",
-                role: "Singer-Songwriter",
-                content: "From creation to promotion, Max Booster has everything I need. The social media automation alone saves me 10+ hours per week.",
-                rating: 5
+                icon: BarChart3,
+                title: "Advanced Analytics",
+                content: "Track performance across all platforms with AI-powered predictions, churn detection, revenue forecasts, and detailed insights."
               }
-            ].map((testimonial, index) => (
+            ].map((feature, index) => (
               <Card key={index}>
                 <CardContent className="p-6">
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                    ))}
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mb-4">
+                    <feature.icon className="h-6 w-6 text-white" />
                   </div>
-                  <p className="text-gray-600 mb-4">"{testimonial.content}"</p>
-                  <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                  <div className="text-sm text-gray-500">{testimonial.role}</div>
+                  <h3 className="font-semibold text-gray-900 mb-2 text-lg">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.content}</p>
                 </CardContent>
               </Card>
             ))}
@@ -323,7 +320,7 @@ export default function Landing() {
             Ready to Boost Your Music Career?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Join thousands of artists who are already using Max Booster to grow their careers.
+            Start growing your music career today with our comprehensive platform.
             Protected by our 90-day money-back guarantee!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

@@ -69,12 +69,12 @@ export default function Features() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { title: "AI Mixing", description: "Auto-balance levels, panning, and EQ with AI precision" },
-              { title: "AI Mastering", description: "Professional mastering with LUFS targeting and genre-specific presets" },
-              { title: "DAW Workspace", description: "Full-featured browser-based DAW with real-time collaboration" },
-              { title: "Plugin Library", description: "1000+ professional plugins, all rebranded for Max Booster" },
-              { title: "Cloud Storage", description: "Unlimited project storage with automatic version control" },
-              { title: "Stem Separation", description: "AI-powered vocal and instrument isolation" }
+              { title: "AI Mixing", description: "Auto-balance levels, panning, and EQ with AI assistance" },
+              { title: "AI Mastering", description: "Professional mastering with AI-powered audio analysis" },
+              { title: "DAW Workspace", description: "Browser-based DAW with multi-track editing and effects" },
+              { title: "Project Storage", description: "Cloud-based project storage with version control" },
+              { title: "Audio Effects", description: "Professional audio processing and effects suite" },
+              { title: "Real-Time Collaboration", description: "Work on projects with collaborators in real-time" }
             ].map((feature, i) => (
               <Card key={i} className="hover-lift">
                 <CardContent className="p-6">
@@ -94,18 +94,18 @@ export default function Features() {
             <Globe className="h-12 w-12 mx-auto mb-4 text-green-600" />
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Distribution & Royalties
-              <span className="block text-sm text-green-600 mt-2">🎄 Launching December 25, 2025</span>
+              <span className="block text-sm text-green-600 mt-2">🎄 Launching December 2025</span>
             </h2>
-            <p className="text-lg text-gray-600">Get your music on 100+ platforms including Spotify, Apple Music, and YouTube</p>
+            <p className="text-lg text-gray-600">Get your music on 34+ platforms including Spotify, Apple Music, and YouTube</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { title: "Global Distribution", description: "Spotify, Apple Music, YouTube Music, Amazon, TikTok, and 100+ more platforms" },
-              { title: "Instant Payouts", description: "Stripe integration for real-time royalty payments" },
-              { title: "Split Payments", description: "Automatic revenue sharing with collaborators" },
-              { title: "Release Tracking", description: "Monitor distribution status across all DSPs in real-time" },
-              { title: "ISRC/UPC Generation", description: "Automatic code generation for all releases" },
-              { title: "Analytics Dashboard", description: "Real-time streaming and revenue analytics across all platforms" }
+              { title: "Global Distribution", description: "Spotify, Apple Music, YouTube Music, Amazon, TikTok, and 34+ platforms worldwide" },
+              { title: "Instant Payouts", description: "Stripe-powered fast payout system for earned royalties" },
+              { title: "Split Payments", description: "Configure automatic revenue sharing with your collaborators" },
+              { title: "Release Tracking", description: "Monitor your release status across all distribution platforms" },
+              { title: "ISRC/UPC Codes", description: "Generate required tracking codes for your releases" },
+              { title: "Analytics Dashboard", description: "Track streaming performance and revenue across all platforms" }
             ].map((feature, i) => (
               <Card key={i} className="hover-lift">
                 <CardContent className="p-6">
@@ -128,19 +128,19 @@ export default function Features() {
               <Megaphone className="h-12 w-12 text-pink-600" />
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Autonomous AI Autopilots
-              <span className="block text-sm text-purple-600 mt-2">Replace $40,000+/year in labor</span>
+              AI-Powered Marketing Tools
+              <span className="block text-sm text-purple-600 mt-2">Streamline your promotion workflow</span>
             </h2>
-            <p className="text-lg text-gray-600">True "set and forget" AI systems that work 24/7 while you sleep</p>
+            <p className="text-lg text-gray-600">AI-assisted content creation and campaign management for social media</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { title: "Social Media Autopilot (24/7)", description: "Autonomously creates content, posts, optimizes timing, learns from metrics, adapts to trends - zero manual work required" },
-              { title: "Advertisement Autopilot (Zero Cost)", description: "Autonomously creates and optimizes campaigns, organic amplification, network effects, viral mechanics - no ad spend" },
-              { title: "Multi-Platform Integration", description: "Facebook, Instagram, X, TikTok, YouTube, LinkedIn, Threads, Google Business" },
-              { title: "AI Content Generation", description: "Generate text, images, videos, and audio from prompts or URLs with DALL-E, ChatGPT, and more" },
-              { title: "A/B Testing & Learning", description: "Automated variant testing with reinforcement learning that continuously improves performance" },
-              { title: "Real-Time Analytics", description: "Track engagement, reach, conversions across all platforms with actionable insights" }
+              { title: "AI Social Media Manager", description: "AI-powered content creation and scheduling with approval workflows for optimal timing and engagement" },
+              { title: "Organic Marketing Tools", description: "Create and optimize campaigns through your connected social accounts - no paid ad spend required" },
+              { title: "Multi-Platform Integration", description: "Facebook, Instagram, X, TikTok, YouTube, LinkedIn, Threads - connect and manage all in one place" },
+              { title: "AI Content Generation", description: "Generate social media posts, images, and campaigns with AI assistance" },
+              { title: "Performance Tracking", description: "Monitor engagement, reach, and performance across all connected platforms" },
+              { title: "Real-Time Analytics", description: "Track audience growth, engagement rates, and campaign performance with detailed insights" }
             ].map((feature, i) => (
               <Card key={i} className="hover-lift">
                 <CardContent className="p-6">
