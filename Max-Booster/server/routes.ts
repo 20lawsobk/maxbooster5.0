@@ -6911,7 +6911,7 @@ app.post("/api/advertising/campaigns", requireAuth, requirePremium, async (req, 
       targetAudience
     );
     
-    // Create campaign with AI enhancements
+    // Create campaign with AI enhancements (starts in draft status)
     const campaign = await storage.createAdCampaign({
       userId: (req.user as any).id,
       name,
@@ -6921,16 +6921,18 @@ app.post("/api/advertising/campaigns", requireAuth, requirePremium, async (req, 
       impressions: 0,
       clicks: 0,
       conversions: 0,
-      status: 'active',
+      status: 'draft', // Campaigns start as draft, must be activated via /activate endpoint
       startDate: new Date(),
       endDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000),
       platforms: targetAudience.platforms,
+      connectedPlatforms: [], // Will be populated when campaign is activated
       aiOptimizations: aiOptimizations || {},
       personalAdNetwork: {
         connectedAccounts: targetAudience.platforms.length,
         totalPlatforms: 8,
         networkStrength: 95
-      }
+      },
+      organicMetrics: null // Will be populated when campaign posts are created
     });
     
     res.json(campaign);
@@ -6938,6 +6940,66 @@ app.post("/api/advertising/campaigns", requireAuth, requirePremium, async (req, 
     console.error('Error creating campaign:', error);
     // Return error message but don't crash
     res.json({ error: 'Failed to create campaign' });
+  }
+});
+
+// Activate campaign - posts to social media organically
+app.post("/api/advertising/campaigns/:id/activate", requireAuth, requirePremium, async (req, res) => {
+  try {
+    const campaignId = parseInt(req.params.id);
+    const userId = (req.user as any).id;
+    
+    if (isNaN(campaignId)) {
+      return res.status(400).json({ error: 'Invalid campaign ID' });
+    }
+    
+    // Import dispatch service
+    const { advertisingDispatchService } = await import('./services/advertisingDispatchService.js');
+    
+    // Activate campaign and post to social media
+    const result = await advertisingDispatchService.activateCampaign(campaignId, userId);
+    
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(result.requiredConnections ? 403 : 400).json(result);
+    }
+  } catch (error: any) {
+    console.error('Campaign activation error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to activate campaign',
+      error: error.message 
+    });
+  }
+});
+
+// Collect engagement metrics for a campaign
+app.post("/api/advertising/campaigns/:id/collect-engagement", requireAuth, requirePremium, async (req, res) => {
+  try {
+    const campaignId = parseInt(req.params.id);
+    const userId = (req.user as any).id;
+    
+    if (isNaN(campaignId)) {
+      return res.status(400).json({ error: 'Invalid campaign ID' });
+    }
+    
+    // Import dispatch service
+    const { advertisingDispatchService } = await import('./services/advertisingDispatchService.js');
+    
+    // Collect engagement metrics
+    await advertisingDispatchService.collectCampaignEngagement(campaignId, userId);
+    
+    res.json({ 
+      success: true,
+      message: 'Engagement metrics updated successfully'
+    });
+  } catch (error: any) {
+    console.error('Engagement collection error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
   }
 });
 
