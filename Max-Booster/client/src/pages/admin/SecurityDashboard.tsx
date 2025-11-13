@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/useAuth';
 import {
   Shield,
@@ -15,292 +14,148 @@ import {
   CheckCircle2,
   XCircle,
   Eye,
-  Lock,
-  Server,
-  FileCheck,
-  Users,
-  Zap,
   Clock,
   TrendingUp,
   Target,
   Loader2,
   AlertCircle,
   RefreshCw,
-  Download
+  Download,
+  Server,
+  Users,
+  Lock
 } from 'lucide-react';
 
-interface SecurityMetric {
-  name: string;
-  value: number;
-  unit: string;
-  status: 'healthy' | 'warning' | 'critical';
-  trend: 'up' | 'down' | 'stable';
-  change: number;
+interface SecurityMetrics {
+  systemHealth: {
+    uptime: number;
+    status: 'healthy' | 'degraded' | 'critical';
+    errorRate: number;
+    requestsPerMinute: number;
+  };
+  authentication: {
+    totalLogins: number;
+    failedLogins: number;
+    successRate: number;
+    activeSessions: number;
+  };
+  threats: {
+    blockedAttempts: number;
+    suspiciousActivity: number;
+    rateLimit: number;
+  };
 }
 
 interface BehavioralAlert {
   id: string;
   userId: string;
   username: string;
-  alertType: string;
+  type: 'unusual_activity' | 'multiple_failed_logins';
   severity: 'high' | 'medium' | 'low';
-  description: string;
   timestamp: string;
-  actionTaken: string | null;
-}
-
-interface AnomalyDetection {
-  id: string;
-  type: string;
-  severity: 'critical' | 'warning' | 'info';
   description: string;
-  detected_at: string;
-  ip_address: string;
-  user_agent: string;
-  recommendation: string;
+  resolved: boolean;
 }
 
-interface PenTestResult {
+interface BehavioralAlertsResponse {
+  alerts: BehavioralAlert[];
+}
+
+interface Anomaly {
+  type: 'traffic_spike' | 'auth_pattern';
+  timestamp: string;
+  metric: string;
+  expectedValue: number;
+  actualValue: number;
+  severity: 'high' | 'medium';
+  description: string;
+}
+
+interface AnomaliesResponse {
+  anomalies: Anomaly[];
+}
+
+interface Vulnerability {
   id: string;
-  category: string;
-  finding: string;
   severity: 'critical' | 'high' | 'medium' | 'low';
-  status: 'open' | 'in_progress' | 'resolved';
-  cvss_score: number;
-  remediation: string;
+  category: string;
+  description: string;
+  status: 'open';
+  detectedDate: string;
 }
 
-interface ComplianceScore {
-  standard: string;
-  score: number;
-  status: 'compliant' | 'partial' | 'non_compliant';
-  requirements_met: number;
-  total_requirements: number;
-  lastAudit: string;
-  nextAudit: string;
+interface PenTestResponse {
+  lastScan: string;
+  summary: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    passed: number;
+  };
+  vulnerabilities: Vulnerability[];
+  recommendations: string[];
 }
 
 export default function SecurityDashboard() {
   const { user } = useAuth();
   const [refreshInterval, setRefreshInterval] = useState(30000);
 
-  const { data: securityMetrics, isLoading: loadingMetrics, refetch: refetchMetrics } = useQuery<SecurityMetric[]>({
+  const { data: securityMetrics, isLoading: loadingMetrics, error: metricsError, refetch: refetchMetrics } = useQuery<SecurityMetrics>({
     queryKey: ['/api/security/metrics'],
     queryFn: async () => {
-      const mockMetrics: SecurityMetric[] = [
-        {
-          name: 'Threat Detection Rate',
-          value: 99.7,
-          unit: '%',
-          status: 'healthy',
-          trend: 'stable',
-          change: 0.2,
-        },
-        {
-          name: 'Failed Login Attempts',
-          value: 23,
-          unit: 'events',
-          status: 'warning',
-          trend: 'up',
-          change: 15,
-        },
-        {
-          name: 'Suspicious Activities',
-          value: 8,
-          unit: 'events',
-          status: 'healthy',
-          trend: 'down',
-          change: -12,
-        },
-        {
-          name: 'API Response Time',
-          value: 145,
-          unit: 'ms',
-          status: 'healthy',
-          trend: 'stable',
-          change: 2,
-        },
-        {
-          name: 'Encryption Coverage',
-          value: 100,
-          unit: '%',
-          status: 'healthy',
-          trend: 'stable',
-          change: 0,
-        },
-        {
-          name: 'Firewall Rules Active',
-          value: 247,
-          unit: 'rules',
-          status: 'healthy',
-          trend: 'stable',
-          change: 3,
-        },
-      ];
-      return mockMetrics;
+      const response = await fetch('/api/security/metrics', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch security metrics');
+      return response.json();
     },
     refetchInterval: refreshInterval,
   });
 
-  const { data: behavioralAlerts, isLoading: loadingAlerts } = useQuery<BehavioralAlert[]>({
+  const { data: behavioralAlertsData, isLoading: loadingAlerts, error: alertsError } = useQuery<BehavioralAlertsResponse>({
     queryKey: ['/api/security/behavioral-alerts'],
     queryFn: async () => {
-      const mockAlerts: BehavioralAlert[] = [
-        {
-          id: '1',
-          userId: 'user_123',
-          username: 'suspicious_user',
-          alertType: 'Unusual Login Pattern',
-          severity: 'high',
-          description: 'Login from new country (Romania) after 6 months of US-only access',
-          timestamp: '2 hours ago',
-          actionTaken: 'Account locked pending verification',
-        },
-        {
-          id: '2',
-          userId: 'user_456',
-          username: 'api_tester',
-          alertType: 'Excessive API Calls',
-          severity: 'medium',
-          description: 'Rate limit exceeded: 1500 requests in 10 minutes',
-          timestamp: '5 hours ago',
-          actionTaken: 'Temporary rate limit enforced',
-        },
-        {
-          id: '3',
-          userId: 'user_789',
-          username: 'data_scraper',
-          alertType: 'Data Extraction Pattern',
-          severity: 'high',
-          description: 'Bulk data download detected: 500+ user profiles accessed',
-          timestamp: '1 day ago',
-          actionTaken: null,
-        },
-      ];
-      return mockAlerts;
+      const response = await fetch('/api/security/behavioral-alerts', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch behavioral alerts');
+      return response.json();
     },
+    refetchInterval: refreshInterval,
   });
 
-  const { data: anomalies, isLoading: loadingAnomalies } = useQuery<AnomalyDetection[]>({
+  const { data: anomaliesData, isLoading: loadingAnomalies, error: anomaliesError } = useQuery<AnomaliesResponse>({
     queryKey: ['/api/security/anomaly-detection'],
     queryFn: async () => {
-      const mockAnomalies: AnomalyDetection[] = [
-        {
-          id: '1',
-          type: 'SQL Injection Attempt',
-          severity: 'critical',
-          description: 'Malicious SQL detected in search query parameter',
-          detected_at: '30 minutes ago',
-          ip_address: '185.220.101.42',
-          user_agent: 'curl/7.68.0',
-          recommendation: 'IP blocked automatically. Review application input validation.',
-        },
-        {
-          id: '2',
-          type: 'Brute Force Attack',
-          severity: 'warning',
-          description: '47 failed login attempts from same IP in 5 minutes',
-          detected_at: '3 hours ago',
-          ip_address: '194.26.135.212',
-          user_agent: 'Mozilla/5.0 (automated)',
-          recommendation: 'IP temporarily blocked. Consider implementing CAPTCHA.',
-        },
-      ];
-      return mockAnomalies;
+      const response = await fetch('/api/security/anomaly-detection', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to detect anomalies');
+      return response.json();
     },
+    refetchInterval: refreshInterval,
   });
 
-  const { data: penTestResults, isLoading: loadingPenTest } = useQuery<PenTestResult[]>({
+  const { data: penTestData, isLoading: loadingPenTest, error: penTestError } = useQuery<PenTestResponse>({
     queryKey: ['/api/security/pentest-results'],
     queryFn: async () => {
-      const mockResults: PenTestResult[] = [
-        {
-          id: '1',
-          category: 'Authentication',
-          finding: 'Session timeout not enforced after password change',
-          severity: 'high',
-          status: 'in_progress',
-          cvss_score: 7.2,
-          remediation: 'Implement session invalidation on password change',
-        },
-        {
-          id: '2',
-          category: 'API Security',
-          finding: 'Missing rate limiting on password reset endpoint',
-          severity: 'medium',
-          status: 'open',
-          cvss_score: 5.3,
-          remediation: 'Add rate limiting (5 requests per hour per IP)',
-        },
-        {
-          id: '3',
-          category: 'Data Protection',
-          finding: 'PII logs retained longer than policy',
-          severity: 'low',
-          status: 'open',
-          cvss_score: 3.1,
-          remediation: 'Update log rotation to 30 days for PII-containing logs',
-        },
-      ];
-      return mockResults;
-    },
-  });
-
-  const { data: complianceScores, isLoading: loadingCompliance } = useQuery<ComplianceScore[]>({
-    queryKey: ['/api/security/compliance'],
-    queryFn: async () => {
-      const mockCompliance: ComplianceScore[] = [
-        {
-          standard: 'SOC 2 Type II',
-          score: 94,
-          status: 'compliant',
-          requirements_met: 47,
-          total_requirements: 50,
-          lastAudit: '2025-09-15',
-          nextAudit: '2025-12-15',
-        },
-        {
-          standard: 'GDPR',
-          score: 97,
-          status: 'compliant',
-          requirements_met: 68,
-          total_requirements: 70,
-          lastAudit: '2025-08-20',
-          nextAudit: '2025-11-20',
-        },
-        {
-          standard: 'PCI-DSS',
-          score: 88,
-          status: 'partial',
-          requirements_met: 211,
-          total_requirements: 240,
-          lastAudit: '2025-10-01',
-          nextAudit: '2025-01-01',
-        },
-        {
-          standard: 'CCPA',
-          score: 100,
-          status: 'compliant',
-          requirements_met: 23,
-          total_requirements: 23,
-          lastAudit: '2025-09-30',
-          nextAudit: '2025-12-30',
-        },
-      ];
-      return mockCompliance;
+      const response = await fetch('/api/security/pentest-results', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch pentest results');
+      return response.json();
     },
   });
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'healthy':
-      case 'compliant':
         return 'text-green-600 bg-green-50 border-green-200';
+      case 'degraded':
       case 'warning':
-      case 'partial':
         return 'text-yellow-600 bg-yellow-50 border-yellow-200';
       case 'critical':
-      case 'non_compliant':
         return 'text-red-600 bg-red-50 border-red-200';
       default:
         return 'text-gray-600 bg-gray-50 border-gray-200';
@@ -317,6 +172,30 @@ export default function SecurityDashboard() {
       default:
         return 'secondary';
     }
+  };
+
+  const formatUptime = (seconds: number): string => {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
+
+  const formatTimestamp = (isoString: string): string => {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    return 'Just now';
   };
 
   if (!user || user.role !== 'admin') {
@@ -355,49 +234,132 @@ export default function SecurityDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {loadingMetrics ? (
-            <div className="col-span-full text-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Loading metrics...</p>
-            </div>
-          ) : (
-            securityMetrics?.map((metric) => (
-              <Card key={metric.name} className={`border-l-4 ${getStatusColor(metric.status)}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-sm font-medium text-muted-foreground">{metric.name}</h3>
-                    {metric.status === 'healthy' ? (
+        {metricsError ? (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Failed to load security metrics. Please try again.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {loadingMetrics ? (
+              <div className="col-span-full text-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Loading metrics...</p>
+              </div>
+            ) : securityMetrics && (
+              <>
+                <Card className={`border-l-4 ${getStatusColor(securityMetrics.systemHealth.status)}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Server className="w-4 h-4" />
+                        System Uptime
+                      </h3>
+                      {securityMetrics.systemHealth.status === 'healthy' ? (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      ) : securityMetrics.systemHealth.status === 'degraded' ? (
+                        <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-red-600" />
+                      )}
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-3xl font-bold">{formatUptime(securityMetrics.systemHealth.uptime)}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Status: {securityMetrics.systemHealth.status}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-blue-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        Active Sessions
+                      </h3>
+                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-3xl font-bold">{securityMetrics.authentication.activeSessions}</p>
+                      <p className="text-sm text-muted-foreground">users</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-green-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Lock className="w-4 h-4" />
+                        Login Success Rate
+                      </h3>
                       <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    ) : metric.status === 'warning' ? (
-                      <AlertTriangle className="w-4 h-4 text-yellow-600" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-red-600" />
-                    )}
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <p className="text-3xl font-bold">{metric.value}</p>
-                    <p className="text-sm text-muted-foreground">{metric.unit}</p>
-                  </div>
-                  <div className="flex items-center gap-1 mt-2 text-xs">
-                    {metric.trend === 'up' ? (
-                      <TrendingUp className={`w-3 h-3 ${metric.change > 0 && metric.status !== 'warning' ? 'text-green-600' : 'text-red-600'}`} />
-                    ) : (
-                      <TrendingUp className="w-3 h-3 text-green-600 rotate-180" />
-                    )}
-                    <span className={metric.change > 0 && metric.status !== 'warning' ? 'text-green-600' : 'text-red-600'}>
-                      {metric.change > 0 ? '+' : ''}{metric.change}%
-                    </span>
-                    <span className="text-muted-foreground">vs last hour</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-3xl font-bold">{securityMetrics.authentication.successRate.toFixed(1)}</p>
+                      <p className="text-sm text-muted-foreground">%</p>
+                    </div>
+                    <Progress value={securityMetrics.authentication.successRate} className="h-2 mt-2" />
+                  </CardContent>
+                </Card>
+
+                <Card className={`border-l-4 ${securityMetrics.authentication.failedLogins > 10 ? 'border-l-yellow-500' : 'border-l-green-200'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-sm font-medium text-muted-foreground">Failed Login Attempts (24h)</h3>
+                      {securityMetrics.authentication.failedLogins > 10 ? (
+                        <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      )}
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-3xl font-bold">{securityMetrics.authentication.failedLogins}</p>
+                      <p className="text-sm text-muted-foreground">attempts</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-blue-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-sm font-medium text-muted-foreground">Total Logins (24h)</h3>
+                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-3xl font-bold">{securityMetrics.authentication.totalLogins}</p>
+                      <p className="text-sm text-muted-foreground">logins</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className={`border-l-4 ${securityMetrics.threats.suspiciousActivity > 5 ? 'border-l-red-500' : 'border-l-green-200'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-sm font-medium text-muted-foreground">Suspicious Activity</h3>
+                      {securityMetrics.threats.suspiciousActivity > 5 ? (
+                        <XCircle className="w-4 h-4 text-red-600" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      )}
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-3xl font-bold">{securityMetrics.threats.suspiciousActivity}</p>
+                      <p className="text-sm text-muted-foreground">events</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        )}
 
         <Tabs defaultValue="alerts" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="alerts">
               <AlertCircle className="w-4 h-4 mr-1" />
               Behavioral Alerts
@@ -408,11 +370,7 @@ export default function SecurityDashboard() {
             </TabsTrigger>
             <TabsTrigger value="pentest">
               <Target className="w-4 h-4 mr-1" />
-              Pen Tests
-            </TabsTrigger>
-            <TabsTrigger value="compliance">
-              <FileCheck className="w-4 h-4 mr-1" />
-              Compliance
+              Security Assessment
             </TabsTrigger>
           </TabsList>
 
@@ -423,14 +381,29 @@ export default function SecurityDashboard() {
                 <CardDescription>AI-detected unusual user behavior patterns</CardDescription>
               </CardHeader>
               <CardContent>
-                {loadingAlerts ? (
+                {alertsError ? (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Failed to load behavioral alerts. Please try again.
+                    </AlertDescription>
+                  </Alert>
+                ) : loadingAlerts ? (
                   <div className="text-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">Analyzing behavior...</p>
                   </div>
+                ) : behavioralAlertsData && behavioralAlertsData.alerts.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-500" />
+                    <p className="text-lg font-semibold">No Security Alerts</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      System is operating normally with no unusual behavior detected
+                    </p>
+                  </div>
                 ) : (
                   <div className="space-y-3">
-                    {behavioralAlerts?.map((alert) => (
+                    {behavioralAlertsData?.alerts.map((alert) => (
                       <Alert key={alert.id} variant={alert.severity === 'high' ? 'destructive' : 'default'}>
                         <div className="space-y-3">
                           <div className="flex items-start justify-between">
@@ -439,38 +412,35 @@ export default function SecurityDashboard() {
                                 <Badge variant={getSeverityBadge(alert.severity)}>
                                   {alert.severity}
                                 </Badge>
-                                <h4 className="font-semibold">{alert.alertType}</h4>
+                                <h4 className="font-semibold capitalize">{alert.type.replace('_', ' ')}</h4>
                               </div>
                               <p className="text-sm text-muted-foreground">
-                                User: {alert.username} ({alert.userId})
+                                User: {alert.username} (ID: {alert.userId})
                               </p>
                             </div>
                             <div className="text-right text-xs text-muted-foreground">
                               <Clock className="w-3 h-3 inline mr-1" />
-                              {alert.timestamp}
+                              {formatTimestamp(alert.timestamp)}
                             </div>
                           </div>
 
                           <p className="text-sm">{alert.description}</p>
 
-                          {alert.actionTaken ? (
+                          {alert.resolved ? (
                             <Alert variant="default" className="bg-green-50">
                               <CheckCircle2 className="h-4 w-4 text-green-600" />
                               <AlertDescription>
-                                <span className="font-medium">Action Taken: </span>
-                                {alert.actionTaken}
+                                <span className="font-medium">Status: </span>
+                                Resolved
                               </AlertDescription>
                             </Alert>
                           ) : (
                             <div className="flex gap-2">
-                              <Button size="sm" variant="destructive">
-                                Block User
-                              </Button>
                               <Button size="sm" variant="outline">
-                                Request Verification
+                                Investigate
                               </Button>
                               <Button size="sm" variant="ghost">
-                                Dismiss
+                                Mark as Resolved
                               </Button>
                             </div>
                           )}
@@ -487,55 +457,62 @@ export default function SecurityDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Anomaly Detection</CardTitle>
-                <CardDescription>Real-time threat detection and automated responses</CardDescription>
+                <CardDescription>Real-time threat detection and pattern analysis</CardDescription>
               </CardHeader>
               <CardContent>
-                {loadingAnomalies ? (
+                {anomaliesError ? (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Failed to load anomaly detection data. Please try again.
+                    </AlertDescription>
+                  </Alert>
+                ) : loadingAnomalies ? (
                   <div className="text-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Scanning for threats...</p>
+                    <p className="text-sm text-muted-foreground">Scanning for anomalies...</p>
+                  </div>
+                ) : anomaliesData && anomaliesData.anomalies.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-500" />
+                    <p className="text-lg font-semibold">No Anomalies Detected</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      All system metrics are within normal parameters
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {anomalies?.map((anomaly) => (
-                      <Alert key={anomaly.id} variant="destructive">
+                    {anomaliesData?.anomalies.map((anomaly, index) => (
+                      <Alert key={`${anomaly.type}-${index}`} variant={anomaly.severity === 'high' ? 'destructive' : 'default'}>
                         <div className="space-y-3">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <AlertTriangle className="w-4 h-4" />
-                                <h4 className="font-semibold">{anomaly.type}</h4>
+                                <h4 className="font-semibold capitalize">{anomaly.type.replace('_', ' ')}</h4>
                                 <Badge variant={getSeverityBadge(anomaly.severity)}>
                                   {anomaly.severity}
                                 </Badge>
                               </div>
                               <p className="text-xs text-muted-foreground">
                                 <Clock className="w-3 h-3 inline mr-1" />
-                                Detected {anomaly.detected_at}
+                                Detected {formatTimestamp(anomaly.timestamp)}
                               </p>
                             </div>
                           </div>
 
                           <p className="text-sm">{anomaly.description}</p>
 
-                          <div className="grid grid-cols-2 gap-3 text-sm bg-white/50 p-3 rounded">
+                          <div className="grid grid-cols-2 gap-3 text-sm bg-white/50 dark:bg-gray-800/50 p-3 rounded">
                             <div>
-                              <p className="text-xs font-medium mb-1">IP Address:</p>
-                              <p className="font-mono">{anomaly.ip_address}</p>
+                              <p className="text-xs font-medium mb-1">Metric:</p>
+                              <p className="font-mono text-xs">{anomaly.metric}</p>
                             </div>
                             <div>
-                              <p className="text-xs font-medium mb-1">User Agent:</p>
-                              <p className="font-mono text-xs truncate">{anomaly.user_agent}</p>
+                              <p className="text-xs font-medium mb-1">Expected vs Actual:</p>
+                              <p className="font-mono text-xs">{anomaly.expectedValue} → {anomaly.actualValue}</p>
                             </div>
                           </div>
-
-                          <Alert variant="default" className="bg-blue-50">
-                            <Zap className="h-4 w-4 text-blue-600" />
-                            <AlertDescription>
-                              <span className="font-medium">Automated Response: </span>
-                              {anomaly.recommendation}
-                            </AlertDescription>
-                          </Alert>
                         </div>
                       </Alert>
                     ))}
@@ -550,8 +527,15 @@ export default function SecurityDashboard() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Penetration Test Results</CardTitle>
-                    <CardDescription>Latest security assessment findings</CardDescription>
+                    <CardTitle>Security Assessment Results</CardTitle>
+                    <CardDescription>
+                      Latest security scan and vulnerability assessment
+                      {penTestData && (
+                        <span className="ml-2 text-xs">
+                          Last scan: {formatTimestamp(penTestData.lastScan)}
+                        </span>
+                      )}
+                    </CardDescription>
                   </div>
                   <Button size="sm" variant="outline">
                     <Download className="w-4 h-4 mr-1" />
@@ -560,140 +544,108 @@ export default function SecurityDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                {loadingPenTest ? (
+                {penTestError ? (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Failed to load security assessment results. Please try again.
+                    </AlertDescription>
+                  </Alert>
+                ) : loadingPenTest ? (
                   <div className="text-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Loading results...</p>
+                    <p className="text-sm text-muted-foreground">Loading assessment results...</p>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {penTestResults?.map((result) => (
-                      <Card key={result.id} className="border-l-4 border-l-primary">
-                        <CardContent className="p-4 space-y-3">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <Badge variant="outline">{result.category}</Badge>
-                                <Badge variant={getSeverityBadge(result.severity)}>
-                                  {result.severity}
-                                </Badge>
-                                <Badge
-                                  variant={
-                                    result.status === 'resolved'
-                                      ? 'default'
-                                      : result.status === 'in_progress'
-                                      ? 'secondary'
-                                      : 'outline'
-                                  }
-                                >
-                                  {result.status.replace('_', ' ')}
-                                </Badge>
-                              </div>
-                              <h4 className="font-semibold">{result.finding}</h4>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-semibold">CVSS {result.cvss_score}</p>
-                              <Progress value={(result.cvss_score / 10) * 100} className="h-2 w-20 mt-1" />
-                            </div>
-                          </div>
-
-                          <Alert variant="default" className="bg-muted/50">
-                            <Target className="h-4 w-4" />
-                            <AlertDescription>
-                              <span className="font-medium">Remediation: </span>
-                              {result.remediation}
-                            </AlertDescription>
-                          </Alert>
-
-                          {result.status === 'open' && (
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="default">
-                                Start Remediation
-                              </Button>
-                              <Button size="sm" variant="outline">
-                                Assign to Team
-                              </Button>
-                            </div>
-                          )}
+                ) : penTestData && (
+                  <>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                      <Card className="border-l-4 border-l-red-500">
+                        <CardContent className="p-3">
+                          <p className="text-xs text-muted-foreground">Critical</p>
+                          <p className="text-2xl font-bold text-red-600">{penTestData.summary.critical}</p>
                         </CardContent>
                       </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="compliance" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Compliance Scorecards</CardTitle>
-                <CardDescription>Regulatory compliance status and audit schedules</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loadingCompliance ? (
-                  <div className="text-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Loading compliance data...</p>
-                  </div>
-                ) : (
-                  <div className="grid gap-4">
-                    {complianceScores?.map((compliance) => (
-                      <Card
-                        key={compliance.standard}
-                        className={`border-l-4 ${getStatusColor(compliance.status)}`}
-                      >
-                        <CardContent className="p-4 space-y-3">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-semibold text-lg">{compliance.standard}</h4>
-                                <Badge
-                                  variant={
-                                    compliance.status === 'compliant'
-                                      ? 'default'
-                                      : compliance.status === 'partial'
-                                      ? 'secondary'
-                                      : 'destructive'
-                                  }
-                                >
-                                  {compliance.status.replace('_', ' ')}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                {compliance.requirements_met} of {compliance.total_requirements} requirements met
-                              </p>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-3xl font-bold text-primary">
-                                {compliance.score}%
-                              </div>
-                              <p className="text-xs text-muted-foreground">Score</p>
-                            </div>
-                          </div>
-
-                          <Progress value={compliance.score} className="h-3" />
-
-                          <div className="grid grid-cols-2 gap-3 text-sm">
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Last Audit:</p>
-                              <p className="font-medium">{compliance.lastAudit}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Next Audit:</p>
-                              <p className="font-medium">{compliance.nextAudit}</p>
-                            </div>
-                          </div>
-
-                          {compliance.status !== 'compliant' && (
-                            <Button size="sm" className="w-full">
-                              View Compliance Gap Analysis
-                            </Button>
-                          )}
+                      <Card className="border-l-4 border-l-orange-500">
+                        <CardContent className="p-3">
+                          <p className="text-xs text-muted-foreground">High</p>
+                          <p className="text-2xl font-bold text-orange-600">{penTestData.summary.high}</p>
                         </CardContent>
                       </Card>
-                    ))}
-                  </div>
+                      <Card className="border-l-4 border-l-yellow-500">
+                        <CardContent className="p-3">
+                          <p className="text-xs text-muted-foreground">Medium</p>
+                          <p className="text-2xl font-bold text-yellow-600">{penTestData.summary.medium}</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="border-l-4 border-l-blue-500">
+                        <CardContent className="p-3">
+                          <p className="text-xs text-muted-foreground">Low</p>
+                          <p className="text-2xl font-bold text-blue-600">{penTestData.summary.low}</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="border-l-4 border-l-green-500">
+                        <CardContent className="p-3">
+                          <p className="text-xs text-muted-foreground">Passed</p>
+                          <p className="text-2xl font-bold text-green-600">{penTestData.summary.passed}</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {penTestData.vulnerabilities.length === 0 ? (
+                      <div className="text-center py-12">
+                        <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-500" />
+                        <p className="text-lg font-semibold">No Vulnerabilities Detected</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Your system passed all security checks
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {penTestData.vulnerabilities.map((vuln) => (
+                          <Card key={vuln.id} className={`border-l-4 ${
+                            vuln.severity === 'critical' ? 'border-l-red-500' :
+                            vuln.severity === 'high' ? 'border-l-orange-500' :
+                            vuln.severity === 'medium' ? 'border-l-yellow-500' :
+                            'border-l-blue-500'
+                          }`}>
+                            <CardContent className="p-4 space-y-3">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <Badge variant="outline">{vuln.category}</Badge>
+                                    <Badge variant={getSeverityBadge(vuln.severity)}>
+                                      {vuln.severity}
+                                    </Badge>
+                                    <Badge variant="outline">
+                                      {vuln.status}
+                                    </Badge>
+                                  </div>
+                                  <h4 className="font-semibold">{vuln.description}</h4>
+                                </div>
+                                <div className="text-right text-xs text-muted-foreground">
+                                  {formatTimestamp(vuln.detectedDate)}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+
+                    {penTestData.recommendations.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="font-semibold mb-3">Recommendations</h4>
+                        <div className="space-y-2">
+                          {penTestData.recommendations.map((rec, index) => (
+                            <Alert key={index} variant="default" className="bg-blue-50 dark:bg-blue-950">
+                              <Target className="h-4 w-4 text-blue-600" />
+                              <AlertDescription>{rec}</AlertDescription>
+                            </Alert>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>

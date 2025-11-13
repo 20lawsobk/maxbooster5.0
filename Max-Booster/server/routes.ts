@@ -40,6 +40,8 @@ import { emailService } from './services/emailService.js';
 import { emailMonitor } from './monitoring/emailMonitor.js';
 import { queueService } from './services/queueService.js';
 import { labelGridService } from './services/labelgrid-service.js';
+import * as aiAnalyticsService from './services/aiAnalyticsService.js';
+import * as securityMonitoringService from './services/securityMonitoringService.js';
 import { 
   insertUserSchema, 
   insertProjectSchema, 
@@ -2193,6 +2195,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Analytics - Admin Only
+  app.post("/api/analytics/ai/predict-metric", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { metric, timeframe } = req.body;
+      
+      // Validate input
+      if (!metric || !timeframe) {
+        return res.status(400).json({ error: "Missing required fields: metric, timeframe" });
+      }
+      
+      if (!['streams', 'engagement', 'revenue'].includes(metric)) {
+        return res.status(400).json({ error: "Invalid metric. Must be: streams, engagement, or revenue" });
+      }
+      
+      if (!['7d', '30d', '90d'].includes(timeframe)) {
+        return res.status(400).json({ error: "Invalid timeframe. Must be: 7d, 30d, or 90d" });
+      }
+      
+      const predictions = await aiAnalyticsService.predictMetric(metric as any, timeframe as any);
+      res.json(predictions);
+    } catch (error) {
+      console.error("Error predicting metric:", error);
+      res.status(500).json({ error: "Failed to predict metric" });
+    }
+  });
+
+  app.get("/api/analytics/ai/predict-churn", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const churnData = await aiAnalyticsService.predictChurn();
+      res.json(churnData);
+    } catch (error) {
+      console.error("Error predicting churn:", error);
+      res.status(500).json({ error: "Failed to predict churn" });
+    }
+  });
+
+  app.get("/api/analytics/ai/forecast-revenue", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const timeframe = (req.query.timeframe as string) || '30d';
+      
+      if (!['30d', '90d', '180d'].includes(timeframe)) {
+        return res.status(400).json({ error: "Invalid timeframe. Must be: 30d, 90d, or 180d" });
+      }
+      
+      const forecast = await aiAnalyticsService.forecastRevenue(timeframe as any);
+      res.json(forecast);
+    } catch (error) {
+      console.error("Error forecasting revenue:", error);
+      res.status(500).json({ error: "Failed to forecast revenue" });
+    }
+  });
+
+  app.get("/api/analytics/ai/detect-anomalies", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const anomalies = await aiAnalyticsService.detectAnomalies();
+      res.json(anomalies);
+    } catch (error) {
+      console.error("Error detecting anomalies:", error);
+      res.status(500).json({ error: "Failed to detect anomalies" });
+    }
+  });
+
+  app.get("/api/analytics/ai/insights", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const insights = await aiAnalyticsService.generateInsights();
+      res.json(insights);
+    } catch (error) {
+      console.error("Error generating insights:", error);
+      res.status(500).json({ error: "Failed to generate insights" });
+    }
+  });
+
   // Notification routes
   app.get('/api/notifications', requireAuth, async (req, res) => {
     try {
@@ -2800,6 +2874,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(stats);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Security Monitoring - Admin Only
+  app.get("/api/security/metrics", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const metrics = await securityMonitoringService.getSecurityMetrics();
+      res.json(metrics);
+    } catch (error: any) {
+      console.error("Error getting security metrics:", error);
+      res.status(500).json({ error: "Failed to get security metrics" });
+    }
+  });
+
+  app.get("/api/security/behavioral-alerts", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const alerts = await securityMonitoringService.getBehavioralAlerts();
+      res.json(alerts);
+    } catch (error: any) {
+      console.error("Error getting behavioral alerts:", error);
+      res.status(500).json({ error: "Failed to get behavioral alerts" });
+    }
+  });
+
+  app.get("/api/security/anomaly-detection", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const anomalies = await securityMonitoringService.detectSecurityAnomalies();
+      res.json(anomalies);
+    } catch (error: any) {
+      console.error("Error detecting anomalies:", error);
+      res.status(500).json({ error: "Failed to detect anomalies" });
+    }
+  });
+
+  app.get("/api/security/pentest-results", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const results = await securityMonitoringService.getPentestResults();
+      res.json(results);
+    } catch (error: any) {
+      console.error("Error getting pentest results:", error);
+      res.status(500).json({ error: "Failed to get pentest results" });
     }
   });
 

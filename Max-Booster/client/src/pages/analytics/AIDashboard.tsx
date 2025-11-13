@@ -84,166 +84,70 @@ export default function AIDashboard() {
   const [selectedMetric, setSelectedMetric] = useState('users');
   const [timeRange, setTimeRange] = useState('30d');
 
-  const { data: predictions, isLoading: loadingPredictions } = useQuery<MetricPrediction[]>({
+  const { data: predictions, isLoading: loadingPredictions, error: predictionsError } = useQuery<MetricPrediction[]>({
     queryKey: ['/api/analytics/ai/predict-metric', selectedMetric, timeRange],
     queryFn: async () => {
-      const mockPredictions: MetricPrediction[] = [
-        {
-          metric: 'Active Users',
-          current: 1250,
-          predicted: 1580,
-          confidence: 87,
-          trend: 'up',
-          forecast: [
-            { date: '2025-11-15', value: 1290, confidence_low: 1250, confidence_high: 1330 },
-            { date: '2025-11-22', value: 1380, confidence_low: 1320, confidence_high: 1440 },
-            { date: '2025-11-29', value: 1480, confidence_low: 1400, confidence_high: 1560 },
-            { date: '2025-12-06', value: 1580, confidence_low: 1480, confidence_high: 1680 },
-          ],
-        },
-      ];
-      return mockPredictions;
+      const response = await fetch('/api/analytics/ai/predict-metric', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ metric: selectedMetric, timeframe: timeRange })
+      });
+      if (!response.ok) throw new Error('Failed to fetch predictions');
+      const data = await response.json();
+      return [data];
     },
   });
 
-  const { data: churnPredictions, isLoading: loadingChurn } = useQuery<ChurnPrediction[]>({
+  const { data: churnPredictions, isLoading: loadingChurn, error: churnError } = useQuery<ChurnPrediction[]>({
     queryKey: ['/api/analytics/ai/predict-churn'],
     queryFn: async () => {
-      const mockChurn: ChurnPrediction[] = [
-        {
-          userId: '1',
-          username: 'DJ_Producer',
-          email: 'dj@example.com',
-          churnProbability: 78,
-          riskLevel: 'high',
-          riskFactors: [
-            'No login in 14 days',
-            'Decreased engagement (-45%)',
-            'No project activity',
-          ],
-          recommendedActions: [
-            'Send re-engagement email',
-            'Offer premium feature trial',
-            'Schedule check-in call',
-          ],
-        },
-        {
-          userId: '2',
-          username: 'BeatMaker_Pro',
-          email: 'beats@example.com',
-          churnProbability: 52,
-          riskLevel: 'medium',
-          riskFactors: ['Reduced studio sessions', 'Low feature adoption'],
-          recommendedActions: ['Send tutorial content', 'Highlight new features'],
-        },
-      ];
-      return mockChurn;
+      const response = await fetch('/api/analytics/ai/predict-churn', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch churn predictions');
+      return response.json();
     },
   });
 
-  const { data: revenueForecasts, isLoading: loadingRevenue } = useQuery<RevenueScenario[]>({
-    queryKey: ['/api/analytics/ai/forecast-revenue'],
+  const { data: revenueForecasts, isLoading: loadingRevenue, error: revenueError } = useQuery<RevenueScenario[]>({
+    queryKey: ['/api/analytics/ai/forecast-revenue', timeRange],
     queryFn: async () => {
-      const mockRevenue: RevenueScenario[] = [
-        {
-          name: 'Conservative',
-          probability: 70,
-          mrr: 12500,
-          arr: 150000,
-          growth: 15,
-        },
-        {
-          name: 'Expected',
-          probability: 60,
-          mrr: 18750,
-          arr: 225000,
-          growth: 35,
-        },
-        {
-          name: 'Optimistic',
-          probability: 30,
-          mrr: 25000,
-          arr: 300000,
-          growth: 55,
-        },
-      ];
-      return mockRevenue;
+      const response = await fetch(`/api/analytics/ai/forecast-revenue?timeframe=${timeRange}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch revenue forecasts');
+      return response.json();
     },
   });
 
-  const { data: anomalies, isLoading: loadingAnomalies } = useQuery<Anomaly[]>({
+  const { data: anomalies, isLoading: loadingAnomalies, error: anomaliesError } = useQuery<Anomaly[]>({
     queryKey: ['/api/analytics/ai/detect-anomalies'],
     queryFn: async () => {
-      const mockAnomalies: Anomaly[] = [
-        {
-          id: '1',
-          metric: 'API Response Time',
-          severity: 'warning',
-          detected_at: '2 hours ago',
-          deviation: 45,
-          root_cause: 'Database query optimization needed',
-          impact: 'User experience degradation',
-          recommendation: 'Add caching layer for frequent queries',
-        },
-        {
-          id: '2',
-          metric: 'User Signups',
-          severity: 'info',
-          detected_at: '1 day ago',
-          deviation: 32,
-          root_cause: 'Social media campaign launch',
-          impact: 'Positive growth spike',
-          recommendation: 'Maintain current marketing efforts',
-        },
-      ];
-      return mockAnomalies;
+      const response = await fetch('/api/analytics/ai/detect-anomalies', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch anomalies');
+      return response.json();
     },
   });
 
-  const { data: insights, isLoading: loadingInsights } = useQuery<AIInsight[]>({
+  const { data: insights, isLoading: loadingInsights, error: insightsError } = useQuery<AIInsight[]>({
     queryKey: ['/api/analytics/ai/insights'],
     queryFn: async () => {
-      const mockInsights: AIInsight[] = [
-        {
-          id: '1',
-          category: 'Growth',
-          title: 'Studio feature driving 40% of conversions',
-          description:
-            'Users who interact with the AI Studio within first 7 days have 3.2x higher conversion rate to paid plans.',
-          impact: 'high',
-          confidence: 92,
-          actions: [
-            'Promote studio in onboarding',
-            'Create studio tutorial series',
-            'Add studio to trial emails',
-          ],
-        },
-        {
-          id: '2',
-          category: 'Retention',
-          title: 'Distribution feature reduces churn by 28%',
-          description:
-            'Users who publish at least one release have significantly lower churn rates.',
-          impact: 'high',
-          confidence: 88,
-          actions: [
-            'Gamify first distribution',
-            'Send distribution guides',
-            'Offer distribution incentives',
-          ],
-        },
-        {
-          id: '3',
-          category: 'Revenue',
-          title: 'Yearly plans show 2.5x LTV',
-          description:
-            'Users on yearly subscriptions have higher lifetime value and lower support costs.',
-          impact: 'medium',
-          confidence: 85,
-          actions: ['Offer yearly plan discount', 'Highlight savings in pricing'],
-        },
-      ];
-      return mockInsights;
+      const response = await fetch('/api/analytics/ai/insights', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch insights');
+      return response.json();
     },
   });
 
@@ -367,10 +271,22 @@ export default function AIDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                {loadingPredictions ? (
+                {predictionsError ? (
+                  <div className="text-center py-12">
+                    <XCircle className="w-12 h-12 text-destructive mx-auto mb-2" />
+                    <p className="text-destructive font-semibold">Failed to load predictions</p>
+                    <p className="text-sm text-muted-foreground mt-1">Unable to fetch prediction data</p>
+                  </div>
+                ) : loadingPredictions ? (
                   <div className="text-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">Analyzing data...</p>
+                  </div>
+                ) : predictions && predictions.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="font-semibold">Insufficient data for predictions</p>
+                    <p className="text-sm mt-1">More data needed for accurate forecasting</p>
                   </div>
                 ) : (
                   <div className="space-y-6">
@@ -438,10 +354,22 @@ export default function AIDashboard() {
                 <CardDescription>Users at risk of churning with recommended actions</CardDescription>
               </CardHeader>
               <CardContent>
-                {loadingChurn ? (
+                {churnError ? (
+                  <div className="text-center py-12">
+                    <XCircle className="w-12 h-12 text-destructive mx-auto mb-2" />
+                    <p className="text-destructive font-semibold">Failed to load churn predictions</p>
+                    <p className="text-sm text-muted-foreground mt-1">Unable to fetch churn analysis</p>
+                  </div>
+                ) : loadingChurn ? (
                   <div className="text-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">Analyzing user behavior...</p>
+                  </div>
+                ) : churnPredictions && churnPredictions.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="font-semibold">No at-risk users detected</p>
+                    <p className="text-sm mt-1">All users appear to be engaged</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -512,10 +440,22 @@ export default function AIDashboard() {
                 <CardDescription>MRR/ARR projections with 3-scenario analysis</CardDescription>
               </CardHeader>
               <CardContent>
-                {loadingRevenue ? (
+                {revenueError ? (
+                  <div className="text-center py-12">
+                    <XCircle className="w-12 h-12 text-destructive mx-auto mb-2" />
+                    <p className="text-destructive font-semibold">Failed to load revenue forecasts</p>
+                    <p className="text-sm text-muted-foreground mt-1">Unable to fetch revenue analysis</p>
+                  </div>
+                ) : loadingRevenue ? (
                   <div className="text-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">Calculating scenarios...</p>
+                  </div>
+                ) : revenueForecasts && revenueForecasts.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <DollarSign className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="font-semibold">Insufficient revenue data</p>
+                    <p className="text-sm mt-1">More historical data needed for forecasting</p>
                   </div>
                 ) : (
                   <div className="grid gap-4">
@@ -583,10 +523,22 @@ export default function AIDashboard() {
                 <CardDescription>Detected anomalies with root cause analysis</CardDescription>
               </CardHeader>
               <CardContent>
-                {loadingAnomalies ? (
+                {anomaliesError ? (
+                  <div className="text-center py-12">
+                    <XCircle className="w-12 h-12 text-destructive mx-auto mb-2" />
+                    <p className="text-destructive font-semibold">Failed to load anomalies</p>
+                    <p className="text-sm text-muted-foreground mt-1">Unable to fetch anomaly detection</p>
+                  </div>
+                ) : loadingAnomalies ? (
                   <div className="text-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">Scanning for anomalies...</p>
+                  </div>
+                ) : anomalies && anomalies.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <CheckCircle2 className="w-12 h-12 mx-auto mb-2 opacity-50 text-green-600" />
+                    <p className="font-semibold">No anomalies detected</p>
+                    <p className="text-sm mt-1">All metrics are within normal ranges</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -644,10 +596,22 @@ export default function AIDashboard() {
                 <CardDescription>Natural language insights with actionable recommendations</CardDescription>
               </CardHeader>
               <CardContent>
-                {loadingInsights ? (
+                {insightsError ? (
+                  <div className="text-center py-12">
+                    <XCircle className="w-12 h-12 text-destructive mx-auto mb-2" />
+                    <p className="text-destructive font-semibold">Failed to load insights</p>
+                    <p className="text-sm text-muted-foreground mt-1">Unable to generate AI insights</p>
+                  </div>
+                ) : loadingInsights ? (
                   <div className="text-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">Generating insights...</p>
+                  </div>
+                ) : insights && insights.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Sparkles className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="font-semibold">No insights available yet</p>
+                    <p className="text-sm mt-1">Collecting data to generate actionable insights</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
