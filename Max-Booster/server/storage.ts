@@ -342,6 +342,7 @@ export interface IStorage {
   getOrders(filters?: any): Promise<Order[]>;
   getOrder(id: string): Promise<Order | undefined>;
   getUserOrders(userId: string): Promise<Order[]>;
+  getSellerOrders(userId: string): Promise<Order[]>;
   createOrder(order: any): Promise<Order>;
   updateOrder(id: string, updates: Partial<Order>): Promise<Order>;
   
@@ -5193,6 +5194,15 @@ export class DatabaseStorage implements IStorage {
         return await db.select().from(orders).where(eq(orders.buyerId, userId)).orderBy(desc(orders.createdAt));
       },
       'getUserOrders'
+    );
+  }
+
+  async getSellerOrders(userId: string): Promise<Order[]> {
+    return this.executeWithCircuitBreaker(
+      async () => {
+        return await db.select().from(orders).where(eq(orders.sellerId, userId)).orderBy(desc(orders.createdAt));
+      },
+      'getSellerOrders'
     );
   }
 

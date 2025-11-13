@@ -97,15 +97,47 @@ export class MarketplaceService {
     licenses: BeatLicense[];
   }): Promise<BeatListing> {
     try {
-      // In production, this would create a record in a beats table
-      const listing: BeatListing = {
-        id: nanoid(),
-        ...data,
-        status: 'active',
-        createdAt: new Date(),
+      // Map service data to database schema
+      const dbListing = {
+        ownerId: data.userId,
+        title: data.title,
+        description: data.description,
+        priceCents: Math.round(data.price * 100), // Convert to cents
+        licenseType: data.licenses[0]?.type || 'basic', // Store first license as primary
+        isPublished: true, // Maps to 'active' status
+        tags: data.tags || [],
+        metadata: {
+          genre: data.genre,
+          bpm: data.bpm,
+          key: data.key,
+          licenses: data.licenses, // Store full license array in metadata
+        },
+        previewUrl: data.audioUrl,
+        downloadUrl: data.audioUrl,
+        coverArtUrl: data.artworkUrl,
       };
 
-      return listing;
+      // Create listing in database (UUID generated automatically)
+      const createdListing = await storage.createListing(dbListing);
+
+      // Map database result back to service format
+      const metadata = createdListing.metadata as any || {};
+      return {
+        id: createdListing.id,
+        userId: createdListing.ownerId,
+        title: createdListing.title,
+        description: createdListing.description || undefined,
+        genre: metadata.genre,
+        bpm: metadata.bpm,
+        key: metadata.key,
+        price: createdListing.priceCents / 100,
+        audioUrl: createdListing.previewUrl || createdListing.downloadUrl || '',
+        artworkUrl: createdListing.coverArtUrl || undefined,
+        tags: Array.isArray(createdListing.tags) ? createdListing.tags as string[] : [],
+        licenses: metadata.licenses || data.licenses,
+        status: createdListing.isPublished ? 'active' : 'inactive',
+        createdAt: createdListing.createdAt || new Date(),
+      };
     } catch (error) {
       console.error("Error creating listing:", error);
       throw new Error("Failed to create beat listing");
@@ -169,18 +201,22 @@ export class MarketplaceService {
         throw new Error("Invalid license type");
       }
 
-      const order: Order = {
-        id: `order_${nanoid()}`,
-        beatId: data.beatId,
+      // Map service data to database schema
+      const dbOrder = {
         buyerId: data.buyerId,
         sellerId: beat.userId,
+        listingId: data.beatId,
         licenseType: data.licenseType,
-        amount: license.price,
+        amountCents: Math.round(license.price * 100), // Convert to cents
         status: 'pending',
-        createdAt: new Date(),
+        currency: 'usd',
       };
 
-      return order;
+      // Create order in database (UUID generated automatically, payout event created in transaction)
+      const createdOrder = await storage.createOrder(dbOrder);
+
+      // Convert database order to service order
+      return toServiceOrder(createdOrder);
     } catch (error) {
       console.error("Error creating order:", error);
       throw new Error("Failed to create order");
@@ -356,9 +392,8 @@ export class MarketplaceService {
   async getUserSales(userId: string): Promise<Order[]> {
     try {
       // Query orders where user is the seller
-      const dbOrders = await storage.getOrders();
-      const sellerOrders = dbOrders.filter(order => order.sellerId === userId);
-      return sellerOrders.map(toServiceOrder);
+      const dbOrders = await storage.getSellerOrders(userId);
+      return dbOrders.map(toServiceOrder);
     } catch (error) {
       console.error("Error fetching user sales:", error);
       throw new Error("Failed to fetch user sales");
