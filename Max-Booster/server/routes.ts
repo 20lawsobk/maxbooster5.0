@@ -39,6 +39,7 @@ import { royaltiesForecastingService } from './services/royaltiesForecastingServ
 import { emailService } from './services/emailService.js';
 import { emailMonitor } from './monitoring/emailMonitor.js';
 import { queueService } from './services/queueService.js';
+import { labelGridService } from './services/labelgrid-service.js';
 import { 
   insertUserSchema, 
   insertProjectSchema, 
@@ -494,6 +495,153 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Developer API routes (API key management and analytics endpoints)
   app.use('/api/developer', developerApiRoutes);
   app.use('/api/v1/analytics', analyticsApiRoutes);
+
+  // ===========================
+  // LABELGRID WEBHOOK HANDLER
+  // ===========================
+  
+  app.post('/api/webhooks/labelgrid', express.raw({ type: 'application/json' }), async (req, res) => {
+    try {
+      const signature = req.headers['x-labelgrid-signature'] as string;
+      const rawBody = req.body.toString('utf8');
+
+      // Verify webhook signature
+      if (!labelGridService.verifyWebhookSignature(rawBody, signature)) {
+        console.error('❌ LabelGrid webhook signature verification failed');
+        return res.status(401).json({ error: 'Invalid signature' });
+      }
+
+      const payload = JSON.parse(rawBody);
+      console.log('📥 LabelGrid webhook received:', payload.event);
+
+      // Handle different webhook events
+      switch (payload.event) {
+        case 'release.status.changed':
+          // Update release status in database
+          if (payload.releaseId && payload.status) {
+            try {
+              const release = await storage.getDistroReleaseByLabelGridId(payload.releaseId);
+              if (release) {
+                await storage.updateDistroRelease(release.id, {
+                  status: payload.status,
+                  metadata: {
+                    ...(release.metadata as any),
+                    lastStatusUpdate: new Date().toISOString(),
+                  },
+                });
+                console.log(`✅ Updated release ${release.id} status to ${payload.status}`);
+              }
+            } catch (error) {
+              console.error('Error updating release status from webhook:', error);
+            }
+          }
+          break;
+
+        case 'release.live':
+          // Mark release as live on DSPs
+          if (payload.releaseId && payload.platform) {
+            try {
+              const release = await storage.getDistroReleaseByLabelGridId(payload.releaseId);
+              if (release) {
+                await storage.updateDistroDispatchStatus(release.id, {
+                  providerId: payload.platform,
+                  status: 'live',
+                  liveAt: new Date(),
+                });
+                
+                // Create notification for user
+                await storage.createNotification({
+                  userId: release.artistId,
+                  type: 'release_live',
+                  title: '🎉 Your release is live!',
+                  message: `"${release.title}" is now live on ${payload.platform}`,
+                  link: `/distribution/releases/${release.id}`,
+                  metadata: {
+                    releaseId: release.id,
+                    platform: payload.platform,
+                  },
+                });
+                
+                console.log(`✅ Release ${release.id} is now live on ${payload.platform}`);
+              }
+            } catch (error) {
+              console.error('Error marking release as live from webhook:', error);
+            }
+          }
+          break;
+
+        case 'release.failed':
+          // Mark release as failed, store error message
+          if (payload.releaseId && payload.errorMessage) {
+            try {
+              const release = await storage.getDistroReleaseByLabelGridId(payload.releaseId);
+              if (release) {
+                await storage.updateDistroRelease(release.id, {
+                  status: 'failed',
+                  metadata: {
+                    ...(release.metadata as any),
+                    errorMessage: payload.errorMessage,
+                    failedAt: new Date().toISOString(),
+                  },
+                });
+                
+                // Create notification for user
+                await storage.createNotification({
+                  userId: release.artistId,
+                  type: 'release_failed',
+                  title: '❌ Release distribution failed',
+                  message: `There was an error distributing "${release.title}": ${payload.errorMessage}`,
+                  link: `/distribution/releases/${release.id}`,
+                  metadata: {
+                    releaseId: release.id,
+                    errorMessage: payload.errorMessage,
+                  },
+                });
+                
+                console.log(`❌ Release ${release.id} distribution failed: ${payload.errorMessage}`);
+              }
+            } catch (error) {
+              console.error('Error marking release as failed from webhook:', error);
+            }
+          }
+          break;
+
+        case 'analytics.updated':
+          // Update streaming/download counts
+          if (payload.releaseId && payload.data) {
+            try {
+              const release = await storage.getDistroReleaseByLabelGridId(payload.releaseId);
+              if (release) {
+                // Save analytics to database
+                await storage.createAnalytics({
+                  userId: release.artistId,
+                  projectId: release.projectId || undefined,
+                  date: new Date(),
+                  totalStreams: payload.data.totalStreams || 0,
+                  totalRevenue: (payload.data.totalRevenue || 0).toString(),
+                  platformData: payload.data.platforms || {},
+                });
+                
+                console.log(`✅ Updated analytics for release ${release.id}`);
+              }
+            } catch (error) {
+              console.error('Error updating analytics from webhook:', error);
+            }
+          }
+          break;
+
+        default:
+          console.log(`ℹ️  Unhandled LabelGrid webhook event: ${payload.event}`);
+      }
+
+      // Always return 200 OK to acknowledge receipt
+      res.status(200).json({ received: true });
+    } catch (error) {
+      console.error('Error processing LabelGrid webhook:', error);
+      // Still return 200 to prevent retries for invalid payloads
+      res.status(200).json({ received: true, error: 'Processing failed' });
+    }
+  });
 
   // Authentication routes - Legacy registration blocked for payment-first workflow
   app.post('/api/auth/register', async (req, res) => {

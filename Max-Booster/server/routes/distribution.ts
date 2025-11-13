@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { storage } from '../storage';
 import * as codeGenerationService from '../services/distributionCodeGenerationService';
 import { distributionService } from '../services/distributionService';
+import { labelGridService } from '../services/labelgrid-service';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -185,7 +186,7 @@ router.patch('/releases/:id', requireAuth, async (req: Request, res: Response) =
   }
 });
 
-// DELETE /api/distribution/releases/:id - Delete draft release
+// DELETE /api/distribution/releases/:id - Delete/takedown release
 router.delete('/releases/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req.user as any).id;
@@ -196,6 +197,19 @@ router.delete('/releases/:id', requireAuth, async (req: Request, res: Response) 
       return res.status(404).json({ error: 'Release not found' });
     }
 
+    // If release is live on LabelGrid, initiate takedown
+    const metadata = release.metadata as any;
+    if (metadata?.labelGridReleaseId && release.status !== 'draft') {
+      try {
+        await labelGridService.takedownRelease(metadata.labelGridReleaseId);
+        console.log(`✅ LabelGrid takedown initiated for release ${metadata.labelGridReleaseId}`);
+      } catch (error) {
+        console.error('Error initiating LabelGrid takedown:', error);
+        // Continue with local deletion even if LabelGrid fails
+      }
+    }
+
+    // Delete from local database
     await storage.deleteDistroRelease(id);
     res.json({ success: true });
   } catch (error) {
@@ -301,14 +315,15 @@ router.post('/codes/isrc', requireAuth, async (req: Request, res: Response) => {
     const userId = (req.user as any).id;
     const { trackId, artist, title } = generateCodeSchema.parse(req.body);
 
-    const isrc = await codeGenerationService.generateISRC(
-      userId,
-      trackId || `temp_${Date.now()}`,
-      artist,
-      title
-    );
+    // Use LabelGrid API to generate ISRC
+    const result = await labelGridService.generateISRC(artist, title);
 
-    res.json({ isrc });
+    // Store in database for tracking
+    if (trackId && trackId !== `temp_${Date.now()}`) {
+      await codeGenerationService.saveISRC(userId, trackId, result.code);
+    }
+
+    res.json({ isrc: result.code, assignedTo: result.assignedTo });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
@@ -324,13 +339,15 @@ router.post('/codes/upc', requireAuth, async (req: Request, res: Response) => {
     const userId = (req.user as any).id;
     const { releaseId, title } = generateCodeSchema.parse(req.body);
 
-    const upc = await codeGenerationService.generateUPC(
-      userId,
-      releaseId || `temp_${Date.now()}`,
-      title
-    );
+    // Use LabelGrid API to generate UPC
+    const result = await labelGridService.generateUPC(title);
 
-    res.json({ upc });
+    // Store in database for tracking
+    if (releaseId && releaseId !== `temp_${Date.now()}`) {
+      await codeGenerationService.saveUPC(userId, releaseId, result.code);
+    }
+
+    res.json({ upc: result.code, assignedTo: result.assignedTo });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
@@ -645,7 +662,32 @@ router.get('/releases/:id/status', requireAuth, async (req: Request, res: Respon
       return res.status(404).json({ error: 'Release not found' });
     }
 
-    // Get dispatch status for all platforms
+    // Get real-time status from LabelGrid if we have an external release ID
+    const metadata = release.metadata as any;
+    let labelGridStatus = null;
+    
+    if (metadata?.labelGridReleaseId) {
+      try {
+        labelGridStatus = await labelGridService.getReleaseStatus(metadata.labelGridReleaseId);
+        
+        // Update local database with latest status
+        if (labelGridStatus.platforms) {
+          for (const platformStatus of labelGridStatus.platforms) {
+            await storage.updateDistroDispatchStatus(id, {
+              providerId: platformStatus.platform,
+              status: platformStatus.status,
+              liveAt: platformStatus.liveDate ? new Date(platformStatus.liveDate) : undefined,
+              error: platformStatus.errorMessage,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching LabelGrid status:', error);
+        // Fall back to database status
+      }
+    }
+
+    // Get dispatch status from database
     const statuses = await storage.getDistroDispatchStatuses(id);
     
     // Calculate overall progress
@@ -667,6 +709,11 @@ router.get('/releases/:id/status', requireAuth, async (req: Request, res: Respon
         lastChecked: status.updatedAt,
       })),
       overallProgress: Math.round(overallProgress),
+      labelGridStatus: labelGridStatus ? {
+        releaseId: labelGridStatus.releaseId,
+        status: labelGridStatus.status,
+        estimatedLiveDate: labelGridStatus.estimatedLiveDate,
+      } : null,
     });
   } catch (error) {
     console.error('Error fetching release status:', error);
@@ -977,6 +1024,64 @@ router.get('/releases/:id/takedown-status', requireAuth, async (req: Request, re
   } catch (error) {
     console.error('Error fetching takedown status:', error);
     res.status(500).json({ error: 'Failed to fetch takedown status' });
+  }
+});
+
+// ===========================
+// ANALYTICS ENDPOINTS
+// ===========================
+
+// GET /api/distribution/releases/:id/analytics - Get release analytics from LabelGrid
+router.get('/releases/:id/analytics', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const { id } = req.params;
+
+    const release = await storage.getDistroRelease(id);
+    if (!release || release.artistId !== userId) {
+      return res.status(404).json({ error: 'Release not found' });
+    }
+
+    const metadata = release.metadata as any;
+    
+    // Get analytics from LabelGrid if we have an external release ID
+    if (metadata?.labelGridReleaseId) {
+      try {
+        const analytics = await labelGridService.getReleaseAnalytics(metadata.labelGridReleaseId);
+        
+        // Save analytics to database for historical tracking
+        await storage.createAnalytics({
+          userId,
+          projectId: release.projectId || undefined,
+          date: new Date(),
+          totalStreams: analytics.totalStreams,
+          totalRevenue: analytics.totalRevenue.toString(),
+          platformData: analytics.platforms,
+          trackData: analytics.timeline,
+        });
+
+        res.json(analytics);
+      } catch (error) {
+        console.error('Error fetching LabelGrid analytics:', error);
+        res.status(500).json({ 
+          error: 'Failed to fetch analytics from LabelGrid',
+          message: 'Please try again later or check your LabelGrid connection',
+        });
+      }
+    } else {
+      // Return empty analytics if no LabelGrid release ID
+      res.json({
+        releaseId: id,
+        totalStreams: 0,
+        totalRevenue: 0,
+        platforms: {},
+        timeline: [],
+        message: 'Release not yet distributed to LabelGrid',
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching release analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch release analytics' });
   }
 });
 

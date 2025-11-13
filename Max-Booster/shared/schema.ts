@@ -270,7 +270,10 @@ export const releases = pgTable("releases", {
   title: text("title").notNull(),
   artist: text("artist").notNull(),
   albumArt: varchar("album_art", { length: 500 }),
+  upc: varchar("upc", { length: 20 }),
+  labelGridReleaseId: varchar("labelgrid_release_id", { length: 255 }),
   releaseDate: timestamp("release_date"),
+  submittedAt: timestamp("submitted_at"),
   status: varchar("status", { length: 50 }).default("draft"),
   platforms: jsonb("platforms"),
   metadata: jsonb("metadata"),
@@ -279,6 +282,7 @@ export const releases = pgTable("releases", {
 }, (table) => ({
   userIdIdx: index("releases_user_id_idx").on(table.userId),
   statusIdx: index("releases_status_idx").on(table.status),
+  labelGridReleaseIdIdx: index("releases_labelgrid_release_id_idx").on(table.labelGridReleaseId),
   userStatusReleaseDateIdx: index("releases_user_status_release_date_idx").on(table.userId, table.status, table.releaseDate),
 }));
 
