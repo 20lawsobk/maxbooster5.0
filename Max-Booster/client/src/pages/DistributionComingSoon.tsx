@@ -32,7 +32,7 @@ export default function DistributionComingSoon() {
             
             <Badge className="bg-purple-600 text-white px-4 py-2 text-sm">
               <Sparkles className="w-4 h-4 mr-2" />
-              Launching Q1 2026
+              Launching December 2025
             </Badge>
             
             <h1 className="text-5xl font-bold text-white">
