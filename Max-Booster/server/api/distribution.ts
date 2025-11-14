@@ -1,14 +1,13 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth';
-import { requirePremium } from '../middleware/requirePremium';
-import { db } from '../db';
-import { distributions, songs, users } from '../../shared/schema';
+import { requireAuth } from '../middleware/auth.js';
+import { requirePremium } from '../middleware/requirePremium.js';
+import { db } from '../db.js';
+import { releases, tracks, users, projects } from '../../shared/schema.js';
 import { eq, and } from 'drizzle-orm';
-import { LabelGridService } from '../services/labelgrid-service';
-import { logger } from '../logger';
+import { labelGridService } from '../services/labelgrid-service.js';
+import { logger } from '../logger.js';
 
 const router = Router();
-const labelGridService = new LabelGridService();
 
 /**
  * Get distribution config
@@ -52,14 +51,14 @@ router.post('/submit', requireAuth, requirePremium, async (req, res) => {
       metadata
     } = req.body;
     
-    // Validate songs belong to user
-    const userSongs = await db.select().from(songs)
+    // Validate tracks belong to user
+    const userTracks = await db.select().from(tracks)
       .where(and(
-        eq(songs.userId, userId),
-        eq(songs.id, songIds[0]) // Check at least first song
+        eq(tracks.userId, userId),
+        eq(tracks.id, songIds[0]) // Check at least first track
       ));
     
-    if (userSongs.length === 0) {
+    if (userTracks.length === 0) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
     
@@ -81,24 +80,27 @@ router.post('/submit', requireAuth, requirePremium, async (req, res) => {
       platforms: platforms || 'all'
     });
     
-    // Save to database
-    const [distribution] = await db.insert(distributions).values({
+    // Save to database using releases table
+    const [newRelease] = await db.insert(releases).values({
       userId,
-      songId: songIds[0],
-      platforms: platforms || ['all'],
+      title,
+      artist,
+      type: songIds.length > 1 ? 'album' : 'single',
+      releaseDate: new Date(releaseDate),
       status: 'pending',
-      submittedAt: new Date(),
       metadata: {
         ...metadata,
         labelGridReleaseId: release.id,
         isrc: release.tracks[0].isrc,
-        upc: release.upc
+        upc: release.upc,
+        platforms: platforms || ['all'],
+        territories: territories || ['WORLD']
       }
     }).returning();
     
     res.json({
       success: true,
-      distribution,
+      release: newRelease,
       releaseId: release.id,
       isrc: release.tracks[0].isrc,
       upc: release.upc,
@@ -113,52 +115,53 @@ router.post('/submit', requireAuth, requirePremium, async (req, res) => {
 /**
  * Get distribution status
  */
-router.get('/status/:distributionId', requireAuth, async (req, res) => {
+router.get('/status/:releaseId', requireAuth, async (req, res) => {
   try {
     const userId = req.session.userId!;
-    const { distributionId } = req.params;
+    const { releaseId } = req.params;
     
-    const [distribution] = await db.select().from(distributions)
+    const [release] = await db.select().from(releases)
       .where(and(
-        eq(distributions.id, distributionId),
-        eq(distributions.userId, userId)
+        eq(releases.id, releaseId),
+        eq(releases.userId, userId)
       ));
     
-    if (!distribution) {
-      return res.status(404).json({ error: 'Distribution not found' });
+    if (!release) {
+      return res.status(404).json({ error: 'Release not found' });
     }
     
     // Get status from LabelGrid if available
-    if (distribution.metadata?.labelGridReleaseId) {
+    const metadata = release.metadata as any;
+    if (metadata?.labelGridReleaseId) {
       const status = await labelGridService.getReleaseStatus(
-        distribution.metadata.labelGridReleaseId
+        metadata.labelGridReleaseId
       );
       
       // Update local status if changed
-      if (status.status !== distribution.status) {
-        await db.update(distributions)
+      if (status.status !== release.status) {
+        await db.update(releases)
           .set({ 
             status: status.status,
             metadata: {
-              ...distribution.metadata,
+              ...metadata,
               platformStatuses: status.platformStatuses
             }
           })
-          .where(eq(distributions.id, distributionId));
+          .where(eq(releases.id, releaseId));
       }
       
       res.json({
-        ...distribution,
+        ...release,
         status: status.status,
         platformStatuses: status.platformStatuses,
         liveLinks: status.liveLinks
       });
     } else {
-      res.json(distribution);
+      res.json(release);
     }
   } catch (error) {
-    logger.error('Error fetching distribution status:', error);
-    res.status(500).json({ error: 'Failed to fetch distribution status' });
+    logger.error('Error fetching release status:', error);
+    res.status(500).json({ error: 'Failed to fetch release status' });
   }
 });
 
@@ -169,14 +172,14 @@ router.get('/my-distributions', requireAuth, async (req, res) => {
   try {
     const userId = req.session.userId!;
     
-    const userDistributions = await db.select().from(distributions)
-      .where(eq(distributions.userId, userId))
-      .orderBy(distributions.submittedAt);
+    const userReleases = await db.select().from(releases)
+      .where(eq(releases.userId, userId))
+      .orderBy(releases.createdAt);
     
-    res.json(userDistributions);
+    res.json(userReleases);
   } catch (error) {
-    logger.error('Error fetching distributions:', error);
-    res.status(500).json({ error: 'Failed to fetch distributions' });
+    logger.error('Error fetching releases:', error);
+    res.status(500).json({ error: 'Failed to fetch releases' });
   }
 });
 
@@ -209,41 +212,42 @@ router.post('/generate-upc', requireAuth, requirePremium, async (req, res) => {
 /**
  * Takedown release
  */
-router.post('/takedown/:distributionId', requireAuth, async (req, res) => {
+router.post('/takedown/:releaseId', requireAuth, async (req, res) => {
   try {
     const userId = req.session.userId!;
-    const { distributionId } = req.params;
+    const { releaseId } = req.params;
     const { reason } = req.body;
     
-    const [distribution] = await db.select().from(distributions)
+    const [release] = await db.select().from(releases)
       .where(and(
-        eq(distributions.id, distributionId),
-        eq(distributions.userId, userId)
+        eq(releases.id, releaseId),
+        eq(releases.userId, userId)
       ));
     
-    if (!distribution) {
-      return res.status(404).json({ error: 'Distribution not found' });
+    if (!release) {
+      return res.status(404).json({ error: 'Release not found' });
     }
     
+    const metadata = release.metadata as any;
     // Request takedown from LabelGrid
-    if (distribution.metadata?.labelGridReleaseId) {
+    if (metadata?.labelGridReleaseId) {
       await labelGridService.takedownRelease(
-        distribution.metadata.labelGridReleaseId,
+        metadata.labelGridReleaseId,
         reason
       );
     }
     
     // Update status
-    await db.update(distributions)
+    await db.update(releases)
       .set({ 
         status: 'takedown_requested',
         metadata: {
-          ...distribution.metadata,
+          ...metadata,
           takedownReason: reason,
           takedownRequestedAt: new Date()
         }
       })
-      .where(eq(distributions.id, distributionId));
+      .where(eq(releases.id, releaseId));
     
     res.json({ success: true });
   } catch (error) {
