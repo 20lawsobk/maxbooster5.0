@@ -404,10 +404,12 @@ export default function Distribution() {
   // Data Queries
   const { data: releases = [], isLoading: releasesLoading } = useQuery<Release[]>({
     queryKey: ['/api/distribution/releases'],
+    enabled: !!user,
   });
 
   const { data: comprehensiveAnalytics, isLoading: analyticsLoading, error: analyticsError } = useQuery<ComprehensiveAnalytics>({
     queryKey: ['/api/analytics/dashboard'],
+    enabled: !!user,
   });
 
   // Extract distribution-specific analytics from comprehensive data

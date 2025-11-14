@@ -102,6 +102,7 @@ export default function Royalties() {
   // Fetch royalties data
   const { data: royalties = [], isLoading } = useQuery<Royalty[]>({
     queryKey: ["/api/royalties", { period: selectedPeriod, platform: selectedPlatform }],
+    enabled: !!user,
     retry: false,
     staleTime: 5 * 60 * 1000,
   });

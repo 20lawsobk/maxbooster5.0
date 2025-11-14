@@ -469,7 +469,7 @@ export default function SocialMedia() {
   const { data: autopilotStatus, isLoading: autopilotLoading } = useQuery({
     queryKey: ['/api/autopilot/status'],
     enabled: !!user,
-    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const configureAutopilotMutation = useMutation({

@@ -229,7 +229,10 @@ export default function Studio() {
     onError: handleStudioError,
   });
 
-  const { data: projectsData } = useQuery({ queryKey: ['/api/studio/projects'] });
+  const { data: projectsData } = useQuery({ 
+    queryKey: ['/api/studio/projects'],
+    enabled: !!user
+  });
   const projects = (projectsData as any)?.data || [];
 
   const { data: tracks = [], isLoading: isLoadingTracks } = useQuery<StudioTrack[]>({
@@ -242,8 +245,14 @@ export default function Studio() {
     enabled: !!user,
   });
 
-  const { data: samples = [] } = useQuery<any[]>({ queryKey: ['/api/studio/samples'] });
-  const { data: recentFiles = [] } = useQuery<any[]>({ queryKey: ['/api/studio/recent-files'] });
+  const { data: samples = [] } = useQuery<any[]>({ 
+    queryKey: ['/api/studio/samples'],
+    enabled: !!user
+  });
+  const { data: recentFiles = [] } = useQuery<any[]>({ 
+    queryKey: ['/api/studio/recent-files'],
+    enabled: !!user
+  });
   const { data: projectLyrics } = useQuery<any>({
     queryKey: [`/api/studio/lyrics?projectId=${selectedProject?.id}`],
     enabled: !!selectedProject,

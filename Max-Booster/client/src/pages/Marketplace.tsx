@@ -281,6 +281,7 @@ export default function Marketplace() {
       
       return await res.json();
     },
+    enabled: !!user,
     staleTime: 5 * 60 * 1000,
   });
 

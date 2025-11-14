@@ -274,7 +274,7 @@ export default function Advertisement() {
   const { data: autopilotStatus, isLoading: autopilotLoading } = useQuery<AutopilotStatus>({
     queryKey: ['/api/autopilot/status'],
     enabled: !!user,
-    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const configureAutopilotMutation = useMutation({
