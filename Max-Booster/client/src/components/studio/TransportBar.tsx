@@ -5,8 +5,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useStudioStore } from '@/lib/studioStore';
 import {
   Play, Pause, Square, Circle, SkipBack, SkipForward, Repeat, Plus, Minus,
-  Music2, RotateCcw, RotateCw, Activity
+  Music2, RotateCcw, RotateCw, Activity, Sparkles, Volume2
 } from 'lucide-react';
+import { AIMixer } from '@/lib/audio/AIMixer';
+import { AIMastering } from '@/lib/audio/AIMastering';
+import { useToast } from '@/hooks/use-toast';
+import AudioEngine from '@/lib/audioEngine';
 
 interface TransportBarProps {
   armedTracksCount?: number;
