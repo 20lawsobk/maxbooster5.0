@@ -18,7 +18,7 @@ export default function Pricing() {
       features: [
         'Professional AI Music Studio (DAW)',
         'Autonomous Social Media Autopilot (24/7)',
-        'AI-Enhanced Organic Marketing Autopilot',
+        'AI-Enhanced Organic Advertisement Autopilot',
         'Beat Marketplace & Licensing',
         'Professional Analytics Dashboard',
         'Distribution to 100+ Platforms (Dec 2025)',
@@ -43,7 +43,7 @@ export default function Pricing() {
       features: [
         'Professional AI Music Studio (DAW)',
         'Autonomous Social Media Autopilot (24/7)',
-        'AI-Enhanced Organic Marketing Autopilot',
+        'AI-Enhanced Organic Advertisement Autopilot',
         'Beat Marketplace & Licensing',
         'Professional Analytics Dashboard',
         'Distribution to 100+ Platforms (Dec 2025)',
@@ -66,7 +66,7 @@ export default function Pricing() {
       features: [
         'Professional AI Music Studio (DAW)',
         'Autonomous Social Media Autopilot (24/7)',
-        'AI-Enhanced Organic Marketing Autopilot',
+        'AI-Enhanced Organic Advertisement Autopilot',
         'Beat Marketplace & Licensing',
         'Professional Analytics Dashboard',
         'Distribution to 100+ Platforms (Dec 2025)',
