@@ -64,6 +64,18 @@ import { InspectorPanel } from '@/components/studio/InspectorPanel';
 import { RoutingMatrix } from '@/components/studio/RoutingMatrix';
 import StudioTutorial from '@/components/studio/StudioTutorial';
 
+// Import audio plugins and AI processors
+import { CompressorPlugin } from '@/lib/audio/plugins/CompressorPlugin';
+import { EQPlugin } from '@/lib/audio/plugins/EQPlugin';
+import { ReverbPlugin } from '@/lib/audio/plugins/ReverbPlugin';
+import { DelayPlugin } from '@/lib/audio/plugins/DelayPlugin';
+import { DistortionPlugin } from '@/lib/audio/plugins/DistortionPlugin';
+import { ChorusPlugin } from '@/lib/audio/plugins/ChorusPlugin';
+import { FlangerPlugin } from '@/lib/audio/plugins/FlangerPlugin';
+import { PhaserPlugin } from '@/lib/audio/plugins/PhaserPlugin';
+import { AIMixer } from '@/lib/audio/AIMixer';
+import { AIMastering } from '@/lib/audio/AIMastering';
+
 const TRACK_COLORS = [
   '#4ade80', '#60a5fa', '#f87171', '#fbbf24', '#a78bfa',
   '#fb923c', '#ec4899', '#14b8a6', '#8b5cf6', '#06b6d4',
