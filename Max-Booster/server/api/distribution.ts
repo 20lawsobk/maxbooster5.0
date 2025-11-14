@@ -51,33 +51,48 @@ router.post('/submit', requireAuth, requirePremium, async (req, res) => {
       metadata
     } = req.body;
     
-    // Validate tracks belong to user
+    // Validate ALL tracks belong to user - CRITICAL SECURITY FIX
     const userTracks = await db.select().from(tracks)
-      .where(and(
-        eq(tracks.userId, userId),
-        eq(tracks.id, songIds[0]) // Check at least first track
-      ));
+      .where(eq(tracks.userId, userId));
     
-    if (userTracks.length === 0) {
-      return res.status(403).json({ error: 'Unauthorized' });
+    const userTrackIds = userTracks.map(t => t.id);
+    const unauthorizedTracks = songIds.filter((id: string) => !userTrackIds.includes(id));
+    
+    if (unauthorizedTracks.length > 0) {
+      return res.status(403).json({ 
+        error: 'Unauthorized: You do not own all selected tracks',
+        unauthorizedTracks 
+      });
     }
     
-    // Submit to LabelGrid
+    // Get full track metadata with real audio files
+    const selectedTracks = userTracks.filter(t => songIds.includes(t.id));
+    
+    // Map platforms properly for LabelGrid (must be array, not string "all")
+    const labelGridPlatforms = platforms === 'all' ? 
+      ['spotify', 'apple-music', 'youtube-music', 'amazon-music', 'tidal', 
+       'deezer', 'pandora', 'soundcloud', 'tiktok', 'instagram'] : 
+      Array.isArray(platforms) ? platforms : [platforms];
+    
+    // Submit to LabelGrid with REAL track data
     const release = await labelGridService.createRelease({
       title,
       artist,
       label: label || 'Max Booster Records',
       releaseDate: new Date(releaseDate),
       type: songIds.length > 1 ? 'album' : 'single',
-      tracks: songIds.map((id: string, index: number) => ({
-        title: `Track ${index + 1}`,
-        isrc: labelGridService.generateISRC('US', 'MXB'),
-        duration: 180, // Default 3 minutes
+      tracks: selectedTracks.map((track, index) => ({
+        title: track.title,
+        artist: track.artist || artist,
+        isrc: track.isrc || labelGridService.generateISRC('US', 'MXB'),
+        duration: track.duration || 180,
+        audioFileUrl: track.audioUrl, // Real audio file URL
         trackNumber: index + 1,
-        discNumber: 1
+        discNumber: 1,
+        metadata: track.metadata
       })),
-      territories: territories || ['WORLD'],
-      platforms: platforms || 'all'
+      territories: Array.isArray(territories) ? territories : [territories || 'WORLD'],
+      platforms: labelGridPlatforms
     });
     
     // Save to database using releases table

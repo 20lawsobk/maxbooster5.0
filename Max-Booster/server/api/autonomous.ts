@@ -16,9 +16,12 @@ router.get('/settings', requireAuth, async (req, res) => {
   try {
     const userId = req.session.userId!;
     
-    // For now, return default settings until we add autonomous_settings table
-    // Settings can be stored in user metadata or a new table later
-    const defaultSettings = {
+    // Get user settings from metadata
+    const [user] = await db.select().from(users)
+      .where(eq(users.id, userId));
+    
+    const metadata = user?.metadata as any || {};
+    const autonomousSettings = metadata.autonomousSettings || {
       enabled: false,
       requireApproval: true,
       postFrequency: 'daily',
@@ -27,7 +30,7 @@ router.get('/settings', requireAuth, async (req, res) => {
       platforms: []
     };
     
-    res.json(defaultSettings);
+    res.json(autonomousSettings);
   } catch (error) {
     logger.error('Error fetching autonomous settings:', error);
     res.status(500).json({ error: 'Failed to fetch settings' });
@@ -42,8 +45,21 @@ router.put('/settings', requireAuth, requirePremium, async (req, res) => {
     const userId = req.session.userId!;
     const settings = req.body;
     
-    // For now, just acknowledge the settings update
-    // TODO: Store in autonomous_settings table when created
+    // Get current user metadata
+    const [user] = await db.select().from(users)
+      .where(eq(users.id, userId));
+    
+    const currentMetadata = user?.metadata as any || {};
+    
+    // Update user metadata with autonomous settings
+    await db.update(users)
+      .set({
+        metadata: {
+          ...currentMetadata,
+          autonomousSettings: settings
+        }
+      })
+      .where(eq(users.id, userId));
     
     // If enabling fully autonomous mode, start the service
     if (settings.enabled && !settings.requireApproval) {

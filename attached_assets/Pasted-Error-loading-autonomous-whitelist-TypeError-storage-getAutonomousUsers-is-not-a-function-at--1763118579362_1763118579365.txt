@@ -1,0 +1,66 @@
+Error loading autonomous whitelist: TypeError: storage.getAutonomousUsers is not a function
+    at AutonomousService.loadAutonomousWhitelist (/home/runner/workspace/Max-Booster/server/services/autonomousService.ts:29:45)
+    at new AutonomousService (/home/runner/workspace/Max-Booster/server/services/autonomousService.ts:20:10)
+    at <anonymous> (/home/runner/workspace/Max-Booster/server/services/autonomousService.ts:305:34)
+    at ModuleJob.run (node:internal/modules/esm/module_job:263:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:540:24)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+[AUTONOMOUS] Starting 24/7 autonomous operations...
+[AUTONOMOUS] 24/7 operations started successfully
+📋 Job queues initialized
+✅ SendGrid EmailService initialized
+Using STRIPE_SECRET_KEY: sk_live
+✅ Initializing Stripe product and price setup...
+⚠️  Database getDistributionProvider failed (attempt 1/3): distributionProviders is not defined
+⚠️  Queue Service: Redis unavailable (connect ECONNREFUSED 127.0.0.1:6379), queues will use fallback behavior
+⚠️  Social Queue Service: Redis unavailable (connect ECONNREFUSED 127.0.0.1:6379), queues will use fallback behavior
+📋 Configuration loaded:
+   Environment: development
+   Port: 5000
+   Database Pool: 20 connections
+   Max Sessions: 50,000
+   Rate Limit: 100 req/min
+   Storage: local
+   Max File Size: 100MB
+⚠️  Database getDistributionProvider failed (attempt 2/3): distributionProviders is not defined
+⚠️ Slow query detected (1016ms): sql_c50cd43c23217054
+admin already exists
+⚠️ Slow query detected (146ms): sql_c50cd43c23217054
+testmonthly already exists
+⚠️ Slow query detected (147ms): sql_c50cd43c23217054
+testyearly already exists
+⚠️ Slow query detected (147ms): sql_c50cd43c23217054
+testlifetime already exists
+
+✅ Initialization complete - 4 accounts ready:
+   Admin: brandonlawson720@gmail.com / admin123! (Lifetime - No Expiry)
+   Test Accounts (30-day trial with full lifetime access, expires: 12/14/2025):
+     - test.monthly@maxbooster.com / test123!
+     - test.yearly@maxbooster.com / test123!
+     - test.lifetime@maxbooster.com / test123!
+
+🎛️  Seeding plugin catalog...
+⚠️ Slow query detected (152ms): sql_45c643b2ed921b8a
+✅ Plugin catalog seeded with custom peak-performance plugins
+🔧 Setting up Stripe products and prices...
+✅ Found existing Stripe product: prod_TAsGhGuD0hLtG5
+✅ Found existing monthly price: price_1SEWW4GIdnrORdO6gJkLUYf6
+✅ Found existing yearly price: price_1SEWW5GIdnrORdO6N8PyilTm
+✅ Found existing lifetime price: price_1SEWW5GIdnrORdO6CL86RYTb
+✅ Stripe setup complete:
+   Monthly ($49): price_1SEWW4GIdnrORdO6gJkLUYf6
+   Yearly ($468): price_1SEWW5GIdnrORdO6N8PyilTm
+   Lifetime ($699): price_1SEWW5GIdnrORdO6CL86RYTb
+🚀 Max Booster 24/7/365 System Starting...
+🚀 Starting 24/7/365 Reliability System...
+🔍 Starting 24/7 Process Monitor...
+✅ Process monitoring started - 24/7 reliability enabled
+🧠 Starting 24/7 Memory Manager...
+✅ Memory manager started - continuous monitoring enabled
+✅ 24/7/365 Reliability System ACTIVE
+📊 Monitoring: Process, Memory, Database, Health Checks
+🔄 Auto-recovery: Enabled
+⚡ High-availability: Ready
+✅ Health monitoring active (30s intervals)
+✅ Memory management active (2min intervals)
+⚠️ GC not available in development - memory cleanup limited
