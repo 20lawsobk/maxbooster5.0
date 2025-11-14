@@ -449,7 +449,7 @@ export default function Advertisement() {
                               $0 (AI Elimination)
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              AI completely eliminates all advertising costs through organic domination
+                              Zero ad spend through AI-optimized organic posting
                             </div>
                           </div>
                         </div>
@@ -656,7 +656,7 @@ export default function Advertisement() {
                     🚀 Personal Ad Network System
                   </h2>
                   <p className="text-lg text-muted-foreground">
-                    Transform your connected social media profiles into a powerful personal advertising network that eliminates all ad spend
+                    Transform your connected social media profiles into a powerful personal advertising network for organic content distribution
                   </p>
                   
                   {/* Personal Ad Network Status */}
@@ -743,7 +743,7 @@ export default function Advertisement() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="relative space-y-3">
-                      <p className="text-muted-foreground">Eliminate Facebook Ads, Google Ads, TikTok Ads, and all native advertising platforms</p>
+                      <p className="text-muted-foreground">Organic posting to your social accounts - no paid ads required</p>
                       <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-lg">
                         <div className="text-sm font-semibold text-green-800 dark:text-green-200">
                           100% Cost Reduction - $0 Ad Spend
@@ -765,10 +765,10 @@ export default function Advertisement() {
                       <p className="text-muted-foreground">Dominate organic reach across all platforms simultaneously</p>
                       <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-lg">
                         <div className="text-sm font-semibold text-blue-800 dark:text-blue-200">
-                          1000% Better Than Paid Campaigns
+                          Powerful Organic Reach
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground italic">Unlimited organic reach through AI-powered viral amplification</p>
+                      <p className="text-xs text-muted-foreground italic">Enhanced organic reach through AI-optimized content</p>
                     </CardContent>
                   </Card>
 
@@ -819,7 +819,7 @@ export default function Advertisement() {
                       Native Platform Replacement Status
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      Complete replacement of all traditional advertising platforms
+                      AI-enhanced organic marketing tools
                     </p>
                   </CardHeader>
                   <CardContent>
@@ -854,7 +854,7 @@ export default function Advertisement() {
                       Revolutionary Replacement Capabilities
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      Advanced capabilities that make all native advertising platforms obsolete
+                      Advanced AI tools for organic social media marketing
                     </p>
                   </CardHeader>
                   <CardContent>
