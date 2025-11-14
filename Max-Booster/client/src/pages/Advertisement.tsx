@@ -386,7 +386,7 @@ export default function Advertisement() {
                   🚀 Revolutionary AI Advertising
                 </h1>
                 <p className="text-muted-foreground">
-                  Eliminate ad spend with AI-powered personal network domination
+                  Zero ad spend through AI-optimized organic posting
                 </p>
               </div>
               <Dialog open={isCreateCampaignOpen} onOpenChange={setIsCreateCampaignOpen}>
@@ -403,7 +403,7 @@ export default function Advertisement() {
                       Create Revolutionary AI Campaign
                     </DialogTitle>
                     <DialogDescription>
-                      Set up an organic campaign that completely bypasses all native advertising platforms
+                      Set up an AI-enhanced organic social media campaign
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-6">
@@ -411,7 +411,7 @@ export default function Advertisement() {
                       <Label htmlFor="campaign-name">Campaign Name</Label>
                       <Input
                         id="campaign-name"
-                        placeholder="e.g., Summer Single AI Domination"
+                        placeholder="e.g., Summer Single Release Campaign"
                         value={campaignForm.name}
                         onChange={(e) => setCampaignForm(prev => ({ ...prev, name: e.target.value }))}
                       />
@@ -640,7 +640,7 @@ export default function Advertisement() {
                         className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
                         data-testid="button-create-campaign"
                       >
-                        {createCampaignMutation.isPending ? 'Activating AI...' : 'Activate AI Domination'}
+                        {createCampaignMutation.isPending ? 'Creating...' : 'Create Campaign'}
                       </Button>
                     </div>
                   </div>
@@ -758,11 +758,11 @@ export default function Advertisement() {
                     <CardHeader className="relative">
                       <CardTitle className="flex items-center space-x-2">
                         <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
-                        <span>Organic Reach Domination</span>
+                        <span>Organic Reach Expansion</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="relative space-y-3">
-                      <p className="text-muted-foreground">Dominate organic reach across all platforms simultaneously</p>
+                      <p className="text-muted-foreground">Expand organic reach across all platforms simultaneously</p>
                       <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-lg">
                         <div className="text-sm font-semibold text-blue-800 dark:text-blue-200">
                           Powerful Organic Reach
@@ -784,10 +784,10 @@ export default function Advertisement() {
                       <p className="text-muted-foreground">AI creates viral content that spreads organically across all platforms</p>
                       <div className="bg-purple-100 dark:bg-purple-900/20 p-3 rounded-lg">
                         <div className="text-sm font-semibold text-purple-800 dark:text-purple-200">
-                          15% Viral Success Rate vs 0.03% Industry Average
+                          AI-Enhanced Viral Potential
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground italic">500x better viral potential through AI optimization</p>
+                      <p className="text-xs text-muted-foreground italic">AI optimization for better content performance</p>
                     </CardContent>
                   </Card>
 
@@ -796,17 +796,17 @@ export default function Advertisement() {
                     <CardHeader className="relative">
                       <CardTitle className="flex items-center space-x-2">
                         <div className="w-3 h-3 rounded-full bg-orange-500 animate-pulse" />
-                        <span>Platform Algorithm Hijacking</span>
+                        <span>Platform Algorithm Optimization</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="relative space-y-3">
-                      <p className="text-muted-foreground">Hijack recommendation algorithms for maximum visibility</p>
+                      <p className="text-muted-foreground">Optimize content for platform recommendation algorithms</p>
                       <div className="bg-orange-100 dark:bg-orange-900/20 p-3 rounded-lg">
                         <div className="text-sm font-semibold text-orange-800 dark:text-orange-200">
-                          Complete Algorithmic Dominance
+                          Enhanced Algorithmic Performance
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground italic">AI exploits platform algorithms for unlimited organic reach</p>
+                      <p className="text-xs text-muted-foreground italic">AI optimizes content for platform algorithms</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -825,19 +825,19 @@ export default function Advertisement() {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {[
-                        { platform: 'Facebook Ads', status: 'Replaced by Organic Group Infiltration + Viral Seeding' },
-                        { platform: 'Google Ads', status: 'Replaced by SEO Domination + YouTube Algorithm Exploitation' },
-                        { platform: 'TikTok Ads', status: 'Replaced by Trend Prediction + Algorithm Gaming' },
-                        { platform: 'Instagram Ads', status: 'Replaced by Influencer Network + Story Cascade' },
-                        { platform: 'YouTube Ads', status: 'Replaced by Playlist Placement + Recommendation Hijacking' },
-                        { platform: 'Spotify Ads', status: 'Replaced by Playlist Infiltration + Algorithm Optimization' },
-                        { platform: 'Twitter Ads', status: 'Replaced by Trend Hijacking + Community Building' },
-                        { platform: 'Snapchat Ads', status: 'Replaced by Story Chain + Discovery Optimization' }
+                        { platform: 'Facebook Ads', status: 'Enhanced by Organic Group Engagement + Viral Content' },
+                        { platform: 'Google Ads', status: 'Enhanced by SEO Optimization + YouTube Algorithm Alignment' },
+                        { platform: 'TikTok Ads', status: 'Enhanced by Trend Prediction + Algorithm Optimization' },
+                        { platform: 'Instagram Ads', status: 'Enhanced by Influencer Network + Story Engagement' },
+                        { platform: 'YouTube Ads', status: 'Enhanced by Playlist Placement + Recommendation Optimization' },
+                        { platform: 'Spotify Ads', status: 'Enhanced by Playlist Strategy + Algorithm Optimization' },
+                        { platform: 'Twitter Ads', status: 'Enhanced by Trend Engagement + Community Building' },
+                        { platform: 'Snapchat Ads', status: 'Enhanced by Story Chain + Discovery Optimization' }
                       ].map((item, index) => (
                         <div key={index} className="bg-gradient-to-r from-red-50 to-green-50 dark:from-red-950/20 dark:to-green-950/20 p-4 rounded-lg border-l-4 border-green-500">
                           <div className="font-semibold text-lg flex items-center">
-                            <span className="line-through text-red-500 mr-2">{item.platform}</span>
-                            <Badge className="bg-green-100 text-green-800 text-xs">REPLACED</Badge>
+                            <span className="text-gray-500 mr-2">{item.platform}</span>
+                            <Badge className="bg-green-100 text-green-800 text-xs">ENHANCED</Badge>
                           </div>
                           <div className="text-sm text-green-600 dark:text-green-400 font-medium mt-1">{item.status}</div>
                         </div>
@@ -861,17 +861,17 @@ export default function Advertisement() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {[
                         'Zero-Cost Viral Amplification',
-                        'Cross-Platform Algorithm Exploitation',
-                        'Personal Network Domination',
+                        'Cross-Platform Algorithm Optimization',
+                        'Personal Network Enhancement',
                         'Organic Reach Multiplication',
                         'Viral Content Engineering',
-                        'Trend Prediction & Hijacking',
+                        'Trend Prediction & Analysis',
                         'Community Building Automation',
                         'Influencer Network Creation',
-                        'SEO Domination',
-                        'Playlist Infiltration',
+                        'SEO Optimization',
+                        'Playlist Strategy',
                         'Story Chain Amplification',
-                        'Recommendation Hijacking'
+                        'Recommendation Optimization'
                       ].map((capability, index) => (
                         <div key={index} className="flex items-center space-x-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
                           <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
@@ -907,7 +907,7 @@ export default function Advertisement() {
                       </div>
                       <div className="mt-2">
                         <div className="text-2xl font-bold">{totalImpressions.toLocaleString()}</div>
-                        <div className="text-sm text-green-600">+1000% vs traditional ads</div>
+                        <div className="text-sm text-green-600">Organic reach</div>
                       </div>
                     </CardContent>
                   </Card>
@@ -920,7 +920,7 @@ export default function Advertisement() {
                       </div>
                       <div className="mt-2">
                         <div className="text-2xl font-bold">{totalClicks.toLocaleString()}</div>
-                        <div className="text-sm text-green-600">+800% vs traditional ads</div>
+                        <div className="text-sm text-green-600">From organic posts</div>
                       </div>
                     </CardContent>
                   </Card>
@@ -933,7 +933,7 @@ export default function Advertisement() {
                       </div>
                       <div className="mt-2">
                         <div className="text-2xl font-bold">15%</div>
-                        <div className="text-sm text-green-600">500x industry average</div>
+                        <div className="text-sm text-green-600">Engagement rate</div>
                       </div>
                     </CardContent>
                   </Card>
@@ -947,7 +947,7 @@ export default function Advertisement() {
                       AI Campaign Templates
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      Get started with pre-configured AI domination templates
+                      Get started with pre-configured AI campaign templates
                     </p>
                   </CardHeader>
                   <CardContent>
@@ -955,13 +955,13 @@ export default function Advertisement() {
                       <div className="p-4 border rounded-lg hover:border-blue-500 transition-colors cursor-pointer bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20">
                         <div className="flex items-center space-x-3 mb-3">
                           <Music className="w-6 h-6 text-blue-500" />
-                          <h4 className="font-semibold">Viral Release Domination</h4>
+                          <h4 className="font-semibold">Viral Release Campaign</h4>
                         </div>
                         <p className="text-sm text-muted-foreground mb-4">
-                          Dominate all platforms with AI-powered viral release strategy
+                          Reach all platforms with AI-powered release strategy
                         </p>
                         <Button variant="outline" size="sm" className="w-full border-blue-200 text-blue-600 hover:bg-blue-50">
-                          Activate AI Domination
+                          Start Campaign
                         </Button>
                       </div>
                       
@@ -981,10 +981,10 @@ export default function Advertisement() {
                       <div className="p-4 border rounded-lg hover:border-purple-500 transition-colors cursor-pointer bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20">
                         <div className="flex items-center space-x-3 mb-3">
                           <Play className="w-6 h-6 text-purple-500" />
-                          <h4 className="font-semibold">Stream Domination</h4>
+                          <h4 className="font-semibold">Stream Enhancement</h4>
                         </div>
                         <p className="text-sm text-muted-foreground mb-4">
-                          Dominate streaming platforms with AI algorithm exploitation
+                          Reach streaming platforms with AI-optimized content
                         </p>
                         <Button variant="outline" size="sm" className="w-full border-purple-200 text-purple-600 hover:bg-purple-50">
                           Activate AI Streaming
@@ -1017,14 +1017,14 @@ export default function Advertisement() {
                         <Rocket className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-semibold mb-2">No AI campaigns yet</h3>
                         <p className="text-muted-foreground mb-6">
-                          Create your first revolutionary AI advertising campaign to eliminate ad spend
+                          Create your first AI-enhanced organic advertising campaign
                         </p>
                         <Button 
                           onClick={() => setIsCreateCampaignOpen(true)}
                           className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
                         >
                           <Rocket className="w-4 h-4 mr-2" />
-                          Activate AI Domination
+                          Create Campaign
                         </Button>
                       </CardContent>
                     </Card>
@@ -1046,24 +1046,24 @@ export default function Advertisement() {
                           <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg border border-green-200 dark:border-green-800">
                             <div className="flex items-center space-x-2 mb-2">
                               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                              <span className="text-sm font-semibold text-green-800 dark:text-green-200">AI DOMINATION ACTIVE</span>
+                              <span className="text-sm font-semibold text-green-800 dark:text-green-200">AI AUTOPILOT ACTIVE</span>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                               <div>
                                 <span className="text-muted-foreground">Performance:</span>
-                                <div className="font-semibold text-green-600">1000% Better</div>
+                                <div className="font-semibold text-green-600">Optimized</div>
                               </div>
                               <div>
                                 <span className="text-muted-foreground">Cost:</span>
-                                <div className="font-semibold text-green-600">$0 (Eliminated)</div>
+                                <div className="font-semibold text-green-600">$0 (Organic)</div>
                               </div>
                               <div>
-                                <span className="text-muted-foreground">Viral Score:</span>
+                                <span className="text-muted-foreground">Engagement:</span>
                                 <div className="font-semibold text-purple-600">15%</div>
                               </div>
                               <div>
                                 <span className="text-muted-foreground">AI Status:</span>
-                                <div className="font-semibold text-blue-600">Dominating</div>
+                                <div className="font-semibold text-blue-600">Active</div>
                               </div>
                             </div>
                           </div>
@@ -1089,7 +1089,7 @@ export default function Advertisement() {
                           
                           <div className="mb-4">
                             <div className="flex justify-between text-sm mb-1">
-                              <span>AI Domination Progress</span>
+                              <span>AI Optimization Progress</span>
                               <span className="text-green-600">100% (Complete)</span>
                             </div>
                             <Progress value={100} className="h-2" />
