@@ -20,6 +20,8 @@ const analyticsRedisClient = createLegacyGracefulRedisClient('Analytics');
 import { setupReliabilityEndpoints } from "./routes/reliability-endpoints";
 import studioMarkersRouter from "./routes/studioMarkers";
 import distributionRoutes from "./routes/distribution";
+import distributionApiRoutes from "./api/distribution";
+import autonomousApiRoutes from "./api/autonomous";
 import socialBulkRoutes from "./routes/socialBulk";
 import socialApprovalsRoutes from "./routes/socialApprovals";
 import storefrontRoutes from "./routes/storefront";
@@ -551,6 +553,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Developer API routes (API key management and analytics endpoints)
   app.use('/api/developer', developerApiRoutes);
   app.use('/api/v1/analytics', analyticsApiRoutes);
+  
+  // Distribution and Autonomous API routes
+  app.use('/api/distribution/labelgrid', distributionApiRoutes); // LabelGrid distribution routes
+  app.use('/api/autonomous', autonomousApiRoutes); // Autonomous service routes
 
   // ===========================
   // LABELGRID WEBHOOK HANDLER
