@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs/promises';
-import { WaveFile } from 'wavefile';
+import wavefilePkg from 'wavefile';
+const WaveFile = (wavefilePkg as any).WaveFile || wavefilePkg;
 
 // ============================================================================
 // TYPE DEFINITIONS

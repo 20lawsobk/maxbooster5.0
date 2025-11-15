@@ -961,7 +961,7 @@ export class AIContentService {
       suggestions.push(`Consider adding ${rules.hashtagLimit} relevant hashtags`);
     }
 
-    if (rules.emojiRecommended && !content.match(/[\\u{1F300}-\u{1F9FF}]/u)) {
+    if (rules.emojiRecommended && !content.match(/[\u{1F300}-\u{1F9FF}]/u)) {
       suggestions.push('Consider adding emojis to increase engagement');
     }
 

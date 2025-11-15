@@ -70,7 +70,11 @@ externalPort = 4200
 localPort = 46487
 externalPort = 5000
 
+[[ports]]
+localPort = 46823
+externalPort = 8000
+
 [deployment]
 deploymentTarget = "vm"
-run = ["npm", "start"]
-build = ["npm", "run", "build"]
+run = ["bash", "-c", "cd Max-Booster && npm start"]
+build = ["bash", "-c", "cd Max-Booster && npm run build"]
