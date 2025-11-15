@@ -13,6 +13,14 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "insert-labelgrid-config": "tsx scripts/insert-labelgrid-config.ts",
+    "test": "tsx test-all-systems.ts",
+    "test:all": "tsx test-all-systems.ts",
+    "test:security": "tsx test-security.ts",
+    "test:analytics": "tsx test-analytics.ts",
+    "test:social": "tsx test-social-media.ts",
+    "test:advertising": "tsx test-advertising.ts",
+    "test:marketplace": "tsx test-marketplace.ts",
+    "test:studio": "tsx test-studio.ts",
     "test:distribution": "tsx test-distribution.ts"
   },
   "dependencies": {
