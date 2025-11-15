@@ -1793,21 +1793,27 @@ export class DatabaseStorage implements IStorage {
   async getDistributionProvider(slug?: string): Promise<any | null> {
     return this.executeWithCircuitBreaker(
       async () => {
-        const provider = slug 
-          ? await db.query.distributionProviders.findFirst({
-              where: and(
-                eq(distributionProviders.providerSlug, slug),
-                eq(distributionProviders.isActive, true)
-              )
-            })
-          : await db.query.distributionProviders.findFirst({
-              where: and(
-                eq(distributionProviders.isActive, true),
-                eq(distributionProviders.isDefault, true)
-              )
-            });
-        
-        return provider || null;
+        if (slug) {
+          const [provider] = await db
+            .select()
+            .from(distroProviders)
+            .where(and(
+              eq(distroProviders.providerSlug, slug),
+              eq(distroProviders.isActive, true)
+            ))
+            .limit(1);
+          return provider || null;
+        } else {
+          const [provider] = await db
+            .select()
+            .from(distroProviders)
+            .where(and(
+              eq(distroProviders.isActive, true),
+              eq(distroProviders.isDefault, true)
+            ))
+            .limit(1);
+          return provider || null;
+        }
       },
       'getDistributionProvider'
     );
@@ -1816,21 +1822,23 @@ export class DatabaseStorage implements IStorage {
   async upsertDistributionProvider(data: any): Promise<any> {
     return this.executeWithCircuitBreaker(
       async () => {
-        const existing = await db.query.distributionProviders.findFirst({
-          where: eq(distributionProviders.providerSlug, data.providerSlug)
-        });
+        const [existing] = await db
+          .select()
+          .from(distroProviders)
+          .where(eq(distroProviders.providerSlug, data.providerSlug))
+          .limit(1);
         
         if (existing) {
           const [updated] = await db
-            .update(distributionProviders)
+            .update(distroProviders)
             .set({ ...data, updatedAt: new Date() })
-            .where(eq(distributionProviders.id, existing.id))
+            .where(eq(distroProviders.id, existing.id))
             .returning();
           return updated;
         }
         
         const [created] = await db
-          .insert(distributionProviders)
+          .insert(distroProviders)
           .values(data)
           .returning();
         return created;

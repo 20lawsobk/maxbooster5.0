@@ -25,9 +25,15 @@ export class AutonomousService {
    */
   private async loadAutonomousWhitelist(): Promise<void> {
     try {
-      // Load from database - users with autonomous_enabled flag
-      const autonomousUsers = await storage.getAutonomousUsers();
-      this.autonomousWhitelist = new Set(autonomousUsers.map(u => u.id));
+      // For now, just initialize with empty set
+      // Will be populated when users enable autonomous mode
+      this.autonomousWhitelist = new Set();
+      
+      // Add admin users by default (optional)
+      if (process.env.ADMIN_USER_IDS) {
+        const adminIds = process.env.ADMIN_USER_IDS.split(',');
+        adminIds.forEach(id => this.autonomousWhitelist.add(id.trim()));
+      }
     } catch (error) {
       console.error('Error loading autonomous whitelist:', error);
     }

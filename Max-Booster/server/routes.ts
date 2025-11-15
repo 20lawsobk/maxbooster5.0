@@ -22,6 +22,7 @@ import studioMarkersRouter from "./routes/studioMarkers";
 import distributionRoutes from "./routes/distribution";
 import distributionApiRoutes from "./api/distribution";
 import autonomousApiRoutes from "./api/autonomous";
+import oauthRoutes from "./api/oauth";
 import socialBulkRoutes from "./routes/socialBulk";
 import socialApprovalsRoutes from "./routes/socialApprovals";
 import storefrontRoutes from "./routes/storefront";
@@ -557,6 +558,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Distribution and Autonomous API routes
   app.use('/api/distribution/labelgrid', distributionApiRoutes); // LabelGrid distribution routes
   app.use('/api/autonomous', autonomousApiRoutes); // Autonomous service routes
+  
+  // OAuth routes for social media connections
+  app.use('/api/oauth', oauthRoutes); // OAuth for social media connections
 
   // ===========================
   // LABELGRID WEBHOOK HANDLER
