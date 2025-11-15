@@ -14,6 +14,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { config } from './config/defaults.js';
 import { storage } from "./storage";
 import { auditLogger } from "./middleware/auditLogger";
+import { trackRequest, trackError } from "./services/securityMonitoringService";
 import { createLegacyGracefulRedisClient } from "./lib/gracefulRedis";
 
 const analyticsRedisClient = createLegacyGracefulRedisClient('Analytics');
@@ -532,6 +533,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply graceful degradation middleware
   // Apply global rate limiting
   app.use(globalRateLimiter);
+
+  // Track all API requests for security monitoring
+  app.use('/api', (req, res, next) => {
+    trackRequest();
+    next();
+  });
 
   // Apply connection guard to all database-heavy routes
   app.use('/api', ConnectionGuard.checkCapacity);
@@ -12122,6 +12129,9 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
 
   // Upload error handler middleware
   app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    // Track error for security monitoring
+    trackError();
+    
     if (error instanceof multer.MulterError) {
       if (error.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({ error: 'File too large. Maximum size is 100MB.' });

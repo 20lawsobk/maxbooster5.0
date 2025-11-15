@@ -9,6 +9,7 @@ import { createReadStream, createWriteStream } from "fs";
 import { storageService } from './storageService.js';
 import os from 'os';
 import { randomUUID } from 'crypto';
+import { labelGridService } from './labelgrid-service.js';
 
 export interface DSPProvider {
   id: string;
@@ -26,6 +27,7 @@ export interface DispatchStatus {
 }
 
 export class DistributionService {
+
   /**
    * Create a new release
    */
@@ -65,7 +67,7 @@ export class DistributionService {
   }
 
   /**
-   * Submit release to DSP providers
+   * Submit release to DSP providers via LabelGrid
    */
   async submitToProvider(releaseId: string, providerId: string, userId: string): Promise<{
     success: boolean;
@@ -78,32 +80,63 @@ export class DistributionService {
         throw new Error("Release not found");
       }
 
-      // In production, integrate with:
-      // - Spotify for Artists API
-      // - Apple Music API
-      // - YouTube Content ID
-      // - DistroKid/CD Baby/TuneCore APIs
+      // Check if LabelGrid is configured
+      if (labelGridService.isConfigured()) {
+        // PRODUCTION: Use LabelGrid API for real distribution
+        try {
+          // Prepare release data for LabelGrid
+          const labelGridRelease = {
+            title: release.title,
+            artist: release.artist,
+            releaseDate: release.releaseDate?.toISOString() || new Date().toISOString(),
+            upc: release.upc || undefined,
+            tracks: [],
+            artwork: release.coverArt || '',
+            genre: release.genre || 'General',
+            platforms: [providerId], // Submit to specific platform
+            label: release.label,
+            copyrightYear: new Date().getFullYear(),
+            copyrightOwner: release.copyrightHolder || release.artist,
+          };
 
-      const dispatchId = `dispatch_${nanoid()}`;
-      const estimatedLiveDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+          // Submit to LabelGrid (it handles database updates internally)
+          const result = await labelGridService.submitRelease(labelGridRelease);
 
-      // Update release platforms
-      const platforms = (release.platforms as any) || [];
-      platforms.push({
-        providerId,
-        status: 'processing',
-        dispatchId,
-        submittedAt: new Date(),
-        estimatedLiveDate,
-      });
+          return {
+            success: true,
+            dispatchId: result.releaseId,
+            estimatedLiveDate: result.estimatedLiveDate ? new Date(result.estimatedLiveDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          };
+        } catch (error) {
+          console.error("LabelGrid distribution failed:", error);
+          throw error;
+        }
+      } else {
+        // DEVELOPMENT/DEMO MODE: Simulated distribution (no real API calls)
+        console.warn('⚠️  LabelGrid API token not configured - using demo mode');
+        console.warn('   Set LABELGRID_API_TOKEN in environment to enable real distribution');
 
-      await storage.updateRelease(releaseId, userId, { platforms });
+        const dispatchId = `demo_dispatch_${nanoid()}`;
+        const estimatedLiveDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-      return {
-        success: true,
-        dispatchId,
-        estimatedLiveDate,
-      };
+        // Update release platforms
+        const platforms = (release.platforms as any) || [];
+        platforms.push({
+          providerId,
+          status: 'processing',
+          dispatchId,
+          submittedAt: new Date(),
+          estimatedLiveDate,
+        });
+
+        await storage.updateRelease(releaseId, userId, { platforms });
+
+        return {
+          success: true,
+          dispatchId,
+          estimatedLiveDate,
+        };
+      }
     } catch (error) {
       console.error("Error submitting to provider:", error);
       throw new Error("Failed to submit to provider");
