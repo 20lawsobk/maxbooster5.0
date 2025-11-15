@@ -12176,19 +12176,19 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
             
             isAlive = false;
             if (ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ type: 'ping' }));
+              ws.ping();
             }
           }, 30000);
+          
+          // Handle protocol-level pong responses
+          ws.on('pong', () => {
+            isAlive = true;
+          });
           
           // Handle incoming messages
           ws.on('message', async (message: string) => {
             try {
               const data = JSON.parse(message.toString());
-              
-              // Handle pong response - connection is alive
-              if (data.type === 'pong') {
-                isAlive = true;
-              }
               
               // Handle analytics subscription
               if (data.type === 'subscribe_analytics') {
