@@ -128,6 +128,8 @@ function DashboardContent({ user }: { user: any }) {
   const { data: onboardingStatus } = useQuery({
     queryKey: ['/api/auth/onboarding-status'],
     staleTime: 15 * 60 * 1000, // 15 minutes - less frequent changes
+    retry: 1, // Limit retries
+    retryDelay: 1000,
   });
   
   useEffect(() => {

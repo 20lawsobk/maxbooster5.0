@@ -1798,19 +1798,17 @@ export class DatabaseStorage implements IStorage {
             .select()
             .from(distroProviders)
             .where(and(
-              eq(distroProviders.providerSlug, slug),
-              eq(distroProviders.isActive, true)
+              eq(distroProviders.slug, slug),
+              eq(distroProviders.status, 'active')
             ))
             .limit(1);
           return provider || null;
         } else {
+          // Get first active provider as default
           const [provider] = await db
             .select()
             .from(distroProviders)
-            .where(and(
-              eq(distroProviders.isActive, true),
-              eq(distroProviders.isDefault, true)
-            ))
+            .where(eq(distroProviders.status, 'active'))
             .limit(1);
           return provider || null;
         }
@@ -1825,7 +1823,7 @@ export class DatabaseStorage implements IStorage {
         const [existing] = await db
           .select()
           .from(distroProviders)
-          .where(eq(distroProviders.providerSlug, data.providerSlug))
+          .where(eq(distroProviders.slug, data.slug || data.providerSlug))
           .limit(1);
         
         if (existing) {

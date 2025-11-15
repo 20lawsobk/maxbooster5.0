@@ -134,10 +134,11 @@ class LabelGridService {
       const provider = await storage.getDistributionProvider('labelgrid');
       
       if (provider) {
-        this.baseUrl = provider.baseUrl;
-        this.endpoints = provider.endpoints;
-        this.authHeaderFormat = provider.authHeaderFormat || 'Bearer {token}';
-        this.webhookSecret = provider.webhookSecretKey || this.webhookSecret;
+        // Use actual fields from the schema
+        this.baseUrl = provider.apiBase || this.baseUrl || 'https://api.labelgrid.com';
+        this.endpoints = provider.requirements?.endpoints || {};
+        this.authHeaderFormat = provider.authType === 'api_key' ? 'X-API-Key: {token}' : 'Bearer {token}';
+        this.webhookSecret = provider.requirements?.webhookSecret || this.webhookSecret;
         this.configLoaded = true;
         
         // Update axios client base URL
