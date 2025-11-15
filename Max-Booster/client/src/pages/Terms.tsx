@@ -141,7 +141,7 @@ export default function Terms() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">8. Royalties and Earnings</h2>
               <p className="mb-4">
-                For music distributed through Max Booster (launching December 2025):
+                For music distributed through Max Booster:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>You retain 100% of your royalties from streaming platforms</li>

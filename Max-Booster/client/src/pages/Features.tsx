@@ -87,14 +87,13 @@ export default function Features() {
         </div>
       </section>
 
-      {/* Distribution Features - COMING DECEMBER 2025 */}
+      {/* Distribution Features */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Globe className="h-12 w-12 mx-auto mb-4 text-green-600" />
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Distribution & Royalties
-              <span className="block text-sm text-green-600 mt-2">🎄 Launching December 2025</span>
             </h2>
             <p className="text-lg text-gray-600">Get your music on 34+ platforms including Spotify, Apple Music, and YouTube</p>
           </div>

@@ -155,8 +155,8 @@ export default function Landing() {
               },
               {
                 icon: DollarSign,
-                title: "Royalty Management (Dec 2025)",
-                description: "Coming soon: Automated royalty collection and distribution with Stripe integration for instant payouts.",
+                title: "Royalty Management",
+                description: "Automated royalty collection and distribution with Stripe integration for instant payouts.",
                 color: "from-indigo-500 to-blue-500"
               },
               {
