@@ -92,8 +92,8 @@ async function testMarketplace() {
     const orderRes = await axios.post(
       `${API_BASE}/marketplace/orders`,
       {
-        listingId: createListingRes.data.id,
-        paymentMethodId: 'pm_test_card' // Test payment method
+        beatId: createListingRes.data.id,
+        licenseType: 'basic' // Purchase basic license
       },
       { headers: { Cookie: buyerCookie } }
     );

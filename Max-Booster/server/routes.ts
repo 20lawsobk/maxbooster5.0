@@ -7027,7 +7027,7 @@ app.post("/api/advertising/campaigns", requireAuth, requirePremium, async (req, 
     const { name, objective, budget, duration, targetAudience } = validation.data;
     
     // Initialize AI Advertising Engine
-    const AIAdvertisingEngine = require("./ai-advertising").AIAdvertisingEngine;
+    const { AIAdvertisingEngine } = await import("./ai-advertising.js");
     const aiEngine = new AIAdvertisingEngine();
     
     // Generate AI optimizations
@@ -7312,7 +7312,7 @@ app.post("/api/advertising/generate-content", requireAuth, requirePremium, async
   try {
     const { musicData, targetAudience } = req.body;
     
-    const AIAdvertisingEngine = require("./ai-advertising").AIAdvertisingEngine;
+    const { AIAdvertisingEngine } = await import("./ai-advertising.js");
     const aiEngine = new AIAdvertisingEngine();
     
     const aiContent = await aiEngine.generateSuperiorAdContent(musicData, targetAudience);
@@ -7339,7 +7339,7 @@ app.post("/api/advertising/optimize-campaign", requireAuth, requirePremium, asyn
   try {
     const { campaignId, performance } = req.body;
     
-    const AIAdvertisingEngine = require("./ai-advertising").AIAdvertisingEngine;
+    const { AIAdvertisingEngine } = await import("./ai-advertising.js");
     const aiEngine = new AIAdvertisingEngine();
     
     const optimizations = await aiEngine.optimizeCreativeElements(req.body, performance);

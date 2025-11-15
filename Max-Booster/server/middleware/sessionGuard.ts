@@ -14,7 +14,7 @@ export class SessionGuard {
       
       // Only check every 30 seconds to avoid DB overhead
       if (now - SessionGuard.lastCheck > SessionGuard.CHECK_INTERVAL) {
-        const result = await db.execute(sql`SELECT COUNT(*) as count FROM sessions WHERE expire > NOW()`);
+        const result = await db.execute(sql`SELECT COUNT(*) as count FROM sessions WHERE last_activity > NOW() - INTERVAL '7 days'`);
         SessionGuard.cachedCount = parseInt(result.rows[0].count as string);
         SessionGuard.lastCheck = now;
       }
