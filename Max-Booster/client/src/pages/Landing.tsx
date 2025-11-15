@@ -117,7 +117,7 @@ export default function Landing() {
           </h1>
           <p className="text-xl text-gray-600 mb-6 max-w-3xl mx-auto">
             Professional AI Studio • AI-Assisted Social Media • Organic Marketing Tools • 
-            Beat Marketplace • Analytics • Distribution — all for $468/year
+            Beat Marketplace • Analytics • Distribution
           </p>
           <p className="text-lg font-medium text-green-600 mb-8">
             Purchase with confidence • 90-day money-back guarantee
@@ -151,7 +151,7 @@ export default function Landing() {
               { label: 'Integrated Tools', value: '7+', icon: Sparkles },
               { label: 'Platforms Supported', value: '8+', icon: Share2 },
               { label: 'Money Back Guarantee', value: '90 Days', icon: Shield },
-              { label: 'Price per Year', value: '$468', icon: DollarSign },
+              { label: 'AI-Powered Features', value: '15+', icon: DollarSign },
             ].map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center mx-auto mb-4">
