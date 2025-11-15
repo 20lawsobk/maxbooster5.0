@@ -8321,28 +8321,37 @@ app.get("/api/dashboard/next-action", requireAuth, async (req, res) => {
     const userId = (req.user as any).id;
     const user = req.user as any;
     
-    const [projectsCount] = await db
-      .select({ count: count() })
-      .from(projects)
-      .where(eq(projects.userId, userId));
-    
-    const [tracksCount] = await db
-      .select({ count: count() })
-      .from(tracks)
-      .where(sql`${tracks.projectId} IN (SELECT id FROM ${projects} WHERE ${projects.userId} = ${userId})`);
-    
-    const [releasesCount] = await db
-      .select({ count: count() })
-      .from(releases)
-      .where(eq(releases.userId, userId));
-    
-    const [campaignsCount] = await db
-      .select({ count: count() })
-      .from(socialCampaigns)
-      .where(and(
-        eq(socialCampaigns.userId, userId),
-        sql`${socialCampaigns.status} != 'completed'`
-      ));
+    // Run all count queries in parallel for better performance
+    const [
+      [projectsCount],
+      [tracksCount],
+      [releasesCount],
+      [campaignsCount]
+    ] = await Promise.all([
+      db
+        .select({ count: count() })
+        .from(projects)
+        .where(eq(projects.userId, userId)),
+      
+      db
+        .select({ count: count() })
+        .from(tracks)
+        .innerJoin(projects, eq(tracks.projectId, projects.id))
+        .where(eq(projects.userId, userId)),
+      
+      db
+        .select({ count: count() })
+        .from(releases)
+        .where(eq(releases.userId, userId)),
+      
+      db
+        .select({ count: count() })
+        .from(socialCampaigns)
+        .where(and(
+          eq(socialCampaigns.userId, userId),
+          sql`${socialCampaigns.status} != 'completed'`
+        ))
+    ]);
     
     const totalProjects = Number(projectsCount?.count || 0);
     const totalTracks = Number(tracksCount?.count || 0);
