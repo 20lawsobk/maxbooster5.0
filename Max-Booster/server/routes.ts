@@ -112,7 +112,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
-import { listings, orders, royaltySplits, posts, socialCampaigns, socialMetrics, releases, analytics, payoutEvents, hyperFollowPages, earnings, stemExports, listingStems, stemOrders, users, contentCalendar, insertContentCalendarSchema } from "@shared/schema";
+import { listings, orders, royaltySplits, posts, socialCampaigns, socialMetrics, releases, analytics, payoutEvents, hyperFollowPages, earnings, stemExports, listingStems, stemOrders, users, contentCalendar, insertContentCalendarSchema, projects, tracks } from "@shared/schema";
 import { eq, and, desc, or, gte, lte, sql, sum, count, between } from "drizzle-orm";
 
 // Extend Express types for req.user
