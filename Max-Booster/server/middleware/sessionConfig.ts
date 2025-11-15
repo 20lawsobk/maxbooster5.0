@@ -1,6 +1,6 @@
 import session from 'express-session';
 import crypto from 'crypto';
-import { createClient } from 'redis';
+import { Redis } from 'ioredis';
 import createMemoryStore from 'memorystore';
 
 export async function createSessionStore() {
@@ -11,23 +11,26 @@ export async function createSessionStore() {
     try {
       console.log('🔗 Attempting to connect to Redis for session storage...');
       
-      const redisClient = createClient({
-        url: process.env.REDIS_URL,
-        socket: {
-          connectTimeout: 10000, // Increased from 5s to 10s
-          reconnectStrategy: (retries) => {
-            if (retries > 5) return new Error('Max retries reached'); // Reduced retries to fail faster
-            // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
-            return Math.min(retries * 500, 8000);
-          },
-          keepAlive: 30000, // Send keep-alive packets every 30s
-          noDelay: true, // Disable Nagle's algorithm for lower latency
+      // Use ioredis with same optimized settings as other services
+      const redisClient = new Redis(process.env.REDIS_URL, {
+        retryStrategy: (times) => {
+          // Retry up to 5 times with exponential backoff
+          if (times > 5) {
+            return null; // Stop retrying
+          }
+          // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
+          return Math.min(times * 500, 8000);
         },
-        // Add connection pool settings
-        pingInterval: 60000, // Ping every 60s to keep connection alive
+        connectTimeout: 10000, // 10 second timeout
+        keepAlive: 30000, // Send keep-alive packets every 30s
+        enableOfflineQueue: true, // Queue commands during reconnection
+        lazyConnect: false, // Connect immediately
+        maxRetriesPerRequest: 2, // Retry requests up to 2 times
+        showFriendlyErrorStack: false, // Suppress internal ioredis error stack logging
       });
 
       let hasLoggedError = false;
+      
       redisClient.on('error', (err) => {
         // Only log first error to avoid spam
         if (!hasLoggedError) {
@@ -47,9 +50,24 @@ export async function createSessionStore() {
         }
       });
 
-      await redisClient.connect();
+      // Wait for ready event (ioredis is fully connected and ready for commands)
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Connection timeout'));
+        }, 10000);
+        
+        redisClient.once('ready', () => {
+          clearTimeout(timeout);
+          resolve();
+        });
+        
+        redisClient.once('error', (err) => {
+          clearTimeout(timeout);
+          reject(err);
+        });
+      });
 
-      // Use connect-redis for session storage
+      // Use connect-redis for session storage (supports ioredis)
       const connectRedis = require('connect-redis');
       const RedisSessionStore = connectRedis.default(session);
       return new RedisSessionStore({
