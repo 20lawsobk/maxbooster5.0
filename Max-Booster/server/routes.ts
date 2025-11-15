@@ -8315,11 +8315,21 @@ app.get("/api/dashboard/comprehensive", requireAuth, async (req, res) => {
   }
 });
 
-// Smart Next Action Widget
+// In-memory cache for next action recommendations (2-minute TTL)
+const nextActionCache = new Map<number, { data: any; timestamp: number }>();
+const NEXT_ACTION_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
+// Smart Next Action Widget (with caching to prevent slow queries)
 app.get("/api/dashboard/next-action", requireAuth, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const user = req.user as any;
+    
+    // Check cache first
+    const cached = nextActionCache.get(userId);
+    if (cached && (Date.now() - cached.timestamp) < NEXT_ACTION_CACHE_TTL) {
+      return res.json(cached.data);
+    }
     
     // Run all count queries in parallel for better performance
     const [
@@ -8441,6 +8451,19 @@ app.get("/api/dashboard/next-action", requireAuth, async (req, res) => {
         icon: 'BarChart3',
         priority: 'low'
       };
+    }
+    
+    // Cache the result
+    nextActionCache.set(userId, { data: recommendation, timestamp: Date.now() });
+    
+    // Clean up old cache entries (keep cache size under control)
+    if (nextActionCache.size > 1000) {
+      const now = Date.now();
+      for (const [key, value] of nextActionCache.entries()) {
+        if (now - value.timestamp > NEXT_ACTION_CACHE_TTL) {
+          nextActionCache.delete(key);
+        }
+      }
     }
     
     res.json(recommendation);
