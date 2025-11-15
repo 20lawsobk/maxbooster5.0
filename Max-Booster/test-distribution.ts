@@ -13,7 +13,7 @@ async function testDistribution() {
     // Step 1: Login as test user
     console.log('Step 1: Logging in as test user...');
     const loginRes = await axios.post(`${API_BASE}/auth/login`, {
-      email: 'test.monthly@maxbooster.com',
+      username: 'test.monthly@maxbooster.com',  // Changed from 'email' to 'username'
       password: 'test123!'
     });
     
