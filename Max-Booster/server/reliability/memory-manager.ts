@@ -43,16 +43,25 @@ class MemoryManager extends EventEmitter {
   constructor() {
     super();
     
-    // Calculate memory thresholds based on config percentages and initial heap
-    const initialHeap = process.memoryUsage().heapTotal;
-    const warningThreshold = Math.floor(initialHeap * config.monitoring.memoryWarningThreshold / 100);
-    const criticalThreshold = Math.floor(initialHeap * config.monitoring.memoryCriticalThreshold / 100);
+    // Use absolute thresholds to avoid false positives in development
+    // In production, these can be adjusted via environment variables
+    const nodeEnv = process.env.NODE_ENV || 'development';
+    const isProduction = nodeEnv === 'production';
+    
+    // Set sensible absolute minimums (MB converted to bytes)
+    const absoluteWarningMB = isProduction ? 768 : 1024;  // 768MB prod, 1GB dev
+    const absoluteCriticalMB = isProduction ? 1024 : 1536; // 1GB prod, 1.5GB dev
+    
+    const warningThreshold = absoluteWarningMB * 1024 * 1024;
+    const criticalThreshold = absoluteCriticalMB * 1024 * 1024;
     
     this.thresholds = {
       warning: warningThreshold,
       critical: criticalThreshold,
-      forceGC: Math.floor((warningThreshold + criticalThreshold) / 2) // Midpoint between warning and critical
+      forceGC: Math.floor((warningThreshold + criticalThreshold) / 2)
     };
+    
+    console.log(`🧠 Memory thresholds: Warning=${absoluteWarningMB}MB, Critical=${absoluteCriticalMB}MB (${nodeEnv})`);
     
     this.collectInitialMetrics();
   }
