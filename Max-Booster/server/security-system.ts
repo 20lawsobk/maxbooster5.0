@@ -351,7 +351,13 @@ export class SelfHealingSecuritySystem {
   // Check file system integrity
   private async checkFileSystemIntegrity(): Promise<void> {
     try {
-      // Check for suspicious file modifications
+      // Skip in development to avoid false positives from Vite/tools
+      const nodeEnv = process.env.NODE_ENV || 'development';
+      if (nodeEnv === 'development') {
+        return;
+      }
+      
+      // Check for suspicious file modifications in production
       const { stdout } = await execAsync('find /tmp -type f -mtime -1 2>/dev/null | wc -l');
       const recentFiles = parseInt(stdout.trim());
       
