@@ -51,10 +51,19 @@ export function SmartNextActionWidget() {
     return localStorage.getItem('smartNextActionDismissed') === 'true';
   });
 
+  // Check if user is authenticated first
+  const { data: authUser } = useQuery({
+    queryKey: ['/api/auth/me'],
+    staleTime: 5 * 60 * 1000,
+    retry: false, // Don't retry auth check
+  });
+
   const { data: recommendation, isLoading, error } = useQuery<NextActionRecommendation>({
     queryKey: ['/api/dashboard/next-action'],
-    enabled: !isDismissed,
+    enabled: !isDismissed && !!authUser, // Only fetch if not dismissed AND authenticated
     staleTime: 5 * 60 * 1000,
+    retry: 1, // Limit retries to prevent loops
+    retryDelay: 1000, // Wait 1 second before retry
   });
 
   const trackImpressionMutation = useMutation({
@@ -105,11 +114,13 @@ export function SmartNextActionWidget() {
     }
   };
 
-  if (isDismissed) {
+  // Don't render if dismissed or not authenticated
+  if (isDismissed || !authUser) {
     return null;
   }
 
-  if (isLoading) {
+  // Show loading skeleton only when actively fetching
+  if (isLoading && authUser) {
     return (
       <Card className="overflow-hidden border-2">
         <CardContent className="p-6">
@@ -123,7 +134,13 @@ export function SmartNextActionWidget() {
     );
   }
 
+  // Silently return null on error or no data
+  // This prevents any rendering issues or loops
   if (error || !recommendation) {
+    // Log error for debugging but don't show to user
+    if (error) {
+      console.debug('SmartNextActionWidget error:', error);
+    }
     return null;
   }
 
