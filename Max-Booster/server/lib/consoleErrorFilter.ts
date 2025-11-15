@@ -13,12 +13,14 @@ console.error = (...args: any[]) => {
     // String message format
     (typeof firstArg === 'string' && (
       (firstArg.includes('ECONNREFUSED') && firstArg.includes('6379')) ||
-      (firstArg.includes('Connection is closed') && firstArg.includes('ioredis'))
+      (firstArg.includes('Connection is closed') && firstArg.includes('ioredis')) ||
+      firstArg.includes('ENOTFOUND')
     )) ||
     // Error object format
     (firstArg instanceof Error && (
       (firstArg.message?.includes('ECONNREFUSED') && firstArg.message?.includes('6379')) ||
       ((firstArg as any).code === 'ECONNREFUSED' && (firstArg as any).port === 6379) ||
+      ((firstArg as any).code === 'ENOTFOUND') ||
       (firstArg.message?.includes('Connection is closed') && firstArg.stack?.includes('ioredis')) ||
       firstArg.message?.includes('MaxRetriesPerRequestError') ||
       (firstArg.stack?.includes('ioredis') && firstArg.message?.includes('connect'))
