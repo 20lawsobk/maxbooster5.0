@@ -58,12 +58,11 @@ export function SmartNextActionWidget() {
     retry: false, // Don't retry auth check
   });
 
-  const { data: recommendation, isLoading, error } = useQuery<NextActionRecommendation>({
+  const { data: recommendation, isLoading, error, refetch } = useQuery<NextActionRecommendation>({
     queryKey: ['/api/dashboard/next-action'],
     enabled: !isDismissed && !!authUser, // Only fetch if not dismissed AND authenticated
     staleTime: 5 * 60 * 1000,
-    retry: 1, // Limit retries to prevent loops
-    retryDelay: 1000, // Wait 1 second before retry
+    retry: false, // No automatic retries - user can retry manually if needed
   });
 
   const trackImpressionMutation = useMutation({

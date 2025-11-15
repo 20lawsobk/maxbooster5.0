@@ -84,22 +84,12 @@ export async function apiRequest(
       throw timeoutError;
     }
     
-    // Handle network errors with retry logic
+    // Handle network errors but DON'T auto-retry - let users retry manually
     if (error.message?.includes('NetworkError') || error.message?.includes('fetch')) {
-      const retryCount = options?.retryCount || 0;
-      const maxRetries = options?.maxRetries || 3;
-      
-      if (retryCount < maxRetries) {
-        // Exponential backoff
-        const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
-        // Retry the request
-        return apiRequest(method, url, data, {
-          ...options,
-          retryCount: retryCount + 1,
-        });
-      }
+      captureException(error, {
+        action: 'api-network-error',
+        metadata: { method, url },
+      });
     }
     
     throw error;
@@ -190,25 +180,13 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
+      refetchOnReconnect: false, // Disable auto-refetch on reconnect
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime in v4)
-      retry: (failureCount, error) => {
-        // Max 1 retry to prevent loading loops
-        if (failureCount >= 1) return false;
-        // Only retry on retryable errors
-        return shouldRetry(error);
-      },
-      retryDelay: retryDelayWithJitter,
+      retry: false, // Disable all automatic retries - let users retry manually
     },
     mutations: {
-      retry: (failureCount, error) => {
-        // Max 2 retries for mutations
-        if (failureCount >= 2) return false;
-        // Only retry on retryable errors
-        return shouldRetry(error);
-      },
-      retryDelay: retryDelayWithJitter,
+      retry: false, // Disable all automatic retries for mutations
     },
   },
 });
