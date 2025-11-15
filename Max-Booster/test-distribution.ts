@@ -38,24 +38,23 @@ async function testDistribution() {
       }
     };
 
-    // Step 3: Submit distribution request
-    console.log('Step 3: Submitting distribution to LabelGrid...');
+    // Step 3: Create distribution release
+    console.log('Step 3: Creating distribution release...');
     const distributionRes = await axios.post(
-      `${API_BASE}/distribution/submit`,
+      `${API_BASE}/distribution/releases`,
       {
-        songIds: ['test-track-001'], // Would be real track IDs
         title: 'Test Release - Max Booster Integration',
-        artist: 'Max Booster Test Artist',
-        label: 'Max Booster Records',
-        releaseDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-        platforms: ['spotify', 'apple-music', 'youtube-music'],
-        territories: ['US', 'GB', 'CA'],
-        metadata: {
-          genre: 'Electronic',
-          language: 'English',
-          copyright: `© ${new Date().getFullYear()} Max Booster Records`,
-          testRelease: true
-        }
+        artistName: 'Max Booster Test Artist',
+        releaseType: 'single',
+        primaryGenre: 'Electronic',
+        language: 'English',
+        labelName: 'Max Booster Records',
+        copyrightYear: new Date().getFullYear(),
+        copyrightOwner: 'Max Booster Records',
+        isExplicit: false,
+        releaseDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        territoryMode: 'worldwide',
+        selectedPlatforms: ['spotify', 'apple-music', 'youtube-music']
       },
       {
         headers: {
@@ -69,7 +68,7 @@ async function testDistribution() {
     // Step 4: Check distribution status
     console.log('\nStep 4: Checking distribution status...');
     const statusRes = await axios.get(
-      `${API_BASE}/distribution/status/${distributionRes.data.releaseId}`,
+      `${API_BASE}/distribution/releases/${distributionRes.data.id}`,
       {
         headers: {
           Cookie: sessionCookie
@@ -97,7 +96,7 @@ async function testDistribution() {
     console.log('\nStep 6: Testing UPC generation...');
     const upcRes = await axios.post(
       `${API_BASE}/distribution/generate-upc`,
-      { releaseId: distributionRes.data.releaseId },
+      { releaseId: distributionRes.data.id },  // Changed from releaseId to id
       {
         headers: {
           Cookie: sessionCookie
@@ -112,7 +111,7 @@ async function testDistribution() {
     
     return {
       success: true,
-      releaseId: distributionRes.data.releaseId,
+      releaseId: distributionRes.data.id,  // Changed from releaseId to id
       status: statusRes.data
     };
 
