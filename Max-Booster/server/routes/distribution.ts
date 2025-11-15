@@ -320,7 +320,7 @@ router.post('/codes/isrc', requireAuth, async (req: Request, res: Response) => {
 
     // Store in database for tracking
     if (trackId && trackId !== `temp_${Date.now()}`) {
-      await codeGenerationService.saveISRC(userId, trackId, result.code);
+      await codeGenerationService.generateISRC(userId, trackId, artist, title);
     }
 
     res.json({ isrc: result.code, assignedTo: result.assignedTo });
@@ -344,7 +344,7 @@ router.post('/codes/upc', requireAuth, async (req: Request, res: Response) => {
 
     // Store in database for tracking
     if (releaseId && releaseId !== `temp_${Date.now()}`) {
-      await codeGenerationService.saveUPC(userId, releaseId, result.code);
+      await codeGenerationService.generateUPC(userId, releaseId, title);
     }
 
     res.json({ upc: result.code, assignedTo: result.assignedTo });
