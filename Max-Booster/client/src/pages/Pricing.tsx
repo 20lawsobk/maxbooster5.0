@@ -21,7 +21,7 @@ export default function Pricing() {
         'AI-Enhanced Organic Advertisement Autopilot',
         'Beat Marketplace & Licensing',
         'Professional Analytics Dashboard',
-        'Distribution to 100+ Platforms (Dec 2025)',
+        'Distribution to 150+ Platforms',
         'AI Mixing & Mastering',
         'Royalty Tracking & Splits',
         'Email Marketing System',
@@ -46,7 +46,7 @@ export default function Pricing() {
         'AI-Enhanced Organic Advertisement Autopilot',
         'Beat Marketplace & Licensing',
         'Professional Analytics Dashboard',
-        'Distribution to 100+ Platforms (Dec 2025)',
+        'Distribution to 150+ Platforms',
         'AI Mixing & Mastering',
         'Royalty Tracking & Splits',
         'Email Marketing System',
@@ -69,7 +69,7 @@ export default function Pricing() {
         'AI-Enhanced Organic Advertisement Autopilot',
         'Beat Marketplace & Licensing',
         'Professional Analytics Dashboard',
-        'Distribution to 100+ Platforms (Dec 2025)',
+        'Distribution to 150+ Platforms',
         'AI Mixing & Mastering',
         'Royalty Tracking & Splits',
         'Email Marketing System',
@@ -158,7 +158,7 @@ export default function Pricing() {
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             Replace $45,000+/year in tools and labor. Get professional AI studio, autonomous autopilots 
-            for social media & advertising, marketplace, analytics, and distribution (Dec 2025).
+            for social media & advertising, marketplace, analytics, and distribution.
           </p>
           <div className="flex items-center justify-center space-x-4 flex-wrap gap-2">
             <div className="flex items-center text-sm text-gray-600 font-medium">
@@ -296,7 +296,7 @@ export default function Pricing() {
                     { feature: 'Advertisement Autopilot (Zero Cost)', monthly: true, yearly: true, lifetime: true },
                     { feature: 'Beat Marketplace & Licensing', monthly: true, yearly: true, lifetime: true },
                     { feature: 'Professional Analytics', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'Distribution (Dec 2025)', monthly: true, yearly: true, lifetime: true },
+                    { feature: 'Distribution to 150+ Platforms', monthly: true, yearly: true, lifetime: true },
                     { feature: 'AI Mixing & Mastering', monthly: true, yearly: true, lifetime: true },
                     { feature: 'Email Marketing', monthly: true, yearly: true, lifetime: true },
                     { feature: 'Active Projects', monthly: 'Unlimited', yearly: 'Unlimited', lifetime: 'Unlimited' },

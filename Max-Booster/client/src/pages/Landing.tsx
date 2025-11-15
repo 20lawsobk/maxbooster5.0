@@ -66,7 +66,7 @@ export default function Landing() {
           </h1>
           <p className="text-xl text-gray-600 mb-6 max-w-3xl mx-auto">
             Professional AI Studio • AI-Assisted Social Media • Organic Marketing Tools • 
-            Beat Marketplace • Analytics • Distribution (Dec 2025) — all for $468/year
+            Beat Marketplace • Analytics • Distribution — all for $468/year
           </p>
           <p className="text-lg font-medium text-green-600 mb-8">
             Purchase with confidence • 90-day money-back guarantee
