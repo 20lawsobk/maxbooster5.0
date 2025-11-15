@@ -80,13 +80,10 @@ function createRedisConnection() {
   });
 
   redisClient.on('error', (err) => {
-    if (isDevelopment) {
-      if (!hasLoggedWarning) {
-        console.warn(`⚠️  Queue Service: Redis unavailable (${err.message}), queues will use fallback behavior`);
-        hasLoggedWarning = true;
-      }
-    } else {
-      console.error(`❌ Queue Service Redis Error:`, err.message);
+    // Log once and continue gracefully in all environments
+    if (!hasLoggedWarning) {
+      console.warn(`⚠️  Queue Service: Redis unavailable (${err.message}), queues will use fallback behavior`);
+      hasLoggedWarning = true;
     }
   });
 

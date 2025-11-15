@@ -119,18 +119,13 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
     redisClient.on('error', (err) => {
       isConnected = false;
       
-      if (isDevelopment) {
-        // In development, log once and fall back gracefully
-        if (!hasLoggedWarning) {
-          console.warn(`⚠️  ${serviceName}: Redis unavailable (${err.message}), using in-memory fallback`);
-          hasLoggedWarning = true;
-        }
-        if (!fallback) {
-          fallback = new InMemoryFallback();
-        }
-      } else {
-        // In production, log errors
-        console.error(`❌ ${serviceName} Redis Error:`, err.message);
+      // Log once and fall back gracefully in all environments
+      if (!hasLoggedWarning) {
+        console.warn(`⚠️  ${serviceName}: Redis unavailable (${err.message}), using in-memory fallback`);
+        hasLoggedWarning = true;
+      }
+      if (!fallback) {
+        fallback = new InMemoryFallback();
       }
     });
 
@@ -142,12 +137,8 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
     // This prevents promise rejection errors from being logged
     // The error event handler will catch connection failures
   } catch (err) {
-    if (isDevelopment) {
-      console.warn(`⚠️  ${serviceName}: Redis initialization failed, using in-memory fallback`);
-      fallback = new InMemoryFallback();
-    } else {
-      console.error(`❌ ${serviceName}: Redis initialization failed:`, err);
-    }
+    console.warn(`⚠️  ${serviceName}: Redis initialization failed, using in-memory fallback`);
+    fallback = new InMemoryFallback();
   }
 
   // Helper to determine which client to use
@@ -155,13 +146,16 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
     if (redisClient && isConnected) {
       return redisClient;
     }
-    if (isDevelopment) {
-      if (!fallback) {
-        fallback = new InMemoryFallback();
+    // PRODUCTION FALLBACK: Use in-memory fallback if Redis is unavailable
+    // This allows the app to run without Redis in any environment
+    if (!fallback) {
+      if (!hasLoggedWarning) {
+        console.warn(`⚠️  ${serviceName}: Redis unavailable, using in-memory fallback`);
+        hasLoggedWarning = true;
       }
-      return fallback;
+      fallback = new InMemoryFallback();
     }
-    return null;
+    return fallback;
   };
 
   return {
@@ -292,13 +286,10 @@ export function createLegacyGracefulRedisClient(serviceName: string): Redis {
   });
 
   redisClient.on('error', (err) => {
-    if (isDevelopment) {
-      if (!hasLoggedWarning) {
-        console.warn(`⚠️  ${serviceName}: Redis unavailable - features will use fallback storage`);
-        hasLoggedWarning = true;
-      }
-    } else {
-      console.error(`❌ ${serviceName} Redis Error:`, err.message);
+    // Log once and continue gracefully in all environments
+    if (!hasLoggedWarning) {
+      console.warn(`⚠️  ${serviceName}: Redis unavailable - features will use fallback storage`);
+      hasLoggedWarning = true;
     }
   });
 
