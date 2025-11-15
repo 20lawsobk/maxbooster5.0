@@ -1,0 +1,118 @@
+📊 Test Summary: {
+  success: true,
+  releaseId: undefined,
+  status: '<!DOCTYPE html>\n' +
+    '<html lang="en">\n' +
+    '  <head>\n' +
+    '    <script type="module">\n' +
+    'import { createHotContext } from "/@vite/client";\n' +
+    'const hot = createHotContext("/__dummy__runtime-error-plugin");\n' +
+    '\n' +
+    'function sendError(error) {\n' +
+    '  if (!(error instanceof Error)) {\n' +
+    '    error = new Error("(unknown runtime error)");\n' +
+    '  }\n' +
+    '  const serialized = {\n' +
+    '    message: error.message,\n' +
+    '    stack: error.stack,\n' +
+    '  };\n' +
+    '  hot.send("runtime-error-plugin:error", serialized);\n' +
+    '}\n' +
+    '\n' +
+    'window.addEventListener("error", (evt) => {\n' +
+    '  sendError(evt.error);\n' +
+    '});\n' +
+    '\n' +
+    'window.addEventListener("unhandledrejection", (evt) => {\n' +
+    '  sendError(evt.reason);\n' +
+    '});\n' +
+    '</script>\n' +
+    '\n' +
+    '    <script type="module">import { injectIntoGlobalHook } from "/@react-refresh";\n' +
+    'injectIntoGlobalHook(window);\n' +
+    'window.$RefreshReg$ = () => {};\n' +
+    'window.$RefreshSig$ = () => (type) => type;</script>\n' +
+    '\n' +
+    '    <script type="module" src="/@vite/client"></script>\n' +
+    '\n' +
+    '    <meta charset="UTF-8" />\n' +
+    '    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />\n' +
+    '    <script type="module">"use strict";(()=>{var O="0.3.1";var v={HIGHLIGHT_COLOR:"#0079F2",HIGHLIGHT_BG:"#0079F210",ALLOWED_DOMAIN:".replit.dev",THEME_PREVIEW_STYLE_ID:"replit-theme-preview"},Q=`\n' +
+    '  [contenteditable] {\n' +
+    '    outline: none !important;\n' +
+    '  }\n' +
+    '\n' +
+    '  [contenteditable]:focus {\n' +
+    '    outline: none !important;\n' +
+    '  }\n' +
+    '`,Z=`\n' +
+    '  .beacon-highlighter {\n' +
+    "    content: '';\n" +
+    '    position: absolute;\n' +
+    '    z-index: ${Number.MAX_SAFE_INTEGER-3};\n' +
+    '    box-sizing: border-box;\n' +
+    '    pointer-events: none;\n' +
+    '    outline: 2px dashed ${v.HIGHLIGHT_COLOR} !important;\n' +
+    '    outline-offset: 0 !important;\n' +
+    '    margin: 0 !important;\n' +
+    '    padding: 0 !important;\n' +
+    '    transform: none !important;\n' +
+    '    background: ${v.HIGHLIGHT_BG} !important;\n' +
+    '    opacity: 0;\n' +
+    '  }\n' +
+    '  \n' +
+    '  .beacon-hover-highlighter {\n' +
+    '    position: fixed;\n' +
+    '    z-index: ${Number.MAX_SAFE_INTEGER};\n' +
+    '  }\n' +
+    '  \n' +
+    '  .beacon-selected-highlighter {\n' +
+    '    position: fixed;\n' +
+    '    pointer-events: none;\n' +
+    '    outline: 2px solid ${v.HIGHLIGHT_COLOR} !important;\n' +
+    '    outline-offset: 3px !important;\n' +
+    '    background: none !important;\n' +
+    '  }\n' +
+    '  \n' +
+    '  .beacon-label {\n' +
+    '    position: absolute;\n' +
+    '    background-color: ${v.HIGHLIGHT_COLOR};\n' +
+    '    color: #FFFFFF;\n' +
+    '    padding: 4px 8px;\n' +
+    '    border-radius: 4px;\n' +
+    '    font-size: 14px;\n' +
+    '    font-family: monospace;\n' +
+    '    line-height: 1;\n' +
+    '    white-space: nowrap;\n' +
+    '    box-shadow: 0 2px 4px rgba(0,0,0,0.2);\n' +
+    '    transform: translateY(-100%);\n' +
+    '    margin-top: -4px;\n' +
+    '    left: 0;\n' +
+    '    z-index: ${Number.MAX_SAFE_INTEGER-2};\n' +
+    '    pointer-events: none;\n' +
+    '    opacity: 0;\n' +
+    '  }\n' +
+    '  \n' +
+    '  .beacon-hover-label {\n' +
+    '    position: fixed;\n' +
+    '    z-index: ${Number.MAX_SAFE_INTEGER};\n' +
+    '  }\n' +
+    '  \n' +
+    '  .beacon-selected-label {\n' +
+    '    position: fixed;\n' +
+    '    pointer-events: none;\n' +
+    '  }\n' +
+    '  \n' +
+    '  .beacon-sibling-highlighter {\n' +
+    '    position: fixed;\n' +
+    '    pointer-events: none;\n' +
+    '    outline: 2px dashed ${v.HIGHLIGHT_COLOR} !important;\n' +
+    '    outline-offset: 0 !important;\n' +
+    '    margin: 0 !important;\n' +
+    '    padding: 0 !important;\n' +
+    '    transform: none !important;\n' +
+    '    background: ${v.HIGHLIGHT_BG} !important;\n' +
+    '  }\n' +
+    '`;function De(e,i){return e[13]=1,e[14]=i>>8,e[15]=i&255,e[16]=i>>8,e[17]=i&255,e}var oe=112,ae=72,le=89,ce=115,W;function Ie(){let e=new Int32Array(256);for(let i=0;i<256;i++){let t=i;for(let n=0;n<8;n++)t=t&1?3988292384^t>>>1:t>>>1;e[i]=t}return e}function Ne(e){let i=-1;W||(W=Ie());for(let t=0;t<e.length;t++)i=W[(i^e[t])&255]^i>>>8;return i^-1}function Me(e){let i=e.length-1;for(let t=i;t>=4;t--)if(e[t-4]===9&&e[t-3]===oe&&e[t-2]===ae&&e[t-1]===le&&e[t]===ce)return t-3;return 0}function _e(e,i,t=!1){let n=new Uint8Array(13);i*=39.3701,n[0]=oe,n[1]=ae,n[2]=le,n[3]=ce,n[4]=i>>>24,n[5]=i>>>16,n[6]=i>>>8,n[7]=i&255,n[8]=n[4],n[9]=n[5],n[10]=n[6],n[11]=n[7],n[12]=1;let o=Ne(n),r=new Uint8Array(4);if(r[0]=o>>>24,r[1]=o>>>16,r[2]=o>>>8,r[3]=o&255,t){let a=Me(e);return e.set(n,a),e.set(r,a+13),e}else{let a=new Uint8Array(4);a[0]=0,a[1]=0,a[2]=0,a[3]=9;let s=new Uint8Array(54);return s.set(e,0),s.set(a,33),s.set(n,37),s.set(r,50),s}}var he="[modern-screenshot]",C=typeof window<"u",Re=C&&"Worker"in window,Pe=C&&"atob"in window,qt=C&&"btoa"in window,V=C?window.navigator?.userAgent:"",de=V.includes("Chrome"),k=V.includes("AppleWebKit")&&!de,q=V.includes("Firefox"),Oe=e=>e&&"__CONTEXT__"in e,ke=e=>e.constructor.name==="CSSFontFaceRule",Fe=e=>e.constructor.name==="CSSImportRule",S=e=>e.nodeType===1,N=e=>typeof e.className=="object",ge=e=>e.tagName==="image",Ue=e=>e.tagName==="use",x=e=>S(e)&&typeof e.style<"u"&&!N(e),$e=e=>e.nodeType===8,Be=e=>e.nodeType===3,L=e=>e.tagName==="IMG",F=e=>e.tagName==="VIDEO",We=e=>e.tagName==="CANVAS",Ge=e=>e.tagName==="TEXTAREA",Ve=e=>e.tagName==="INPUT",qe=e=>e.tagName==="STYLE",je=e=>e.tagName==="SCRIPT",ze=e=>e.tagName==="SELECT",Ye=e=>e.tagName==="SLOT",Xe=e=>e.tagName==="IFRAME",Ke=(...e)=>console.warn(he,...e);function Je(e){let i=e?.createElement?.("canvas");return i&&(i.height=i.width=1),!!i&&"toDataURL"in i&&!!i.toDataURL("image/webp").includes("image/webp")}var G=e=>e.startsWith("data:");function ue(e,i){if(e.match(/^[a-z]+:\\/\\//i))return e;if(C&&e.match(/^\\/\\//))return window.location.protocol+e;if(e.match(/^[a-z]+:/i)||!C)return e;let t=U().implementation.createHTMLDocument(),n=t.createElement("base"),o=t.createElement("a");return t.head.appendChild(n),t.body.appendChild(o),i&&(n.href=i),o.href=e,o.href}function U(e){return(e&&S(e)?e?.ownerDocument:e)??window.document}var $="http://www.w3.org/2000/svg";function Qe(e,i,t){let n=U(t).createElementNS($,"svg");return n.setAttributeNS(null,"width",e.toString()),n.setAttributeNS(null,"height",i.toString()),n.setAttributeNS(null,"viewBox",`0 0 ${e} ${i}`),n}function Ze(e,i){let t=new XMLSerializer().serializeToString(e);return i&&(t=t.replace(/[\\u0000-\\u0008\\v\\f\\u000E-\\u001F\\uD800-\\uDFFF\\uFFFE\\uFFFF]/gu,"")),`data:image/svg+xml;charset=utf-8,${encodeURIComponent(t)}`}async function et(e,i="image/png",t=1){try{return await new Promise((n,o)=>{e.toBlob(r=>{r?n(r):o(new Error("Blob is null"))},i,t)})}catch(n){if(Pe)return tt(e.toDataURL(i,t));throw n}}function tt(e){let[i,t]=e.split(","),n=i.match(/data:(.+);/)?.[1]??void 0,o=window.atob(t),r=o.length,a=new Uint8Array(r);for(let s=0;s<r;s+=1)a[s]=o.charCodeAt(s);return new Blob([a],{type:n})}function me(e,i){return new Promise((t,n)=>{let o=new FileReader;o.onload=()=>t(o.result),o.onerror=()=>n(o.error),o.onabort=()=>n(new Error(`Failed read blob to ${i}`)),i==="dataUrl"?o.readAsDataURL(e):i==="arrayBuffer"&&o.readAsArrayBuffer(e)})}var it=e=>me(e,"dataUrl"),nt=e=>me(e,"arrayBuffer");function H(e,i){let t=U(i).createElement("img");return t.decoding="sync",t.loading="eager",t.src=e,t}function D(e,i){return new Promise(t=>{let{timeout:n,ownerDocument:o,onError:r,onWarn:a}=i??{},s=typeof e=="string"?H(e,U(o)):e,c=null,h=null;function l(){t(s),c&&clearTimeout(c),h?.()}if(n&&(c=setTimeout(l,n)),F(s)){let d=s.currentSrc||s.src;if(!d)return s.poster?D(s.poster,i).then(t):l();if(s.readyState>=2)return l();let g=l,m=u=>{a?.("Failed video load",d,u),r?.(u),l()};h=()=>{s.removeEventListener("loadeddata",g),s.removeEventListener("error",m)},s.addEventListener("loadeddata",g,{once:!0}),s.addEventListener("error",m,{once:!0})}else{let d=ge(s)?s.href.baseVal:s.currentSrc||s.src;if(!d)return l();let g=async()=>{if(L(s)&&"decode"in s)try{await s.decode()}catch(u){a?.("Failed to decode image, trying to render anyway",s.dataset.originalSrc||d,u)}l()},m=u=>{a?.("Failed image load",s.dataset.originalSrc||d,u),l()};if(L(s)&&s.complete)return g();h=()=>{s.removeEventListener("load",g),s.removeEventListener("error",m)},s.addEventListener("load",g,{once:!0}),s.addEventListener("error",m,{once:!0})}})}async function rt(e,i){x(e)&&(L(e)||F(e)?await D(e,i):await Promise.all(["img","video"].flatMap(t=>Array.from(e.querySelectorAll(t)).map(n=>D(n,i)))))}var fe=function(){let i=0,t=()=>`0000${(Math.random()*36**4<<0).toString(36)}`.slice(-4);return()=>(i+=1,`u${t()}${i}`)}();function pe(e){return e?.split(",").map(i=>i.trim().replace(/"|\'/g,"").toLowerCase()).filter(Boolean)}var ee=0;function st(e){let i=`${he}[#${ee}]`;return ee++,{time:t=>e&&console.time(`${i} ${t}`),timeEnd:t=>e&&console.timeEnd(`${i} ${t}`),warn:(...t)=>e&&Ke(...t)}}function ot(e){return{cache:e?"no-cache":"force-cache"}}async function j(e,i){return Oe(e)?e:at(e,{...i,autoDestruct:!0})}async function at(e,i){let{scale:t=1,workerUrl:n,workerNumber:o=1}=i||{},r=!!i?.debug,a=i?.features??!0,s=e.ownerDocument??(C?window.document:void 0),c=e.ownerDocument?.defaultView??(C?window:void 0),h=new Map,l={width:0,height:0,quality:1,type:"image/png",scale:t,backgroundColor:null,style:null,filter:null,maximumCanvasSize:0,timeout:3e4,progress:null,debug:r,fetch:{requestInit:ot(i?.fetch?.bypassingCache),placeholderImage:"data:image/png;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",bypassingCache:!1,...i?.fetch},fetchFn:null,font:{},drawImageInterval:100,workerUrl:null,workerNumber:o,onCloneNode:null,onEmbedNode:null,onCreateForeignObjectSvg:null,includeStyleProperties:null,autoDestruct:!1,...i,__CONTEXT__:!0,log:st(r),node:e,ownerDocument:s,ownerWindow:c,dpi:t===1?null:96*t,svgStyleElement:be(s),svgDefsElement:s?.createElementNS($,"defs"),svgStyles:new Map,defaultComputedStyles:new Map,workers:[...Array.from({length:Re&&n&&o?o:0})].map(()=>{try{let m=new Worker(n);return m.onmessage=async u=>{let{url:f,result:p}=u.data;p?h.get(f)?.resolve?.(p):h.get(f)?.reject?.(new Error(`Error receiving message from worker: ${f}`))},m.onmessageerror=u=>{let{url:f}=u.data;h.get(f)?.reject?.(new Error(`Error receiving message from worker: ${f}`))},m}catch(m){return l.log.warn("Failed to new Worker",m),null}}).filter(Boolean),fontFamilies:new Map,fontCssTexts:new Map,acceptOfImage:`${[Je(s)&&"image/webp","image/svg+xml","image/*","*/*"].filter(Boolean).join(",")};q=0.8`,requests:h,drawImageCount:0,tasks:[],features:a,isEnable:m=>m==="restoreScrollPosition"?typeof a=="boolean"?!1:a[m]??!1:typeof a=="boolean"?a:a[m]??!0};l.log.time("wait until load"),await rt(e,{timeout:l.timeout,onWarn:l.log.warn}),l.log.timeEnd("wait until load");let{width:d,height:g}=lt(e,l);re'... 33846 more characters
+}
+~/workspace/Max-Booster$ 
