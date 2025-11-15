@@ -386,8 +386,8 @@ function DashboardContent({ user }: { user: any }) {
             {/* User Overview Panel */}
             <UserOverviewPanel user={user} />
 
-            {/* Smart Next Action Widget - Temporarily disabled to prevent loading loops */}
-            {/* <SmartNextActionWidget /> */}
+            {/* Smart Next Action Widget */}
+            <SmartNextActionWidget />
 
             {/* AI Performance Banner */}
             {aiInsights && (
