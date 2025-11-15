@@ -14,24 +14,37 @@ export async function createSessionStore() {
       const redisClient = createClient({
         url: process.env.REDIS_URL,
         socket: {
-          connectTimeout: 5000,
+          connectTimeout: 10000, // Increased from 5s to 10s
           reconnectStrategy: (retries) => {
-            if (retries > 10) return new Error('Max retries reached');
-            return Math.min(retries * 100, 2000);
-          }
-        }
+            if (retries > 5) return new Error('Max retries reached'); // Reduced retries to fail faster
+            // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
+            return Math.min(retries * 500, 8000);
+          },
+          keepAlive: 30000, // Send keep-alive packets every 30s
+          noDelay: true, // Disable Nagle's algorithm for lower latency
+        },
+        // Add connection pool settings
+        pingInterval: 60000, // Ping every 60s to keep connection alive
       });
 
+      let hasLoggedError = false;
       redisClient.on('error', (err) => {
-        console.error('❌ Redis connection error:', err.message);
+        // Only log first error to avoid spam
+        if (!hasLoggedError) {
+          console.error('❌ Redis session error:', err.message);
+          hasLoggedError = true;
+        }
       });
 
       redisClient.on('connect', () => {
         console.log('✅ Redis connected for session storage');
+        hasLoggedError = false; // Reset error flag on successful connect
       });
 
       redisClient.on('reconnecting', () => {
-        console.log('🔄 Redis reconnecting...');
+        if (!hasLoggedError) {
+          console.log('🔄 Redis reconnecting...');
+        }
       });
 
       await redisClient.connect();

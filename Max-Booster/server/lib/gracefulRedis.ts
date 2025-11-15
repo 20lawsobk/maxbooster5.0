@@ -98,14 +98,18 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
   try {
     redisClient = new Redis(config.redis.url, {
       retryStrategy: (times) => {
-        // Only retry 3 times
-        if (times > 3) {
+        // Retry up to 5 times with exponential backoff
+        if (times > 5) {
           return null;
         }
-        return Math.min(times * config.redis.retryDelay, 3000);
+        // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
+        return Math.min(times * 500, 8000);
       },
       lazyConnect: true, // Don't connect immediately
-      maxRetriesPerRequest: 1,
+      maxRetriesPerRequest: 2, // Increased from 1 to 2
+      connectTimeout: 10000, // 10 second timeout
+      keepAlive: 30000, // Send keep-alive packets every 30s
+      enableOfflineQueue: false, // Don't queue commands when offline
       showFriendlyErrorStack: false, // Suppress internal ioredis error stack logging
     });
 
@@ -277,11 +281,16 @@ export function createLegacyGracefulRedisClient(serviceName: string): Redis {
 
   const redisClient = new Redis(config.redis.url, {
     retryStrategy: (times) => {
-      if (times > config.redis.maxRetries) return null;
-      return Math.min(times * config.redis.retryDelay, 3000);
+      // Retry up to 5 times with exponential backoff
+      if (times > 5) return null;
+      // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
+      return Math.min(times * 500, 8000);
     },
     lazyConnect: true,
-    maxRetriesPerRequest: 1,
+    maxRetriesPerRequest: 2, // Increased from 1 to 2
+    connectTimeout: 10000, // 10 second timeout
+    keepAlive: 30000, // Send keep-alive packets every 30s
+    enableOfflineQueue: false, // Don't queue commands when offline
     showFriendlyErrorStack: false, // Suppress internal ioredis error stack logging
   });
 

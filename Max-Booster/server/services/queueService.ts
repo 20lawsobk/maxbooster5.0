@@ -68,14 +68,19 @@ export interface CSVImportResult {
 function createRedisConnection() {
   const redisUrl = config.redis.url;
   const redisClient = new Redis(redisUrl, {
-    maxRetriesPerRequest: null, // BullMQ requirement
+    maxRetriesPerRequest: null, // BullMQ requirement - must be null for queue operations
     retryStrategy: (times) => {
-      if (times > config.redis.maxRetries) {
+      // Retry up to 5 times with exponential backoff
+      if (times > 5) {
         return null; // Stop retrying
       }
-      return Math.min(times * config.redis.retryDelay, 3000);
+      // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
+      return Math.min(times * 500, 8000);
     },
     lazyConnect: true,
+    connectTimeout: 10000, // 10 second timeout
+    keepAlive: 30000, // Send keep-alive packets every 30s
+    enableOfflineQueue: false, // Don't queue commands when offline
     showFriendlyErrorStack: false, // Suppress internal ioredis error logging
   });
 
