@@ -1,12 +1,21 @@
+import { useState } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Logo } from '@/components/ui/Logo';
-import { Check, ArrowLeft, Sparkles, Shield, Clock, CheckCircle } from 'lucide-react';
+import { Check, ArrowLeft, Sparkles, Shield, Clock, CheckCircle, Menu } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 export default function Pricing() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const plans = [
     {
       id: 'monthly',
@@ -116,7 +125,12 @@ export default function Pricing() {
                 <Logo size="sm" />
               </Button>
             </Link>
-            <div className="flex items-center space-x-4">
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Link href="/features">
+                <Button variant="ghost">Features</Button>
+              </Link>
               <Link href="/login">
                 <Button variant="ghost">Sign In</Button>
               </Link>
@@ -124,6 +138,37 @@ export default function Pricing() {
                 <Button>Get Started</Button>
               </Link>
             </div>
+
+            {/* Mobile Hamburger Menu */}
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-64">
+                <SheetHeader>
+                  <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col space-y-4 mt-8">
+                  <Link href="/features">
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                      Features
+                    </Button>
+                  </Link>
+                  <Link href="/login">
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/pricing">
+                    <Button className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                      Get Started
+                    </Button>
+                  </Link>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </nav>

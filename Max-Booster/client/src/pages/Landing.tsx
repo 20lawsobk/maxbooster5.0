@@ -10,6 +10,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { 
   Sparkles, 
   BarChart3, 
@@ -23,12 +30,15 @@ import {
   Users,
   TrendingUp,
   Music,
-  Shield
+  Shield,
+  Menu
 } from 'lucide-react';
 import blawzLogo from '@assets/B-Lawz Music.png_1753050127860_1759355918465.jpeg';
 
 export default function Landing() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       {/* Navigation */}
@@ -36,7 +46,12 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Logo size="md" />
-            <div className="flex items-center space-x-4">
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Link href="/features">
+                <Button variant="ghost">Features</Button>
+              </Link>
               <Link href="/pricing">
                 <Button variant="ghost">Pricing</Button>
               </Link>
@@ -47,6 +62,42 @@ export default function Landing() {
                 <Button>Get Started</Button>
               </Link>
             </div>
+
+            {/* Mobile Hamburger Menu */}
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-64">
+                <SheetHeader>
+                  <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col space-y-4 mt-8">
+                  <Link href="/features">
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                      Features
+                    </Button>
+                  </Link>
+                  <Link href="/pricing">
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                      Pricing
+                    </Button>
+                  </Link>
+                  <Link href="/login">
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/pricing">
+                    <Button className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                      Get Started
+                    </Button>
+                  </Link>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </nav>
