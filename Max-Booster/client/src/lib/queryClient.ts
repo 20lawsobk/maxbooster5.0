@@ -161,7 +161,7 @@ function retryDelayWithJitter(attemptIndex: number): number {
 
 // Determine if error is retryable
 function shouldRetry(error: any): boolean {
-  // Don't retry on client errors (4xx) except for 401 and 403
+  // Don't retry on client errors (4xx)
   if (error.message?.includes('401') || error.message?.includes('403')) {
     return false;
   }
@@ -169,12 +169,16 @@ function shouldRetry(error: any): boolean {
     return false;
   }
   
-  // Retry on network errors, timeouts, and server errors
+  // Don't retry on server errors (5xx) to prevent loading loops
+  if (error.message?.match(/5\d{2}/)) {
+    return false;
+  }
+  
+  // Only retry on network errors and timeouts
   return (
     error.message?.includes('NetworkError') ||
     error.message?.includes('fetch') ||
     error.message?.includes('timeout') ||
-    error.message?.match(/5\d{2}/) ||
     error.name === 'NetworkError' ||
     error.name === 'TimeoutError'
   );
@@ -190,8 +194,8 @@ export const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime in v4)
       retry: (failureCount, error) => {
-        // Max 3 retries
-        if (failureCount >= 3) return false;
+        // Max 1 retry to prevent loading loops
+        if (failureCount >= 1) return false;
         // Only retry on retryable errors
         return shouldRetry(error);
       },
