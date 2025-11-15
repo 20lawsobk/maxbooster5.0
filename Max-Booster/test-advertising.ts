@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 import axios from 'axios';
 
 // Test Zero-Cost Advertising System
@@ -37,13 +37,15 @@ async function testAdvertising() {
         name: 'Test Music Promotion',
         objective: 'awareness',
         targetAudience: {
-          ageRange: { min: 18, max: 35 },
-          interests: ['music', 'electronic', 'indie'],
-          locations: ['US', 'UK', 'CA']
+          platforms: ['twitter', 'facebook', 'instagram'],
+          demographics: {
+            ageRange: { min: 18, max: 35 },
+            interests: ['music', 'electronic', 'indie'],
+            locations: ['US', 'UK', 'CA']
+          }
         },
         budget: 0, // Zero-cost organic campaign
-        creativesType: 'auto-generated',
-        platforms: ['organic-social']
+        duration: 14 // Required: campaign duration in days
       },
       { headers: { Cookie: sessionCookie } }
     );

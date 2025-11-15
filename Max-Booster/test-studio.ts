@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 import axios from 'axios';
 
 // Test Studio/Audio System
@@ -53,6 +53,7 @@ async function testStudio() {
         name: 'Kick Drum',
         type: 'audio',
         audioUrl: '/uploads/kick.wav',
+        trackNumber: 1,
         volume: 0.8,
         pan: 0,
         muted: false,

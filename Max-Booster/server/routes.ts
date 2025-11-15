@@ -9690,7 +9690,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   // Get listing details
   app.get("/api/marketplace/listings/:id", requireAuth, async (req, res) => {
     try {
-      const listing = await marketplaceService.getListing(parseInt(req.params.id));
+      const listing = await marketplaceService.getListing(req.params.id);
       if (!listing) {
         return res.status(404).json({ error: "Listing not found" });
       }

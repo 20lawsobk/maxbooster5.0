@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -28,7 +28,7 @@ async function runTest(testFile: string): Promise<{ passed: boolean; duration: n
   const startTime = Date.now();
   
   try {
-    await execAsync(`npx ts-node ${testFile}`, {
+    await execAsync(`npx tsx ${testFile}`, {
       timeout: 60000 // 60 second timeout per test
     });
     
@@ -70,6 +70,11 @@ async function runAllTests() {
       if (result.error) {
         console.log(`   Error: ${result.error}`);
       }
+    }
+    
+    // Add 2 second delay between tests to avoid rate limiting
+    if (tests.indexOf(test) < tests.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
 

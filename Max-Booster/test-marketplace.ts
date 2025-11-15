@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 import axios from 'axios';
 
 // Test Marketplace System
@@ -48,14 +48,24 @@ async function testMarketplace() {
       {
         title: 'Professional EDM Beat - Max Booster Test',
         description: 'High-quality electronic dance music beat, perfect for club tracks',
-        category: 'beats',
+        genre: 'EDM',
+        bpm: 128,
+        key: 'A minor',
         price: 29.99,
-        currency: 'USD',
+        audioUrl: '/uploads/preview.mp3',
+        artworkUrl: '/uploads/artwork.jpg',
         tags: ['edm', 'electronic', 'dance', 'club'],
-        licenseType: 'exclusive',
-        audioPreviewUrl: '/uploads/preview.mp3',
-        files: [
-          { name: 'beat-stems.zip', size: 15000000, type: 'audio/zip' }
+        licenses: [
+          {
+            type: 'basic',
+            price: 29.99,
+            features: ['MP3 Download', 'Non-Exclusive Rights']
+          },
+          {
+            type: 'premium',
+            price: 99.99,
+            features: ['WAV Download', 'Trackouts', 'Exclusive Rights']
+          }
         ]
       },
       { headers: { Cookie: sellerCookie } }
