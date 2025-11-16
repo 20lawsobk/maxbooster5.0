@@ -1,0 +1,38 @@
+GET https://maxbooster.replit.app/ 500 (Internal Server Error)Understand this error
+s3upload.js:1 ImportD
+s3upload.js:12 Connected!!
+content.js:743 
+foreground.js:9 This prints to the console of the page (injected only if the page url matched)
+foreground.js:5969 TikTok Repurposer: Not a TikTok video page.
+foreground.js:43601 got autoresponder settings
+foreground.js:43611 false
+(index):1 Error in event handler: TypeError: Cannot set properties of null (setting 'innerHTML')
+    at generateSheetsDropdown (chrome-extension://oolmdenpaebkcokkccakmlmhcpnogalc/js/foreground.js:430:30)
+    at OnMessageReceive (chrome-extension://oolmdenpaebkcokkccakmlmhcpnogalc/js/foreground.js:44286:5)Understand this error
+chunk-8bf09774.js:1 content script
+favicon.ico:1  GET https://maxbooster.replit.app/favicon.ico 500 (Internal Server Error)Understand this error
+foreground.js:23031 MessageEvent {isTrusted: true, data: '', origin: 'https://maxbooster.replit.app', lastEventId: '', source: Window, …}
+foreground.js:23040 Content script received: undefined
+contentScript.js:1 No session found to initialize Sentry for contentScript.js
+(anonymous) @ contentScript.js:1
+l @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+o @ contentScript.js:1
+s @ contentScript.js:1
+Promise.then
+o @ contentScript.js:1
+s @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+s @ contentScript.js:1
+t.a @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+n @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+(anonymous) @ contentScript.js:1Understand this warning
+foreground.js:23031 MessageEvent {isTrusted: true, data: '', origin: 'https://maxbooster.replit.app', lastEventId: '', source: Window, …}
+foreground.js:23040 Content script received: undefined
+foreground.js:23031 MessageEvent {isTrusted: true, data: '', origin: 'https://maxbooster.replit.app', lastEventId: '', source: Window, …}
+foreground.js:23040 Content script received: undefined
