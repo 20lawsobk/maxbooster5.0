@@ -128,6 +128,7 @@ interface MusicInsight {
   priority: number;
 }
 
+// Last updated: 2025-11-16 22:30 UTC - Added Music Career Analytics
 export default function AIDashboard() {
   const { user } = useAuth();
   const [selectedMetric, setSelectedMetric] = useState('users');
