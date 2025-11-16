@@ -34,6 +34,9 @@ if (process.env.NODE_ENV === 'production' && typeof (global as any).gc !== 'func
 
 const app = express();
 
+// CRITICAL: Set Express environment from NODE_ENV (Express defaults to production)
+app.set('env', process.env.NODE_ENV || 'production');
+
 // Trust proxy for rate limiting accuracy
 app.set('trust proxy', 1);
 

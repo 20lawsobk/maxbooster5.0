@@ -1,0 +1,120 @@
+2025-11-16 08:06:24.49
+0758a22b
+User
+"metadata": {
+2025-11-16 08:06:24.49
+0758a22b
+User
+"breadcrumbs": [],
+2025-11-16 08:06:34.52
+0758a22b
+User
+"category": "unknown",
+2025-11-16 08:06:34.52
+0758a22b
+User
+"filename": "https://maxbooster.replit.app/assets/studio-l-V0p2Fq.js",
+2025-11-16 08:06:34.52
+0758a22b
+User
+"breadcrumbs": [],
+2025-11-16 08:06:34.52
+0758a22b
+User
+"component": "window",
+2025-11-16 08:06:34.52
+0758a22b
+User
+"colno": 2181
+2025-11-16 08:06:34.52
+0758a22b
+User
+"userId": null,
+2025-11-16 08:06:34.52
+0758a22b
+User
+"timestamp": "2025-11-16T13:06:29.875Z",
+2025-11-16 08:06:34.52
+0758a22b
+User
+"stackTrace": "TypeError: Ih is not a constructor\n at https://maxbooster.replit.app/assets/studio-l-V0p2Fq.js:17:2181",
+2025-11-16 08:06:34.52
+0758a22b
+User
+"stackTrace": "TypeError: Ih is not a constructor\n at https://maxbooster.replit.app/assets/studio-l-V0p2Fq.js:17:2181",
+2025-11-16 08:06:34.52
+0758a22b
+User
+"metadata": {
+2025-11-16 08:06:34.52
+0758a22b
+User
+[Error Report] {
+2025-11-16 08:06:34.52
+0758a22b
+User
+"userEmail": null,
+2025-11-16 08:06:34.52
+0758a22b
+User
+"context": {
+2025-11-16 08:06:34.52
+0758a22b
+User
+},
+2025-11-16 08:06:34.52
+0758a22b
+User
+}
+2025-11-16 08:06:34.52
+0758a22b
+User
+"ip": "35.191.85.7",
+2025-11-16 08:06:34.52
+0758a22b
+User
+"route": "/",
+2025-11-16 08:06:34.52
+0758a22b
+User
+"userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+2025-11-16 08:06:34.52
+0758a22b
+User
+"sessionId": "d125361f24dea53ad888f6290cf4a0a8beeda0f6d835264f4c3dd662fab341ac"
+2025-11-16 08:06:34.52
+0758a22b
+User
+"timestamp": "2025-11-16T13:06:34.527Z",
+2025-11-16 08:06:34.52
+0758a22b
+User
+"action": "unhandled-error",
+2025-11-16 08:06:34.52
+0758a22b
+User
+"severity": "info",
+2025-11-16 08:06:34.52
+0758a22b
+User
+"message": "Ih is not a constructor",
+2025-11-16 08:06:34.52
+0758a22b
+User
+}
+2025-11-16 08:06:34.52
+0758a22b
+User
+"lineno": 17,
+2025-11-16 08:07:05.92
+0758a22b
+User
+⚠️ Slow query detected (113ms): sql_5bec4fd2b3b4241b
+2025-11-16 08:08:05.95
+0758a22b
+User
+⚠️ Slow query detected (150ms): sql_5bec4fd2b3b4241b
+2025-11-16 08:09:05.93
+0758a22b
+User
+⚠️ Slow query detected (121ms): sql_5bec4fd2b3b4241b
