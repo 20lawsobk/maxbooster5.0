@@ -1,3 +1,4 @@
+// AI Analytics Dashboard - Fixed: All null checks added (v2.1)
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -479,7 +480,7 @@ export default function AIDashboard() {
                         <div className="border rounded-lg p-4">
                           <h4 className="text-sm font-medium mb-3">Forecast Timeline</h4>
                           <div className="space-y-2">
-                            {prediction.forecast.map((point, index) => (
+                            {(prediction.forecast || []).map((point, index) => (
                               <div key={index} className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">{point.date}</span>
                                 <div className="flex items-center gap-4">
@@ -550,7 +551,7 @@ export default function AIDashboard() {
                                 Risk Factors:
                               </p>
                               <div className="flex flex-wrap gap-1">
-                                {user.riskFactors.map((factor, index) => (
+                                {(user.riskFactors || []).map((factor, index) => (
                                   <Badge key={index} variant="outline" className="text-xs">
                                     <AlertCircle className="w-3 h-3 mr-1" />
                                     {factor}
@@ -564,7 +565,7 @@ export default function AIDashboard() {
                                 Recommended Actions:
                               </p>
                               <div className="space-y-1">
-                                {user.recommendedActions.map((action, index) => (
+                                {(user.recommendedActions || []).map((action, index) => (
                                   <div key={index} className="flex items-center gap-2 text-sm">
                                     <CheckCircle2 className="w-4 h-4 text-green-600" />
                                     <span>{action}</span>
@@ -799,7 +800,7 @@ export default function AIDashboard() {
                           <div>
                             <p className="text-xs font-medium mb-2">Recommended Actions:</p>
                             <div className="space-y-1">
-                              {insight.actions.map((action, index) => (
+                              {(insight.actions || []).map((action, index) => (
                                 <div key={index} className="flex items-start gap-2 text-sm">
                                   <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                                     <span className="text-xs font-medium text-primary">
