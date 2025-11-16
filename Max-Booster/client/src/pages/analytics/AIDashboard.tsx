@@ -122,7 +122,8 @@ export default function AIDashboard() {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch revenue forecasts');
-      return response.json();
+      const data = await response.json();
+      return data.forecast || [];
     },
   });
 
