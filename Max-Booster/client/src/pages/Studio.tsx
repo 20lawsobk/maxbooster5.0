@@ -222,8 +222,13 @@ export default function Studio() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const nextClickTimeRef = useRef<number>(0);
   const recordingIntervalRef = useRef<number | null>(null);
-  const audioEngineRef = useRef<AudioEngine>(AudioEngine.getInstance());
+  const audioEngineRef = useRef<AudioEngine | null>(null);
   const inputMonitoringRefs = useRef<Map<string, any>>(new Map());
+
+  // Initialize AudioEngine safely
+  if (!audioEngineRef.current) {
+    audioEngineRef.current = AudioEngine.getInstance();
+  }
 
   // Memoize the onError callback to prevent audio engine re-initialization
   const handleStudioError = useCallback((error: Error) => {
