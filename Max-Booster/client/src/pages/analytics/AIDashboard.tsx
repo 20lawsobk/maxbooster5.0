@@ -79,6 +79,55 @@ interface AIInsight {
   actions: string[];
 }
 
+interface CareerGrowthPrediction {
+  metric: 'streams' | 'followers' | 'engagement';
+  currentValue: number;
+  predictedValue: number;
+  growthRate: number;
+  timeline: '30d' | '90d' | '180d';
+  recommendations: string[];
+  confidence: number;
+}
+
+interface ReleaseStrategyInsight {
+  bestReleaseDay: string;
+  bestReleaseTime: string;
+  optimalFrequency: string;
+  genreTrends: Array<{ genre: string; trend: 'rising' | 'stable' | 'declining'; score: number }>;
+  competitorAnalysis: string[];
+  recommendations: string[];
+}
+
+interface FanbaseInsight {
+  totalFans: number;
+  activeListeners: number;
+  engagementRate: number;
+  topPlatforms: Array<{ platform: string; percentage: number }>;
+  demographics: {
+    topLocations: string[];
+    peakListeningTimes: string[];
+  };
+  growthOpportunities: string[];
+}
+
+interface CareerMilestone {
+  type: 'streams' | 'followers' | 'releases' | 'revenue';
+  current: number;
+  nextMilestone: number;
+  progress: number;
+  estimatedDate: string;
+  recommendations: string[];
+}
+
+interface MusicInsight {
+  category: 'release_strategy' | 'audience_growth' | 'monetization' | 'marketing';
+  title: string;
+  description: string;
+  impact: 'high' | 'medium' | 'low';
+  actionable: string[];
+  priority: number;
+}
+
 export default function AIDashboard() {
   const { user } = useAuth();
   const [selectedMetric, setSelectedMetric] = useState('users');
@@ -181,6 +230,76 @@ export default function AIDashboard() {
       if (!response.ok) throw new Error('Failed to fetch insights');
       const data = await response.json();
       return data.insights || [];
+    },
+  });
+
+  // Music Career AI Analytics
+  const [careerMetric, setCareerMetric] = useState<'streams' | 'followers' | 'engagement'>('streams');
+  const [careerTimeline, setCareerTimeline] = useState<'30d' | '90d' | '180d'>('30d');
+
+  const { data: careerGrowth, isLoading: loadingCareerGrowth, error: careerGrowthError } = useQuery<CareerGrowthPrediction>({
+    queryKey: ['/api/analytics/music/career-growth', careerMetric, careerTimeline],
+    queryFn: async () => {
+      const response = await fetch('/api/analytics/music/career-growth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ metric: careerMetric, timeline: careerTimeline })
+      });
+      if (!response.ok) throw new Error('Failed to fetch career growth');
+      return response.json();
+    },
+  });
+
+  const { data: releaseStrategy, isLoading: loadingReleaseStrategy, error: releaseStrategyError } = useQuery<ReleaseStrategyInsight>({
+    queryKey: ['/api/analytics/music/release-strategy'],
+    queryFn: async () => {
+      const response = await fetch('/api/analytics/music/release-strategy', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch release strategy');
+      return response.json();
+    },
+  });
+
+  const { data: fanbaseData, isLoading: loadingFanbase, error: fanbaseError } = useQuery<FanbaseInsight>({
+    queryKey: ['/api/analytics/music/fanbase'],
+    queryFn: async () => {
+      const response = await fetch('/api/analytics/music/fanbase', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch fanbase data');
+      return response.json();
+    },
+  });
+
+  const { data: careerMilestones, isLoading: loadingMilestones, error: milestonesError } = useQuery<CareerMilestone[]>({
+    queryKey: ['/api/analytics/music/milestones'],
+    queryFn: async () => {
+      const response = await fetch('/api/analytics/music/milestones', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch career milestones');
+      return response.json();
+    },
+  });
+
+  const { data: musicInsights, isLoading: loadingMusicInsights, error: musicInsightsError } = useQuery<MusicInsight[]>({
+    queryKey: ['/api/analytics/music/insights'],
+    queryFn: async () => {
+      const response = await fetch('/api/analytics/music/insights', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch music insights');
+      return response.json();
     },
   });
 
