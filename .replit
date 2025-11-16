@@ -65,3 +65,6 @@ localPort = 46487
 deploymentTarget = "gce"
 run = ["sh", "-c", "cd Max-Booster && npm start"]
 build = ["sh", "-c", "cd Max-Booster && npm run build"]
+
+[objectStorage]
+defaultBucketID = "replit-objstore-0194b979-7a8f-4a3b-ba0c-d5d3e460acbc"
