@@ -62,6 +62,6 @@ localPort = 44625
 localPort = 46487
 
 [deployment]
-deploymentTarget = "cloudrun"
+deploymentTarget = "gce"
 run = ["sh", "-c", "cd Max-Booster && npm start"]
 build = ["sh", "-c", "cd Max-Booster && npm run build"]
