@@ -23,6 +23,7 @@
     "test:analytics": "tsx test-analytics.ts",
     "test:social": "tsx test-social-media.ts",
     "test:advertising": "tsx test-advertising.ts",
+    "test:payment": "tsx test-payment.ts",
     "test:marketplace": "tsx test-marketplace.ts",
     "test:studio": "tsx test-studio.ts",
     "test:distribution": "tsx test-distribution.ts"
