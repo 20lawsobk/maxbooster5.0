@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["libuuid", "cairo", "pango", "libpng", "libjpeg", "giflib", "pkg-config", "pixman"]
+packages = ["libuuid", "cairo", "pango", "libpng", "libjpeg", "giflib", "pkg-config", "pixman", "redis"]
 
 [workflows]
 runButton = "Project"
@@ -22,20 +22,17 @@ args = "Max Booster Platform"
 name = "Max Booster Platform"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd Max-Booster && npm run dev"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd Max-Booster && ./start-with-redis.sh"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 33929
 
 [[ports]]
 localPort = 37795
