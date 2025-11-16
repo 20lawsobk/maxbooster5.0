@@ -6,7 +6,7 @@ import axios from 'axios';
 
 const API_BASE = 'http://localhost:5000/api';
 const TEST_ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || 'brandonlawson720@gmail.com';
-const TEST_ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || 'Admin123!@#$Test';
+const TEST_ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || 'admin123!';
 
 async function testSecuritySystem() {
   console.log('🛡️  Testing Self-Healing Security System...\n');
