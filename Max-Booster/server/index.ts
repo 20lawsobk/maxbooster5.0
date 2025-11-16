@@ -24,12 +24,12 @@ import { ensureStripeProductsAndPrices } from "./services/stripeSetup";
 import { SelfHealingSecuritySystem } from "./security-system";
 import { config, validateConfig, logConfig } from './config/defaults.js';
 
-// CRITICAL: Enforce --expose-gc flag for 24/7 reliability
+// IMPORTANT: Warn if --expose-gc flag is missing (recommended for 24/7 reliability)
 if (process.env.NODE_ENV === 'production' && typeof (global as any).gc !== 'function') {
-  console.error('🚨 FATAL: Production server requires --expose-gc flag for memory management');
-  console.error('🚨 Start with: NODE_ENV=production node --expose-gc dist/index.js');
-  console.error('🚨 This prevents memory leaks in 24/7/365 operation');
-  process.exit(1);
+  console.warn('⚠️  WARNING: Production server running without --expose-gc flag');
+  console.warn('⚠️  Recommended start: NODE_ENV=production node --expose-gc dist/index.js');
+  console.warn('⚠️  This flag enables manual garbage collection for 24/7/365 operation');
+  console.warn('⚠️  Server will continue but may experience memory pressure over time');
 }
 
 const app = express();
