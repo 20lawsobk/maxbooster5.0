@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { neon } from '@neondatabase/serverless';
 import os from 'os';
+import { getCachedHealthCheck, getLivenessProbe, getReadinessProbe } from '../lib/cachedHealthCheck.js';
 
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -93,17 +94,27 @@ function checkCPU(): { status: 'healthy' | 'degraded' | 'unhealthy'; loadAverage
   };
 }
 
-// Comprehensive health check
+// Comprehensive health check (cached for 30 seconds to reduce DB load)
 export async function healthCheck(req: Request, res: Response): Promise<void> {
   try {
     const startTime = Date.now();
     
-    // Run all health checks
-    const [databaseCheck, memoryCheck, cpuCheck] = await Promise.all([
-      checkDatabase(),
-      Promise.resolve(checkMemory()),
-      Promise.resolve(checkCPU())
-    ]);
+    // Use cached health check to reduce database load
+    const cachedHealth = await getCachedHealthCheck(30);
+    
+    // CPU check is fast, run it fresh
+    const cpuCheck = checkCPU();
+    
+    const databaseCheck = {
+      status: cachedHealth.database.connected ? 'healthy' as const : 'unhealthy' as const,
+      responseTime: 0, // Cached, no fresh query
+    };
+    
+    const memoryCheck = {
+      status: cachedHealth.memory.heapUsed < 1500 ? 'healthy' as const : 
+               cachedHealth.memory.heapUsed < 1800 ? 'degraded' as const : 'unhealthy' as const,
+      usage: cachedHealth.memory,
+    };
 
     const health: HealthStatus = {
       status: 'healthy',
@@ -144,24 +155,22 @@ export async function healthCheck(req: Request, res: Response): Promise<void> {
   }
 }
 
-// Simple readiness check
+// Simple readiness check (cached for 10 seconds)
 export async function readinessCheck(req: Request, res: Response): Promise<void> {
   try {
-    // Check only critical dependencies
-    const dbCheck = await checkDatabase();
+    const probe = await getReadinessProbe();
     
-    if (dbCheck.status === 'healthy') {
+    if (probe.ready) {
       res.status(200).json({
         status: 'ready',
         timestamp: new Date().toISOString(),
-        database: dbCheck.status
+        checks: probe.checks
       });
     } else {
       res.status(503).json({
         status: 'not-ready',
         timestamp: new Date().toISOString(),
-        database: dbCheck.status,
-        error: dbCheck.error
+        checks: probe.checks
       });
     }
   } catch (error) {
@@ -173,11 +182,12 @@ export async function readinessCheck(req: Request, res: Response): Promise<void>
   }
 }
 
-// Simple liveness check
+// Simple liveness check (no caching - always fresh)
 export function livenessCheck(req: Request, res: Response): void {
+  const probe = getLivenessProbe();
   res.status(200).json({
-    status: 'alive',
+    status: probe.status,
     timestamp: new Date().toISOString(),
-    uptime: Math.floor(process.uptime())
+    uptime: Math.floor(probe.uptime)
   });
 }

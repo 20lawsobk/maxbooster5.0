@@ -1,0 +1,96 @@
+2025-11-16 05:46:16.36
+b7eae0c0
+User
+⚠️ Slow query detected (296ms): sql_8a5c8d17cfc16087
+2025-11-16 05:46:16.90
+b7eae0c0
+User
+⚠️ Slow query detected (251ms): sql_736b4f26a0b23930
+2025-11-16 05:46:17.89
+b7eae0c0
+User
+⚠️ Slow query detected (115ms): sql_5bec4fd2b3b4241b
+2025-11-16 05:47:17.93
+b7eae0c0
+User
+⚠️ Slow query detected (147ms): sql_5bec4fd2b3b4241b
+2025-11-16 05:48:17.92
+b7eae0c0
+User
+⚠️ Slow query detected (145ms): sql_5bec4fd2b3b4241b
+2025-11-16 05:49:17.90
+b7eae0c0
+User
+⚠️ Slow query detected (119ms): sql_5bec4fd2b3b4241b
+2025-11-16 05:50:16.39
+b7eae0c0
+User
+⚠️ Slow query detected (150ms): sql_8a5c8d17cfc16087
+2025-11-16 05:51:17.91
+b7eae0c0
+User
+⚠️ Slow query detected (126ms): sql_5bec4fd2b3b4241b
+2025-11-16 05:52:17.90
+b7eae0c0
+User
+⚠️ Slow query detected (121ms): sql_5bec4fd2b3b4241b
+2025-11-16 05:53:17.90
+b7eae0c0
+User
+⚠️ Slow query detected (117ms): sql_5bec4fd2b3b4241b
+2025-11-16 05:54:05.45
+97caa196
+User
+⚠️ Slow query detected (289ms): sql_07fd21a5504d5acc
+2025-11-16 05:54:05.45
+97caa196
+User
+⚠️ LabelGrid provider not found in database, using defaults
+2025-11-16 05:54:05.46
+97caa196
+User
+⚠️ Slow query detected (274ms): sql_45c643b2ed921b8a
+2025-11-16 05:54:07.78
+97caa196
+User
+at TCP. (node:net:343:12)
+2025-11-16 05:54:07.79
+97caa196
+User
+at server/services/socialService.ts (file:///home/runner/workspace/Max-Booster/dist/index.js:26517:5)
+2025-11-16 05:54:07.79
+97caa196
+User
+at new AIService (file:///home/runner/workspace/Max-Booster/dist/index.js:25075:14)
+2025-11-16 05:54:07.79
+97caa196
+User
+at __init (file:///home/runner/workspace/Max-Booster/dist/index.js:12:56)
+2025-11-16 05:54:07.79
+97caa196
+User
+at EventEmitter.setex (/home/runner/workspace/Max-Booster/node_modules/ioredis/built/utils/Commander.js:90:25)
+2025-11-16 05:54:07.79
+97caa196
+User
+at AIService.initializeInHouseAI (file:///home/runner/workspace/Max-Booster/dist/index.js:25080:26)
+2025-11-16 05:54:07.79
+97caa196
+User
+at AIService.initializeInHouseAI (file:///home/runner/workspace/Max-Booster/dist/index.js:25080:26)
+2025-11-16 05:54:07.79
+97caa196
+User
+at EventEmitter.setex (/home/runner/workspace/Max-Booster/node_modules/ioredis/built/utils/Commander.js:90:25)
+2025-11-16 05:54:07.79
+97caa196
+User
+at __init (file:///home/runner/workspace/Max-Booster/dist/index.js:12:56)
+2025-11-16 05:54:07.79
+97caa196
+User
+at new AIService (file:///home/runner/workspace/Max-Booster/dist/index.js:25075:14)
+2025-11-16 05:54:07.79
+97caa196
+User
+at server/services/socialService.ts (file:///home/runner/workspace/Max-Booster/dist/index.js:26517:5)
