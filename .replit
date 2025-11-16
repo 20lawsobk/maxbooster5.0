@@ -61,6 +61,10 @@ localPort = 44625
 [[ports]]
 localPort = 46487
 
+[[ports]]
+localPort = 46583
+externalPort = 3000
+
 [deployment]
 deploymentTarget = "gce"
 run = ["sh", "-c", "cd Max-Booster && npm start"]
