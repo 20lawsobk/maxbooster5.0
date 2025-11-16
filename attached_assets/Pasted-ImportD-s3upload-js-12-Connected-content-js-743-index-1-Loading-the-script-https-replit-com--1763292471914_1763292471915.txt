@@ -1,0 +1,41 @@
+ImportD
+s3upload.js:12 Connected!!
+content.js:743 
+(index):1 Loading the script 'https://replit.com/public/js/replit-dev-banner.js' violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.Understand this error
+studio-l-V0p2Fq.js:1 [ErrorService] {id: 'error-1763292408172-b1kue6m13', severity: 'info', category: 'unknown', message: 'Ih is not a constructor', userMessage: 'An unexpected error occurred. Please try again.', …}
+console.error @ studio-l-V0p2Fq.js:1
+handleError @ studio-l-V0p2Fq.js:1
+(anonymous) @ studio-l-V0p2Fq.js:1Understand this error
+foreground.js:9 This prints to the console of the page (injected only if the page url matched)
+foreground.js:5969 TikTok Repurposer: Not a TikTok video page.
+chunk-8bf09774.js:1 content script
+foreground.js:43601 got autoresponder settings
+foreground.js:43611 false
+(index):1 Error in event handler: TypeError: Cannot set properties of null (setting 'innerHTML')
+    at generateSheetsDropdown (chrome-extension://oolmdenpaebkcokkccakmlmhcpnogalc/js/foreground.js:430:30)
+    at OnMessageReceive (chrome-extension://oolmdenpaebkcokkccakmlmhcpnogalc/js/foreground.js:44286:5)Understand this error
+foreground.js:23031 MessageEvent {isTrusted: true, data: '', origin: 'https://maxbooster.replit.app', lastEventId: '', source: Window, …}
+foreground.js:23040 Content script received: undefined
+contentScript.js:1 No session found to initialize Sentry for contentScript.js
+(anonymous) @ contentScript.js:1
+l @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+o @ contentScript.js:1
+s @ contentScript.js:1
+Promise.then
+o @ contentScript.js:1
+s @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+s @ contentScript.js:1
+t.a @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+n @ contentScript.js:1
+(anonymous) @ contentScript.js:1
+(anonymous) @ contentScript.js:1Understand this warning
+foreground.js:23031 MessageEvent {isTrusted: true, data: '', origin: 'https://maxbooster.replit.app', lastEventId: '', source: Window, …}
+foreground.js:23040 Content script received: undefined
+foreground.js:23031 MessageEvent {isTrusted: true, data: '', origin: 'https://maxbooster.replit.app', lastEventId: '', source: Window, …}
+foreground.js:23040 Content script received: undefined
