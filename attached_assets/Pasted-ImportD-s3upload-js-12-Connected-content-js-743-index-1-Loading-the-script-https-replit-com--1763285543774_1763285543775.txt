@@ -1,0 +1,47 @@
+ImportD
+s3upload.js:12 Connected!!
+content.js:743 
+(index):1 Loading the script 'https://replit.com/public/js/replit-dev-banner.js' violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.Understand this error
+studio-l-V0p2Fq.js:1 [ErrorService] Object
+console.error @ studio-l-V0p2Fq.js:1Understand this error
+foreground.js:9 This prints to the console of the page (injected only if the page url matched)
+foreground.js:5969 TikTok Repurposer: Not a TikTok video page.
+foreground.js:43601 got autoresponder settings
+foreground.js:43611 false
+(index):1 Error in event handler: TypeError: Cannot set properties of null (setting 'innerHTML')
+    at generateSheetsDropdown (chrome-extension://oolmdenpaebkcokkccakmlmhcpnogalc/js/foreground.js:430:30)
+    at OnMessageReceive (chrome-extension://oolmdenpaebkcokkccakmlmhcpnogalc/js/foreground.js:44286:5)Understand this error
+foreground.js:23031 MessageEvent
+foreground.js:23040 Content script received: undefined
+foreground.js:23031 MessageEvent
+foreground.js:23040 Content script received: undefined
+chunk-8bf09774.js:1 content script
+foreground.js:23031 MessageEvent
+foreground.js:23040 Content script received: undefined
+contentScript.js:1 No session found to initialize Sentry for contentScript.js
+(anonymous) @ contentScript.js:1Understand this warning
+0fd09fc4f333263b914d5bc2c71490ad.js:1 en
+6da4b6d82d745093c67f68f3dfd58024.js:18 en
+0fd09fc4f333263b914d5bc2c71490ad.js:1 Object
+0fd09fc4f333263b914d5bc2c71490ad.js:1 undefined
+6da4b6d82d745093c67f68f3dfd58024.js:18 Object
+6da4b6d82d745093c67f68f3dfd58024.js:18 undefined
+0fd09fc4f333263b914d5bc2c71490ad.js:1 Object
+content.js:968 EVENT IN KEYDOWN:------------------- KeyboardEvent
+content.js:970 Key pressed :------------------- F12
+content.js:131 elt <html lang=​"en" data-headlessui-focus-visible>​scroll<head>​…​</head>​<body data-new-gr-c-s-check-loaded=​"14.1263.0" data-gr-ext-installed>​…​</body>​<chatgpt-sidebar data-gpts-theme=​"light">​…​</chatgpt-sidebar>​<seamless-flyout>​…​</seamless-flyout>​<grammarly-desktop-integration data-grammarly-shadow-root=​"true">​…​</grammarly-desktop-integration>​<div id=​"aitopia" class=​"aitopia light" data-v-app>​…​</div>​<div data-v-135dc5aa class=​"aitopia light" nocolor>​…​</div>​<div id=​"aifnmjmchg" class=​"aifnmjmchg light" data-v-app>​…​</div>​<div data-v-135dc5aa class=​"aifnmjmchg light" nocolor>​…​</div>​</html>​
+content.js:134 elt type 1
+content.js:135 elt1 <html lang=​"en" data-headlessui-focus-visible>​scroll<head>​…​</head>​<body data-new-gr-c-s-check-loaded=​"14.1263.0" data-gr-ext-installed>​…​</body>​<chatgpt-sidebar data-gpts-theme=​"light">​…​</chatgpt-sidebar>​<seamless-flyout>​…​</seamless-flyout>​<grammarly-desktop-integration data-grammarly-shadow-root=​"true">​…​</grammarly-desktop-integration>​<div id=​"aitopia" class=​"aitopia light" data-v-app>​…​</div>​<div data-v-135dc5aa class=​"aitopia light" nocolor>​…​</div>​<div id=​"aifnmjmchg" class=​"aifnmjmchg light" data-v-app>​…​</div>​<div data-v-135dc5aa class=​"aifnmjmchg light" nocolor>​…​</div>​</html>​
+content.js:131 elt <body data-new-gr-c-s-check-loaded=​"14.1263.0" data-gr-ext-installed>​…​</body>​
+content.js:134 elt type 1
+content.js:135 elt1 <body data-new-gr-c-s-check-loaded=​"14.1263.0" data-gr-ext-installed>​…​</body>​
+content.js:134 elt type 1
+content.js:135 elt1 <html lang=​"en" data-headlessui-focus-visible>​scroll<head>​…​</head>​<body data-new-gr-c-s-check-loaded=​"14.1263.0" data-gr-ext-installed>​…​</body>​<chatgpt-sidebar data-gpts-theme=​"light">​…​</chatgpt-sidebar>​<seamless-flyout>​…​</seamless-flyout>​<grammarly-desktop-integration data-grammarly-shadow-root=​"true">​…​</grammarly-desktop-integration>​<div id=​"aitopia" class=​"aitopia light" data-v-app>​…​</div>​<div data-v-135dc5aa class=​"aitopia light" nocolor>​…​</div>​<div id=​"aifnmjmchg" class=​"aifnmjmchg light" data-v-app>​…​</div>​<div data-v-135dc5aa class=​"aifnmjmchg light" nocolor>​…​</div>​</html>​
+content.js:850 dict send by keypress-- Object
+content.js:851 ParentDict-- Object
+content.js:928 add_iframe_events false
+content.js:1119 dict Object
+content.js:1120 ParentDict Object
+content.js:1127 repeatDict3 keypress iframe Object
+(index):1 Unchecked runtime.lastError: The message port closed before a response was received.Understand this error
+(index):1  Failed to load resource: the server responded with a status of 500 ()Understand this error
