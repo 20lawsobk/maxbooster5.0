@@ -48,14 +48,15 @@ export interface AppConfig {
     useTempStorage: boolean; // true = local, false = S3
   };
 
-  // Storage (S3/Object Storage)
+  // Storage (S3/Object Storage/Replit)
   storage: {
-    provider: 'local' | 's3';
+    provider: 'local' | 's3' | 'replit';
     bucket?: string;
     region?: string;
     endpoint?: string;
     accessKeyId?: string;
     secretAccessKey?: string;
+    replitBucketId?: string;
   };
 
   // Job Queue
@@ -145,12 +146,15 @@ export const config: AppConfig = {
   },
 
   storage: {
-    provider: (process.env.STORAGE_PROVIDER as 'local' | 's3') || 'local',
+    // Auto-detect Replit storage if REPLIT_BUCKET_ID is available
+    provider: (process.env.STORAGE_PROVIDER as 'local' | 's3' | 'replit') || 
+              (process.env.REPLIT_BUCKET_ID ? 'replit' : 'local'),
     bucket: process.env.S3_BUCKET,
     region: process.env.AWS_REGION || 'us-east-1',
     endpoint: process.env.S3_ENDPOINT, // For MinIO/custom S3
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    replitBucketId: process.env.REPLIT_BUCKET_ID,
   },
 
   queue: {
@@ -219,6 +223,8 @@ export function logConfig(): void {
   console.log(`   Storage: ${config.storage.provider}`);
   if (config.storage.provider === 's3') {
     console.log(`   S3 Bucket: ${config.storage.bucket}`);
+  } else if (config.storage.provider === 'replit') {
+    console.log(`   📦 Replit App Storage Bucket: ${config.storage.replitBucketId}`);
   }
   console.log(`   Max File Size: ${(config.upload.maxFileSize / 1024 / 1024).toFixed(0)}MB`);
 }

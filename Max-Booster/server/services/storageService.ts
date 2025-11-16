@@ -1,16 +1,17 @@
 /**
  * Storage Service - Abstraction layer for file storage
  * 
- * Supports both local filesystem (development) and S3 (production).
+ * Supports local filesystem (development), S3, and Replit App Storage (production).
  * Switch between them using STORAGE_PROVIDER environment variable.
  * 
  * This enables the platform to scale without code changes:
  * - Development: Uses local filesystem
- * - Production: Uses S3/object storage
+ * - Production: Uses S3 or Replit App Storage
  */
 
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Client } from '@replit/object-storage';
 import { config } from '../config/defaults.js';
 import fs from 'fs/promises';
 import path from 'path';
@@ -217,6 +218,74 @@ class S3StorageProvider implements StorageProvider {
 }
 
 /**
+ * Replit App Storage Provider
+ * Used in production when deployed on Replit, stores files in Replit cloud storage
+ */
+class ReplitStorageProvider implements StorageProvider {
+  private client: Client;
+  private bucketId: string;
+
+  constructor() {
+    if (!config.storage.replitBucketId) {
+      throw new Error('REPLIT_BUCKET_ID is required when using replit storage provider');
+    }
+
+    this.bucketId = config.storage.replitBucketId;
+    this.client = new Client();
+  }
+
+  async uploadFile(file: Buffer, key: string, contentType?: string): Promise<string> {
+    const result = await this.client.uploadFromBytes(key, file, {
+      contentType: contentType,
+    });
+
+    if (!result.ok) {
+      throw new Error(`Replit storage upload failed: ${result.error}`);
+    }
+
+    return key;
+  }
+
+  async downloadFile(key: string): Promise<Buffer> {
+    const result = await this.client.downloadAsBytes(key);
+
+    if (!result.ok) {
+      throw new Error(`Replit storage download failed: ${result.error}`);
+    }
+
+    return result.value;
+  }
+
+  async deleteFile(key: string): Promise<void> {
+    const result = await this.client.delete(key);
+
+    if (!result.ok) {
+      throw new Error(`Replit storage delete failed: ${result.error}`);
+    }
+  }
+
+  async getUploadUrl(key: string, contentType: string, expiresIn?: number): Promise<string | null> {
+    // Replit storage doesn't support presigned URLs
+    return null;
+  }
+
+  async getDownloadUrl(key: string, expiresIn?: number): Promise<string> {
+    // Return public URL for Replit storage
+    return `https://storage.replit.com/${this.bucketId}/${key}`;
+  }
+
+  async fileExists(key: string): Promise<boolean> {
+    const result = await this.client.exists(key);
+
+    if (!result.ok) {
+      return false;
+    }
+
+    return result.value;
+  }
+}
+
+/**
  * Storage Service Singleton
  * Automatically uses the correct provider based on configuration
  */
@@ -227,6 +296,9 @@ class StorageService {
     if (config.storage.provider === 's3') {
       console.log('📦 Using S3 storage provider');
       this.provider = new S3StorageProvider();
+    } else if (config.storage.provider === 'replit') {
+      console.log('📦 Using Replit App Storage provider');
+      this.provider = new ReplitStorageProvider();
     } else {
       console.log('📦 Using local storage provider');
       this.provider = new LocalStorageProvider();
@@ -322,4 +394,4 @@ class StorageService {
 export const storageService = new StorageService();
 
 // Export for testing/mocking
-export { LocalStorageProvider, S3StorageProvider };
+export { LocalStorageProvider, S3StorageProvider, ReplitStorageProvider };
