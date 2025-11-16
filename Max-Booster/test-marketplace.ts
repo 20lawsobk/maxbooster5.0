@@ -5,6 +5,7 @@ import axios from 'axios';
 // This script tests the P2P marketplace with Stripe Connect instant payouts
 
 const API_BASE = 'http://localhost:5000/api';
+const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'TestUser123!@#';
 
 async function testMarketplace() {
   console.log('🛒 Testing Marketplace System...\n');
@@ -14,7 +15,7 @@ async function testMarketplace() {
     console.log('Step 1: Logging in as buyer...');
     const buyerLoginRes = await axios.post(`${API_BASE}/auth/login`, {
       username: 'test.monthly@maxbooster.com',
-      password: 'test123!'
+      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#'
     });
     
     const buyerCookie = buyerLoginRes.headers['set-cookie']?.[0];
@@ -33,7 +34,7 @@ async function testMarketplace() {
     console.log('\nStep 3: Logging in as seller...');
     const sellerLoginRes = await axios.post(`${API_BASE}/auth/login`, {
       username: 'test.yearly@maxbooster.com',
-      password: 'test123!'
+      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#'
     });
     
     const sellerCookie = sellerLoginRes.headers['set-cookie']?.[0];

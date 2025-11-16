@@ -5,6 +5,7 @@ import axios from 'axios';
 // This script tests the DAW, audio processing, and AI music tools
 
 const API_BASE = 'http://localhost:5000/api';
+const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'TestUser123!@#';
 
 async function testStudio() {
   console.log('🎛️  Testing Studio/Audio System...\n');
@@ -14,7 +15,7 @@ async function testStudio() {
     console.log('Step 1: Logging in as test user...');
     const loginRes = await axios.post(`${API_BASE}/auth/login`, {
       username: 'test.monthly@maxbooster.com',
-      password: 'test123!'
+      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#'
     });
     
     const sessionCookie = loginRes.headers['set-cookie']?.[0];

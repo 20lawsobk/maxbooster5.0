@@ -5,6 +5,8 @@ import axios from 'axios';
 // This script tests the comprehensive security monitoring and threat detection
 
 const API_BASE = 'http://localhost:5000/api';
+const TEST_ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || 'brandonlawson720@gmail.com';
+const TEST_ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || 'Admin123!@#$Test';
 
 async function testSecuritySystem() {
   console.log('🛡️  Testing Self-Healing Security System...\n');
@@ -13,8 +15,8 @@ async function testSecuritySystem() {
     // Step 1: Login as admin to access security endpoints
     console.log('Step 1: Logging in as admin...');
     const loginRes = await axios.post(`${API_BASE}/auth/login`, {
-      username: 'brandonlawson720@gmail.com',
-      password: 'admin123!'
+      username: TEST_ADMIN_EMAIL,
+      password: TEST_ADMIN_PASSWORD
     });
     
     const sessionCookie = loginRes.headers['set-cookie']?.[0];
