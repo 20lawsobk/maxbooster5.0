@@ -1,0 +1,124 @@
+2025-11-16 04:26:34.28
+3c4b982e
+User
+}
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"context": {
+2025-11-16 04:26:34.28
+3c4b982e
+User
+}
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"category": "unknown",
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"breadcrumbs": [],
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"stackTrace": "TypeError: Ih is not a constructor\n at https://maxbooster.replit.app/assets/studio-l-V0p2Fq.js:17:2181",
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"route": "/",
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"timestamp": "2025-11-16T09:26:34.287Z",
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"message": "Ih is not a constructor",
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"timestamp": "2025-11-16T09:26:30.553Z",
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"colno": 2181
+2025-11-16 04:26:34.28
+3c4b982e
+User
+[Error Report] {
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"action": "unhandled-error",
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"sessionId": "16413e26e7a9221ab050119d52fb55df2370d07928e5e6d06d04e2cb88a7c98e"
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"severity": "info",
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"filename": "https://maxbooster.replit.app/assets/studio-l-V0p2Fq.js",
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"stackTrace": "TypeError: Ih is not a constructor\n at https://maxbooster.replit.app/assets/studio-l-V0p2Fq.js:17:2181",
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"userEmail": null,
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"lineno": 17,
+2025-11-16 04:26:34.28
+3c4b982e
+User
+},
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"metadata": {
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"ip": "35.191.74.226",
+2025-11-16 04:26:34.28
+3c4b982e
+User
+"component": "window",
+2025-11-16 04:26:34.29
+3c4b982e
+User
+9:26:34 AM [express] POST /api/errors 200 in 3ms :: {"success":true,"message":"Errors reported succe…
+2025-11-16 04:26:34.29
+3c4b982e
+User
+9:26:34 AM [express] POST /api/errors 200 in 3ms :: {"success":true,"message":"Errors reported succe…
+2025-11-16 04:26:46.26
+3c4b982e
+User
+✅ Process Health: OK (3526570328s uptime, 107MB memory)
+2025-11-16 04:26:46.42
+3c4b982e
+User
+⚠️ Slow query detected (151ms): sql_8a5c8d17cfc16087
+2025-11-16 04:26:47.33
+3c4b982e
+User
+9:26:47 AM [express] Initial analytics anomaly detection completed
+2025-11-16 04:26:47.96
+3c4b982e
+User
+✅ Capacity healthy: Pool 5.0%, Sessions 0
+
+Collapse
+
+Wrap
