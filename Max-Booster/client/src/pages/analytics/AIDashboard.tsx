@@ -108,7 +108,8 @@ export default function AIDashboard() {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch churn predictions');
-      return response.json();
+      const data = await response.json();
+      return data.atRiskUsers || [];
     },
   });
 
