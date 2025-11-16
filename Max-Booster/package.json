@@ -10,6 +10,7 @@
     "build": "npm run build:client && npm run build:server",
     "preview": "vite preview --host",
     "start": "NODE_ENV=production node --expose-gc dist/index.js",
+    "bootstrap:admin": "tsx scripts/bootstrap-admin.ts",
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "insert-labelgrid-config": "tsx scripts/insert-labelgrid-config.ts",
