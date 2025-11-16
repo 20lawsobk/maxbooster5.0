@@ -70,167 +70,94 @@ export default function Terms() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">5. Payment and Subscription</h2>
               <p className="mb-4">
-                Max Booster operates on a subscription model:
+                Max Booster operates on a subscription model with the following plans:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong>Monthly Plan:</strong> $49/month - Billed monthly, cancel anytime</li>
-                <li><strong>Yearly Plan:</strong> $468/year - Billed annually, save 20%</li>
-                <li><strong>Lifetime Plan:</strong> $699 one-time - Unlimited access forever</li>
+                <li>Monthly Plan: $49/month - Billed monthly, cancel anytime</li>
+                <li>Annual Plan: $468/year - Billed annually, save $120/year</li>
+                <li>Lifetime Plan: $699 one-time - Permanent access, all features</li>
+              </ul>
+              <p className="mt-4 mb-4">
+                All payments are processed securely through Stripe. By subscribing, you agree to:
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-4">
+                <li>Provide accurate payment information</li>
+                <li>Automatic renewal for monthly and annual plans unless cancelled</li>
+                <li>Refunds available within 7 days of purchase (see Section 6)</li>
+                <li>Price changes with 30 days notice for existing subscribers</li>
+              </ul>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">6. Cancellation and Refunds</h2>
+              <p className="mb-4">
+                <strong>Cancellation Policy:</strong> You may cancel your subscription at any time through Settings → Billing in your account.
+              </p>
+              <p className="mb-4">
+                <strong>Refund Policy:</strong>
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-4">
+                <li><strong>7-Day Window:</strong> Full refund available within 7 days of initial purchase</li>
+                <li><strong>After 7 Days:</strong> No refunds, but you may cancel to prevent future charges</li>
+                <li><strong>Access After Cancellation:</strong> You keep access until the end of your current billing period</li>
+                <li><strong>Data Retention:</strong> Your account data is retained for 30 days after cancellation</li>
               </ul>
               <p className="mt-4">
-                All payments are processed securely through Stripe. By subscribing, you authorize Max Booster to charge your payment method on a recurring basis until you cancel.
+                To request a refund within the 7-day window, email support@maxbooster.com with your account email and purchase date.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">6. 90-Day Money-Back Guarantee</h2>
+              <h2 className="text-2xl font-semibold mb-4">7. User Content and Copyright</h2>
               <p className="mb-4">
-                We stand behind Max Booster with a simple promise: if you're not satisfied within 90 days of your purchase, we'll refund your money—no questions asked.
+                You retain all rights to your music and content. By using our services, you represent and warrant that:
               </p>
-              
-              <h3 className="text-xl font-semibold mb-3 mt-6">How the Guarantee Works:</h3>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong>90 Days to Decide:</strong> You have a full 90 days from your purchase date to request a refund</li>
-                <li><strong>All Plans Covered:</strong> Monthly, Yearly, and Lifetime subscriptions all qualify</li>
-                <li><strong>Simple Process:</strong> Email support@maxbooster.ai with "Refund Request" and your account email</li>
-                <li><strong>Fast Processing:</strong> Refunds are processed within 5-7 business days to your original payment method</li>
-                <li><strong>No Questions Asked:</strong> We won't hassle you or ask for lengthy explanations</li>
+                <li>You own or have the rights to all content you upload</li>
+                <li>Your content does not infringe any third-party rights</li>
+                <li>You grant Max Booster a license to distribute your content to selected platforms</li>
+                <li>You will not upload illegal, offensive, or copyrighted material</li>
               </ul>
-
-              <h3 className="text-xl font-semibold mb-3 mt-6">What Happens After a Refund:</h3>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Your subscription will be immediately canceled</li>
-                <li>Access to Max Booster features will end when the refund is processed</li>
-                <li>Your account data is kept for 30 days in case you change your mind and want to return</li>
-                <li>Any music you distributed remains on streaming platforms (we don't pull your releases)</li>
-                <li>Beat marketplace earnings you've already withdrawn are yours to keep</li>
-              </ul>
-
-              <h3 className="text-xl font-semibold mb-3 mt-6">Important Notes:</h3>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong>One Refund Per Customer:</strong> The 90-day guarantee applies once per customer (prevents abuse)</li>
-                <li><strong>Marketplace Earnings:</strong> Money you've earned selling beats is separate from your subscription and won't be refunded</li>
-                <li><strong>After 90 Days:</strong> After the 90-day window, subscriptions are non-refundable (but you can cancel anytime)</li>
-                <li><strong>Chargebacks:</strong> Please request a refund before filing a chargeback—chargebacks result in permanent account closure</li>
-              </ul>
-
-              <div className="mt-6 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                <p className="text-sm">
-                  <strong>Our Philosophy:</strong> We built Max Booster to help musicians succeed. If it's not working for you, we'd rather give you your money back than keep it. Simple as that.
-                </p>
-              </div>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">7. Cancellation Policy</h2>
+              <h2 className="text-2xl font-semibold mb-4">8. Prohibited Activities</h2>
               <p className="mb-4">
-                You can cancel your Max Booster subscription at any time:
+                You agree not to:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong>How to Cancel:</strong> Go to Settings → Billing → Cancel Subscription, or email support@maxbooster.ai</li>
-                <li><strong>Monthly Plans:</strong> You keep access until the end of your current billing period, then no further charges</li>
-                <li><strong>Yearly Plans:</strong> Access continues until your annual period ends, no partial refunds (unless within 90-day guarantee window)</li>
-                <li><strong>Lifetime Plans:</strong> Cannot be canceled (they're lifetime), but qualify for refund within 90 days of purchase</li>
-                <li><strong>No Penalties:</strong> No cancellation fees or hidden charges—just straightforward cancellation</li>
+                <li>Violate any laws or regulations</li>
+                <li>Infringe on intellectual property rights</li>
+                <li>Upload malicious code or viruses</li>
+                <li>Attempt to gain unauthorized access to our systems</li>
+                <li>Use automated systems to scrape or collect data</li>
+                <li>Resell or redistribute the Service</li>
               </ul>
-              <p className="mt-4">
-                After cancellation, you can still log in to download your projects and export your data for 30 days.
-              </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">8. Royalties and Earnings</h2>
+              <h2 className="text-2xl font-semibold mb-4">9. Limitation of Liability</h2>
               <p className="mb-4">
-                For music distributed through Max Booster:
+                Max Booster shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the Service.
               </p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>You retain 100% of your royalties from streaming platforms</li>
-                <li>Max Booster does not take any percentage of your streaming earnings</li>
-                <li>Payments are processed according to platform payout schedules (typically 30-90 days)</li>
-                <li>You are responsible for reporting and paying taxes on your earnings</li>
-                <li>Marketplace earnings (beat sales) are subject to a 10% platform fee for payment processing</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">9. Prohibited Uses</h2>
               <p className="mb-4">
-                You may not use the Service:
+                Our maximum liability shall not exceed the amount paid by you in the 12 months preceding the claim.
               </p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>To distribute content you don't have rights to</li>
-                <li>To upload copyrighted material without authorization</li>
-                <li>To manipulate streaming numbers or engage in fraud</li>
-                <li>To spam or send unsolicited commercial communications</li>
-                <li>To interfere with or disrupt the Service or servers</li>
-                <li>To attempt to gain unauthorized access to any portion of the Service</li>
-              </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">10. Content Guidelines</h2>
+              <h2 className="text-2xl font-semibold mb-4">10. Changes to Terms</h2>
               <p className="mb-4">
-                All content must comply with:
-              </p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Copyright laws and intellectual property rights</li>
-                <li>Platform-specific content policies</li>
-                <li>Applicable laws regarding hate speech, violence, and illegal content</li>
-                <li>Industry standards for music distribution</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">11. Termination</h2>
-              <p>
-                Max Booster may terminate or suspend your account immediately, without prior notice or liability, for any reason, including breach of these Terms. Upon termination, your right to use the Service will immediately cease.
+                We reserve the right to modify these terms at any time. We will notify you of any material changes via email or through the Service. Your continued use after changes constitutes acceptance of the new terms.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">12. Limitation of Liability</h2>
+              <h2 className="text-2xl font-semibold mb-4">11. Contact Information</h2>
               <p>
-                In no event shall Max Booster, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.
+                For questions about these Terms, please contact us at support@maxbooster.com
               </p>
             </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">13. Disclaimer</h2>
-              <p>
-                The Service is provided on an "AS IS" and "AS AVAILABLE" basis. Max Booster makes no warranties, expressed or implied, regarding the Service, including implied warranties of merchantability, fitness for a particular purpose, non-infringement, or course of performance.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">14. Governing Law</h2>
-              <p>
-                These Terms shall be governed and construed in accordance with the laws of the United States, without regard to its conflict of law provisions.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">15. Changes to Terms</h2>
-              <p>
-                Max Booster reserves the right to modify or replace these Terms at any time. Notice of any material changes will be provided by posting the new Terms on this page and updating the "Last updated" date.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">16. Contact Us</h2>
-              <p>
-                If you have any questions about these Terms, please contact us at:
-              </p>
-              <ul className="list-none space-y-2 mt-4">
-                <li><strong>Email:</strong> support@maxbooster.ai</li>
-                <li><strong>Address:</strong> Max Booster Inc., United States</li>
-              </ul>
-            </section>
-
-            <div className="mt-12 p-6 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                By using Max Booster, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>
