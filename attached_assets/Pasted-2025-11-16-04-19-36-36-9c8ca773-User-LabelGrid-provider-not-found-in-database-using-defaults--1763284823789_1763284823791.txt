@@ -1,0 +1,120 @@
+2025-11-16 04:19:36.36
+9c8ca773
+User
+⚠️ LabelGrid provider not found in database, using defaults
+2025-11-16 04:19:36.36
+9c8ca773
+User
+⚠️ Slow query detected (218ms): sql_07fd21a5504d5acc
+2025-11-16 04:19:36.37
+9c8ca773
+User
+⚠️ Slow query detected (193ms): sql_c50cd43c23217054
+2025-11-16 04:19:36.37
+9c8ca773
+User
+admin already exists
+2025-11-16 04:19:36.38
+9c8ca773
+User
+⚠️ Slow query detected (203ms): sql_c50cd43c23217054
+2025-11-16 04:19:36.38
+9c8ca773
+User
+admin already exists
+2025-11-16 04:19:36.40
+9c8ca773
+User
+testmonthly already exists
+2025-11-16 04:19:36.40
+9c8ca773
+User
+testmonthly already exists
+2025-11-16 04:19:36.42
+9c8ca773
+User
+testyearly already exists
+2025-11-16 04:19:36.43
+9c8ca773
+User
+testyearly already exists
+2025-11-16 04:19:36.45
+9c8ca773
+User
+testlifetime already exists
+2025-11-16 04:19:36.45
+9c8ca773
+User
+✅ Initialization complete - 4 accounts ready:
+2025-11-16 04:19:36.45
+9c8ca773
+User
+Admin: brandonlawson720@gmail.com / admin123! (Lifetime - No Expiry)
+2025-11-16 04:19:36.45
+9c8ca773
+User
+Test Accounts (30-day trial with full lifetime access, expires: 12/16/2025):
+2025-11-16 04:19:36.45
+9c8ca773
+User
+- test.monthly@maxbooster.com / test123!
+2025-11-16 04:19:36.45
+9c8ca773
+User
+🎛️ Seeding plugin catalog...
+2025-11-16 04:19:36.45
+9c8ca773
+User
+- test.yearly@maxbooster.com / test123!
+2025-11-16 04:19:36.45
+9c8ca773
+User
+- test.lifetime@maxbooster.com / test123!
+2025-11-16 04:19:36.46
+9c8ca773
+User
+Admin: brandonlawson720@gmail.com / admin123! (Lifetime - No Expiry)
+2025-11-16 04:19:36.46
+9c8ca773
+User
+✅ Initialization complete - 4 accounts ready:
+2025-11-16 04:19:36.46
+9c8ca773
+User
+- test.monthly@maxbooster.com / test123!
+2025-11-16 04:19:36.46
+9c8ca773
+User
+testlifetime already exists
+2025-11-16 04:19:36.46
+9c8ca773
+User
+Test Accounts (30-day trial with full lifetime access, expires: 12/16/2025):
+2025-11-16 04:19:36.48
+9c8ca773
+User
+🔧 Setting up Stripe products and prices...
+2025-11-16 04:19:36.50
+9c8ca773
+User
+✅ Plugin catalog seeded with custom peak-performance plugins
+2025-11-16 04:19:36.50
+9c8ca773
+User
+Admin initialization complete
+2025-11-16 04:19:36.53
+9c8ca773
+User
+npm notice
+2025-11-16 04:19:36.53
+9c8ca773
+User
+npm notice
+2025-11-16 04:19:36.54
+9c8ca773
+System
+main done, exiting
+2025-11-16 04:19:36.54
+9c8ca773
+System
+command finished successfully with exit code 0

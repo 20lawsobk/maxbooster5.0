@@ -92,15 +92,5 @@ export async function initializeAdmin() {
   }
 }
 
-// Run initialization if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  initializeAdmin()
-    .then(() => {
-      console.log('Admin initialization complete');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('Admin initialization failed:', error);
-      process.exit(1);
-    });
-}
+// Note: initializeAdmin() is called from server/index.ts during startup
+// No need for auto-execution here as it would cause premature process exit
