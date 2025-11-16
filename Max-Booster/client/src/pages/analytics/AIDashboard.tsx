@@ -123,7 +123,36 @@ export default function AIDashboard() {
       });
       if (!response.ok) throw new Error('Failed to fetch revenue forecasts');
       const data = await response.json();
-      return data.forecast || [];
+      
+      const currentMRR = data.currentMRR || 0;
+      const projectedMRR = data.projectedMRR || 0;
+      const growthRate = data.growthRate || 0;
+      
+      const scenarios: RevenueScenario[] = [
+        {
+          name: 'Conservative',
+          probability: 30,
+          mrr: Math.round(currentMRR * 0.9),
+          arr: Math.round(currentMRR * 0.9 * 12),
+          growth: Math.max(0, growthRate - 20),
+        },
+        {
+          name: 'Expected',
+          probability: 60,
+          mrr: currentMRR,
+          arr: currentMRR * 12,
+          growth: growthRate,
+        },
+        {
+          name: 'Optimistic',
+          probability: 10,
+          mrr: Math.round(currentMRR * 1.3),
+          arr: Math.round(currentMRR * 1.3 * 12),
+          growth: growthRate + 30,
+        },
+      ];
+      
+      return scenarios;
     },
   });
 
