@@ -4,6 +4,43 @@ Max Booster is a comprehensive AI-powered music artist career management platfor
 
 # Recent Changes
 
+## AI Analytics Now Available to All Paid Users (November 16, 2025)
+
+**Premium Value Enhancement:** AI Analytics features are now accessible to all paid subscribers, not just admins.
+
+**What Changed:**
+- Modified all 5 AI Analytics endpoints from `requireAdmin` to `requirePremium` middleware
+- **Accessible to:** Monthly ($49/mo), Yearly ($468/yr), and Lifetime ($699) subscribers
+- **Location:** `/analytics/ai` dashboard
+
+**AI Analytics Features for Premium Users:**
+1. **Predictive Metrics** (POST `/api/analytics/ai/predict-metric`)
+   - Forecast streams, engagement, and revenue trends
+   - 7-day, 30-day, and 90-day timeframes
+   - ML-powered predictions with confidence scores
+
+2. **Churn Prediction** (GET `/api/analytics/ai/predict-churn`)
+   - Identify at-risk users before they leave
+   - Risk factors and probability scores
+   - Recommended retention actions
+
+3. **Revenue Forecasting** (GET `/api/analytics/ai/forecast-revenue`)
+   - Project MRR and ARR growth
+   - 30-day, 90-day, and 180-day forecasts
+   - Confidence bands for scenario planning
+
+4. **Anomaly Detection** (GET `/api/analytics/ai/detect-anomalies`)
+   - Real-time detection of unusual metrics
+   - Severity levels and root cause analysis
+   - Automated alerts and recommendations
+
+5. **AI Insights** (GET `/api/analytics/ai/insights`)
+   - Actionable business intelligence
+   - Opportunity and trend identification
+   - Impact scoring (high/medium/low)
+
+**Value Proposition:** This positions Max Booster as the only all-in-one music platform with AI-powered analytics at this price point, significantly increasing subscriber value.
+
 ## DAW Browser Panel Plugin Catalog Fix (November 12, 2025)
 
 **Issue:** Only 10 plugins displaying in DAW browser panel instead of all 41 plugins from database.

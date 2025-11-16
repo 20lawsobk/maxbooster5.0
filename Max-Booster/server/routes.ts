@@ -2212,8 +2212,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Analytics - Admin Only
-  app.post("/api/analytics/ai/predict-metric", requireAuth, requireAdmin, async (req, res) => {
+  // AI Analytics - Premium Feature for All Paid Users
+  app.post("/api/analytics/ai/predict-metric", requireAuth, requirePremium, async (req, res) => {
     try {
       const { metric, timeframe } = req.body;
       
@@ -2238,7 +2238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/analytics/ai/predict-churn", requireAuth, requireAdmin, async (req, res) => {
+  app.get("/api/analytics/ai/predict-churn", requireAuth, requirePremium, async (req, res) => {
     try {
       const churnData = await aiAnalyticsService.predictChurn();
       res.json(churnData);
@@ -2248,7 +2248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/analytics/ai/forecast-revenue", requireAuth, requireAdmin, async (req, res) => {
+  app.get("/api/analytics/ai/forecast-revenue", requireAuth, requirePremium, async (req, res) => {
     try {
       const timeframe = (req.query.timeframe as string) || '30d';
       
@@ -2264,7 +2264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/analytics/ai/detect-anomalies", requireAuth, requireAdmin, async (req, res) => {
+  app.get("/api/analytics/ai/detect-anomalies", requireAuth, requirePremium, async (req, res) => {
     try {
       const anomalies = await aiAnalyticsService.detectAnomalies();
       res.json(anomalies);
@@ -2274,7 +2274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/analytics/ai/insights", requireAuth, requireAdmin, async (req, res) => {
+  app.get("/api/analytics/ai/insights", requireAuth, requirePremium, async (req, res) => {
     try {
       const insights = await aiAnalyticsService.generateInsights();
       res.json(insights);
