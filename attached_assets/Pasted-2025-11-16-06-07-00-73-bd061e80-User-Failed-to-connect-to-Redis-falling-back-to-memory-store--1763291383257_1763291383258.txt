@@ -1,0 +1,80 @@
+2025-11-16 06:07:00.73
+bd061e80
+User
+❌ Failed to connect to Redis, falling back to memory store: Error: Redis client not available
+2025-11-16 06:07:00.73
+bd061e80
+User
+at async file:///home/runner/workspace/Max-Booster/dist/index.js:51742:18
+2025-11-16 06:07:00.73
+bd061e80
+User
+at createSessionStore (file:///home/runner/workspace/Max-Booster/dist/index.js:35737:15)
+2025-11-16 06:07:00.73
+bd061e80
+User
+at async registerRoutes (file:///home/runner/workspace/Max-Booster/dist/index.js:39400:24)
+2025-11-16 06:07:00.73
+bd061e80
+User
+⚠️ WARNING: Using memory store in production - sessions will not persist across restarts!
+2025-11-16 06:07:00.74
+bd061e80
+User
+at server/services/aiService.ts (file:///home/runner/workspace/Max-Booster/dist/index.js:25776:17)
+2025-11-16 06:07:00.74
+bd061e80
+User
+at server/services/aiContentService.ts (file:///home/runner/workspace/Max-Booster/dist/index.js:25792:5)
+2025-11-16 06:07:00.74
+bd061e80
+User
+Failed to initialize AI service data in Redis: Error: Stream isn't writeable and enableOfflineQueue options is false
+2025-11-16 06:07:00.74
+bd061e80
+User
+at __init (file:///home/runner/workspace/Max-Booster/dist/index.js:12:56)
+2025-11-16 06:07:00.74
+bd061e80
+User
+at __init (file:///home/runner/workspace/Max-Booster/dist/index.js:12:56)
+2025-11-16 06:07:00.74
+bd061e80
+User
+at __init (file:///home/runner/workspace/Max-Booster/dist/index.js:12:56)
+2025-11-16 06:07:00.74
+bd061e80
+User
+at new AIService (file:///home/runner/workspace/Max-Booster/dist/index.js:25075:14)
+2025-11-16 06:07:00.74
+bd061e80
+User
+at EventEmitter.setex (/home/runner/workspace/Max-Booster/node_modules/ioredis/built/utils/Commander.js:90:25)
+2025-11-16 06:07:00.74
+bd061e80
+User
+at server/services/socialService.ts (file:///home/runner/workspace/Max-Booster/dist/index.js:26517:5)
+2025-11-16 06:07:00.74
+bd061e80
+User
+at EventEmitter.sendCommand (/home/runner/workspace/Max-Booster/node_modules/ioredis/built/Redis.js:363:32)
+2025-11-16 06:07:00.74
+bd061e80
+User
+at AIService.initializeInHouseAI (file:///home/runner/workspace/Max-Booster/dist/index.js:25080:26)
+2025-11-16 06:07:02.39
+bd061e80
+User
+⚠️ AIService: Redis unavailable - features will use fallback storage
+2025-11-16 06:07:55.88
+bd061e80
+User
+⚠️ Slow query detected (173ms): sql_8a5c8d17cfc16087
+2025-11-16 06:09:01.41
+bd061e80
+User
+⚠️ Slow query detected (126ms): sql_5bec4fd2b3b4241b
+2025-11-16 06:09:01.41
+bd061e80
+User
+⚠️ Slow query detected (126ms): sql_5bec4fd2b3b4241b
