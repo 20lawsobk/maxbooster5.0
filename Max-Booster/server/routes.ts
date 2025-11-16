@@ -2284,6 +2284,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Music Career AI Analytics - Premium Feature for Artists
+  const musicCareerAnalytics = await import("./services/musicCareerAnalyticsService.js");
+
+  app.post("/api/analytics/music/career-growth", requireAuth, requirePremium, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { metric, timeline } = req.body;
+      
+      if (!metric || !['streams', 'followers', 'engagement'].includes(metric)) {
+        return res.status(400).json({ error: "Invalid metric. Must be: streams, followers, or engagement" });
+      }
+      
+      if (timeline && !['30d', '90d', '180d'].includes(timeline)) {
+        return res.status(400).json({ error: "Invalid timeline. Must be: 30d, 90d, or 180d" });
+      }
+      
+      const prediction = await musicCareerAnalytics.predictCareerGrowth(user.id, metric, timeline || '30d');
+      res.json(prediction);
+    } catch (error) {
+      console.error("Error predicting career growth:", error);
+      res.status(500).json({ error: "Failed to predict career growth" });
+    }
+  });
+
+  app.get("/api/analytics/music/release-strategy", requireAuth, requirePremium, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const strategy = await musicCareerAnalytics.generateReleaseStrategy(user.id);
+      res.json(strategy);
+    } catch (error) {
+      console.error("Error generating release strategy:", error);
+      res.status(500).json({ error: "Failed to generate release strategy" });
+    }
+  });
+
+  app.get("/api/analytics/music/fanbase", requireAuth, requirePremium, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const fanbaseData = await musicCareerAnalytics.analyzeFanbase(user.id);
+      res.json(fanbaseData);
+    } catch (error) {
+      console.error("Error analyzing fanbase:", error);
+      res.status(500).json({ error: "Failed to analyze fanbase" });
+    }
+  });
+
+  app.get("/api/analytics/music/milestones", requireAuth, requirePremium, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const milestones = await musicCareerAnalytics.getCareerMilestones(user.id);
+      res.json(milestones);
+    } catch (error) {
+      console.error("Error getting career milestones:", error);
+      res.status(500).json({ error: "Failed to get career milestones" });
+    }
+  });
+
+  app.get("/api/analytics/music/insights", requireAuth, requirePremium, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const insights = await musicCareerAnalytics.generateMusicInsights(user.id);
+      res.json(insights);
+    } catch (error) {
+      console.error("Error generating music insights:", error);
+      res.status(500).json({ error: "Failed to generate music insights" });
+    }
+  });
+
   // Notification routes
   app.get('/api/notifications', requireAuth, async (req, res) => {
     try {
