@@ -208,11 +208,10 @@ app.use((req, res, next) => {
   validateConfig();
   logConfig();
   
-  // CRITICAL: Verify SendGrid webhook public key is configured in production
+  // Verify SendGrid webhook public key is configured in production
   if (process.env.NODE_ENV === 'production' && !process.env.SENDGRID_WEBHOOK_PUBLIC_KEY) {
-    console.warn('⚠️  WARNING: SENDGRID_WEBHOOK_PUBLIC_KEY not configured in production');
-    console.warn('⚠️  Email bounce tracking webhook will reject all events');
-    console.warn('⚠️  Configure this secret before enabling SendGrid Event Webhook');
+    console.log('ℹ️  SendGrid webhook signature verification disabled (SENDGRID_WEBHOOK_PUBLIC_KEY not configured)');
+    console.log('   Email delivery works normally, webhook bounce tracking disabled until key is configured');
   }
 
   // Initialize admin user

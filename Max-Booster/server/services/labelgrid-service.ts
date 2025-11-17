@@ -148,11 +148,12 @@ class LabelGridService {
         console.log(`   Base URL: ${this.baseUrl}`);
         console.log(`   Endpoints configured: ${Object.keys(this.endpoints).length}`);
       } else {
-        // Fallback to environment variables
+        // Fallback to environment variables (expected until provider is configured)
         this.baseUrl = process.env.LABELGRID_API_URL || 'https://api.labelgrid.com';
         this.endpoints = {};
         this.authHeaderFormat = 'Bearer {token}';
-        console.warn('⚠️  LabelGrid provider not found in database, using defaults');
+        this.configLoaded = true;
+        // Silent fallback - provider will be added when distribution is configured
       }
     } catch (error) {
       console.error('Failed to load LabelGrid config from database:', error);
