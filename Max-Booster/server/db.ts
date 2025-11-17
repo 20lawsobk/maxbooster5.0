@@ -56,7 +56,9 @@ class QueryTelemetry {
     
     if (duration > 100) {
       this.lifetimeSlow++;
-      console.warn(`⚠️ Slow query detected (${duration}ms):`, sqlHash);
+      const isDev = process.env.NODE_ENV === 'development';
+      const sqlPreview = isDev ? sql.substring(0, 200).replace(/\s+/g, ' ') : '';
+      console.warn(`⚠️ Slow query detected (${duration}ms):`, sqlHash, isDev ? `\n   SQL: ${sqlPreview}...` : '');
     }
     
     // Track slowest query

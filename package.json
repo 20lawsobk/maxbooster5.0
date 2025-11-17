@@ -25,6 +25,7 @@
     "googleapis": "^166.0.0",
     "music-metadata": "^11.10.0",
     "tweetnacl": "^1.0.3",
+    "vite-plugin-node-polyfills": "^0.24.0",
     "xmlbuilder2": "^4.0.0"
   }
 }
