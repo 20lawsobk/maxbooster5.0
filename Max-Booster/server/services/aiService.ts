@@ -111,17 +111,13 @@ export class AIService {
   private readonly CONTENT_STRUCTURES_PREFIX = 'ai:contentStructures:';
   private readonly GENRE_PROFILES_PREFIX = 'ai:genreProfiles:';
   private readonly AUDIO_PATTERNS_PREFIX = 'ai:audioPatterns:';
-  private redisClient: RedisClientType | null = null;
 
   constructor() {
     this.initializeInHouseAI();
   }
 
   private async getRedis(): Promise<RedisClientType | null> {
-    if (!this.redisClient) {
-      this.redisClient = await getRedisClient();
-    }
-    return this.redisClient;
+    return await getRedisClient();
   }
 
   private async initializeInHouseAI(): Promise<void> {
