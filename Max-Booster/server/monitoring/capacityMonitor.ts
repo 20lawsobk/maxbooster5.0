@@ -3,7 +3,7 @@ import { db } from '../db';
 import { sql } from 'drizzle-orm';
 
 export class CapacityMonitor {
-  private static readonly CHECK_INTERVAL = 60000; // 1 minute
+  private static readonly CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes (optimized from 1 minute to reduce slow queries)
   private static readonly ALERT_THRESHOLD = 0.75; // 75% capacity
   
   static startMonitoring() {
@@ -11,7 +11,7 @@ export class CapacityMonitor {
       await CapacityMonitor.checkCapacity();
     }, CapacityMonitor.CHECK_INTERVAL);
     
-    console.log('📊 Capacity monitoring started');
+    console.log('📊 Capacity monitoring started (checks every 5 minutes)');
   }
   
   private static async checkCapacity() {
