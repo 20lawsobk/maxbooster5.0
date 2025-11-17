@@ -128,7 +128,7 @@ export const config: AppConfig = {
 
   session: {
     secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
-    maxSessions: parseEnvInt('MAX_SESSIONS', 500000000), // 500 million sessions
+    maxSessions: parseEnvInt('MAX_SESSIONS', 80000000000), // 80 billion sessions
     ttl: parseEnvInt('SESSION_TTL', 86400), // 24 hours
     name: process.env.SESSION_NAME || 'maxbooster.sid',
   },
