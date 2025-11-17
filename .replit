@@ -64,4 +64,4 @@ run = ["sh", "-c", "cd Max-Booster && npm start"]
 build = ["sh", "-c", "cd Max-Booster && npm run build"]
 
 [objectStorage]
-defaultBucketID = "replit-objstore-2ed0f260-92e3-4bda-9be5-6e0a16acbb27"
+defaultBucketID = "replit-objstore-3340ce4d-11a4-420d-af58-a73cce467dbe"
