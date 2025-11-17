@@ -543,8 +543,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply connection guard to all database-heavy routes
   app.use('/api', ConnectionGuard.checkCapacity);
 
-  // Apply session guard to authentication routes
-  app.use(['/api/auth/login', '/api/auth/register'], SessionGuard.checkSessionCapacity);
+  // Session management is now handled by Redis - no need for PostgreSQL session guard
+  // Sessions are automatically managed by express-session with Redis store (500M capacity)
 
   // Apply critical endpoint limiter to sensitive operations
   app.use('/api/payments', criticalEndpointLimiter);
