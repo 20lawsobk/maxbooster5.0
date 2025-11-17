@@ -16,7 +16,17 @@ router.post('/sendgrid',
       const timestamp = req.headers['x-twilio-email-event-webhook-timestamp'] as string;
       const rawBody = req.body?.toString('utf-8') || '';
 
-      if (process.env.SENDGRID_WEBHOOK_PUBLIC_KEY && signature && timestamp) {
+      if (process.env.NODE_ENV === 'production' && !process.env.SENDGRID_WEBHOOK_PUBLIC_KEY) {
+        console.error('❌ CRITICAL: SendGrid webhook public key not configured in production');
+        return res.status(500).json({ error: 'Webhook verification not configured' });
+      }
+
+      if (process.env.NODE_ENV === 'production' || process.env.SENDGRID_WEBHOOK_PUBLIC_KEY) {
+        if (!signature || !timestamp) {
+          console.warn('⚠️  SendGrid webhook missing required signature headers');
+          return res.status(401).json({ error: 'Missing signature headers' });
+        }
+
         const isValid = emailTrackingService.verifySendGridSignature(
           rawBody,
           signature,
@@ -27,9 +37,6 @@ router.post('/sendgrid',
           console.warn('⚠️  SendGrid webhook signature verification failed');
           return res.status(401).json({ error: 'Signature verification failed' });
         }
-      } else if (process.env.NODE_ENV === 'production') {
-        console.warn('⚠️  SendGrid webhook signature verification is not configured in production');
-        return res.status(401).json({ error: 'Signature verification required' });
       }
 
       const payload = JSON.parse(rawBody);
