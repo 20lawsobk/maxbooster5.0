@@ -3,6 +3,7 @@
 // Implements deterministic AI processing for social content, advertising, and audio analysis
 
 import { nanoid } from 'nanoid';
+import { createGracefulRedisClient } from '../lib/gracefulRedis.js';
 
 interface SocialContentOptions {
   platform?: 'twitter' | 'instagram' | 'youtube' | 'tiktok' | 'facebook' | 'linkedin';
@@ -109,6 +110,7 @@ export class AIService {
   private readonly CONTENT_STRUCTURES_PREFIX = 'ai:contentStructures:';
   private readonly GENRE_PROFILES_PREFIX = 'ai:genreProfiles:';
   private readonly AUDIO_PATTERNS_PREFIX = 'ai:audioPatterns:';
+  private readonly redisClient = createGracefulRedisClient('AIService');
 
   constructor() {
     this.initializeInHouseAI();
@@ -117,9 +119,8 @@ export class AIService {
   private async initializeInHouseAI(): Promise<void> {
     try {
       await Promise.all([
-        redisClient.setex(
+        this.redisClient.set(
           `${this.CONTENT_STRUCTURES_PREFIX}twitter`,
-          this.REDIS_TTL,
           JSON.stringify({
             maxLength: 280,
             optimalLength: 120,
@@ -130,11 +131,11 @@ export class AIService {
               creative: ['✨ {artistic} in the studio • {trackTitle} = {creative_process} • {hashtags}'],
               promotional: ['🎧 LISTEN NOW • {trackTitle} by {artist} • {value_prop} • {hashtags}']
             }
-          })
+          }),
+          this.REDIS_TTL
         ),
-        redisClient.setex(
+        this.redisClient.set(
           `${this.CONTENT_STRUCTURES_PREFIX}instagram`,
-          this.REDIS_TTL,
           JSON.stringify({
             maxLength: 2200,
             optimalLength: 150,
@@ -145,11 +146,11 @@ export class AIService {
               creative: ['Art in motion 🎨\n\n{creative_journey}\n\n{trackTitle} born from {inspiration}. {artistic_detail}\n\n{hashtags}'],
               promotional: ['NEW MUSIC ALERT 🚨\n\n{value_proposition}\n\n{trackTitle} by {artist} • {release_info}\n\n{hashtags}']
             }
-          })
+          }),
+          this.REDIS_TTL
         ),
-        redisClient.setex(
+        this.redisClient.set(
           `${this.GENRE_PROFILES_PREFIX}electronic`,
-          this.REDIS_TTL,
           JSON.stringify({
             bpmRange: [120, 140],
             keyPreferences: ['Fm', 'Am', 'Dm', 'Cm'],
@@ -158,11 +159,11 @@ export class AIService {
             instrumentalness: 0.85,
             acousticness: 0.15,
             valence: [0.4, 0.8]
-          })
+          }),
+          this.REDIS_TTL
         ),
-        redisClient.setex(
+        this.redisClient.set(
           `${this.GENRE_PROFILES_PREFIX}hip-hop`,
-          this.REDIS_TTL,
           JSON.stringify({
             bpmRange: [70, 100],
             keyPreferences: ['Fm', 'Cm', 'Gm', 'Dm'],
@@ -171,11 +172,11 @@ export class AIService {
             instrumentalness: 0.3,
             acousticness: 0.2,
             valence: [0.3, 0.7]
-          })
+          }),
+          this.REDIS_TTL
         ),
-        redisClient.setex(
+        this.redisClient.set(
           `${this.GENRE_PROFILES_PREFIX}pop`,
-          this.REDIS_TTL,
           JSON.stringify({
             bpmRange: [100, 130],
             keyPreferences: ['C', 'G', 'Am', 'F'],
@@ -184,18 +185,19 @@ export class AIService {
             instrumentalness: 0.1,
             acousticness: 0.25,
             valence: [0.5, 0.9]
-          })
+          }),
+          this.REDIS_TTL
         ),
-        redisClient.setex(
+        this.redisClient.set(
           `${this.AUDIO_PATTERNS_PREFIX}spectral_analysis`,
-          this.REDIS_TTL,
           JSON.stringify({
             low_freq: { range: [20, 250], characteristics: ['bass', 'sub-bass', 'kick'] },
             low_mid: { range: [250, 500], characteristics: ['bass_presence', 'warmth'] },
             mid: { range: [500, 2000], characteristics: ['vocals', 'snare', 'clarity'] },
             high_mid: { range: [2000, 4000], characteristics: ['presence', 'definition'] },
             high: { range: [4000, 20000], characteristics: ['air', 'brightness', 'cymbals'] }
-          })
+          }),
+          this.REDIS_TTL
         )
       ]);
     } catch (error) {
@@ -900,7 +902,7 @@ export class AIService {
 
   private async getContentStructure(platform: string): Promise<any> {
     try {
-      const val = await redisClient.get(`${this.CONTENT_STRUCTURES_PREFIX}${platform}`);
+      const val = await this.redisClient.get(`${this.CONTENT_STRUCTURES_PREFIX}${platform}`);
       return val ? JSON.parse(val) : null;
     } catch (error) {
       console.error(`Failed to get content structure for ${platform}:`, error);
@@ -910,7 +912,7 @@ export class AIService {
 
   private async getGenreProfile(genre: string): Promise<any> {
     try {
-      const val = await redisClient.get(`${this.GENRE_PROFILES_PREFIX}${genre}`);
+      const val = await this.redisClient.get(`${this.GENRE_PROFILES_PREFIX}${genre}`);
       return val ? JSON.parse(val) : null;
     } catch (error) {
       console.error(`Failed to get genre profile for ${genre}:`, error);
@@ -920,7 +922,7 @@ export class AIService {
 
   private async getAudioPattern(key: string): Promise<any> {
     try {
-      const val = await redisClient.get(`${this.AUDIO_PATTERNS_PREFIX}${key}`);
+      const val = await this.redisClient.get(`${this.AUDIO_PATTERNS_PREFIX}${key}`);
       return val ? JSON.parse(val) : null;
     } catch (error) {
       console.error(`Failed to get audio pattern for ${key}:`, error);
