@@ -21,11 +21,37 @@ export async function createSessionStore() {
 
       // Use connect-redis for session storage (supports ioredis)
       const store = new RedisStore({
-        client: redisClient,
+        client: redisClient as any,
         prefix: 'maxbooster:sess:',
-        ttl: 24 * 60 * 60, // 24 hours in seconds
+        ttl: 86400, // 24 hours in seconds
+        disableTouch: false,
+        disableTTL: false,
       });
-      console.log('✅ Redis session store created successfully');
+      
+      // Test store connectivity
+      try {
+        // Test if the store can handle basic operations
+        await new Promise((resolve, reject) => {
+          const testSid = 'test-session-' + Date.now();
+          const testSession = { cookie: { maxAge: 86400000 }, test: true };
+          
+          store.set(testSid, testSession, (err) => {
+            if (err) {
+              reject(err);
+            } else {
+              store.destroy(testSid, (destroyErr) => {
+                if (destroyErr) console.warn('⚠️  Test session cleanup warning:', destroyErr.message);
+                resolve(true);
+              });
+            }
+          });
+        });
+        console.log('✅ Redis session store created and tested successfully');
+      } catch (testError: any) {
+        console.error('❌ Redis session store test failed:', testError.message);
+        throw testError;
+      }
+      
       return store;
     } catch (error) {
       console.error('❌ Failed to connect to Redis, falling back to memory store:', error);

@@ -746,18 +746,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Log successful login  
         auditLogger.logLogin(req, user.id, user.email, true);
         
-        // Track session in database
-        try {
-          await storage.trackSession(
-            user.id,
-            req.sessionID,
-            req.headers['user-agent'] || null,
-            req.ip || null
-          );
-        } catch (sessionError) {
-          console.error('Error tracking session:', sessionError);
-          // Don't fail login if session tracking fails
-        }
+        // Session tracking is handled by Redis - no need for PostgreSQL tracking
         
         // Send response - express-session will auto-save
         res.json({ user: { ...user, password: undefined } });
@@ -2741,15 +2730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ error: 'Failed to establish session' });
         }
         
-        // Track session in database
-        storage.trackSession(
-          user.id,
-          req.sessionID,
-          req.headers['user-agent'] || null,
-          req.ip || null
-        ).catch(sessionError => {
-          console.error('Error tracking session:', sessionError);
-        });
+        // Session tracking is handled by Redis - no need for PostgreSQL tracking
         
         res.json({ 
           user: { ...user, password: undefined },
