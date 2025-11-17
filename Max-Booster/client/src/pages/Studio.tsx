@@ -63,6 +63,14 @@ import { BrowserPanel } from '@/components/studio/BrowserPanel';
 import { InspectorPanel } from '@/components/studio/InspectorPanel';
 import { RoutingMatrix } from '@/components/studio/RoutingMatrix';
 import StudioTutorial from '@/components/studio/StudioTutorial';
+import { DeviceSelector } from '@/components/studio/DeviceSelector';
+import { MetronomeControl } from '@/components/studio/MetronomeControl';
+import { PunchRecordingMarkers } from '@/components/studio/PunchRecordingMarkers';
+import { TakeCompingLanes } from '@/components/studio/TakeCompingLanes';
+import { AudioEngineMonitor } from '@/components/studio/AudioEngineMonitor';
+import { useAudioDevices } from '@/hooks/useAudioDevices';
+import { useMIDIDevices } from '@/hooks/useMIDIDevices';
+import { useMetronome } from '@/hooks/useMetronome';
 
 // Import audio plugins and AI processors
 import { CompressorPlugin } from '@/lib/audio/plugins/CompressorPlugin';
@@ -170,10 +178,60 @@ export default function Studio() {
     toggleInspector,
     routingMatrixVisible,
     toggleRoutingMatrix,
+    selectedInputDevice,
+    selectedOutputDevice,
+    bufferSize,
+    setSelectedInputDevice,
+    setSelectedOutputDevice,
+    setBufferSize,
+    metronomeEnabled,
+    metronomeVolume,
+    setMetronomeEnabled,
+    setMetronomeVolume,
+    punchMode,
+    punchIn,
+    punchOut,
+    setPunchMode,
+    setPunchIn,
+    setPunchOut,
+    tempo,
+    setTempo,
+    timeSignature,
+    takesByTrack,
+    addTake,
+    updateTake,
+    deleteTake,
   } = useStudioStore();
+  
+  // DAW Professional Features
+  const audioDevices = useAudioDevices();
+  const midiDevices = useMIDIDevices();
+  const metronome = useMetronome({
+    bpm: tempo,
+    timeSignature: timeSignature === '4/4' ? { numerator: 4, denominator: 4 } : { numerator: 3, denominator: 4 },
+    volume: metronomeVolume,
+  });
+  
+  // Sync device selection between hook and store
+  useEffect(() => {
+    if (audioDevices.selectedInput !== selectedInputDevice) {
+      setSelectedInputDevice(audioDevices.selectedInput);
+    }
+  }, [audioDevices.selectedInput, selectedInputDevice, setSelectedInputDevice]);
   
   // Marker persistence with React Query
   const markerService = useMarkers(selectedProject?.id || null);
+  
+  // Metronome Transport Sync
+  const isPlaying = useStudioStore(state => state.isPlaying);
+  useEffect(() => {
+    if (metronomeEnabled && isPlaying) {
+      metronome.start();
+    } else {
+      metronome.stop();
+    }
+  }, [isPlaying, metronomeEnabled]);
+  
   const [isAIMixing, setIsAIMixing] = useState(false);
   const [isAIMastering, setIsAIMastering] = useState(false);
   const [showLyricsPanel, setShowLyricsPanel] = useState(false);

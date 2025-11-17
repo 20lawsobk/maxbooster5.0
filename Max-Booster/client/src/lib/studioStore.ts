@@ -1,5 +1,19 @@
 import { create } from 'zustand';
 
+export interface Take {
+  id: string;
+  takeNumber: number;
+  takeGroupId: string;
+  trackId: string;
+  startTime: number;
+  duration: number;
+  audioUrl?: string;
+  isComped: boolean;
+  isMuted: boolean;
+  rating?: number;
+  note?: string;
+}
+
 export interface Marker {
   id: string;
   name: string;
@@ -52,6 +66,22 @@ export interface StudioState {
   // Markers
   markers: Marker[];
   
+  // Audio Devices
+  selectedInputDevice: string | null;
+  selectedOutputDevice: string | null;
+  bufferSize: number;
+  
+  // Metronome Advanced
+  metronomeVolume: number;
+  
+  // Punch Recording
+  punchMode: boolean;
+  punchIn: number | null;
+  punchOut: number | null;
+  
+  // Take Comping
+  takesByTrack: Record<string, Take[]>;
+  
   // Transport Actions
   setCurrentTime: (time: number) => void;
   setIsPlaying: (playing: boolean) => void;
@@ -92,6 +122,24 @@ export interface StudioState {
   addMarker: (marker: Marker) => void;
   updateMarker: (id: string, updates: Partial<Marker>) => void;
   deleteMarker: (id: string) => void;
+  
+  // Audio Device Actions
+  setSelectedInputDevice: (deviceId: string | null) => void;
+  setSelectedOutputDevice: (deviceId: string | null) => void;
+  setBufferSize: (size: number) => void;
+  
+  // Metronome Actions
+  setMetronomeVolume: (volume: number) => void;
+  
+  // Punch Recording Actions
+  setPunchMode: (enabled: boolean) => void;
+  setPunchIn: (time: number | null) => void;
+  setPunchOut: (time: number | null) => void;
+  
+  // Take Comping Actions
+  addTake: (trackId: string, take: Take) => void;
+  updateTake: (trackId: string, takeId: string, updates: Partial<Take>) => void;
+  deleteTake: (trackId: string, takeId: string) => void;
 }
 
 export const useStudioStore = create<StudioState>((set, get) => ({
@@ -133,6 +181,22 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   routingMatrixVisible: false,
   
   markers: [],
+  
+  // Audio Devices
+  selectedInputDevice: null,
+  selectedOutputDevice: null,
+  bufferSize: 256,
+  
+  // Metronome Advanced
+  metronomeVolume: 0.5,
+  
+  // Punch Recording
+  punchMode: false,
+  punchIn: null,
+  punchOut: null,
+  
+  // Take Comping
+  takesByTrack: {},
   
   // Playhead Actions
   setCurrentTime: (time) => set({ currentTime: time }),
@@ -207,5 +271,40 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   deleteMarker: (id) => set((state) => ({ 
     markers: state.markers.filter(m => m.id !== id),
     selectedMarkerId: state.selectedMarkerId === id ? null : state.selectedMarkerId
+  })),
+  
+  // Audio Device Actions
+  setSelectedInputDevice: (deviceId) => set({ selectedInputDevice: deviceId }),
+  setSelectedOutputDevice: (deviceId) => set({ selectedOutputDevice: deviceId }),
+  setBufferSize: (size) => set({ bufferSize: size }),
+  
+  // Metronome Actions
+  setMetronomeVolume: (volume) => set({ metronomeVolume: Math.max(0, Math.min(1, volume)) }),
+  
+  // Punch Recording Actions
+  setPunchMode: (enabled) => set({ punchMode: enabled }),
+  setPunchIn: (time) => set({ punchIn: time }),
+  setPunchOut: (time) => set({ punchOut: time }),
+  
+  // Take Comping Actions
+  addTake: (trackId, take) => set((state) => ({ 
+    takesByTrack: {
+      ...state.takesByTrack,
+      [trackId]: [...(state.takesByTrack[trackId] || []), take]
+    }
+  })),
+  updateTake: (trackId, takeId, updates) => set((state) => ({ 
+    takesByTrack: {
+      ...state.takesByTrack,
+      [trackId]: (state.takesByTrack[trackId] || []).map(t => 
+        t.id === takeId ? { ...t, ...updates } : t
+      )
+    }
+  })),
+  deleteTake: (trackId, takeId) => set((state) => ({ 
+    takesByTrack: {
+      ...state.takesByTrack,
+      [trackId]: (state.takesByTrack[trackId] || []).filter(t => t.id !== takeId)
+    }
   })),
 }));

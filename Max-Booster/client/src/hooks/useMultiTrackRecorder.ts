@@ -35,9 +35,14 @@ export interface MultiTrackRecordingState {
   bufferSize: number;
 }
 
-export function useMultiTrackRecorder() {
+export function useMultiTrackRecorder(selectedDeviceId?: string | null, bufferSize?: number) {
   const { context, isSupported } = useAudioContext();
   const audioDevices = useAudioDevices();
+  
+  // Use provided device/buffer OR fallback to audioDevices state
+  const effectiveDeviceId = selectedDeviceId ?? audioDevices.selectedInput;
+  const effectiveBufferSize = bufferSize ?? 256;
+  
   const [state, setState] = useState<MultiTrackRecordingState>({
     isRecording: false,
     isPunched: false,
@@ -46,8 +51,8 @@ export function useMultiTrackRecorder() {
     duration: 0,
     inputLevels: new Map(),
     latencyMs: 0,
-    selectedInputDevice: null,
-    bufferSize: 256,
+    selectedInputDevice: effectiveDeviceId,
+    bufferSize: effectiveBufferSize,
   });
 
   const analyzerNodesRef = useRef<Map<string, AnalyserNode>>(new Map());
@@ -70,9 +75,9 @@ export function useMultiTrackRecorder() {
     if (!context || !isSupported) return null;
 
     try {
-      // Use selected input device from audioDevices hook
+      // Use selected input device
       const stream = await audioDevices.getInputStream(
-        state.selectedInputDevice || undefined,
+        effectiveDeviceId || undefined,
         {
           echoCancellation: true,
           noiseSuppression: true,
@@ -113,7 +118,7 @@ export function useMultiTrackRecorder() {
       console.error('Error starting input monitoring:', error);
       return null;
     }
-  }, [context, isSupported, audioDevices, state.selectedInputDevice]);
+  }, [context, isSupported, audioDevices, effectiveDeviceId]);
 
   const stopInputMonitoring = useCallback((trackId: string, monitoringData: any) => {
     if (monitoringData) {
@@ -158,7 +163,7 @@ export function useMultiTrackRecorder() {
       for (const track of armedTracks) {
         // Use selected input device for recording
         const stream = await audioDevices.getInputStream(
-          state.selectedInputDevice || undefined,
+          effectiveDeviceId || undefined,
           {
             echoCancellation: true,
             noiseSuppression: true,
@@ -230,7 +235,7 @@ export function useMultiTrackRecorder() {
       console.error('Error starting multi-track recording:', error);
       throw error;
     }
-  }, [context, isSupported, state.isRecording]);
+  }, [context, isSupported, state.isRecording, audioDevices, effectiveDeviceId]);
 
   const stopRecording = useCallback(async (): Promise<Map<string, Blob>> => {
     const recordedBlobs = new Map<string, Blob>();
