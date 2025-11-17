@@ -3,9 +3,6 @@ import { AutonomousAutopilot } from '../autonomous-autopilot.js';
 import { customAI } from '../custom-ai-engine.js';
 import { storage } from '../storage.js';
 import { config } from '../config/defaults.js';
-import { createLegacyGracefulRedisClient } from '../lib/gracefulRedis.js';
-
-const redisClient = createLegacyGracefulRedisClient('Social Amplification');
 
 /**
  * REVOLUTIONARY ZERO-COST SOCIAL AMPLIFICATION SYSTEM

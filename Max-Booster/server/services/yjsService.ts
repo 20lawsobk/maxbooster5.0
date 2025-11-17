@@ -2,7 +2,7 @@ import * as Y from 'yjs';
 import { storage } from '../storage';
 import crypto from 'crypto';
 import { config } from '../config/defaults.js';
-import { createLegacyGracefulRedisClient } from '../lib/gracefulRedis.js';
+import { getRedisClient } from '../lib/redisConnectionFactory.js';
 
 // Yjs document structure:
 // {
@@ -16,9 +16,6 @@ function generateHash(data: Uint8Array): string {
   return crypto.createHash('sha256').update(data).digest('hex');
 }
 
-// Redis client for Yjs document caching (shared across all server instances)
-const redisClient = createLegacyGracefulRedisClient('Yjs Collaboration');
-
 export class YjsCollaborationService {
   private saveTimers: Map<string, NodeJS.Timeout> = new Map();
   private readonly SAVE_DEBOUNCE_MS = 2000; // Save snapshots every 2 seconds max
@@ -29,7 +26,16 @@ export class YjsCollaborationService {
   async loadDocument(projectId: string): Promise<Y.Doc> {
     // Try to load from Redis cache first (shared across all server instances)
     const redisKey = `${this.REDIS_DOC_PREFIX}${projectId}`;
-    const cachedState = await redisClient.get(redisKey);
+    let cachedState: string | null = null;
+    
+    try {
+      const redis = await getRedisClient();
+      if (redis) {
+        cachedState = await redis.get(redisKey);
+      }
+    } catch (error) {
+      // Gracefully degrade to database if Redis unavailable
+    }
     
     const doc = new Y.Doc();
     
@@ -61,7 +67,14 @@ export class YjsCollaborationService {
           Y.applyUpdate(doc, new Uint8Array(buffer));
           
           // Cache in Redis for future requests
-          await redisClient.setex(redisKey, this.REDIS_TTL, snapshot.documentState);
+          try {
+            const redis = await getRedisClient();
+            if (redis) {
+              await redis.setEx(redisKey, this.REDIS_TTL, snapshot.documentState);
+            }
+          } catch (error) {
+            // Redis cache update failed, but document is loaded from DB
+          }
         } catch (error) {
           console.error('Failed to load snapshot for project:', projectId, error);
         }
@@ -93,7 +106,14 @@ export class YjsCollaborationService {
           });
           
           // Update Redis cache (shared across instances)
-          await redisClient.setex(redisKey, this.REDIS_TTL, base64State);
+          try {
+            const redis = await getRedisClient();
+            if (redis) {
+              await redis.setEx(redisKey, this.REDIS_TTL, base64State);
+            }
+          } catch (error) {
+            // Redis cache update failed, but snapshot saved to DB
+          }
           
           // Clean up old snapshots (keep last 10)
           await storage.deleteOldCollabSnapshots(projectId, 10);
@@ -119,22 +139,44 @@ export class YjsCollaborationService {
     
     // Optionally clear Redis cache (useful when project is deleted)
     if (clearCache) {
-      const redisKey = `${this.REDIS_DOC_PREFIX}${projectId}`;
-      await redisClient.del(redisKey);
+      try {
+        const redisKey = `${this.REDIS_DOC_PREFIX}${projectId}`;
+        const redis = await getRedisClient();
+        if (redis) {
+          await redis.del(redisKey);
+        }
+      } catch (error) {
+        // Redis cache clear failed, not critical
+      }
     }
   }
   
   // Invalidate Redis cache for a project (forces reload from database)
   async invalidateCache(projectId: string) {
-    const redisKey = `${this.REDIS_DOC_PREFIX}${projectId}`;
-    await redisClient.del(redisKey);
+    try {
+      const redisKey = `${this.REDIS_DOC_PREFIX}${projectId}`;
+      const redis = await getRedisClient();
+      if (redis) {
+        await redis.del(redisKey);
+      }
+    } catch (error) {
+      // Redis cache clear failed, not critical
+    }
   }
   
   // Check if document exists in Redis cache
   async isCached(projectId: string): Promise<boolean> {
-    const redisKey = `${this.REDIS_DOC_PREFIX}${projectId}`;
-    const exists = await redisClient.exists(redisKey);
-    return exists === 1;
+    try {
+      const redisKey = `${this.REDIS_DOC_PREFIX}${projectId}`;
+      const redis = await getRedisClient();
+      if (redis) {
+        const exists = await redis.exists(redisKey);
+        return exists === 1;
+      }
+    } catch (error) {
+      // Redis unavailable, assume not cached
+    }
+    return false;
   }
 }
 

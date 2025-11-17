@@ -15,9 +15,7 @@ import { config } from './config/defaults.js';
 import { storage } from "./storage";
 import { auditLogger } from "./middleware/auditLogger";
 import { trackRequest, trackError } from "./services/securityMonitoringService";
-import { createLegacyGracefulRedisClient } from "./lib/gracefulRedis";
-
-const analyticsRedisClient = createLegacyGracefulRedisClient('Analytics');
+import { getRedisClient } from "./lib/redisConnectionFactory";
 import { setupReliabilityEndpoints } from "./routes/reliability-endpoints";
 import studioMarkersRouter from "./routes/studioMarkers";
 import distributionRoutes from "./routes/distribution";
@@ -333,6 +331,30 @@ function getPaginationParams(req: any): { offset: number; limit: number; page: n
 
 const ANALYTICS_CACHE_PREFIX = 'analytics:cache:';
 const ANALYTICS_CACHE_TTL = 300;
+
+// Analytics Redis cache helpers with graceful degradation
+async function getAnalyticsCache(key: string): Promise<string | null> {
+  try {
+    const redis = await getRedisClient();
+    if (redis) {
+      return await redis.get(`${ANALYTICS_CACHE_PREFIX}${key}`);
+    }
+  } catch (error) {
+    // Redis unavailable, skip cache
+  }
+  return null;
+}
+
+async function setAnalyticsCache(key: string, value: string, ttl: number = ANALYTICS_CACHE_TTL): Promise<void> {
+  try {
+    const redis = await getRedisClient();
+    if (redis) {
+      await redis.setEx(`${ANALYTICS_CACHE_PREFIX}${key}`, ttl, value);
+    }
+  } catch (error) {
+    // Redis unavailable, skip cache
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Production-ready session configuration with Redis fallback
@@ -2861,7 +2883,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
     try {
       const cacheKey = 'admin_analytics';
-      const cached = await analyticsRedisClient.get(`${ANALYTICS_CACHE_PREFIX}${cacheKey}`);
+      const cached = await getAnalyticsCache(cacheKey);
       
       if (cached) {
         return res.json(JSON.parse(cached));
@@ -2889,11 +2911,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         topCountries: []
       };
       
-      await analyticsRedisClient.setex(
-        `${ANALYTICS_CACHE_PREFIX}${cacheKey}`,
-        ANALYTICS_CACHE_TTL,
-        JSON.stringify(response)
-      );
+      await setAnalyticsCache(cacheKey, JSON.stringify(response));
       
       res.json(response);
     } catch (error: any) {
@@ -8526,7 +8544,7 @@ app.get("/api/analytics/overview", requireAuth, requirePremium, async (req, res)
     const userId = (req.user as any).id;
     const days = parseInt(req.query.days as string) || 30;
     const cacheKey = `analytics_${userId}_${days}`;
-    const cached = await analyticsRedisClient.get(`${ANALYTICS_CACHE_PREFIX}${cacheKey}`);
+    const cached = await getAnalyticsCache(cacheKey);
     
     if (cached) {
       return res.json(JSON.parse(cached));
@@ -8534,11 +8552,7 @@ app.get("/api/analytics/overview", requireAuth, requirePremium, async (req, res)
 
     const analytics = await storage.getAnalytics(userId, days);
     
-    await analyticsRedisClient.setex(
-      `${ANALYTICS_CACHE_PREFIX}${cacheKey}`,
-      ANALYTICS_CACHE_TTL,
-      JSON.stringify(analytics)
-    );
+    await setAnalyticsCache(cacheKey, JSON.stringify(analytics));
     
     res.json(analytics);
   } catch (error) {
@@ -12282,7 +12296,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
                   // Send immediate analytics update
                   try {
                     const cacheKey = `ws_analytics_${userId}`;
-                    const cached = await analyticsRedisClient.get(`${ANALYTICS_CACHE_PREFIX}${cacheKey}`);
+                    const cached = await getAnalyticsCache(cacheKey);
                     const now = Date.now();
                     
                     let analyticsData;
@@ -12300,11 +12314,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
                           listeners: dashboardStats.monthlyGrowth?.socialReach || 0
                         }
                       };
-                      await analyticsRedisClient.setex(
-                        `${ANALYTICS_CACHE_PREFIX}${cacheKey}`,
-                        1,
-                        JSON.stringify(analyticsData)
-                      );
+                      await setAnalyticsCache(cacheKey, JSON.stringify(analyticsData), 1);
                     }
                     
                     ws.send(JSON.stringify({
@@ -12365,7 +12375,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         try {
           const userId = subscription.userId;
           const cacheKey = `ws_analytics_${userId}`;
-          const cached = await analyticsRedisClient.get(`${ANALYTICS_CACHE_PREFIX}${cacheKey}`);
+          const cached = await getAnalyticsCache(cacheKey);
           const now = Date.now();
           
           let analyticsData;
@@ -12383,11 +12393,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
                 listeners: dashboardStats.monthlyGrowth?.socialReach || 0
               }
             };
-            await analyticsRedisClient.setex(
-              `${ANALYTICS_CACHE_PREFIX}${cacheKey}`,
-              1,
-              JSON.stringify(analyticsData)
-            );
+            await setAnalyticsCache(cacheKey, JSON.stringify(analyticsData), 1);
           }
           
           ws.send(JSON.stringify({

@@ -3,9 +3,6 @@
 // Implements deterministic AI processing for social content, advertising, and audio analysis
 
 import { nanoid } from 'nanoid';
-import { createLegacyGracefulRedisClient } from '../lib/gracefulRedis.js';
-
-const redisClient = createLegacyGracefulRedisClient('AIService');
 
 interface SocialContentOptions {
   platform?: 'twitter' | 'instagram' | 'youtube' | 'tiktok' | 'facebook' | 'linkedin';

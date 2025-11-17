@@ -5,10 +5,6 @@ import { db } from '../db';
 import { apiKeys, apiUsage, insertApiKeySchema, insertApiUsageSchema } from '@shared/schema';
 import { eq, and, desc, sql, gte } from 'drizzle-orm';
 import { config } from '../config/defaults';
-import { createLegacyGracefulRedisClient } from '../lib/gracefulRedis';
-
-// Redis client for rate limiting
-const redisClient = createLegacyGracefulRedisClient('API Rate Limiter');
 
 // Extended Express Request with API key info
 export interface ApiKeyRequest extends Request {
