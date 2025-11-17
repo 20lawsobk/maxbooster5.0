@@ -129,11 +129,33 @@ interface MusicInsight {
   priority: number;
 }
 
-// Last updated: 2025-11-16 22:30 UTC - Added Music Career Analytics
+// Admin-specific interfaces
+interface AdminAnalytics {
+  totalUsers: number;
+  totalProjects: number;
+  totalRevenue: number;
+  recentSignups: number;
+  activeUsers: number;
+  monthlyGrowth: number;
+  subscriptionStats: Array<{ tier: string; count: number }>;
+}
+
+interface PlatformMetrics {
+  cpu: number;
+  memory: number;
+  activeUsers: number;
+  uptime: number;
+  responseTime: number;
+}
+
+// Last updated: 2025-11-17 - Added Admin-specific Analytics
 export default function AIDashboard() {
   const { user } = useAuth();
   const [selectedMetric, setSelectedMetric] = useState('users');
   const [timeRange, setTimeRange] = useState('30d');
+  
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin';
 
   const { data: predictions, isLoading: loadingPredictions, error: predictionsError } = useQuery<MetricPrediction[]>({
     queryKey: ['/api/analytics/ai/predict-metric', selectedMetric, timeRange],
@@ -305,6 +327,36 @@ export default function AIDashboard() {
     },
   });
 
+  // Admin-only queries
+  const { data: adminAnalytics, isLoading: loadingAdminAnalytics } = useQuery<AdminAnalytics>({
+    queryKey: ['/api/admin/analytics'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/analytics', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch admin analytics');
+      return response.json();
+    },
+    enabled: isAdmin,
+  });
+
+  const { data: platformMetrics, isLoading: loadingPlatformMetrics } = useQuery<PlatformMetrics>({
+    queryKey: ['/api/admin/metrics'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/metrics', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch platform metrics');
+      return response.json();
+    },
+    enabled: isAdmin,
+    refetchInterval: 30000, // Refresh every 30 seconds for admins
+  });
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
@@ -369,7 +421,7 @@ export default function AIDashboard() {
         </div>
 
         <Tabs defaultValue="predictions" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-9' : 'grid-cols-9'}`}>
             <TabsTrigger value="predictions">
               <TrendingUp className="w-4 h-4 mr-1" />
               Predictions
@@ -390,6 +442,26 @@ export default function AIDashboard() {
               <Sparkles className="w-4 h-4 mr-1" />
               Insights
             </TabsTrigger>
+            <TabsTrigger value="career">
+              <Target className="w-4 h-4 mr-1" />
+              Career
+            </TabsTrigger>
+            <TabsTrigger value="fanbase">
+              <Users className="w-4 h-4 mr-1" />
+              Fanbase
+            </TabsTrigger>
+            {isAdmin && (
+              <>
+                <TabsTrigger value="platform">
+                  <Shield className="w-4 h-4 mr-1" />
+                  Platform
+                </TabsTrigger>
+                <TabsTrigger value="admin-overview">
+                  <Activity className="w-4 h-4 mr-1" />
+                  Overview
+                </TabsTrigger>
+              </>
+            )}
           </TabsList>
 
           <TabsContent value="predictions" className="space-y-4">
@@ -820,6 +892,458 @@ export default function AIDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Music Career Analytics Tabs - Available to all paid users */}
+          <TabsContent value="career" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Current {careerMetric}</p>
+                      <p className="text-2xl font-bold">{careerGrowth?.currentValue?.toLocaleString() || 0}</p>
+                    </div>
+                    <TrendingUp className="w-8 h-8 text-blue-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Predicted</p>
+                      <p className="text-2xl font-bold">{careerGrowth?.predictedValue?.toLocaleString() || 0}</p>
+                    </div>
+                    <Target className="w-8 h-8 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Growth Rate</p>
+                      <p className="text-2xl font-bold">{careerGrowth?.growthRate?.toFixed(1) || 0}%</p>
+                    </div>
+                    <Activity className="w-8 h-8 text-purple-600" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Career Growth Prediction</CardTitle>
+                    <CardDescription>AI-powered forecasts for your music career metrics</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Select value={careerMetric} onValueChange={setCareerMetric}>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="streams">Streams</SelectItem>
+                        <SelectItem value="followers">Followers</SelectItem>
+                        <SelectItem value="engagement">Engagement</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={careerTimeline} onValueChange={setCareerTimeline}>
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30d">30 Days</SelectItem>
+                        <SelectItem value="90d">90 Days</SelectItem>
+                        <SelectItem value="180d">180 Days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {loadingCareerGrowth ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Analyzing career trajectory...</p>
+                  </div>
+                ) : careerGrowthError ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="font-semibold">Unable to load career predictions</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-medium mb-3">AI Recommendations</h4>
+                      <div className="space-y-2">
+                        {(careerGrowth?.recommendations || []).map((rec, index) => (
+                          <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded">
+                            <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                            <span className="text-sm">{rec}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <Alert>
+                      <Brain className="h-4 w-4" />
+                      <AlertDescription>
+                        Confidence: {careerGrowth?.confidence || 0}% - Based on historical data and industry trends
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Career Milestones</CardTitle>
+                <CardDescription>Track your progress toward major achievements</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingMilestones ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Loading milestones...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {(careerMilestones || []).map((milestone, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium capitalize">{milestone.type}</span>
+                          <Badge variant="outline">{milestone.progress}% complete</Badge>
+                        </div>
+                        <Progress value={milestone.progress} className="h-2" />
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span>Current: {milestone.current?.toLocaleString()}</span>
+                          <span>Next: {milestone.nextMilestone?.toLocaleString()}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Est. completion: {milestone.estimatedDate}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="fanbase" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Fans</p>
+                      <p className="text-2xl font-bold">{fanbaseData?.totalFans?.toLocaleString() || 0}</p>
+                    </div>
+                    <Users className="w-8 h-8 text-blue-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Active Listeners</p>
+                      <p className="text-2xl font-bold">{fanbaseData?.activeListeners?.toLocaleString() || 0}</p>
+                    </div>
+                    <Activity className="w-8 h-8 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Engagement Rate</p>
+                      <p className="text-2xl font-bold">{fanbaseData?.engagementRate?.toFixed(1) || 0}%</p>
+                    </div>
+                    <Sparkles className="w-8 h-8 text-purple-600" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Fanbase Insights</CardTitle>
+                <CardDescription>Understand your audience demographics and behavior</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingFanbase ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Analyzing fanbase...</p>
+                  </div>
+                ) : fanbaseError ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="font-semibold">Unable to load fanbase data</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-sm font-medium mb-3">Top Platforms</h4>
+                      <div className="space-y-2">
+                        {(fanbaseData?.topPlatforms || []).map((platform, index) => (
+                          <div key={index} className="flex items-center justify-between">
+                            <span className="text-sm">{platform.platform}</span>
+                            <div className="flex items-center gap-2">
+                              <Progress value={platform.percentage} className="h-2 w-24" />
+                              <span className="text-sm text-muted-foreground w-12 text-right">
+                                {platform.percentage}%
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-medium mb-3">Demographics</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-2">Top Locations</p>
+                          <div className="space-y-1">
+                            {(fanbaseData?.demographics?.topLocations || []).map((location, index) => (
+                              <Badge key={index} variant="outline" className="text-xs mr-1">
+                                {location}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-2">Peak Listening Times</p>
+                          <div className="space-y-1">
+                            {(fanbaseData?.demographics?.peakListeningTimes || []).map((time, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs mr-1">
+                                <Clock className="w-3 h-3 mr-1" />
+                                {time}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-medium mb-3">Growth Opportunities</h4>
+                      <div className="space-y-2">
+                        {(fanbaseData?.growthOpportunities || []).map((opportunity, index) => (
+                          <div key={index} className="flex items-start gap-2 p-3 bg-primary/5 rounded">
+                            <Target className="w-5 h-5 text-primary mt-0.5" />
+                            <span className="text-sm">{opportunity}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Release Strategy</CardTitle>
+                <CardDescription>Optimal timing and approach for your next release</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingReleaseStrategy ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Generating strategy...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-muted/50 rounded">
+                        <p className="text-xs text-muted-foreground mb-1">Best Release Day</p>
+                        <p className="text-lg font-semibold">{releaseStrategy?.bestReleaseDay || 'N/A'}</p>
+                      </div>
+                      <div className="p-4 bg-muted/50 rounded">
+                        <p className="text-xs text-muted-foreground mb-1">Best Release Time</p>
+                        <p className="text-lg font-semibold">{releaseStrategy?.bestReleaseTime || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium mb-3">AI Recommendations</h4>
+                      <div className="space-y-2">
+                        {(releaseStrategy?.recommendations || []).map((rec, index) => (
+                          <div key={index} className="flex items-start gap-2 text-sm p-2 bg-muted/30 rounded">
+                            <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5" />
+                            <span>{rec}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Admin-only tabs */}
+          {isAdmin && (
+            <>
+              <TabsContent value="platform" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Platform Uptime</p>
+                          <p className="text-2xl font-bold">{platformMetrics?.uptime || 0}%</p>
+                        </div>
+                        <Activity className="w-8 h-8 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Active Users</p>
+                          <p className="text-2xl font-bold">{platformMetrics?.activeUsers || 0}</p>
+                        </div>
+                        <Users className="w-8 h-8 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Response Time</p>
+                          <p className="text-2xl font-bold">{platformMetrics?.responseTime || 0}ms</p>
+                        </div>
+                        <Zap className="w-8 h-8 text-yellow-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>System Resources</CardTitle>
+                    <CardDescription>Real-time platform performance metrics</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {loadingPlatformMetrics ? (
+                      <div className="text-center py-12">
+                        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">Loading platform metrics...</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium">CPU Usage</span>
+                            <span className="text-sm text-muted-foreground">{platformMetrics?.cpu || 0}%</span>
+                          </div>
+                          <Progress value={platformMetrics?.cpu || 0} className="h-2" />
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium">Memory Usage</span>
+                            <span className="text-sm text-muted-foreground">{platformMetrics?.memory || 0}%</span>
+                          </div>
+                          <Progress value={platformMetrics?.memory || 0} className="h-2" />
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="admin-overview" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Total Users</p>
+                          <p className="text-2xl font-bold">{adminAnalytics?.totalUsers || 0}</p>
+                        </div>
+                        <Users className="w-8 h-8 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Total Revenue</p>
+                          <p className="text-2xl font-bold">${adminAnalytics?.totalRevenue || 0}</p>
+                        </div>
+                        <DollarSign className="w-8 h-8 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Recent Signups</p>
+                          <p className="text-2xl font-bold">{adminAnalytics?.recentSignups || 0}</p>
+                        </div>
+                        <TrendingUp className="w-8 h-8 text-purple-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Growth Rate</p>
+                          <p className="text-2xl font-bold">{adminAnalytics?.monthlyGrowth?.toFixed(1) || 0}%</p>
+                        </div>
+                        <Activity className="w-8 h-8 text-orange-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Platform Overview</CardTitle>
+                    <CardDescription>Comprehensive platform analytics and user distribution</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingAdminAnalytics ? (
+                      <div className="text-center py-12">
+                        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">Loading admin analytics...</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="text-sm font-medium mb-3">Subscription Distribution</h4>
+                          <div className="space-y-2">
+                            {(adminAnalytics?.subscriptionStats || []).map((stat, index) => (
+                              <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded">
+                                <span className="text-sm font-medium capitalize">{stat.tier || 'Free'}</span>
+                                <Badge variant="secondary">{stat.count || 0} users</Badge>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <Alert>
+                          <Shield className="h-4 w-4" />
+                          <AlertDescription>
+                            Platform-wide AI analytics provide insights into user behavior, engagement patterns, and revenue forecasting
+                            for strategic decision-making.
+                          </AlertDescription>
+                        </Alert>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </>
+          )}
         </Tabs>
       </div>
     </div>
