@@ -13,20 +13,17 @@
  * - Health checks and graceful degradation
  */
 
-import Redis, { type RedisOptions } from 'ioredis';
+import { createClient, type RedisClientType } from 'redis';
 import { config } from '../config/defaults.js';
 
 interface RedisConnectionOptions {
   maxRetries?: number;
-  enableReadyCheck?: boolean;
-  enableOfflineQueue?: boolean;
-  lazyConnect?: boolean;
 }
 
 class RedisConnectionFactory {
   private static instance: RedisConnectionFactory;
-  private primaryClient: Redis | null = null;
-  private subscribers: Map<string, Redis> = new Map();
+  private primaryClient: RedisClientType | null = null;
+  private subscribers: Map<string, RedisClientType> = new Map();
   private isInitialized: boolean = false;
   private initializationPromise: Promise<void> | null = null;
 
@@ -42,8 +39,8 @@ class RedisConnectionFactory {
   /**
    * Get or create the primary Redis client (for commands, caching, etc.)
    */
-  async getPrimaryClient(options: RedisConnectionOptions = {}): Promise<Redis> {
-    if (this.primaryClient && this.primaryClient.status === 'ready') {
+  async getPrimaryClient(options: RedisConnectionOptions = {}): Promise<RedisClientType> {
+    if (this.primaryClient && this.primaryClient.isOpen) {
       return this.primaryClient;
     }
 
@@ -68,32 +65,22 @@ class RedisConnectionFactory {
       return;
     }
 
-    const redisOptions: RedisOptions = {
-      maxRetriesPerRequest: options.maxRetries ?? 3,
-      enableReadyCheck: options.enableReadyCheck ?? true,
-      enableOfflineQueue: options.enableOfflineQueue ?? false,
-      lazyConnect: options.lazyConnect ?? false,
-      retryStrategy: (times: number) => {
-        if (times > 10) {
-          console.error('❌ Redis connection failed after 10 retries');
-          return null; // Stop retrying
-        }
-        // Exponential backoff: 50ms, 100ms, 200ms, 400ms, ...
-        const delay = Math.min(times * 50, 2000);
-        console.log(`🔄 Redis reconnecting in ${delay}ms (attempt ${times})`);
-        return delay;
-      },
-      reconnectOnError: (err) => {
-        const targetErrors = ['READONLY', 'ECONNRESET', 'ETIMEDOUT'];
-        if (targetErrors.some(targetError => err.message.includes(targetError))) {
-          return true; // Reconnect
-        }
-        return false;
-      },
-    };
-
     try {
-      this.primaryClient = new Redis(config.redis.url, redisOptions);
+      this.primaryClient = createClient({
+        url: config.redis.url,
+        socket: {
+          reconnectStrategy: (retries: number) => {
+            if (retries > 10) {
+              console.error('❌ Redis connection failed after 10 retries');
+              return new Error('Too many retries');
+            }
+            // Exponential backoff: 50ms, 100ms, 200ms, 400ms, ...
+            const delay = Math.min(retries * 50, 2000);
+            console.log(`🔄 Redis reconnecting in ${delay}ms (attempt ${retries})`);
+            return delay;
+          }
+        }
+      });
 
       // Connection event handlers
       this.primaryClient.on('connect', () => {
@@ -112,7 +99,7 @@ class RedisConnectionFactory {
         }
       });
 
-      this.primaryClient.on('close', () => {
+      this.primaryClient.on('end', () => {
         console.log('🔌 Redis primary client connection closed');
       });
 
@@ -120,15 +107,8 @@ class RedisConnectionFactory {
         console.log('🔄 Redis primary client reconnecting...');
       });
 
-      // Wait for ready state with timeout
-      await Promise.race([
-        new Promise<void>((resolve) => {
-          this.primaryClient!.once('ready', () => resolve());
-        }),
-        new Promise<void>((_, reject) => 
-          setTimeout(() => reject(new Error('Redis connection timeout')), 5000)
-        )
-      ]);
+      // Connect to Redis
+      await this.primaryClient.connect();
 
     } catch (error: any) {
       console.error('❌ Failed to initialize Redis primary client:', error.message);
@@ -142,10 +122,10 @@ class RedisConnectionFactory {
    * Get or create a subscriber client (for pub/sub operations)
    * Pub/sub requires dedicated connections
    */
-  async getSubscriberClient(channelName: string): Promise<Redis> {
+  async getSubscriberClient(channelName: string): Promise<RedisClientType> {
     if (this.subscribers.has(channelName)) {
       const client = this.subscribers.get(channelName)!;
-      if (client.status === 'ready') {
+      if (client.isOpen) {
         return client;
       }
     }
@@ -154,16 +134,15 @@ class RedisConnectionFactory {
       throw new Error('Redis URL not configured for pub/sub');
     }
 
-    const subscriber = new Redis(config.redis.url, {
-      maxRetriesPerRequest: 3,
-      enableReadyCheck: true,
-      lazyConnect: false,
+    const subscriber = createClient({
+      url: config.redis.url
     });
 
     subscriber.on('error', (error) => {
       console.error(`❌ Redis subscriber [${channelName}] error:`, error.message);
     });
 
+    await subscriber.connect();
     this.subscribers.set(channelName, subscriber);
     return subscriber;
   }
@@ -173,7 +152,7 @@ class RedisConnectionFactory {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      if (!this.primaryClient || this.primaryClient.status !== 'ready') {
+      if (!this.primaryClient || !this.primaryClient.isOpen) {
         return false;
       }
 
@@ -196,7 +175,7 @@ class RedisConnectionFactory {
       closePromises.push(
         this.primaryClient.quit().catch((err: unknown) => {
           console.error('Error closing primary client:', err);
-        }).then(() => undefined)
+        })
       );
     }
 
@@ -204,7 +183,7 @@ class RedisConnectionFactory {
       closePromises.push(
         client.quit().catch((err: unknown) => {
           console.error(`Error closing subscriber [${channel}]:`, err);
-        }).then(() => undefined)
+        })
       );
     }
 
@@ -221,7 +200,7 @@ class RedisConnectionFactory {
    * Check if Redis is initialized and ready
    */
   isReady(): boolean {
-    return this.isInitialized && this.primaryClient?.status === 'ready';
+    return this.isInitialized && this.primaryClient?.isOpen === true;
   }
 }
 
@@ -229,7 +208,7 @@ class RedisConnectionFactory {
 export const redisFactory = RedisConnectionFactory.getInstance();
 
 // Export convenience functions
-export async function getRedisClient(): Promise<Redis | null> {
+export async function getRedisClient(): Promise<RedisClientType | null> {
   try {
     return await redisFactory.getPrimaryClient();
   } catch (error) {
@@ -238,7 +217,7 @@ export async function getRedisClient(): Promise<Redis | null> {
   }
 }
 
-export async function getRedisSubscriber(channel: string): Promise<Redis> {
+export async function getRedisSubscriber(channel: string): Promise<RedisClientType> {
   return await redisFactory.getSubscriberClient(channel);
 }
 

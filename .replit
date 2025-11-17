@@ -56,16 +56,12 @@ localPort = 43763
 localPort = 44625
 
 [[ports]]
-localPort = 46125
-externalPort = 3000
-
-[[ports]]
 localPort = 46487
 
 [deployment]
-deploymentTarget = "gce"
-run = ["sh", "-c", "cd Max-Booster && npm start"]
-build = ["sh", "-c", "cd Max-Booster && npm run build"]
+deploymentTarget = "autoscale"
+run = ["npm", "run", "start"]
+build = ["npm", "run", "build"]
 
 [objectStorage]
 defaultBucketID = "replit-objstore-3340ce4d-11a4-420d-af58-a73cce467dbe"

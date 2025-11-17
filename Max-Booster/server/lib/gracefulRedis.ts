@@ -7,11 +7,11 @@
  * In production, Redis is required and failures will be logged as errors.
  */
 
-import { Redis } from 'ioredis';
+import { type RedisClientType } from 'redis';
 import { config } from '../config/defaults.js';
 
 interface RedisClientWrapper {
-  client: Redis | null;
+  client: RedisClientType | null;
   isConnected: boolean;
   get(key: string): Promise<string | null>;
   set(key: string, value: string, ttl?: number): Promise<void>;
@@ -90,60 +90,18 @@ class InMemoryFallback {
 
 export function createGracefulRedisClient(serviceName: string): RedisClientWrapper {
   const isDevelopment = config.nodeEnv === 'development';
-  let redisClient: Redis | null = null;
+  let redisClient: RedisClientType | null = null;
   let isConnected = false;
   let fallback: InMemoryFallback | null = null;
   let hasLoggedWarning = false;
 
-  try {
-    redisClient = new Redis(config.redis.url, {
-      retryStrategy: (times) => {
-        // Retry up to 5 times with exponential backoff
-        if (times > 5) {
-          return null;
-        }
-        // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
-        return Math.min(times * 500, 8000);
-      },
-      lazyConnect: true, // Don't connect immediately
-      maxRetriesPerRequest: 2, // Increased from 1 to 2
-      connectTimeout: 10000, // 10 second timeout
-      keepAlive: 30000, // Send keep-alive packets every 30s
-      enableOfflineQueue: false, // Don't queue commands when offline
-      showFriendlyErrorStack: false, // Suppress internal ioredis error stack logging
-    });
-
-    redisClient.on('connect', () => {
-      isConnected = true;
-      if (isDevelopment) {
-        console.log(`✅ ${serviceName} Redis connected`);
-      }
-    });
-
-    redisClient.on('error', (err) => {
-      isConnected = false;
-      
-      // Log once and fall back gracefully in all environments
-      if (!hasLoggedWarning) {
-        console.warn(`⚠️  ${serviceName}: Redis unavailable (${err.message}), using in-memory fallback`);
-        hasLoggedWarning = true;
-      }
-      if (!fallback) {
-        fallback = new InMemoryFallback();
-      }
-    });
-
-    redisClient.on('close', () => {
-      isConnected = false;
-    });
-
-    // Don't call connect() - let it connect lazily on first use
-    // This prevents promise rejection errors from being logged
-    // The error event handler will catch connection failures
-  } catch (err) {
-    console.warn(`⚠️  ${serviceName}: Redis initialization failed, using in-memory fallback`);
-    fallback = new InMemoryFallback();
+  // Use in-memory fallback - Redis is handled by redisConnectionFactory
+  // This service is deprecated and only used by legacy queue services
+  if (!hasLoggedWarning) {
+    console.warn(`⚠️  ${serviceName}: Using in-memory fallback (Redis managed by redisConnectionFactory)`);
+    hasLoggedWarning = true;
   }
+  fallback = new InMemoryFallback();
 
   // Helper to determine which client to use
   const getClient = () => {
@@ -275,42 +233,15 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
   };
 }
 
-export function createLegacyGracefulRedisClient(serviceName: string): Redis {
-  const isDevelopment = config.nodeEnv === 'development';
-  let hasLoggedWarning = false;
-
-  const redisClient = new Redis(config.redis.url, {
-    retryStrategy: (times) => {
-      // Retry up to 5 times with exponential backoff
-      if (times > 5) return null;
-      // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
-      return Math.min(times * 500, 8000);
-    },
-    lazyConnect: true,
-    maxRetriesPerRequest: 2, // Increased from 1 to 2
-    connectTimeout: 10000, // 10 second timeout
-    keepAlive: 30000, // Send keep-alive packets every 30s
-    enableOfflineQueue: false, // Don't queue commands when offline
-    showFriendlyErrorStack: false, // Suppress internal ioredis error stack logging
-  });
-
-  redisClient.on('error', (err) => {
-    // Log once and continue gracefully in all environments
-    if (!hasLoggedWarning) {
-      console.warn(`⚠️  ${serviceName}: Redis unavailable - features will use fallback storage`);
-      hasLoggedWarning = true;
-    }
-  });
-
-  redisClient.on('connect', () => {
-    if (isDevelopment) {
-      console.log(`✅ ${serviceName} Redis connected`);
-    }
-  });
-
-  // Don't call connect() - let it connect lazily on first use
-  // This prevents promise rejection errors from being logged
-  // The error event handler will catch connection failures
+export function createLegacyGracefulRedisClient(serviceName: string): RedisClientType {
+  // This function is deprecated - queue services should use redisConnectionFactory
+  // Returning a dummy client for backwards compatibility
+  console.warn(`⚠️  ${serviceName}: createLegacyGracefulRedisClient is deprecated, use redisConnectionFactory instead`);
   
-  return redisClient;
+  // Return a minimal client that throws on use
+  return {
+    isOpen: false,
+    get: async () => { throw new Error('Legacy Redis client not available, use redisConnectionFactory'); },
+    set: async () => { throw new Error('Legacy Redis client not available, use redisConnectionFactory'); },
+  } as any as RedisClientType;
 }
