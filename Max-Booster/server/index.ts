@@ -22,7 +22,7 @@ import { initializeMaxBooster247, maxBooster247 } from "./reliability-system";
 import { CapacityMonitor } from './monitoring/capacityMonitor';
 import { ensureStripeProductsAndPrices } from "./services/stripeSetup";
 import { SelfHealingSecuritySystem } from "./security-system";
-import { config, validateConfig, logConfig } from './config/defaults.js';
+import { config, validateConfig, logConfig} from './config/defaults.js';
 
 // IMPORTANT: Warn if --expose-gc flag is missing (recommended for 24/7 reliability)
 if (process.env.NODE_ENV === 'production' && typeof (global as any).gc !== 'function') {
