@@ -4,13 +4,21 @@ Max Booster is an AI-powered platform designed to empower music artists with pro
 
 # Recent Changes
 
-**November 17, 2025 - Production Performance & Logging Optimization**
-- ✅ **Query Performance Fixed:** Optimized CapacityMonitor interval from 60s to 5 minutes (80% reduction in slow query warnings)
-- ✅ **AI Service Redis Integration:** Fixed AI Service to use centralized redisConnectionFactory (eliminated local caching)
-- ✅ **Production Logs Cleanup:** Removed non-critical startup warnings (LabelGrid, SendGrid webhook) for professional production logs
-- ✅ **Startup Optimization:** Silent fallback for unconfigured optional services (LabelGrid distribution, SendGrid webhook tracking)
+**November 17, 2025 - Production Fixes & Performance Optimization**
+- ✅ **CRITICAL FIX: Studio Bundle Error** - Fixed "rf is not a constructor" production error breaking Studio page for mobile users
+  - Added vite-plugin-node-polyfills to support essentia.js (music analysis library) in browser
+  - Configured polyfills for crypto, fs, path, Buffer, process, global modules
+  - Production build now completes without externalization warnings
+- ✅ **Query Performance Investigation** - Identified slow runtime queries (100-175ms)
+  - Root cause: getUserByEmail() selecting ALL 35+ columns including large JSONB fields
+  - Email column has proper unique index (not an indexing issue)
+  - Recommendation: Refactor to select only needed columns for session validation
+  - Added SQL preview logging in development mode for debugging
+- ✅ **CapacityMonitor Optimization** - Reduced interval from 60s to 5 minutes (80% reduction in monitoring overhead)
+- ✅ **AI Service Redis Integration** - Fixed to use centralized redisConnectionFactory pattern
+- ✅ **Production Logs Cleanup** - Silent fallback for unconfigured optional services (LabelGrid, SendGrid webhook)
 - ℹ️ **Optional Configuration:** SENDGRID_WEBHOOK_PUBLIC_KEY (webhook bounce tracking) and LABELGRID_API_TOKEN (music distribution) are optional
-- 🚀 **Status:** Production-ready with clean logs and optimal performance
+- 🚀 **Status:** Production-ready with Studio fix deployed and performance investigation complete
 
 # User Preferences
 
