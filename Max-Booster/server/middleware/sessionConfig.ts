@@ -1,6 +1,7 @@
 import session from 'express-session';
 import crypto from 'crypto';
 import createMemoryStore from 'memorystore';
+import { RedisStore } from 'connect-redis';
 import { getRedisClient } from '../lib/redisConnectionFactory.js';
 
 export async function createSessionStore() {
@@ -19,13 +20,13 @@ export async function createSessionStore() {
       }
 
       // Use connect-redis for session storage (supports ioredis)
-      const connectRedis = require('connect-redis');
-      const RedisSessionStore = connectRedis.default(session);
-      return new RedisSessionStore({
+      const store = new RedisStore({
         client: redisClient,
         prefix: 'maxbooster:sess:',
         ttl: 24 * 60 * 60, // 24 hours in seconds
       });
+      console.log('✅ Redis session store created successfully');
+      return store;
     } catch (error) {
       console.error('❌ Failed to connect to Redis, falling back to memory store:', error);
       if (isProduction) {
