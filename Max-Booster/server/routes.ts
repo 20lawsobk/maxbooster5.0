@@ -2444,11 +2444,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/notifications/test', requireAuth, async (req, res) => {
+  app.post('/api/notifications/test', requireAuth, requireAdmin, async (req, res) => {
     try {
       const user = req.user as any;
       
-      // Create a test notification in the database
+      // Create a test notification in the database (ADMIN ONLY)
       await storage.createNotification({
         userId: user.id,
         type: 'system',
@@ -5404,8 +5404,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test platform connection
-  app.post('/api/social/test-connection/:platform', requireAuth, async (req, res) => {
+  // Test platform connection - ADMIN ONLY
+  app.post('/api/social/test-connection/:platform', requireAuth, requireAdmin, async (req, res) => {
     try {
       const { platform } = req.params;
       const user = req.user as any;
@@ -7028,22 +7028,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(recommendations);
   });
 
-// Testing System Routes
-app.get("/api/testing/results", requireAuth, (req, res) => {
+// Testing System Routes - ADMIN ONLY
+app.get("/api/testing/results", requireAuth, requireAdmin, (req, res) => {
   const TestingSystem = require("./testing-system").default;
   const testingSystem = TestingSystem.getInstance();
   const results = testingSystem.getTestResults();
   res.json(results);
 });
 
-app.get("/api/testing/score", requireAuth, (req, res) => {
+app.get("/api/testing/score", requireAuth, requireAdmin, (req, res) => {
   const TestingSystem = require("./testing-system").default;
   const testingSystem = TestingSystem.getInstance();
   const score = testingSystem.getTestScore();
   res.json({ score });
 });
 
-app.post("/api/testing/run", requireAuth, (req, res) => {
+app.post("/api/testing/run", requireAuth, requireAdmin, (req, res) => {
   const TestingSystem = require("./testing-system").default;
   const testingSystem = TestingSystem.getInstance();
   testingSystem.runFullTestSuite().then((results: any) => {
@@ -7053,14 +7053,14 @@ app.post("/api/testing/run", requireAuth, (req, res) => {
   });
 });
 
-app.get("/api/testing/failed", requireAuth, (req, res) => {
+app.get("/api/testing/failed", requireAuth, requireAdmin, (req, res) => {
   const TestingSystem = require("./testing-system").default;
   const testingSystem = TestingSystem.getInstance();
   const failedTests = testingSystem.getFailedTests();
   res.json(failedTests);
 });
 
-app.get("/api/testing/coverage", requireAuth, (req, res) => {
+app.get("/api/testing/coverage", requireAuth, requireAdmin, (req, res) => {
   const TestingSystem = require("./testing-system").default;
   const testingSystem = TestingSystem.getInstance();
   const coverage = testingSystem.getTestCoverage();

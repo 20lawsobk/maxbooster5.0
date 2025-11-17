@@ -308,18 +308,23 @@ router.post('/stripe', async (req, res) => {
     // Handle Stripe events
     switch (event.type) {
       case 'checkout.session.completed':
-        // Handle successful subscription
-        logger.info('Stripe checkout completed:', event.data.object);
+        await handleCheckoutCompleted(event.data.object);
         break;
         
       case 'customer.subscription.updated':
-        // Handle subscription updates
-        logger.info('Stripe subscription updated:', event.data.object);
+        await handleSubscriptionUpdated(event.data.object);
         break;
         
       case 'customer.subscription.deleted':
-        // Handle subscription cancellation
-        logger.info('Stripe subscription cancelled:', event.data.object);
+        await handleSubscriptionCancelled(event.data.object);
+        break;
+        
+      case 'invoice.payment_succeeded':
+        await handlePaymentSucceeded(event.data.object);
+        break;
+        
+      case 'invoice.payment_failed':
+        await handlePaymentFailed(event.data.object);
         break;
         
       default:
@@ -333,5 +338,189 @@ router.post('/stripe', async (req, res) => {
     res.status(500).json({ error: 'Webhook processing failed' });
   }
 });
+
+/**
+ * Handle successful checkout session
+ */
+async function handleCheckoutCompleted(session: any) {
+  try {
+    const customerId = session.customer;
+    const subscriptionId = session.subscription;
+    
+    // Find user by Stripe customer ID
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.stripeCustomerId, customerId));
+    
+    if (user) {
+      const updateData: any = {
+        subscriptionStatus: 'active',
+        stripeCustomerId: customerId,
+      };
+      
+      // For subscription mode, store subscription ID
+      if (subscriptionId) {
+        updateData.stripeSubscriptionId = subscriptionId;
+      }
+      
+      // For payment mode (lifetime), set subscription tier
+      if (session.mode === 'payment') {
+        updateData.subscriptionTier = 'lifetime';
+        updateData.subscriptionEndsAt = null; // Lifetime never expires
+      }
+      
+      await db.update(users)
+        .set(updateData)
+        .where(eq(users.id, user.id));
+      
+      logger.info(`Checkout completed for user ${user.id}, customer ${customerId}`);
+    } else {
+      logger.warn(`No user found for Stripe customer ${customerId}`);
+    }
+  } catch (error) {
+    logger.error('Error handling checkout completed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle subscription updates (renewal, plan change, etc.)
+ */
+async function handleSubscriptionUpdated(subscription: any) {
+  try {
+    const customerId = subscription.customer;
+    const status = subscription.status;
+    const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+    
+    // Find user by Stripe customer ID
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.stripeCustomerId, customerId));
+    
+    if (user) {
+      const updateData: any = {
+        subscriptionStatus: status,
+        stripeSubscriptionId: subscription.id,
+        subscriptionEndsAt: currentPeriodEnd,
+      };
+      
+      // Update tier based on price ID
+      const priceId = subscription.items.data[0]?.price.id;
+      if (priceId === process.env.STRIPE_PRICE_ID_MONTHLY) {
+        updateData.subscriptionTier = 'monthly';
+      } else if (priceId === process.env.STRIPE_PRICE_ID_YEARLY) {
+        updateData.subscriptionTier = 'yearly';
+      }
+      
+      await db.update(users)
+        .set(updateData)
+        .where(eq(users.id, user.id));
+      
+      logger.info(`Subscription updated for user ${user.id}, status: ${status}`);
+    } else {
+      logger.warn(`No user found for Stripe customer ${customerId}`);
+    }
+  } catch (error) {
+    logger.error('Error handling subscription updated:', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle subscription cancellation
+ */
+async function handleSubscriptionCancelled(subscription: any) {
+  try {
+    const customerId = subscription.customer;
+    const cancelledAt = new Date(subscription.canceled_at * 1000);
+    const periodEnd = new Date(subscription.current_period_end * 1000);
+    
+    // Find user by Stripe customer ID
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.stripeCustomerId, customerId));
+    
+    if (user) {
+      // Keep access until period end (7-day grace period handled by requirePremium)
+      await db.update(users)
+        .set({
+          subscriptionStatus: 'cancelled',
+          subscriptionEndsAt: periodEnd,
+        })
+        .where(eq(users.id, user.id));
+      
+      logger.info(`Subscription cancelled for user ${user.id}, access until ${periodEnd.toISOString()}`);
+    } else {
+      logger.warn(`No user found for Stripe customer ${customerId}`);
+    }
+  } catch (error) {
+    logger.error('Error handling subscription cancelled:', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle successful invoice payment (recurring)
+ */
+async function handlePaymentSucceeded(invoice: any) {
+  try {
+    const customerId = invoice.customer;
+    const subscriptionId = invoice.subscription;
+    
+    if (!subscriptionId) return; // Not a subscription payment
+    
+    // Find user by Stripe customer ID
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.stripeCustomerId, customerId));
+    
+    if (user) {
+      // Ensure subscription is active after successful payment
+      await db.update(users)
+        .set({
+          subscriptionStatus: 'active',
+        })
+        .where(eq(users.id, user.id));
+      
+      logger.info(`Payment succeeded for user ${user.id}, subscription ${subscriptionId}`);
+    }
+  } catch (error) {
+    logger.error('Error handling payment succeeded:', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle failed invoice payment
+ */
+async function handlePaymentFailed(invoice: any) {
+  try {
+    const customerId = invoice.customer;
+    const subscriptionId = invoice.subscription;
+    
+    if (!subscriptionId) return; // Not a subscription payment
+    
+    // Find user by Stripe customer ID
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.stripeCustomerId, customerId));
+    
+    if (user) {
+      // Mark subscription as past_due
+      await db.update(users)
+        .set({
+          subscriptionStatus: 'past_due',
+        })
+        .where(eq(users.id, user.id));
+      
+      logger.warn(`Payment failed for user ${user.id}, subscription ${subscriptionId}`);
+      
+      // TODO: Send email notification to user about failed payment
+    }
+  } catch (error) {
+    logger.error('Error handling payment failed:', error);
+    throw error;
+  }
+}
 
 export default router;
