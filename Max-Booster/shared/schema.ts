@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, integer, timestamp, boolean, jsonb, decimal, real, bigint, uuid, index, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, serial, varchar, text, integer, timestamp, boolean, jsonb, decimal, real, bigint, uuid, index, uniqueIndex, pgEnum } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -197,6 +197,114 @@ export const analyticsAnomalies = pgTable("analytics_anomalies", {
   severityIdx: index("analytics_anomalies_severity_idx").on(table.severity),
   detectedAtIdx: index("analytics_anomalies_detected_at_idx").on(table.detectedAt),
   acknowledgedAtIdx: index("analytics_anomalies_acknowledged_at_idx").on(table.acknowledgedAt),
+}));
+
+// ============================================================================
+// EMAIL DELIVERY TRACKING - SendGrid Integration
+// ============================================================================
+
+// Email event types enum
+export const emailEventTypeEnum = pgEnum('email_event_type', [
+  'delivered', 'bounce', 'spam', 'unsubscribe', 'open', 'click', 'deferred', 'dropped'
+]);
+
+// Email messages table - tracks all sent emails
+export const emailMessages = pgTable("email_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  messageId: varchar("message_id", { length: 255 }).notNull().unique(),
+  userId: varchar("user_id", { length: 255 }),
+  category: varchar("category", { length: 100 }),
+  template: varchar("template", { length: 100 }),
+  toEmail: varchar("to_email", { length: 255 }).notNull(),
+  subject: varchar("subject", { length: 500 }),
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+  initialStatus: varchar("initial_status", { length: 50 }).default("sent"),
+  metadata: jsonb("metadata"),
+}, (table) => ({
+  messageIdIdx: index("email_messages_message_id_idx").on(table.messageId),
+  userIdIdx: index("email_messages_user_id_idx").on(table.userId),
+  toEmailIdx: index("email_messages_to_email_idx").on(table.toEmail),
+  sentAtIdx: index("email_messages_sent_at_idx").on(table.sentAt),
+}));
+
+// Email events table - tracks delivery events from SendGrid webhooks
+export const emailEvents = pgTable("email_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  messageId: varchar("message_id", { length: 255 }).notNull(),
+  eventType: emailEventTypeEnum("event_type").notNull(),
+  eventAt: timestamp("event_at").notNull(),
+  smtpResponse: text("smtp_response"),
+  reason: text("reason"),
+  metadata: jsonb("metadata"),
+}, (table) => ({
+  messageIdIdx: index("email_events_message_id_idx").on(table.messageId),
+  eventTypeIdx: index("email_events_event_type_idx").on(table.eventType),
+  eventAtIdx: index("email_events_event_at_idx").on(table.eventAt),
+  messageEventIdx: index("email_events_message_event_idx").on(table.messageId, table.eventType),
+}));
+
+// ============================================================================
+// SYSTEM METRICS & ALERTING - Time-Series Monitoring
+// ============================================================================
+
+// Alert condition types enum
+export const alertConditionEnum = pgEnum('alert_condition', [
+  'gt', 'lt', 'outside', 'inside'
+]);
+
+// Alert status enum
+export const alertStatusEnum = pgEnum('alert_status', [
+  'triggered', 'resolved', 'acknowledged'
+]);
+
+// System metrics table - time-series metrics with minute-level buckets
+export const systemMetrics = pgTable("system_metrics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  metricName: varchar("metric_name", { length: 100 }).notNull(),
+  source: varchar("source", { length: 100 }).notNull(),
+  tags: jsonb("tags"),
+  bucketStart: timestamp("bucket_start").notNull(),
+  resolutionSecs: integer("resolution_secs").default(60).notNull(),
+  avgValue: decimal("avg_value", { precision: 20, scale: 4 }),
+  minValue: decimal("min_value", { precision: 20, scale: 4 }),
+  maxValue: decimal("max_value", { precision: 20, scale: 4 }),
+  sampleCount: integer("sample_count").default(1),
+}, (table) => ({
+  metricBucketIdx: index("system_metrics_metric_bucket_idx").on(table.metricName, table.bucketStart),
+  sourceIdx: index("system_metrics_source_idx").on(table.source),
+  bucketIdx: index("system_metrics_bucket_idx").on(table.bucketStart),
+  uniqueMetricBucket: uniqueIndex("system_metrics_unique_idx").on(table.metricName, table.source, table.bucketStart, table.resolutionSecs),
+}));
+
+// Alert rules table - threshold-based alert configuration
+export const alertRules = pgTable("alert_rules", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(),
+  metricName: varchar("metric_name", { length: 100 }).notNull(),
+  condition: alertConditionEnum("condition").notNull(),
+  threshold: decimal("threshold", { precision: 20, scale: 4 }).notNull(),
+  durationSecs: integer("duration_secs").default(300).notNull(),
+  channels: jsonb("channels"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  metricIdx: index("alert_rules_metric_idx").on(table.metricName),
+  activeIdx: index("alert_rules_active_idx").on(table.isActive),
+}));
+
+// Alert incidents table - tracks triggered alerts
+export const alertIncidents = pgTable("alert_incidents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ruleId: varchar("rule_id", { length: 255 }).notNull(),
+  triggeredAt: timestamp("triggered_at").defaultNow().notNull(),
+  resolvedAt: timestamp("resolved_at"),
+  status: alertStatusEnum("status").default("triggered").notNull(),
+  context: jsonb("context"),
+}, (table) => ({
+  ruleIdIdx: index("alert_incidents_rule_id_idx").on(table.ruleId),
+  statusIdx: index("alert_incidents_status_idx").on(table.status),
+  triggeredAtIdx: index("alert_incidents_triggered_at_idx").on(table.triggeredAt),
 }));
 
 // ============================================================================
@@ -5202,3 +5310,31 @@ export type UpdateApiKey = z.infer<typeof updateApiKeySchema>;
 export type ApiUsage = typeof apiUsage.$inferSelect;
 export const insertApiUsageSchema = createInsertSchema(apiUsage).omit({ id: true, date: true });
 export type InsertApiUsage = z.infer<typeof insertApiUsageSchema>;
+
+// ============================================================================
+// EMAIL DELIVERY TRACKING - Type Exports
+// ============================================================================
+
+export type EmailMessage = typeof emailMessages.$inferSelect;
+export const insertEmailMessageSchema = createInsertSchema(emailMessages).omit({ id: true, sentAt: true });
+export type InsertEmailMessage = z.infer<typeof insertEmailMessageSchema>;
+
+export type EmailEvent = typeof emailEvents.$inferSelect;
+export const insertEmailEventSchema = createInsertSchema(emailEvents).omit({ id: true });
+export type InsertEmailEvent = z.infer<typeof insertEmailEventSchema>;
+
+// ============================================================================
+// SYSTEM METRICS & ALERTING - Type Exports
+// ============================================================================
+
+export type SystemMetric = typeof systemMetrics.$inferSelect;
+export const insertSystemMetricSchema = createInsertSchema(systemMetrics).omit({ id: true });
+export type InsertSystemMetric = z.infer<typeof insertSystemMetricSchema>;
+
+export type AlertRule = typeof alertRules.$inferSelect;
+export const insertAlertRuleSchema = createInsertSchema(alertRules).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertAlertRule = z.infer<typeof insertAlertRuleSchema>;
+
+export type AlertIncident = typeof alertIncidents.$inferSelect;
+export const insertAlertIncidentSchema = createInsertSchema(alertIncidents).omit({ id: true, triggeredAt: true });
+export type InsertAlertIncident = z.infer<typeof insertAlertIncidentSchema>;

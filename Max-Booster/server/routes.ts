@@ -28,6 +28,8 @@ import storefrontRoutes from "./routes/storefront";
 import payoutRoutes from "./routes/payouts";
 import developerApiRoutes from "./routes/developerApi";
 import analyticsApiRoutes from "./routes/api/v1/analytics";
+import adminMetricsRoutes from "./routes/admin/metrics";
+import { metricsService } from "./services/metricsService";
 import { createSessionStore, getSessionConfig } from "./middleware/sessionConfig";
 import { ConnectionGuard } from './middleware/connectionGuard';
 import { globalRateLimiter, criticalEndpointLimiter } from './middleware/globalRateLimiter';
@@ -583,6 +585,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Developer API routes (API key management and analytics endpoints)
   app.use('/api/developer', developerApiRoutes);
   app.use('/api/v1/analytics', analyticsApiRoutes);
+  
+  // Admin monitoring routes (metrics, alerts, email stats) - Admin only
+  app.use('/api/admin', adminMetricsRoutes);
   
   // Distribution and Autonomous API routes
   app.use('/api/distribution/labelgrid', distributionApiRoutes); // LabelGrid distribution routes

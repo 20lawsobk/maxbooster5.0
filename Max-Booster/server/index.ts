@@ -157,6 +157,10 @@ app.use(morgan('combined', {
   skip: (req: Request) => req.path.startsWith('/assets') || req.path.startsWith('/static'),
 }));
 
+// CRITICAL: Mount SendGrid webhook BEFORE JSON parser to preserve raw body for signature verification
+import sendgridWebhookRoutes from "./routes/webhooks/sendgrid";
+app.use('/api/webhooks', sendgridWebhookRoutes);
+
 // Body parsing with size limits
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
