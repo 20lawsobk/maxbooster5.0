@@ -194,17 +194,17 @@ class RedisConnectionFactory {
 
     if (this.primaryClient) {
       closePromises.push(
-        this.primaryClient.quit().catch(err => {
+        this.primaryClient.quit().catch((err: unknown) => {
           console.error('Error closing primary client:', err);
-        })
+        }).then(() => undefined)
       );
     }
 
-    for (const [channel, client] of this.subscribers.entries()) {
+    for (const [channel, client] of Array.from(this.subscribers.entries())) {
       closePromises.push(
-        client.quit().catch(err => {
+        client.quit().catch((err: unknown) => {
           console.error(`Error closing subscriber [${channel}]:`, err);
-        })
+        }).then(() => undefined)
       );
     }
 
