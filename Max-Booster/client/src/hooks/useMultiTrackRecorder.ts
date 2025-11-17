@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useAudioContext } from './useAudioContext';
+import { useAudioDevices } from './useAudioDevices';
 import { nanoid } from 'nanoid';
 
 export interface TrackRecorder {
@@ -30,10 +31,13 @@ export interface MultiTrackRecordingState {
   duration: number;
   inputLevels: Map<string, number>;
   latencyMs: number;
+  selectedInputDevice: string | null;
+  bufferSize: number;
 }
 
 export function useMultiTrackRecorder() {
   const { context, isSupported } = useAudioContext();
+  const audioDevices = useAudioDevices();
   const [state, setState] = useState<MultiTrackRecordingState>({
     isRecording: false,
     isPunched: false,
@@ -42,6 +46,8 @@ export function useMultiTrackRecorder() {
     duration: 0,
     inputLevels: new Map(),
     latencyMs: 0,
+    selectedInputDevice: null,
+    bufferSize: 256,
   });
 
   const analyzerNodesRef = useRef<Map<string, AnalyserNode>>(new Map());
@@ -64,14 +70,20 @@ export function useMultiTrackRecorder() {
     if (!context || !isSupported) return null;
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
+      // Use selected input device from audioDevices hook
+      const stream = await audioDevices.getInputStream(
+        state.selectedInputDevice || undefined,
+        {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: 44100,
-        },
-      });
+          sampleRate: 48000, // Professional standard
+        }
+      );
+
+      if (!stream) {
+        throw new Error('Failed to get audio stream from selected device');
+      }
 
       const source = context.createMediaStreamSource(stream);
       const analyser = context.createAnalyser();
@@ -101,7 +113,7 @@ export function useMultiTrackRecorder() {
       console.error('Error starting input monitoring:', error);
       return null;
     }
-  }, [context, isSupported]);
+  }, [context, isSupported, audioDevices, state.selectedInputDevice]);
 
   const stopInputMonitoring = useCallback((trackId: string, monitoringData: any) => {
     if (monitoringData) {
@@ -144,14 +156,20 @@ export function useMultiTrackRecorder() {
       const newRecorders = new Map<string, TrackRecorder>();
 
       for (const track of armedTracks) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
+        // Use selected input device for recording
+        const stream = await audioDevices.getInputStream(
+          state.selectedInputDevice || undefined,
+          {
             echoCancellation: true,
             noiseSuppression: true,
             autoGainControl: true,
-            sampleRate: 44100,
-          },
-        });
+            sampleRate: 48000,
+          }
+        );
+
+        if (!stream) {
+          throw new Error(`Failed to get audio stream for track ${track.name}`);
+        }
 
         const mediaRecorder = new MediaRecorder(stream, {
           mimeType: 'audio/webm;codecs=opus',
