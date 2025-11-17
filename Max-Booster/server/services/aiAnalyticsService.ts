@@ -582,3 +582,329 @@ export async function generateInsights(): Promise<InsightsResponse> {
 
   return { insights };
 }
+
+// Music Career Analytics Functions
+
+interface CareerGrowthRequest {
+  userId: string;
+  metric: 'streams' | 'followers' | 'engagement';
+  timeline: '30d' | '90d' | '180d';
+}
+
+interface CareerGrowthResponse {
+  currentValue: number;
+  predictedValue: number;
+  growthRate: number;
+  confidence: number;
+  recommendations: string[];
+}
+
+export async function predictCareerGrowth(params: CareerGrowthRequest): Promise<CareerGrowthResponse> {
+  const { userId, metric, timeline } = params;
+  
+  const days = timeline === '30d' ? 30 : timeline === '90d' ? 90 : 180;
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+
+  let historicalData: Array<{ date: Date; value: number }> = [];
+
+  if (metric === 'streams') {
+    const results = await db
+      .select({
+        date: analytics.date,
+        value: sql<number>`CAST(COALESCE(SUM(${analytics.totalStreams}), 0) AS INTEGER)`,
+      })
+      .from(analytics)
+      .where(and(
+        eq(analytics.userId, userId),
+        gte(analytics.date, startDate)
+      ))
+      .groupBy(analytics.date)
+      .orderBy(analytics.date);
+
+    historicalData = results.map(r => ({
+      date: r.date,
+      value: Number(r.value) || 0,
+    }));
+  } else if (metric === 'followers') {
+    const results = await db
+      .select({
+        date: analytics.date,
+        value: sql<number>`CAST(COALESCE(SUM(${analytics.totalFollowers}), 0) AS INTEGER)`,
+      })
+      .from(analytics)
+      .where(and(
+        eq(analytics.userId, userId),
+        gte(analytics.date, startDate)
+      ))
+      .groupBy(analytics.date)
+      .orderBy(analytics.date);
+
+    historicalData = results.map(r => ({
+      date: r.date,
+      value: Number(r.value) || 0,
+    }));
+  } else {
+    const results = await db
+      .select({
+        date: analytics.date,
+        value: sql<number>`CAST(COALESCE(AVG(${analytics.engagementRate}), 0) AS INTEGER)`,
+      })
+      .from(analytics)
+      .where(and(
+        eq(analytics.userId, userId),
+        gte(analytics.date, startDate)
+      ))
+      .groupBy(analytics.date)
+      .orderBy(analytics.date);
+
+    historicalData = results.map(r => ({
+      date: r.date,
+      value: Number(r.value) || 0,
+    }));
+  }
+
+  const dataPoints = historicalData.map((d, i) => ({
+    x: i,
+    y: d.value,
+  }));
+
+  const { slope, intercept } = linearRegression(dataPoints);
+  
+  const currentValue = historicalData.length > 0 
+    ? historicalData[historicalData.length - 1].value 
+    : 0;
+  
+  const futureDays = timeline === '30d' ? 30 : timeline === '90d' ? 60 : 90;
+  const predictedValue = Math.max(0, slope * (dataPoints.length + futureDays) + intercept);
+  
+  const growthRate = currentValue > 0 
+    ? ((predictedValue - currentValue) / currentValue) * 100 
+    : 0;
+
+  const values = historicalData.map(d => d.value);
+  const stdDev = calculateStandardDeviation(values);
+  const mean = values.reduce((sum, v) => sum + v, 0) / (values.length || 1);
+  const confidence = Math.min(95, Math.max(50, 100 - (stdDev / (mean || 1)) * 100));
+
+  const recommendations: string[] = [];
+  
+  if (growthRate > 20) {
+    recommendations.push(`Excellent growth trajectory! Continue your current strategy.`);
+    recommendations.push(`Consider scaling up your content production to capitalize on momentum.`);
+  } else if (growthRate > 0) {
+    recommendations.push(`Moderate growth detected. Focus on consistency and quality.`);
+    recommendations.push(`Analyze your top-performing content and replicate successful patterns.`);
+  } else {
+    recommendations.push(`Growth has plateaued. Time to refresh your strategy.`);
+    recommendations.push(`Experiment with new content formats, collaboration, or release timing.`);
+    recommendations.push(`Engage more actively with your fanbase on social media.`);
+  }
+
+  return {
+    currentValue: Math.round(currentValue),
+    predictedValue: Math.round(predictedValue),
+    growthRate: Number(growthRate.toFixed(2)),
+    confidence: Math.round(confidence),
+    recommendations,
+  };
+}
+
+interface CareerMilestone {
+  type: string;
+  current: number;
+  nextMilestone: number;
+  progress: number;
+  estimatedDate: string;
+}
+
+export async function getCareerMilestones(userId: string): Promise<CareerMilestone[]> {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const analyticsData = await db
+    .select({
+      totalStreams: sql<number>`CAST(COALESCE(SUM(${analytics.totalStreams}), 0) AS INTEGER)`,
+      totalFollowers: sql<number>`CAST(COALESCE(SUM(${analytics.totalFollowers}), 0) AS INTEGER)`,
+    })
+    .from(analytics)
+    .where(and(
+      eq(analytics.userId, userId),
+      gte(analytics.date, thirtyDaysAgo)
+    ));
+
+  const streams = Number(analyticsData[0]?.totalStreams || 0);
+  const followers = Number(analyticsData[0]?.totalFollowers || 0);
+
+  const milestones: CareerMilestone[] = [];
+
+  // Streams milestones
+  const streamMilestones = [1000, 5000, 10000, 50000, 100000, 500000, 1000000];
+  const nextStreamMilestone = streamMilestones.find(m => m > streams) || 10000000;
+  const streamProgress = (streams / nextStreamMilestone) * 100;
+  const daysToStreamMilestone = streams > 0 
+    ? Math.ceil((nextStreamMilestone - streams) / (streams / 30)) 
+    : 365;
+
+  milestones.push({
+    type: 'streams',
+    current: streams,
+    nextMilestone: nextStreamMilestone,
+    progress: Math.min(99, Math.round(streamProgress)),
+    estimatedDate: new Date(Date.now() + daysToStreamMilestone * 24 * 60 * 60 * 1000).toLocaleDateString(),
+  });
+
+  // Followers milestones
+  const followerMilestones = [100, 500, 1000, 5000, 10000, 50000, 100000];
+  const nextFollowerMilestone = followerMilestones.find(m => m > followers) || 1000000;
+  const followerProgress = (followers / nextFollowerMilestone) * 100;
+  const daysToFollowerMilestone = followers > 0 
+    ? Math.ceil((nextFollowerMilestone - followers) / (followers / 30)) 
+    : 365;
+
+  milestones.push({
+    type: 'followers',
+    current: followers,
+    nextMilestone: nextFollowerMilestone,
+    progress: Math.min(99, Math.round(followerProgress)),
+    estimatedDate: new Date(Date.now() + daysToFollowerMilestone * 24 * 60 * 60 * 1000).toLocaleDateString(),
+  });
+
+  return milestones;
+}
+
+interface FanbaseData {
+  totalFans: number;
+  activeListeners: number;
+  engagementRate: number;
+  topPlatforms: Array<{ platform: string; percentage: number }>;
+  demographics: {
+    topLocations: string[];
+    peakListeningTimes: string[];
+  };
+  growthOpportunities: string[];
+}
+
+export async function getFanbaseInsights(userId: string): Promise<FanbaseData> {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const analyticsData = await db
+    .select({
+      totalFollowers: sql<number>`CAST(COALESCE(SUM(${analytics.totalFollowers}), 0) AS INTEGER)`,
+      totalStreams: sql<number>`CAST(COALESCE(SUM(${analytics.totalStreams}), 0) AS INTEGER)`,
+      engagementRate: sql<number>`CAST(COALESCE(AVG(${analytics.engagementRate}), 0) AS NUMERIC)`,
+    })
+    .from(analytics)
+    .where(and(
+      eq(analytics.userId, userId),
+      gte(analytics.date, thirtyDaysAgo)
+    ));
+
+  const totalFans = Number(analyticsData[0]?.totalFollowers || 0);
+  const totalStreams = Number(analyticsData[0]?.totalStreams || 0);
+  const engagementRate = Number(analyticsData[0]?.engagementRate || 0);
+
+  // Calculate active listeners (estimate: 20% of total streams are unique listeners)
+  const activeListeners = Math.round(totalStreams * 0.2);
+
+  // Platform distribution (simulated data based on industry averages)
+  const topPlatforms = [
+    { platform: 'Spotify', percentage: 45 },
+    { platform: 'Apple Music', percentage: 25 },
+    { platform: 'YouTube Music', percentage: 15 },
+    { platform: 'Amazon Music', percentage: 10 },
+    { platform: 'Others', percentage: 5 },
+  ];
+
+  // Demographics (simulated - would come from platform APIs in production)
+  const demographics = {
+    topLocations: ['United States', 'United Kingdom', 'Canada', 'Australia', 'Germany'],
+    peakListeningTimes: ['8 PM - 10 PM', '6 AM - 8 AM', '12 PM - 2 PM'],
+  };
+
+  // Growth opportunities based on current metrics
+  const growthOpportunities: string[] = [];
+  
+  if (engagementRate < 5) {
+    growthOpportunities.push('Low engagement rate - Focus on creating more interactive content and stories');
+  }
+  
+  if (totalStreams < 1000) {
+    growthOpportunities.push('Limited reach - Consider playlist pitching and collaborations');
+  } else if (totalStreams > 10000) {
+    growthOpportunities.push('Strong streaming performance - Perfect time to launch merchandise or exclusive content');
+  }
+  
+  growthOpportunities.push('Expand to emerging platforms like TikTok and Instagram Reels for discovery');
+  growthOpportunities.push('Build email list for direct fan communication and tour announcements');
+
+  return {
+    totalFans,
+    activeListeners,
+    engagementRate: Number(engagementRate.toFixed(2)),
+    topPlatforms,
+    demographics,
+    growthOpportunities,
+  };
+}
+
+interface ReleaseStrategy {
+  bestReleaseDay: string;
+  bestReleaseTime: string;
+  recommendations: string[];
+}
+
+export async function getReleaseStrategy(userId: string): Promise<ReleaseStrategy> {
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+  // Analyze historical engagement patterns
+  const engagementByDay = await db
+    .select({
+      dayOfWeek: sql<number>`EXTRACT(DOW FROM ${analytics.date})`,
+      avgEngagement: sql<number>`CAST(COALESCE(AVG(${analytics.engagementRate}), 0) AS NUMERIC)`,
+    })
+    .from(analytics)
+    .where(and(
+      eq(analytics.userId, userId),
+      gte(analytics.date, ninetyDaysAgo)
+    ))
+    .groupBy(sql`EXTRACT(DOW FROM ${analytics.date})`);
+
+  // Find best day (highest engagement)
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  let bestDay = 'Friday'; // Default to industry standard
+  let maxEngagement = 0;
+
+  for (const data of engagementByDay) {
+    const engagement = Number(data.avgEngagement || 0);
+    if (engagement > maxEngagement) {
+      maxEngagement = engagement;
+      bestDay = days[Number(data.dayOfWeek)];
+    }
+  }
+
+  // Industry best practices
+  const bestTime = '12:00 AM EST'; // Midnight releases are standard for streaming platforms
+
+  const recommendations: string[] = [];
+
+  recommendations.push(`Release on ${bestDay} at midnight for maximum Spotify algorithmic boost`);
+  recommendations.push('Submit to Spotify editorial playlists at least 3 weeks before release');
+  recommendations.push('Build pre-save campaign starting 2-3 weeks before release date');
+  recommendations.push('Coordinate social media teasers starting 1 week before release');
+  recommendations.push('Plan Instagram/TikTok content for release day to drive engagement');
+  
+  if (maxEngagement > 5) {
+    recommendations.push('Your fanbase is highly engaged - consider a surprise drop strategy');
+  } else {
+    recommendations.push('Focus on building anticipation with behind-the-scenes content before release');
+  }
+
+  return {
+    bestReleaseDay: bestDay,
+    bestReleaseTime: bestTime,
+    recommendations,
+  };
+}
