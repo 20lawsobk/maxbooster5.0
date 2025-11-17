@@ -421,8 +421,8 @@ export function BrowserPanel() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value={browserActiveTab} className="flex-1 mt-0 overflow-hidden">
-          <ScrollArea className="h-full">
+        <TabsContent value={browserActiveTab} className="flex-1 mt-0">
+          <div className="h-full overflow-auto">
             <div className="p-2 pb-4">
               {isLoading ? (
                 <div 
@@ -465,7 +465,7 @@ export function BrowserPanel() {
                 ))
               )}
             </div>
-          </ScrollArea>
+          </div>
         </TabsContent>
       </Tabs>
 
