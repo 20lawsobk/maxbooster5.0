@@ -11369,7 +11369,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     }
   });
 
-  // POST /api/marketplace/stems/:stemId/purchase - Purchase individual stem
+  // POST /api/marketplace/stems/:stemId/purchase - Create Stripe checkout for stem purchase
   app.post('/api/marketplace/stems/:stemId/purchase', requireAuth, async (req, res) => {
     try {
       const buyerId = (req.user as any).id;
@@ -11394,50 +11394,72 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
 
       const { stem, listing, seller } = stemData;
 
+      // Verify seller has Stripe Connect account
+      if (!seller.stripeConnectedAccountId) {
+        return res.status(400).json({ 
+          error: 'Seller has not connected their payment account yet' 
+        });
+      }
+
       // Calculate price (use stem price if set, otherwise use listing price)
       const priceInCents = stem.price 
         ? Math.round(parseFloat(stem.price as any) * 100)
         : listing.priceCents;
 
-      // Create order
-      const [order] = await db.insert(orders).values({
-        buyerId,
-        sellerId: listing.ownerId,
-        listingId: listing.id,
-        licenseType: 'stem_purchase',
-        amountCents: priceInCents,
-        currency: 'usd',
-        status: 'completed', // Mock payment - auto-complete
-        downloadUrl: stem.fileUrl
-      }).returning();
+      // Calculate platform fee (10%)
+      const platformFee = Math.round(priceInCents * 0.1);
 
-      // Generate download token
-      const downloadToken = crypto.randomBytes(32).toString('hex');
-
-      // Create stem order
-      await db.insert(stemOrders).values({
-        orderId: order.id,
-        stemId: stem.id,
-        price: (priceInCents / 100).toString(),
-        downloadToken,
-        downloadCount: 0
+      // Create Stripe Checkout Session with Stripe Connect transfer
+      const session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `${stem.name} - Audio Stem`,
+                description: `Purchase individual stem from ${listing.title}`,
+              },
+              unit_amount: priceInCents,
+            },
+            quantity: 1,
+          },
+        ],
+        payment_intent_data: {
+          application_fee_amount: platformFee,
+          transfer_data: {
+            destination: seller.stripeConnectedAccountId,
+          },
+          metadata: {
+            type: 'stem_purchase',
+            stemId: stem.id,
+            buyerId,
+            sellerId: listing.ownerId,
+            listingId: listing.id.toString(),
+            stemFileUrl: stem.fileUrl || '',
+          },
+        },
+        metadata: {
+          type: 'stem_purchase',
+          stemId: stem.id,
+          buyerId,
+          sellerId: listing.ownerId,
+          listingId: listing.id.toString(),
+        },
+        success_url: `${req.protocol}://${req.get('host')}/marketplace?stem_purchase=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.protocol}://${req.get('host')}/marketplace?stem_purchase=canceled`,
+      }, {
+        idempotencyKey: `stem_purchase_${buyerId}_${stemId}_${Date.now()}`
       });
-
-      // Update stem download count
-      await db
-        .update(listingStems)
-        .set({ downloadCount: sql`${listingStems.downloadCount} + 1` })
-        .where(eq(listingStems.id, stemId));
 
       res.json({ 
-        success: true,
-        order,
-        downloadToken,
-        message: 'Stem purchased successfully'
+        sessionId: session.id,
+        url: session.url 
       });
-    } catch (error) {
-      console.error('Error purchasing stem:', error);
-      res.status(500).json({ error: 'Failed to purchase stem' });
+    } catch (error: any) {
+      console.error('Error creating stem purchase session:', error);
+      res.status(500).json({ error: error.message || 'Failed to create purchase session' });
     }
   });
 

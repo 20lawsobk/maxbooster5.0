@@ -26,6 +26,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { audioAnalysisService } from '@/lib/audioAnalysisService';
+import { logger } from '@/lib/logger';
 import { useKeyboardShortcuts, STUDIO_SHORTCUTS } from '@/hooks/useKeyboardShortcuts';
 import { announce } from '@/lib/accessibility';
 import {
