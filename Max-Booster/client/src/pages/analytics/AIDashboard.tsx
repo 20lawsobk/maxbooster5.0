@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -29,7 +35,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  Shield
+  Shield,
 } from 'lucide-react';
 
 interface MetricPrediction {
@@ -153,18 +159,22 @@ export default function AIDashboard() {
   const { user } = useAuth();
   const [selectedMetric, setSelectedMetric] = useState('users');
   const [timeRange, setTimeRange] = useState('30d');
-  
+
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
 
-  const { data: predictions, isLoading: loadingPredictions, error: predictionsError } = useQuery<MetricPrediction[]>({
+  const {
+    data: predictions,
+    isLoading: loadingPredictions,
+    error: predictionsError,
+  } = useQuery<MetricPrediction[]>({
     queryKey: ['/api/analytics/ai/predict-metric', selectedMetric, timeRange],
     queryFn: async () => {
       const response = await fetch('/api/analytics/ai/predict-metric', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ metric: selectedMetric, timeframe: timeRange })
+        body: JSON.stringify({ metric: selectedMetric, timeframe: timeRange }),
       });
       if (!response.ok) throw new Error('Failed to fetch predictions');
       const data = await response.json();
@@ -172,13 +182,17 @@ export default function AIDashboard() {
     },
   });
 
-  const { data: churnPredictions, isLoading: loadingChurn, error: churnError } = useQuery<ChurnPrediction[]>({
+  const {
+    data: churnPredictions,
+    isLoading: loadingChurn,
+    error: churnError,
+  } = useQuery<ChurnPrediction[]>({
     queryKey: ['/api/analytics/ai/predict-churn'],
     queryFn: async () => {
       const response = await fetch('/api/analytics/ai/predict-churn', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch churn predictions');
       const data = await response.json();
@@ -186,21 +200,25 @@ export default function AIDashboard() {
     },
   });
 
-  const { data: revenueForecasts, isLoading: loadingRevenue, error: revenueError } = useQuery<RevenueScenario[]>({
+  const {
+    data: revenueForecasts,
+    isLoading: loadingRevenue,
+    error: revenueError,
+  } = useQuery<RevenueScenario[]>({
     queryKey: ['/api/analytics/ai/forecast-revenue', timeRange],
     queryFn: async () => {
       const response = await fetch(`/api/analytics/ai/forecast-revenue?timeframe=${timeRange}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch revenue forecasts');
       const data = await response.json();
-      
+
       const currentMRR = data.currentMRR || 0;
       const projectedMRR = data.projectedMRR || 0;
       const growthRate = data.growthRate || 0;
-      
+
       const scenarios: RevenueScenario[] = [
         {
           name: 'Conservative',
@@ -224,18 +242,22 @@ export default function AIDashboard() {
           growth: growthRate + 30,
         },
       ];
-      
+
       return scenarios;
     },
   });
 
-  const { data: anomalies, isLoading: loadingAnomalies, error: anomaliesError } = useQuery<Anomaly[]>({
+  const {
+    data: anomalies,
+    isLoading: loadingAnomalies,
+    error: anomaliesError,
+  } = useQuery<Anomaly[]>({
     queryKey: ['/api/analytics/ai/detect-anomalies'],
     queryFn: async () => {
       const response = await fetch('/api/analytics/ai/detect-anomalies', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch anomalies');
       const data = await response.json();
@@ -243,13 +265,17 @@ export default function AIDashboard() {
     },
   });
 
-  const { data: insights, isLoading: loadingInsights, error: insightsError } = useQuery<AIInsight[]>({
+  const {
+    data: insights,
+    isLoading: loadingInsights,
+    error: insightsError,
+  } = useQuery<AIInsight[]>({
     queryKey: ['/api/analytics/ai/insights'],
     queryFn: async () => {
       const response = await fetch('/api/analytics/ai/insights', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch insights');
       const data = await response.json();
@@ -258,69 +284,91 @@ export default function AIDashboard() {
   });
 
   // Music Career AI Analytics
-  const [careerMetric, setCareerMetric] = useState<'streams' | 'followers' | 'engagement'>('streams');
+  const [careerMetric, setCareerMetric] = useState<'streams' | 'followers' | 'engagement'>(
+    'streams'
+  );
   const [careerTimeline, setCareerTimeline] = useState<'30d' | '90d' | '180d'>('30d');
 
-  const { data: careerGrowth, isLoading: loadingCareerGrowth, error: careerGrowthError } = useQuery<CareerGrowthPrediction>({
+  const {
+    data: careerGrowth,
+    isLoading: loadingCareerGrowth,
+    error: careerGrowthError,
+  } = useQuery<CareerGrowthPrediction>({
     queryKey: ['/api/analytics/music/career-growth', careerMetric, careerTimeline],
     queryFn: async () => {
       const response = await fetch('/api/analytics/music/career-growth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ metric: careerMetric, timeline: careerTimeline })
+        body: JSON.stringify({ metric: careerMetric, timeline: careerTimeline }),
       });
       if (!response.ok) throw new Error('Failed to fetch career growth');
       return response.json();
     },
   });
 
-  const { data: releaseStrategy, isLoading: loadingReleaseStrategy, error: releaseStrategyError } = useQuery<ReleaseStrategyInsight>({
+  const {
+    data: releaseStrategy,
+    isLoading: loadingReleaseStrategy,
+    error: releaseStrategyError,
+  } = useQuery<ReleaseStrategyInsight>({
     queryKey: ['/api/analytics/music/release-strategy'],
     queryFn: async () => {
       const response = await fetch('/api/analytics/music/release-strategy', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch release strategy');
       return response.json();
     },
   });
 
-  const { data: fanbaseData, isLoading: loadingFanbase, error: fanbaseError } = useQuery<FanbaseInsight>({
+  const {
+    data: fanbaseData,
+    isLoading: loadingFanbase,
+    error: fanbaseError,
+  } = useQuery<FanbaseInsight>({
     queryKey: ['/api/analytics/music/fanbase'],
     queryFn: async () => {
       const response = await fetch('/api/analytics/music/fanbase', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch fanbase data');
       return response.json();
     },
   });
 
-  const { data: careerMilestones, isLoading: loadingMilestones, error: milestonesError } = useQuery<CareerMilestone[]>({
+  const {
+    data: careerMilestones,
+    isLoading: loadingMilestones,
+    error: milestonesError,
+  } = useQuery<CareerMilestone[]>({
     queryKey: ['/api/analytics/music/milestones'],
     queryFn: async () => {
       const response = await fetch('/api/analytics/music/milestones', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch career milestones');
       return response.json();
     },
   });
 
-  const { data: musicInsights, isLoading: loadingMusicInsights, error: musicInsightsError } = useQuery<MusicInsight[]>({
+  const {
+    data: musicInsights,
+    isLoading: loadingMusicInsights,
+    error: musicInsightsError,
+  } = useQuery<MusicInsight[]>({
     queryKey: ['/api/analytics/music/insights'],
     queryFn: async () => {
       const response = await fetch('/api/analytics/music/insights', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch music insights');
       return response.json();
@@ -334,7 +382,7 @@ export default function AIDashboard() {
       const response = await fetch('/api/admin/analytics', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch admin analytics');
       return response.json();
@@ -348,7 +396,7 @@ export default function AIDashboard() {
       const response = await fetch('/api/admin/metrics', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch platform metrics');
       return response.json();
@@ -501,7 +549,9 @@ export default function AIDashboard() {
                   <div className="text-center py-12">
                     <XCircle className="w-12 h-12 text-destructive mx-auto mb-2" />
                     <p className="text-destructive font-semibold">Failed to load predictions</p>
-                    <p className="text-sm text-muted-foreground mt-1">Unable to fetch prediction data</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Unable to fetch prediction data
+                    </p>
                   </div>
                 ) : loadingPredictions ? (
                   <div className="text-center py-12">
@@ -522,7 +572,9 @@ export default function AIDashboard() {
                           <Card className="bg-muted/50">
                             <CardContent className="p-4">
                               <p className="text-sm text-muted-foreground">Current</p>
-                              <p className="text-2xl font-bold">{prediction.current.toLocaleString()}</p>
+                              <p className="text-2xl font-bold">
+                                {prediction.current.toLocaleString()}
+                              </p>
                             </CardContent>
                           </Card>
                           <Card className="bg-primary/10 border-primary">
@@ -553,13 +605,18 @@ export default function AIDashboard() {
                           <h4 className="text-sm font-medium mb-3">Forecast Timeline</h4>
                           <div className="space-y-2">
                             {(prediction.forecast || []).map((point, index) => (
-                              <div key={index} className="flex items-center justify-between text-sm">
+                              <div
+                                key={index}
+                                className="flex items-center justify-between text-sm"
+                              >
                                 <span className="text-muted-foreground">{point.date}</span>
                                 <div className="flex items-center gap-4">
                                   <span className="text-xs text-muted-foreground">
                                     {point.confidence_low} - {point.confidence_high}
                                   </span>
-                                  <span className="font-semibold">{point.value.toLocaleString()}</span>
+                                  <span className="font-semibold">
+                                    {point.value.toLocaleString()}
+                                  </span>
                                 </div>
                               </div>
                             ))}
@@ -577,14 +634,20 @@ export default function AIDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Churn Prediction</CardTitle>
-                <CardDescription>Users at risk of churning with recommended actions</CardDescription>
+                <CardDescription>
+                  Users at risk of churning with recommended actions
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {churnError ? (
                   <div className="text-center py-12">
                     <XCircle className="w-12 h-12 text-destructive mx-auto mb-2" />
-                    <p className="text-destructive font-semibold">Failed to load churn predictions</p>
-                    <p className="text-sm text-muted-foreground mt-1">Unable to fetch churn analysis</p>
+                    <p className="text-destructive font-semibold">
+                      Failed to load churn predictions
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Unable to fetch churn analysis
+                    </p>
                   </div>
                 ) : loadingChurn ? (
                   <div className="text-center py-12">
@@ -669,8 +732,12 @@ export default function AIDashboard() {
                 {revenueError ? (
                   <div className="text-center py-12">
                     <XCircle className="w-12 h-12 text-destructive mx-auto mb-2" />
-                    <p className="text-destructive font-semibold">Failed to load revenue forecasts</p>
-                    <p className="text-sm text-muted-foreground mt-1">Unable to fetch revenue analysis</p>
+                    <p className="text-destructive font-semibold">
+                      Failed to load revenue forecasts
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Unable to fetch revenue analysis
+                    </p>
                   </div>
                 ) : loadingRevenue ? (
                   <div className="text-center py-12">
@@ -689,9 +756,7 @@ export default function AIDashboard() {
                       <Card
                         key={scenario.name}
                         className={
-                          scenario.name === 'Expected'
-                            ? 'border-primary bg-primary/5'
-                            : ''
+                          scenario.name === 'Expected' ? 'border-primary bg-primary/5' : ''
                         }
                       >
                         <CardContent className="p-4">
@@ -707,32 +772,27 @@ export default function AIDashboard() {
                                 {scenario.probability}% probability
                               </p>
                             </div>
-                            <Badge
-                              variant={scenario.growth > 40 ? 'default' : 'secondary'}
-                            >
+                            <Badge variant={scenario.growth > 40 ? 'default' : 'secondary'}>
                               +{scenario.growth}% growth
                             </Badge>
                           </div>
 
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
-                              <p className="text-xs text-muted-foreground">Monthly Recurring Revenue</p>
-                              <p className="text-2xl font-bold">
-                                ${scenario.mrr.toLocaleString()}
+                              <p className="text-xs text-muted-foreground">
+                                Monthly Recurring Revenue
                               </p>
+                              <p className="text-2xl font-bold">${scenario.mrr.toLocaleString()}</p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-xs text-muted-foreground">Annual Recurring Revenue</p>
-                              <p className="text-2xl font-bold">
-                                ${scenario.arr.toLocaleString()}
+                              <p className="text-xs text-muted-foreground">
+                                Annual Recurring Revenue
                               </p>
+                              <p className="text-2xl font-bold">${scenario.arr.toLocaleString()}</p>
                             </div>
                           </div>
 
-                          <Progress
-                            value={scenario.probability}
-                            className="h-2 mt-3"
-                          />
+                          <Progress value={scenario.probability} className="h-2 mt-3" />
                         </CardContent>
                       </Card>
                     ))}
@@ -753,7 +813,9 @@ export default function AIDashboard() {
                   <div className="text-center py-12">
                     <XCircle className="w-12 h-12 text-destructive mx-auto mb-2" />
                     <p className="text-destructive font-semibold">Failed to load anomalies</p>
-                    <p className="text-sm text-muted-foreground mt-1">Unable to fetch anomaly detection</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Unable to fetch anomaly detection
+                    </p>
                   </div>
                 ) : loadingAnomalies ? (
                   <div className="text-center py-12">
@@ -769,10 +831,7 @@ export default function AIDashboard() {
                 ) : (
                   <div className="space-y-3">
                     {anomalies?.map((anomaly) => (
-                      <Alert
-                        key={anomaly.id}
-                        className={getSeverityColor(anomaly.severity)}
-                      >
+                      <Alert key={anomaly.id} className={getSeverityColor(anomaly.severity)}>
                         <div className="space-y-2">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -819,14 +878,18 @@ export default function AIDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>AI Insights</CardTitle>
-                <CardDescription>Natural language insights with actionable recommendations</CardDescription>
+                <CardDescription>
+                  Natural language insights with actionable recommendations
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {insightsError ? (
                   <div className="text-center py-12">
                     <XCircle className="w-12 h-12 text-destructive mx-auto mb-2" />
                     <p className="text-destructive font-semibold">Failed to load insights</p>
-                    <p className="text-sm text-muted-foreground mt-1">Unable to generate AI insights</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Unable to generate AI insights
+                    </p>
                   </div>
                 ) : loadingInsights ? (
                   <div className="text-center py-12">
@@ -901,7 +964,9 @@ export default function AIDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Current {careerMetric}</p>
-                      <p className="text-2xl font-bold">{careerGrowth?.currentValue?.toLocaleString() || 0}</p>
+                      <p className="text-2xl font-bold">
+                        {careerGrowth?.currentValue?.toLocaleString() || 0}
+                      </p>
                     </div>
                     <TrendingUp className="w-8 h-8 text-blue-600" />
                   </div>
@@ -912,7 +977,9 @@ export default function AIDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Predicted</p>
-                      <p className="text-2xl font-bold">{careerGrowth?.predictedValue?.toLocaleString() || 0}</p>
+                      <p className="text-2xl font-bold">
+                        {careerGrowth?.predictedValue?.toLocaleString() || 0}
+                      </p>
                     </div>
                     <Target className="w-8 h-8 text-green-600" />
                   </div>
@@ -923,7 +990,9 @@ export default function AIDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Growth Rate</p>
-                      <p className="text-2xl font-bold">{careerGrowth?.growthRate?.toFixed(1) || 0}%</p>
+                      <p className="text-2xl font-bold">
+                        {careerGrowth?.growthRate?.toFixed(1) || 0}%
+                      </p>
                     </div>
                     <Activity className="w-8 h-8 text-purple-600" />
                   </div>
@@ -936,7 +1005,9 @@ export default function AIDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Career Growth Prediction</CardTitle>
-                    <CardDescription>AI-powered forecasts for your music career metrics</CardDescription>
+                    <CardDescription>
+                      AI-powered forecasts for your music career metrics
+                    </CardDescription>
                   </div>
                   <div className="flex gap-2">
                     <Select value={careerMetric} onValueChange={setCareerMetric}>
@@ -979,7 +1050,10 @@ export default function AIDashboard() {
                       <h4 className="text-sm font-medium mb-3">AI Recommendations</h4>
                       <div className="space-y-2">
                         {(careerGrowth?.recommendations || []).map((rec, index) => (
-                          <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded">
+                          <div
+                            key={index}
+                            className="flex items-start gap-2 p-3 bg-muted/50 rounded"
+                          >
                             <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
                             <span className="text-sm">{rec}</span>
                           </div>
@@ -989,7 +1063,8 @@ export default function AIDashboard() {
                     <Alert>
                       <Brain className="h-4 w-4" />
                       <AlertDescription>
-                        Confidence: {careerGrowth?.confidence || 0}% - Based on historical data and industry trends
+                        Confidence: {careerGrowth?.confidence || 0}% - Based on historical data and
+                        industry trends
                       </AlertDescription>
                     </Alert>
                   </div>
@@ -1021,7 +1096,9 @@ export default function AIDashboard() {
                           <span>Current: {milestone.current?.toLocaleString()}</span>
                           <span>Next: {milestone.nextMilestone?.toLocaleString()}</span>
                         </div>
-                        <p className="text-xs text-muted-foreground">Est. completion: {milestone.estimatedDate}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Est. completion: {milestone.estimatedDate}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -1037,7 +1114,9 @@ export default function AIDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Total Fans</p>
-                      <p className="text-2xl font-bold">{fanbaseData?.totalFans?.toLocaleString() || 0}</p>
+                      <p className="text-2xl font-bold">
+                        {fanbaseData?.totalFans?.toLocaleString() || 0}
+                      </p>
                     </div>
                     <Users className="w-8 h-8 text-blue-600" />
                   </div>
@@ -1048,7 +1127,9 @@ export default function AIDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Active Listeners</p>
-                      <p className="text-2xl font-bold">{fanbaseData?.activeListeners?.toLocaleString() || 0}</p>
+                      <p className="text-2xl font-bold">
+                        {fanbaseData?.activeListeners?.toLocaleString() || 0}
+                      </p>
                     </div>
                     <Activity className="w-8 h-8 text-green-600" />
                   </div>
@@ -1059,7 +1140,9 @@ export default function AIDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Engagement Rate</p>
-                      <p className="text-2xl font-bold">{fanbaseData?.engagementRate?.toFixed(1) || 0}%</p>
+                      <p className="text-2xl font-bold">
+                        {fanbaseData?.engagementRate?.toFixed(1) || 0}%
+                      </p>
                     </div>
                     <Sparkles className="w-8 h-8 text-purple-600" />
                   </div>
@@ -1070,7 +1153,9 @@ export default function AIDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Fanbase Insights</CardTitle>
-                <CardDescription>Understand your audience demographics and behavior</CardDescription>
+                <CardDescription>
+                  Understand your audience demographics and behavior
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {loadingFanbase ? (
@@ -1108,22 +1193,26 @@ export default function AIDashboard() {
                         <div>
                           <p className="text-xs text-muted-foreground mb-2">Top Locations</p>
                           <div className="space-y-1">
-                            {(fanbaseData?.demographics?.topLocations || []).map((location, index) => (
-                              <Badge key={index} variant="outline" className="text-xs mr-1">
-                                {location}
-                              </Badge>
-                            ))}
+                            {(fanbaseData?.demographics?.topLocations || []).map(
+                              (location, index) => (
+                                <Badge key={index} variant="outline" className="text-xs mr-1">
+                                  {location}
+                                </Badge>
+                              )
+                            )}
                           </div>
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground mb-2">Peak Listening Times</p>
                           <div className="space-y-1">
-                            {(fanbaseData?.demographics?.peakListeningTimes || []).map((time, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs mr-1">
-                                <Clock className="w-3 h-3 mr-1" />
-                                {time}
-                              </Badge>
-                            ))}
+                            {(fanbaseData?.demographics?.peakListeningTimes || []).map(
+                              (time, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs mr-1">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  {time}
+                                </Badge>
+                              )
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1133,7 +1222,10 @@ export default function AIDashboard() {
                       <h4 className="text-sm font-medium mb-3">Growth Opportunities</h4>
                       <div className="space-y-2">
                         {(fanbaseData?.growthOpportunities || []).map((opportunity, index) => (
-                          <div key={index} className="flex items-start gap-2 p-3 bg-primary/5 rounded">
+                          <div
+                            key={index}
+                            className="flex items-start gap-2 p-3 bg-primary/5 rounded"
+                          >
                             <Target className="w-5 h-5 text-primary mt-0.5" />
                             <span className="text-sm">{opportunity}</span>
                           </div>
@@ -1161,18 +1253,25 @@ export default function AIDashboard() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="p-4 bg-muted/50 rounded">
                         <p className="text-xs text-muted-foreground mb-1">Best Release Day</p>
-                        <p className="text-lg font-semibold">{releaseStrategy?.bestReleaseDay || 'N/A'}</p>
+                        <p className="text-lg font-semibold">
+                          {releaseStrategy?.bestReleaseDay || 'N/A'}
+                        </p>
                       </div>
                       <div className="p-4 bg-muted/50 rounded">
                         <p className="text-xs text-muted-foreground mb-1">Best Release Time</p>
-                        <p className="text-lg font-semibold">{releaseStrategy?.bestReleaseTime || 'N/A'}</p>
+                        <p className="text-lg font-semibold">
+                          {releaseStrategy?.bestReleaseTime || 'N/A'}
+                        </p>
                       </div>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium mb-3">AI Recommendations</h4>
                       <div className="space-y-2">
                         {(releaseStrategy?.recommendations || []).map((rec, index) => (
-                          <div key={index} className="flex items-start gap-2 text-sm p-2 bg-muted/30 rounded">
+                          <div
+                            key={index}
+                            className="flex items-start gap-2 text-sm p-2 bg-muted/30 rounded"
+                          >
                             <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5" />
                             <span>{rec}</span>
                           </div>
@@ -1217,7 +1316,9 @@ export default function AIDashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-muted-foreground">Response Time</p>
-                          <p className="text-2xl font-bold">{platformMetrics?.responseTime || 0}ms</p>
+                          <p className="text-2xl font-bold">
+                            {platformMetrics?.responseTime || 0}ms
+                          </p>
                         </div>
                         <Zap className="w-8 h-8 text-yellow-600" />
                       </div>
@@ -1241,14 +1342,18 @@ export default function AIDashboard() {
                         <div>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium">CPU Usage</span>
-                            <span className="text-sm text-muted-foreground">{platformMetrics?.cpu || 0}%</span>
+                            <span className="text-sm text-muted-foreground">
+                              {platformMetrics?.cpu || 0}%
+                            </span>
                           </div>
                           <Progress value={platformMetrics?.cpu || 0} className="h-2" />
                         </div>
                         <div>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium">Memory Usage</span>
-                            <span className="text-sm text-muted-foreground">{platformMetrics?.memory || 0}%</span>
+                            <span className="text-sm text-muted-foreground">
+                              {platformMetrics?.memory || 0}%
+                            </span>
                           </div>
                           <Progress value={platformMetrics?.memory || 0} className="h-2" />
                         </div>
@@ -1298,7 +1403,9 @@ export default function AIDashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-muted-foreground">Growth Rate</p>
-                          <p className="text-2xl font-bold">{adminAnalytics?.monthlyGrowth?.toFixed(1) || 0}%</p>
+                          <p className="text-2xl font-bold">
+                            {adminAnalytics?.monthlyGrowth?.toFixed(1) || 0}%
+                          </p>
                         </div>
                         <Activity className="w-8 h-8 text-orange-600" />
                       </div>
@@ -1309,7 +1416,9 @@ export default function AIDashboard() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Platform Overview</CardTitle>
-                    <CardDescription>Comprehensive platform analytics and user distribution</CardDescription>
+                    <CardDescription>
+                      Comprehensive platform analytics and user distribution
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     {loadingAdminAnalytics ? (
@@ -1323,8 +1432,13 @@ export default function AIDashboard() {
                           <h4 className="text-sm font-medium mb-3">Subscription Distribution</h4>
                           <div className="space-y-2">
                             {(adminAnalytics?.subscriptionStats || []).map((stat, index) => (
-                              <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded">
-                                <span className="text-sm font-medium capitalize">{stat.tier || 'Free'}</span>
+                              <div
+                                key={index}
+                                className="flex items-center justify-between p-3 bg-muted/50 rounded"
+                              >
+                                <span className="text-sm font-medium capitalize">
+                                  {stat.tier || 'Free'}
+                                </span>
                                 <Badge variant="secondary">{stat.count || 0} users</Badge>
                               </div>
                             ))}
@@ -1333,8 +1447,9 @@ export default function AIDashboard() {
                         <Alert>
                           <Shield className="h-4 w-4" />
                           <AlertDescription>
-                            Platform-wide AI analytics provide insights into user behavior, engagement patterns, and revenue forecasting
-                            for strategic decision-making.
+                            Platform-wide AI analytics provide insights into user behavior,
+                            engagement patterns, and revenue forecasting for strategic
+                            decision-making.
                           </AlertDescription>
                         </Alert>
                       </div>

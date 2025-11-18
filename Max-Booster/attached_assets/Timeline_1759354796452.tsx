@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useAudioContext } from "@/hooks/useAudioContext";
-import { Split, RotateCw, Play, Square } from "lucide-react";
+import { useState, useRef, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useAudioContext } from '@/hooks/useAudioContext';
+import { Split, RotateCw, Play, Square } from 'lucide-react';
 
 interface TimelineTrack {
   id: string;
@@ -30,37 +30,35 @@ export function Timeline() {
 
   const tracks: TimelineTrack[] = [
     {
-      id: "1",
-      name: "Lead Vocal",
-      color: "from-primary/60 to-primary/80",
+      id: '1',
+      name: 'Lead Vocal',
+      color: 'from-primary/60 to-primary/80',
       regions: [
-        { id: "v1", start: 0, duration: 20, label: "Verse 1" },
-        { id: "c1", start: 40, duration: 20, label: "Chorus" },
-        { id: "v2", start: 80, duration: 20, label: "Verse 2" },
-      ]
+        { id: 'v1', start: 0, duration: 20, label: 'Verse 1' },
+        { id: 'c1', start: 40, duration: 20, label: 'Chorus' },
+        { id: 'v2', start: 80, duration: 20, label: 'Verse 2' },
+      ],
     },
     {
-      id: "2", 
-      name: "Synth Lead",
-      color: "from-secondary/60 to-secondary/80",
+      id: '2',
+      name: 'Synth Lead',
+      color: 'from-secondary/60 to-secondary/80',
       regions: [
-        { id: "s1", start: 8, duration: 32, label: "Lead Melody" },
-        { id: "s2", start: 60, duration: 24, label: "Solo" },
-      ]
+        { id: 's1', start: 8, duration: 32, label: 'Lead Melody' },
+        { id: 's2', start: 60, duration: 24, label: 'Solo' },
+      ],
     },
     {
-      id: "3",
-      name: "Drums",
-      color: "from-accent/60 to-accent/80",
-      regions: [
-        { id: "d1", start: 0, duration: 96, label: "Full Beat Pattern" },
-      ]
-    }
+      id: '3',
+      name: 'Drums',
+      color: 'from-accent/60 to-accent/80',
+      regions: [{ id: 'd1', start: 0, duration: 96, label: 'Full Beat Pattern' }],
+    },
   ];
 
   const timeMarkers = Array.from({ length: 8 }, (_, i) => ({
     time: i * 15,
-    label: `${Math.floor(i * 15 / 60)}:${String(i * 15 % 60).padStart(2, '0')}`
+    label: `${Math.floor((i * 15) / 60)}:${String((i * 15) % 60).padStart(2, '0')}`,
   }));
 
   const handleRegionClick = (regionId: string) => {
@@ -69,13 +67,13 @@ export function Timeline() {
 
   const handleTimelineClick = (e: React.MouseEvent) => {
     if (!timelineRef.current) return;
-    
+
     const rect = timelineRef.current.getBoundingClientRect();
     const clickX = e.clientX - rect.left - 80; // Account for track names
     const timelineWidth = rect.width - 80;
     const timePercentage = Math.max(0, Math.min(1, clickX / timelineWidth));
     const newPosition = timePercentage * 120; // 120 seconds total
-    
+
     setPlayheadPosition(newPosition);
   };
 
@@ -87,16 +85,16 @@ export function Timeline() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
+
     if (isPlaying) {
       interval = setInterval(() => {
-        setPlayheadPosition(prev => {
+        setPlayheadPosition((prev) => {
           const newPos = prev + 0.1;
           return newPos >= 120 ? 0 : newPos; // Reset at end
         });
       }, 100);
     }
-    
+
     return () => clearInterval(interval);
   }, [isPlaying]);
 
@@ -113,8 +111,8 @@ export function Timeline() {
             <RotateCw className="h-3 w-3 mr-1" />
             Loop
           </Button>
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             variant="destructive"
             onClick={() => setIsPlaying(!isPlaying)}
             data-testid="button-record-timeline"
@@ -124,9 +122,9 @@ export function Timeline() {
           </Button>
         </div>
       </CardHeader>
-      
+
       <CardContent>
-        <div 
+        <div
           ref={timelineRef}
           className="bg-background rounded p-4 h-80 overflow-x-auto timeline-grid cursor-crosshair"
           onClick={handleTimelineClick}
@@ -136,8 +134,8 @@ export function Timeline() {
           <div className="flex mb-4 text-xs text-muted-foreground font-mono sticky top-0 bg-background z-10">
             <div className="w-20"></div>
             {timeMarkers.map((marker, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="w-24 text-center border-l border-muted/50 pl-1"
                 data-testid={`time-marker-${index}`}
               >
@@ -145,25 +143,27 @@ export function Timeline() {
               </div>
             ))}
           </div>
-          
+
           {/* Track rows */}
           <div className="relative">
             {tracks.map((track, trackIndex) => (
-              <div key={track.id} className="flex items-center mb-3 h-12" data-testid={`track-row-${trackIndex}`}>
-                <div className="w-20 text-xs font-medium pr-2 truncate">
-                  {track.name}
-                </div>
+              <div
+                key={track.id}
+                className="flex items-center mb-3 h-12"
+                data-testid={`track-row-${trackIndex}`}
+              >
+                <div className="w-20 text-xs font-medium pr-2 truncate">{track.name}</div>
                 <div className="flex-1 relative h-full">
                   {track.regions.map((region) => {
                     const leftPosition = (region.start / 120) * 100;
                     const width = (region.duration / 120) * 100;
-                    
+
                     return (
                       <div
                         key={region.id}
                         className={`absolute h-full bg-gradient-to-r ${track.color} rounded flex items-center justify-center text-xs font-medium cursor-pointer transition-all hover:shadow-lg ${
-                          selectedRegion === region.id 
-                            ? 'ring-2 ring-primary shadow-lg' 
+                          selectedRegion === region.id
+                            ? 'ring-2 ring-primary shadow-lg'
                             : 'hover:brightness-110'
                         }`}
                         style={{
@@ -179,7 +179,7 @@ export function Timeline() {
                         <span className="text-white drop-shadow-md truncate px-2">
                           {region.label}
                         </span>
-                        
+
                         {/* Resize handles */}
                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/30 hover:bg-white/50 cursor-w-resize"></div>
                         <div className="absolute right-0 top-0 bottom-0 w-1 bg-white/30 hover:bg-white/50 cursor-e-resize"></div>
@@ -189,9 +189,9 @@ export function Timeline() {
                 </div>
               </div>
             ))}
-            
+
             {/* Playhead */}
-            <div 
+            <div
               className="absolute top-0 bottom-0 w-px bg-destructive z-20 pointer-events-none ml-20"
               style={{
                 left: `${20 + (playheadPosition / 120) * (100 - 20)}%`,
@@ -202,7 +202,7 @@ export function Timeline() {
             </div>
           </div>
         </div>
-        
+
         {/* Timeline controls */}
         <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -211,26 +211,31 @@ export function Timeline() {
             </div>
             {selectedRegion && (
               <Badge variant="outline" className="bg-primary/10 text-primary">
-                Selected: {tracks.find(t => t.regions.some(r => r.id === selectedRegion))?.regions.find(r => r.id === selectedRegion)?.label}
+                Selected:{' '}
+                {
+                  tracks
+                    .find((t) => t.regions.some((r) => r.id === selectedRegion))
+                    ?.regions.find((r) => r.id === selectedRegion)?.label
+                }
               </Badge>
             )}
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <span className="text-sm">Zoom:</span>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="outline"
-              onClick={() => setZoom(prev => Math.max(0.5, prev - 0.25))}
+              onClick={() => setZoom((prev) => Math.max(0.5, prev - 0.25))}
               data-testid="button-zoom-out"
             >
               -
             </Button>
             <span className="text-sm font-mono w-8 text-center">{zoom}x</span>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="outline"
-              onClick={() => setZoom(prev => Math.min(4, prev + 0.25))}
+              onClick={() => setZoom((prev) => Math.min(4, prev + 0.25))}
               data-testid="button-zoom-in"
             >
               +
@@ -246,20 +251,30 @@ export function Timeline() {
               <div>
                 <span className="text-muted-foreground">Start:</span>
                 <span className="ml-2 font-mono">
-                  {formatTime(tracks.find(t => t.regions.some(r => r.id === selectedRegion))?.regions.find(r => r.id === selectedRegion)?.start || 0)}
+                  {formatTime(
+                    tracks
+                      .find((t) => t.regions.some((r) => r.id === selectedRegion))
+                      ?.regions.find((r) => r.id === selectedRegion)?.start || 0
+                  )}
                 </span>
               </div>
               <div>
                 <span className="text-muted-foreground">Duration:</span>
                 <span className="ml-2 font-mono">
-                  {formatTime(tracks.find(t => t.regions.some(r => r.id === selectedRegion))?.regions.find(r => r.id === selectedRegion)?.duration || 0)}
+                  {formatTime(
+                    tracks
+                      .find((t) => t.regions.some((r) => r.id === selectedRegion))
+                      ?.regions.find((r) => r.id === selectedRegion)?.duration || 0
+                  )}
                 </span>
               </div>
               <div>
                 <span className="text-muted-foreground">End:</span>
                 <span className="ml-2 font-mono">
                   {(() => {
-                    const region = tracks.find(t => t.regions.some(r => r.id === selectedRegion))?.regions.find(r => r.id === selectedRegion);
+                    const region = tracks
+                      .find((t) => t.regions.some((r) => r.id === selectedRegion))
+                      ?.regions.find((r) => r.id === selectedRegion);
                     return formatTime((region?.start || 0) + (region?.duration || 0));
                   })()}
                 </span>

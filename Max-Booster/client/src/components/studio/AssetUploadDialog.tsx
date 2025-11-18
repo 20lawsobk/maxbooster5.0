@@ -20,6 +20,9 @@ interface AssetUploadDialogProps {
   assetType: 'sample' | 'plugin';
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function AssetUploadDialog({ open, onOpenChange, assetType }: AssetUploadDialogProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [name, setName] = useState('');
@@ -33,7 +36,7 @@ export function AssetUploadDialog({ open, onOpenChange, assetType }: AssetUpload
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const xhr = new XMLHttpRequest();
-      
+
       return new Promise((resolve, reject) => {
         xhr.upload.addEventListener('progress', (e) => {
           if (e.lengthComputable) {
@@ -86,11 +89,11 @@ export function AssetUploadDialog({ open, onOpenChange, assetType }: AssetUpload
     formData.append('assetFile', selectedFile);
     formData.append('name', name || selectedFile.name);
     formData.append('assetType', assetType);
-    
+
     if (description) {
       formData.append('description', description);
     }
-    
+
     if (tags) {
       formData.append('tags', tags);
     }
@@ -108,10 +111,8 @@ export function AssetUploadDialog({ open, onOpenChange, assetType }: AssetUpload
     onOpenChange(false);
   };
 
-  const fileTypes = assetType === 'sample' 
-    ? 'WAV, MP3, FLAC, AIFF, OGG' 
-    : 'JSON, ZIP';
-  
+  const fileTypes = assetType === 'sample' ? 'WAV, MP3, FLAC, AIFF, OGG' : 'JSON, ZIP';
+
   const maxSize = '500MB';
 
   return (
@@ -120,7 +121,8 @@ export function AssetUploadDialog({ open, onOpenChange, assetType }: AssetUpload
         <DialogHeader>
           <DialogTitle>Upload {assetType === 'sample' ? 'Sample' : 'Plugin'}</DialogTitle>
           <DialogDescription>
-            Upload your {assetType === 'sample' ? 'audio samples' : 'plugin files'} to use in your projects.
+            Upload your {assetType === 'sample' ? 'audio samples' : 'plugin files'} to use in your
+            projects.
             <br />
             Supported formats: {fileTypes} (Max: {maxSize})
           </DialogDescription>
@@ -134,9 +136,7 @@ export function AssetUploadDialog({ open, onOpenChange, assetType }: AssetUpload
               <Input
                 id="file"
                 type="file"
-                accept={assetType === 'sample' 
-                  ? '.wav,.mp3,.flac,.aiff,.aif,.ogg' 
-                  : '.json,.zip'}
+                accept={assetType === 'sample' ? '.wav,.mp3,.flac,.aiff,.aif,.ogg' : '.json,.zip'}
                 onChange={handleFileChange}
                 className="flex-1"
               />
@@ -218,10 +218,7 @@ export function AssetUploadDialog({ open, onOpenChange, assetType }: AssetUpload
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button
-            onClick={handleUpload}
-            disabled={!selectedFile || uploadMutation.isPending}
-          >
+          <Button onClick={handleUpload} disabled={!selectedFile || uploadMutation.isPending}>
             <Upload className="h-4 w-4 mr-2" />
             Upload
           </Button>

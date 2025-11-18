@@ -6,7 +6,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
@@ -27,7 +33,7 @@ import {
   Clock,
   Target,
   Users,
-  Zap
+  Zap,
 } from 'lucide-react';
 
 const LANGUAGES = [
@@ -70,6 +76,9 @@ interface PostingTime {
   engagement_score: number;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function ContentGenerator() {
   const { toast } = useToast();
   const [selectedLanguage, setSelectedLanguage] = useState('en');
@@ -82,8 +91,20 @@ export function ContentGenerator() {
     queryKey: ['/api/social/ai-content/trending-topics'],
     queryFn: async () => {
       const mockTopics: TrendingTopic[] = [
-        { id: '1', topic: 'AI Music Production', popularity: 95, category: 'Music Tech', relevance: 88 },
-        { id: '2', topic: 'Independent Artists', popularity: 87, category: 'Music Industry', relevance: 92 },
+        {
+          id: '1',
+          topic: 'AI Music Production',
+          popularity: 95,
+          category: 'Music Tech',
+          relevance: 88,
+        },
+        {
+          id: '2',
+          topic: 'Independent Artists',
+          popularity: 87,
+          category: 'Music Industry',
+          relevance: 92,
+        },
         { id: '3', topic: 'Streaming Growth', popularity: 82, category: 'Business', relevance: 85 },
         { id: '4', topic: 'Music Marketing', popularity: 79, category: 'Marketing', relevance: 90 },
         { id: '5', topic: 'Beat Making', popularity: 75, category: 'Production', relevance: 80 },
@@ -118,7 +139,7 @@ export function ContentGenerator() {
         description: `Analyzed ${data.posts_analyzed} posts. Voice profile updated.`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Analysis Failed',
         description: error.message || 'Unable to analyze brand voice',
@@ -139,10 +160,10 @@ export function ContentGenerator() {
       setGeneratedContent(data.content);
       toast({
         title: 'Content Generated',
-        description: `Created ${selectedLanguage === 'en' ? 'English' : LANGUAGES.find(l => l.code === selectedLanguage)?.name} content`,
+        description: `Created ${selectedLanguage === 'en' ? 'English' : LANGUAGES.find((l) => l.code === selectedLanguage)?.name} content`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Generation Failed',
         description: error.message || 'Unable to generate content',
@@ -159,7 +180,7 @@ export function ContentGenerator() {
       });
       return res.json();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Hashtag Optimization Failed',
         description: error.message || 'Unable to optimize hashtags',
@@ -176,7 +197,7 @@ export function ContentGenerator() {
       });
       return res.json();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Variant Generation Failed',
         description: error.message || 'Unable to generate variants',
@@ -293,10 +314,7 @@ export function ContentGenerator() {
               <div className="space-y-2">
                 <Label>Cultural Adaptation</Label>
                 <div className="flex items-center space-x-2 h-10">
-                  <Switch
-                    checked={culturalAdaptation}
-                    onCheckedChange={setCulturalAdaptation}
-                  />
+                  <Switch checked={culturalAdaptation} onCheckedChange={setCulturalAdaptation} />
                   <span className="text-sm text-muted-foreground">
                     {culturalAdaptation ? 'Enabled' : 'Disabled'}
                   </span>
@@ -391,8 +409,8 @@ export function ContentGenerator() {
                               category.reach === 'high'
                                 ? 'default'
                                 : category.reach === 'medium'
-                                ? 'secondary'
-                                : 'outline'
+                                  ? 'secondary'
+                                  : 'outline'
                             }
                           >
                             {category.reach} reach
@@ -443,9 +461,7 @@ export function ContentGenerator() {
                           </Badge>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-primary">
-                            {topic.popularity}
-                          </div>
+                          <div className="text-2xl font-bold text-primary">{topic.popularity}</div>
                           <p className="text-xs text-muted-foreground">Popularity</p>
                         </div>
                       </div>
@@ -517,7 +533,10 @@ export function ContentGenerator() {
           <TabsContent value="testing" className="space-y-4">
             <div className="space-y-2">
               <Label>Number of Variants (2-5)</Label>
-              <Select value={variantCount.toString()} onValueChange={(v) => setVariantCount(parseInt(v))}>
+              <Select
+                value={variantCount.toString()}
+                onValueChange={(v) => setVariantCount(parseInt(v))}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -551,38 +570,40 @@ export function ContentGenerator() {
 
             {generateABVariantsMutation.data?.variants && (
               <div className="space-y-3">
-                {generateABVariantsMutation.data.variants.map((variant: ABVariant, index: number) => (
-                  <Card key={variant.id}>
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Badge>Variant {index + 1}</Badge>
-                        <div className="flex items-center gap-2">
-                          <Target className="w-4 h-4 text-primary" />
-                          <span className="text-sm font-medium">
-                            {variant.predictedEngagement}% predicted engagement
-                          </span>
+                {generateABVariantsMutation.data.variants.map(
+                  (variant: ABVariant, index: number) => (
+                    <Card key={variant.id}>
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Badge>Variant {index + 1}</Badge>
+                          <div className="flex items-center gap-2">
+                            <Target className="w-4 h-4 text-primary" />
+                            <span className="text-sm font-medium">
+                              {variant.predictedEngagement}% predicted engagement
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <p className="text-sm">{variant.content}</p>
-                      <div className="flex flex-wrap gap-1">
-                        {variant.strengths.map((strength) => (
-                          <Badge key={strength} variant="secondary" className="text-xs">
-                            {strength}
-                          </Badge>
-                        ))}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => copyToClipboard(variant.content)}
-                        className="w-full"
-                      >
-                        <Copy className="w-4 h-4 mr-1" />
-                        Copy Variant
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <p className="text-sm">{variant.content}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {variant.strengths.map((strength) => (
+                            <Badge key={strength} variant="secondary" className="text-xs">
+                              {strength}
+                            </Badge>
+                          ))}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => copyToClipboard(variant.content)}
+                          className="w-full"
+                        >
+                          <Copy className="w-4 h-4 mr-1" />
+                          Copy Variant
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )
+                )}
               </div>
             )}
           </TabsContent>

@@ -2,6 +2,7 @@ import sgMail from '@sendgrid/mail';
 import { db } from '../db';
 import { notifications, users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { logger } from '../logger.js';
 
 interface NotificationOptions {
   userId: string;
@@ -30,9 +31,9 @@ class NotificationService {
       try {
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
         this.isInitialized = true;
-        console.log('✅ SendGrid initialized for email notifications');
-      } catch (error) {
-        console.error('❌ Failed to initialize SendGrid:', error);
+        logger.info('✅ SendGrid initialized for email notifications');
+      } catch (error: unknown) {
+        logger.error('❌ Failed to initialize SendGrid:', error);
       }
     }
   }
@@ -46,11 +47,11 @@ class NotificationService {
       });
 
       if (!user) {
-        console.error('User not found:', userId);
+        logger.error('User not found:', userId);
         return;
       }
 
-      const preferences = user.notificationPreferences as any || {
+      const preferences = (user.notificationPreferences as any) || {
         email: true,
         browser: true,
         releases: true,
@@ -63,28 +64,33 @@ class NotificationService {
       const shouldSendEmail = preferences.email && preferences[type];
       const shouldSendBrowser = preferences.browser && preferences[type];
 
-      const [notification] = await db.insert(notifications).values({
-        userId,
-        type,
-        title,
-        message,
-        link,
-        metadata,
-        read: false,
-        emailSent: false,
-        browserSent: false,
-      }).returning();
+      const [notification] = await db
+        .insert(notifications)
+        .values({
+          userId,
+          type,
+          title,
+          message,
+          link,
+          metadata,
+          read: false,
+          emailSent: false,
+          browserSent: false,
+        })
+        .returning();
 
       if (shouldSendEmail) {
         await this.sendEmail(user, type, title, message, link);
-        await db.update(notifications)
+        await db
+          .update(notifications)
           .set({ emailSent: true })
           .where(eq(notifications.id, notification.id));
       }
 
       if (shouldSendBrowser && user.pushSubscription) {
         await this.sendBrowserNotification(user, title, message, link);
-        await db.update(notifications)
+        await db
+          .update(notifications)
           .set({ browserSent: true })
           .where(eq(notifications.id, notification.id));
       }
@@ -94,22 +100,22 @@ class NotificationService {
         (global as any).broadcastNotification(userId, notification);
       }
 
-      console.log(`✅ Notification sent to user ${userId}: ${title}`);
-    } catch (error) {
-      console.error('Error sending notification:', error);
+      logger.info(`✅ Notification sent to user ${userId}: ${title}`);
+    } catch (error: unknown) {
+      logger.error('Error sending notification:', error);
       throw error;
     }
   }
 
   private async sendEmail(
-    user: any,
+    user: unknown,
     type: string,
     title: string,
     message: string,
     link?: string
   ): Promise<void> {
     if (!this.isInitialized) {
-      console.warn('SendGrid not initialized, skipping email');
+      logger.warn('SendGrid not initialized, skipping email');
       return;
     }
 
@@ -124,19 +130,19 @@ class NotificationService {
         text: template.text,
         html: template.html,
       });
-      console.log(`📧 Email sent to ${user.email}`);
-    } catch (error: any) {
-      console.error('SendGrid error:', error?.response?.body || error);
+      logger.info(`📧 Email sent to ${user.email}`);
+    } catch (error: unknown) {
+      logger.error('SendGrid error:', error?.response?.body || error);
     }
   }
 
   private async sendBrowserNotification(
-    user: any,
+    user: unknown,
     title: string,
     message: string,
     link?: string
   ): Promise<void> {
-    console.log(`🔔 Browser notification queued for user: ${title}`);
+    logger.info(`🔔 Browser notification queued for user: ${title}`);
   }
 
   private getEmailTemplate(
@@ -247,7 +253,11 @@ Manage your notification preferences: ${link || 'https://maxbooster.ai/settings'
     return descriptions[type] || 'You received this notification from Max Booster.';
   }
 
-  async sendReleaseNotification(userId: string, releaseTitle: string, status: string): Promise<void> {
+  async sendReleaseNotification(
+    userId: string,
+    releaseTitle: string,
+    status: string
+  ): Promise<void> {
     const statusMessages: Record<string, string> = {
       processing: `Your release "${releaseTitle}" is being processed and will be live soon.`,
       live: `🎉 Your release "${releaseTitle}" is now live on all platforms!`,
@@ -293,7 +303,12 @@ Manage your notification preferences: ${link || 'https://maxbooster.ai/settings'
     });
   }
 
-  async sendSystemNotification(userId: string, title: string, message: string, link?: string): Promise<void> {
+  async sendSystemNotification(
+    userId: string,
+    title: string,
+    message: string,
+    link?: string
+  ): Promise<void> {
     await this.send({
       userId,
       type: 'system',

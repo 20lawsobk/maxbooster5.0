@@ -10,19 +10,22 @@ interface TopBarProps {
   onMenuClick?: () => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function TopBar({ title, subtitle, onMenuClick }: TopBarProps = {}) {
   const { logout } = useAuth();
   const [, navigate] = useLocation();
-  
+
   const handleSignOut = async () => {
     try {
       await logout();
       navigate('/login');
-    } catch (error) {
-      console.error('Failed to sign out:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to sign out:', error);
     }
   };
-  
+
   return (
     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
       <div className="flex items-center justify-between">
@@ -38,8 +41,17 @@ export function TopBar({ title, subtitle, onMenuClick }: TopBarProps = {}) {
             <Menu className="w-5 h-5" />
           </Button>
           <div>
-            {title && <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white" data-testid="topbar-title">{title}</h1>}
-            {subtitle && <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">{subtitle}</p>}
+            {title && (
+              <h1
+                className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white"
+                data-testid="topbar-title"
+              >
+                {title}
+              </h1>
+            )}
+            {subtitle && (
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">{subtitle}</p>
+            )}
           </div>
         </div>
         <div className="flex items-center space-x-2">

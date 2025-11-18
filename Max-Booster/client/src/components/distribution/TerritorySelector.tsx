@@ -58,8 +58,34 @@ const TERRITORIES = [
 
 const REGIONS = [
   { id: 'north-america', name: 'North America', countries: ['US', 'CA', 'MX'] },
-  { id: 'europe', name: 'Europe', countries: ['GB', 'DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'SE', 'NO', 'DK', 'FI', 'IE', 'PT', 'AT', 'CH', 'PL', 'CZ'] },
-  { id: 'asia', name: 'Asia', countries: ['JP', 'KR', 'CN', 'IN', 'SG', 'MY', 'TH', 'ID', 'PH', 'VN'] },
+  {
+    id: 'europe',
+    name: 'Europe',
+    countries: [
+      'GB',
+      'DE',
+      'FR',
+      'ES',
+      'IT',
+      'NL',
+      'BE',
+      'SE',
+      'NO',
+      'DK',
+      'FI',
+      'IE',
+      'PT',
+      'AT',
+      'CH',
+      'PL',
+      'CZ',
+    ],
+  },
+  {
+    id: 'asia',
+    name: 'Asia',
+    countries: ['JP', 'KR', 'CN', 'IN', 'SG', 'MY', 'TH', 'ID', 'PH', 'VN'],
+  },
   { id: 'latin-america', name: 'Latin America', countries: ['BR', 'AR', 'CL', 'CO', 'MX'] },
   { id: 'middle-east', name: 'Middle East', countries: ['SA', 'AE', 'IL', 'TR', 'EG'] },
   { id: 'africa', name: 'Africa', countries: ['ZA', 'NG', 'KE', 'EG'] },
@@ -73,33 +99,37 @@ interface TerritorySelectorProps {
   onModeChange: (mode: 'worldwide' | 'include' | 'exclude') => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function TerritorySelector({
   selectedTerritories,
   onChange,
   mode,
-  onModeChange
+  onModeChange,
 }: TerritorySelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredTerritories = TERRITORIES.filter(t =>
-    t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.code.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTerritories = TERRITORIES.filter(
+    (t) =>
+      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const toggleTerritory = (code: string) => {
     if (selectedTerritories.includes(code)) {
-      onChange(selectedTerritories.filter(c => c !== code));
+      onChange(selectedTerritories.filter((c) => c !== code));
     } else {
       onChange([...selectedTerritories, code]);
     }
   };
 
   const selectRegion = (regionId: string) => {
-    const region = REGIONS.find(r => r.id === regionId);
+    const region = REGIONS.find((r) => r.id === regionId);
     if (!region) return;
 
     const newTerritories = [...selectedTerritories];
-    region.countries.forEach(code => {
+    region.countries.forEach((code) => {
       if (!newTerritories.includes(code)) {
         newTerritories.push(code);
       }
@@ -108,7 +138,7 @@ export function TerritorySelector({
   };
 
   const selectAll = () => {
-    onChange(TERRITORIES.map(t => t.code));
+    onChange(TERRITORIES.map((t) => t.code));
   };
 
   const clearAll = () => {
@@ -144,9 +174,7 @@ export function TerritorySelector({
               }}
             >
               <div className="font-medium mb-1">Worldwide</div>
-              <div className="text-xs text-muted-foreground">
-                All territories (recommended)
-              </div>
+              <div className="text-xs text-muted-foreground">All territories (recommended)</div>
             </button>
 
             <button
@@ -159,9 +187,7 @@ export function TerritorySelector({
               onClick={() => onModeChange('include')}
             >
               <div className="font-medium mb-1">Specific Territories</div>
-              <div className="text-xs text-muted-foreground">
-                Select countries to include
-              </div>
+              <div className="text-xs text-muted-foreground">Select countries to include</div>
             </button>
 
             <button
@@ -174,9 +200,7 @@ export function TerritorySelector({
               onClick={() => onModeChange('exclude')}
             >
               <div className="font-medium mb-1">Exclude Territories</div>
-              <div className="text-xs text-muted-foreground">
-                Worldwide except selected
-              </div>
+              <div className="text-xs text-muted-foreground">Worldwide except selected</div>
             </button>
           </div>
         </div>
@@ -187,7 +211,7 @@ export function TerritorySelector({
             <div className="space-y-2">
               <Label>Quick Region Selection</Label>
               <div className="flex flex-wrap gap-2">
-                {REGIONS.map(region => (
+                {REGIONS.map((region) => (
                   <Button
                     key={region.id}
                     type="button"
@@ -208,20 +232,10 @@ export function TerritorySelector({
                 <strong>{selectedTerritories.length}</strong> territories
               </div>
               <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={selectAll}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={selectAll}>
                   Select All
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={clearAll}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={clearAll}>
                   Clear All
                 </Button>
               </div>
@@ -243,8 +257,8 @@ export function TerritorySelector({
               <div className="space-y-2">
                 <Label>Selected Territories</Label>
                 <div className="flex flex-wrap gap-2">
-                  {selectedTerritories.map(code => {
-                    const territory = TERRITORIES.find(t => t.code === code);
+                  {selectedTerritories.map((code) => {
+                    const territory = TERRITORIES.find((t) => t.code === code);
                     return (
                       <Badge
                         key={code}
@@ -266,7 +280,7 @@ export function TerritorySelector({
               <Label>Available Territories</Label>
               <div className="border rounded-lg max-h-64 overflow-y-auto">
                 <div className="p-2 space-y-1">
-                  {filteredTerritories.map(territory => (
+                  {filteredTerritories.map((territory) => (
                     <div
                       key={territory.code}
                       className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded cursor-pointer"
@@ -278,9 +292,7 @@ export function TerritorySelector({
                       />
                       <div className="flex-1">
                         <span className="font-medium">{territory.name}</span>
-                        <span className="text-xs text-muted-foreground ml-2">
-                          {territory.code}
-                        </span>
+                        <span className="text-xs text-muted-foreground ml-2">{territory.code}</span>
                       </div>
                     </div>
                   ))}

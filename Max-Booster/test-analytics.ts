@@ -15,18 +15,18 @@ async function testAnalytics() {
     console.log('Step 1: Logging in as test user...');
     const loginRes = await axios.post(`${API_BASE}/auth/login`, {
       username: 'test.monthly@maxbooster.com',
-      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#'
+      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#',
     });
-    
+
     const sessionCookie = loginRes.headers['set-cookie']?.[0];
     if (!sessionCookie) throw new Error('Failed to get session cookie');
-    
+
     console.log('✅ Logged in successfully\n');
 
     // Step 2: Test dashboard stats
     console.log('Step 2: Fetching dashboard stats...');
     const statsRes = await axios.get(`${API_BASE}/analytics/dashboard`, {
-      headers: { Cookie: sessionCookie }
+      headers: { Cookie: sessionCookie },
     });
     console.log('✅ Dashboard Stats:', statsRes.data);
 
@@ -42,7 +42,7 @@ async function testAnalytics() {
     // Step 4: Test churn prediction
     console.log('\nStep 4: Testing churn prediction...');
     const churnRes = await axios.get(`${API_BASE}/ai-analytics/churn-prediction`, {
-      headers: { Cookie: sessionCookie }
+      headers: { Cookie: sessionCookie },
     });
     console.log('✅ Churn Prediction:', churnRes.data);
 
@@ -58,53 +58,52 @@ async function testAnalytics() {
     // Step 6: Test anomaly detection
     console.log('\nStep 6: Testing anomaly detection...');
     const anomalyRes = await axios.get(`${API_BASE}/ai-analytics/anomaly-detection`, {
-      headers: { Cookie: sessionCookie }
+      headers: { Cookie: sessionCookie },
     });
     console.log('✅ Anomaly Detection:', anomalyRes.data);
 
     // Step 7: Test AI insights
     console.log('\nStep 7: Fetching AI insights...');
     const insightsRes = await axios.get(`${API_BASE}/ai-analytics/insights`, {
-      headers: { Cookie: sessionCookie }
+      headers: { Cookie: sessionCookie },
     });
     console.log('✅ AI Insights:', insightsRes.data);
 
     // Step 8: Test platform breakdown
     console.log('\nStep 8: Testing platform breakdown...');
     const platformRes = await axios.get(`${API_BASE}/analytics/platforms`, {
-      headers: { Cookie: sessionCookie }
+      headers: { Cookie: sessionCookie },
     });
     console.log('✅ Platform Breakdown:', platformRes.data);
 
     // Step 9: Test growth trends
     console.log('\nStep 9: Fetching growth trends...');
     const trendsRes = await axios.get(`${API_BASE}/analytics/trends?period=30`, {
-      headers: { Cookie: sessionCookie }
+      headers: { Cookie: sessionCookie },
     });
     console.log('✅ Growth Trends:', trendsRes.data);
 
     console.log('\n🎉 Analytics test completed successfully!');
     console.log('AI Analytics system is working correctly.');
-    
+
     return {
       success: true,
       stats: statsRes.data,
       predictions: predictRes.data,
-      insights: insightsRes.data
+      insights: insightsRes.data,
     };
-
   } catch (error: any) {
     console.error('\n❌ Analytics test failed:', error.response?.data || error.message);
     console.error('Details:', error.response?.status, error.response?.statusText);
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 }
 
 // Run the test
-testAnalytics().then(result => {
+testAnalytics().then((result) => {
   console.log('\n📊 Test Summary:', result);
   process.exit(result.success ? 0 : 1);
 });

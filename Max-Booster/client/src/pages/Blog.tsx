@@ -9,34 +9,37 @@ export default function Blog() {
   const posts = [
     {
       id: 1,
-      title: "How AI is Revolutionizing Music Production",
-      excerpt: "Discover how artificial intelligence is transforming the way artists create, mix, and master music.",
-      author: "Max Booster Team",
-      date: "March 15, 2025",
-      category: "AI & Technology",
-      readTime: "5 min read",
-      icon: Lightbulb
+      title: 'How AI is Revolutionizing Music Production',
+      excerpt:
+        'Discover how artificial intelligence is transforming the way artists create, mix, and master music.',
+      author: 'Max Booster Team',
+      date: 'March 15, 2025',
+      category: 'AI & Technology',
+      readTime: '5 min read',
+      icon: Lightbulb,
     },
     {
       id: 2,
-      title: "The Complete Guide to Music Distribution in 2025",
-      excerpt: "Everything you need to know about getting your music on Spotify, Apple Music, and beyond.",
-      author: "Max Booster Team",
-      date: "March 10, 2025",
-      category: "Distribution",
-      readTime: "8 min read",
-      icon: TrendingUp
+      title: 'The Complete Guide to Music Distribution in 2025',
+      excerpt:
+        'Everything you need to know about getting your music on Spotify, Apple Music, and beyond.',
+      author: 'Max Booster Team',
+      date: 'March 10, 2025',
+      category: 'Distribution',
+      readTime: '8 min read',
+      icon: TrendingUp,
     },
     {
       id: 3,
-      title: "Social Media Strategies That Actually Work for Musicians",
-      excerpt: "Proven tactics to grow your audience and engagement without spending hours on social media.",
-      author: "Max Booster Team",
-      date: "March 5, 2025",
-      category: "Marketing",
-      readTime: "6 min read",
-      icon: Music
-    }
+      title: 'Social Media Strategies That Actually Work for Musicians',
+      excerpt:
+        'Proven tactics to grow your audience and engagement without spending hours on social media.',
+      author: 'Max Booster Team',
+      date: 'March 5, 2025',
+      category: 'Marketing',
+      readTime: '6 min read',
+      icon: Music,
+    },
   ];
 
   return (
@@ -87,7 +90,9 @@ export default function Blog() {
             <div className="grid grid-cols-1 lg:grid-cols-2">
               <div className="bg-gradient-to-br from-blue-600 to-cyan-600 p-12 flex items-center justify-center">
                 <div className="text-white text-center">
-                  <Badge className="bg-white/20 text-white border-white/30 mb-4">Featured Post</Badge>
+                  <Badge className="bg-white/20 text-white border-white/30 mb-4">
+                    Featured Post
+                  </Badge>
                   <h2 className="text-3xl font-bold mb-4">
                     The Solo Artist's Complete Guide to Success
                   </h2>
@@ -112,9 +117,10 @@ export default function Blog() {
                   </span>
                 </div>
                 <p className="text-gray-700 leading-relaxed">
-                  From production to promotion, this comprehensive guide covers everything independent artists need 
-                  to know to build a sustainable music career. Learn about distribution strategies, marketing tactics, 
-                  and how to leverage AI tools for maximum impact.
+                  From production to promotion, this comprehensive guide covers everything
+                  independent artists need to know to build a sustainable music career. Learn about
+                  distribution strategies, marketing tactics, and how to leverage AI tools for
+                  maximum impact.
                 </p>
               </div>
             </div>
@@ -128,10 +134,18 @@ export default function Blog() {
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900">Latest Articles</h2>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">All</Button>
-              <Button variant="ghost" size="sm">AI & Technology</Button>
-              <Button variant="ghost" size="sm">Distribution</Button>
-              <Button variant="ghost" size="sm">Marketing</Button>
+              <Button variant="outline" size="sm">
+                All
+              </Button>
+              <Button variant="ghost" size="sm">
+                AI & Technology
+              </Button>
+              <Button variant="ghost" size="sm">
+                Distribution
+              </Button>
+              <Button variant="ghost" size="sm">
+                Marketing
+              </Button>
             </div>
           </div>
 

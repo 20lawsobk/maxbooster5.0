@@ -24,11 +24,11 @@ const upload = multer({
       const uniqueSuffix = `${Date.now()}_${Math.random().toString(36).substring(7)}`;
       const ext = path.extname(file.originalname);
       cb(null, `${uniqueSuffix}${ext}`);
-    }
+    },
   }),
   limits: {
     fileSize: 100 * 1024 * 1024, // 100MB
-  }
+  },
 });
 
 // Validation schemas
@@ -93,8 +93,8 @@ router.get('/releases', requireAuth, async (req: Request, res: Response) => {
     const userId = (req.user as any).id;
     const releases = await storage.getDistroReleases(userId);
     res.json(releases);
-  } catch (error) {
-    console.error('Error fetching releases:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching releases:', error);
     res.status(500).json({ error: 'Failed to fetch releases' });
   }
 });
@@ -124,15 +124,15 @@ router.post('/releases', requireAuth, async (req: Request, res: Response) => {
         territoryMode: data.territoryMode,
         territories: data.territories,
         selectedPlatforms: data.selectedPlatforms,
-      }
+      },
     });
 
     res.json(release);
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
-    console.error('Error creating release:', error);
+    logger.error('Error creating release:', error);
     res.status(500).json({ error: 'Failed to create release' });
   }
 });
@@ -149,8 +149,8 @@ router.get('/releases/:id', requireAuth, async (req: Request, res: Response) => 
     }
 
     res.json(release);
-  } catch (error) {
-    console.error('Error fetching release:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching release:', error);
     res.status(500).json({ error: 'Failed to fetch release' });
   }
 });
@@ -172,16 +172,16 @@ router.patch('/releases/:id', requireAuth, async (req: Request, res: Response) =
       releaseDate: updates.releaseDate ? new Date(updates.releaseDate) : undefined,
       metadata: {
         ...release.metadata,
-        ...updates
-      }
+        ...updates,
+      },
     });
 
     res.json(updatedRelease);
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
-    console.error('Error updating release:', error);
+    logger.error('Error updating release:', error);
     res.status(500).json({ error: 'Failed to update release' });
   }
 });
@@ -202,9 +202,9 @@ router.delete('/releases/:id', requireAuth, async (req: Request, res: Response) 
     if (metadata?.labelGridReleaseId && release.status !== 'draft') {
       try {
         await labelGridService.takedownRelease(metadata.labelGridReleaseId);
-        console.log(`✅ LabelGrid takedown initiated for release ${metadata.labelGridReleaseId}`);
-      } catch (error) {
-        console.error('Error initiating LabelGrid takedown:', error);
+        logger.info(`✅ LabelGrid takedown initiated for release ${metadata.labelGridReleaseId}`);
+      } catch (error: unknown) {
+        logger.error('Error initiating LabelGrid takedown:', error);
         // Continue with local deletion even if LabelGrid fails
       }
     }
@@ -212,8 +212,8 @@ router.delete('/releases/:id', requireAuth, async (req: Request, res: Response) 
     // Delete from local database
     await storage.deleteDistroRelease(id);
     res.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting release:', error);
+  } catch (error: unknown) {
+    logger.error('Error deleting release:', error);
     res.status(500).json({ error: 'Failed to delete release' });
   }
 });
@@ -223,87 +223,100 @@ router.delete('/releases/:id', requireAuth, async (req: Request, res: Response) 
 // ===================
 
 // POST /api/distribution/releases/:id/tracks - Upload track audio
-router.post('/releases/:id/tracks', requireAuth, upload.single('audio'), async (req: Request, res: Response) => {
-  try {
-    const userId = (req.user as any).id;
-    const { id: releaseId } = req.params;
-    const file = req.file;
+router.post(
+  '/releases/:id/tracks',
+  requireAuth,
+  upload.single('audio'),
+  async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const { id: releaseId } = req.params;
+      const file = req.file;
 
-    if (!file) {
-      return res.status(400).json({ error: 'Audio file required' });
-    }
-
-    const release = await storage.getDistroRelease(releaseId);
-    if (!release || release.artistId !== userId) {
-      return res.status(404).json({ error: 'Release not found' });
-    }
-
-    const data = createTrackSchema.parse(JSON.parse(req.body.metadata || '{}'));
-
-    const track = await storage.createDistroTrack({
-      releaseId,
-      title: data.title,
-      trackNumber: data.trackNumber,
-      audioUrl: `/uploads/distribution/${file.filename}`,
-      metadata: {
-        explicit: data.explicit,
-        lyrics: data.lyrics,
-        lyricsLanguage: data.lyricsLanguage,
+      if (!file) {
+        return res.status(400).json({ error: 'Audio file required' });
       }
-    });
 
-    res.json(track);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation error', details: error.errors });
+      const release = await storage.getDistroRelease(releaseId);
+      if (!release || release.artistId !== userId) {
+        return res.status(404).json({ error: 'Release not found' });
+      }
+
+      const data = createTrackSchema.parse(JSON.parse(req.body.metadata || '{}'));
+
+      const track = await storage.createDistroTrack({
+        releaseId,
+        title: data.title,
+        trackNumber: data.trackNumber,
+        audioUrl: `/uploads/distribution/${file.filename}`,
+        metadata: {
+          explicit: data.explicit,
+          lyrics: data.lyrics,
+          lyricsLanguage: data.lyricsLanguage,
+        },
+      });
+
+      res.json(track);
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      logger.error('Error uploading track:', error);
+      res.status(500).json({ error: 'Failed to upload track' });
     }
-    console.error('Error uploading track:', error);
-    res.status(500).json({ error: 'Failed to upload track' });
   }
-});
+);
 
 // PATCH /api/distribution/releases/:releaseId/tracks/:trackId - Update track metadata
-router.patch('/releases/:releaseId/tracks/:trackId', requireAuth, async (req: Request, res: Response) => {
-  try {
-    const userId = (req.user as any).id;
-    const { releaseId, trackId } = req.params;
+router.patch(
+  '/releases/:releaseId/tracks/:trackId',
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const { releaseId, trackId } = req.params;
 
-    const release = await storage.getDistroRelease(releaseId);
-    if (!release || release.artistId !== userId) {
-      return res.status(404).json({ error: 'Release not found' });
+      const release = await storage.getDistroRelease(releaseId);
+      if (!release || release.artistId !== userId) {
+        return res.status(404).json({ error: 'Release not found' });
+      }
+
+      const updates = createTrackSchema.partial().parse(req.body);
+      const track = await storage.updateDistroTrack(trackId, updates);
+
+      res.json(track);
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      logger.error('Error updating track:', error);
+      res.status(500).json({ error: 'Failed to update track' });
     }
-
-    const updates = createTrackSchema.partial().parse(req.body);
-    const track = await storage.updateDistroTrack(trackId, updates);
-
-    res.json(track);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation error', details: error.errors });
-    }
-    console.error('Error updating track:', error);
-    res.status(500).json({ error: 'Failed to update track' });
   }
-});
+);
 
 // DELETE /api/distribution/releases/:releaseId/tracks/:trackId - Remove track
-router.delete('/releases/:releaseId/tracks/:trackId', requireAuth, async (req: Request, res: Response) => {
-  try {
-    const userId = (req.user as any).id;
-    const { releaseId, trackId } = req.params;
+router.delete(
+  '/releases/:releaseId/tracks/:trackId',
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const { releaseId, trackId } = req.params;
 
-    const release = await storage.getDistroRelease(releaseId);
-    if (!release || release.artistId !== userId) {
-      return res.status(404).json({ error: 'Release not found' });
+      const release = await storage.getDistroRelease(releaseId);
+      if (!release || release.artistId !== userId) {
+        return res.status(404).json({ error: 'Release not found' });
+      }
+
+      await storage.deleteDistroTrack(trackId);
+      res.json({ success: true });
+    } catch (error: unknown) {
+      logger.error('Error deleting track:', error);
+      res.status(500).json({ error: 'Failed to delete track' });
     }
-
-    await storage.deleteDistroTrack(trackId);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting track:', error);
-    res.status(500).json({ error: 'Failed to delete track' });
   }
-});
+);
 
 // ===================
 // CODE GENERATION ENDPOINTS
@@ -324,11 +337,11 @@ router.post('/codes/isrc', requireAuth, async (req: Request, res: Response) => {
     }
 
     res.json({ isrc: result.code, assignedTo: result.assignedTo });
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
-    console.error('Error generating ISRC:', error);
+    logger.error('Error generating ISRC:', error);
     res.status(500).json({ error: 'Failed to generate ISRC' });
   }
 });
@@ -348,11 +361,11 @@ router.post('/codes/upc', requireAuth, async (req: Request, res: Response) => {
     }
 
     res.json({ upc: result.code, assignedTo: result.assignedTo });
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
-    console.error('Error generating UPC:', error);
+    logger.error('Error generating UPC:', error);
     res.status(500).json({ error: 'Failed to generate UPC' });
   }
 });
@@ -360,10 +373,12 @@ router.post('/codes/upc', requireAuth, async (req: Request, res: Response) => {
 // POST /api/distribution/codes/validate - Validate existing code
 router.post('/codes/validate', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { code, type } = z.object({
-      code: z.string(),
-      type: z.enum(['isrc', 'upc'])
-    }).parse(req.body);
+    const { code, type } = z
+      .object({
+        code: z.string(),
+        type: z.enum(['isrc', 'upc']),
+      })
+      .parse(req.body);
 
     let result;
     if (type === 'isrc') {
@@ -373,11 +388,11 @@ router.post('/codes/validate', requireAuth, async (req: Request, res: Response) 
     }
 
     res.json(result);
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
-    console.error('Error validating code:', error);
+    logger.error('Error validating code:', error);
     res.status(500).json({ error: 'Failed to validate code' });
   }
 });
@@ -391,8 +406,8 @@ router.get('/platforms', async (_req: Request, res: Response) => {
   try {
     const platforms = await storage.getDSPProviders();
     res.json(platforms);
-  } catch (error) {
-    console.error('Error fetching platforms:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching platforms:', error);
     res.status(500).json({ error: 'Failed to fetch platforms' });
   }
 });
@@ -402,9 +417,11 @@ router.post('/releases/:id/schedule', requireAuth, async (req: Request, res: Res
   try {
     const userId = (req.user as any).id;
     const { id } = req.params;
-    const { releaseDate } = z.object({
-      releaseDate: z.string()
-    }).parse(req.body);
+    const { releaseDate } = z
+      .object({
+        releaseDate: z.string(),
+      })
+      .parse(req.body);
 
     const release = await storage.getDistroRelease(id);
     if (!release || release.artistId !== userId) {
@@ -412,15 +429,15 @@ router.post('/releases/:id/schedule', requireAuth, async (req: Request, res: Res
     }
 
     const updatedRelease = await storage.updateDistroRelease(id, {
-      releaseDate: new Date(releaseDate)
+      releaseDate: new Date(releaseDate),
     });
 
     res.json(updatedRelease);
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
-    console.error('Error scheduling release:', error);
+    logger.error('Error scheduling release:', error);
     res.status(500).json({ error: 'Failed to schedule release' });
   }
 });
@@ -432,21 +449,31 @@ router.post('/releases/:id/schedule', requireAuth, async (req: Request, res: Res
 const hyperFollowSchema = z.object({
   title: z.string().min(1),
   artistName: z.string().min(1),
-  slug: z.string().min(3).max(50).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(3)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/),
   description: z.string().optional(),
   headerImage: z.string().optional(),
   releaseId: z.string().optional(),
   collectEmails: z.boolean().default(true),
-  platforms: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    enabled: z.boolean(),
-    url: z.string().optional(),
-  })),
-  socialLinks: z.array(z.object({
-    platform: z.string(),
-    url: z.string(),
-  })).optional(),
+  platforms: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      enabled: z.boolean(),
+      url: z.string().optional(),
+    })
+  ),
+  socialLinks: z
+    .array(
+      z.object({
+        platform: z.string(),
+        url: z.string(),
+      })
+    )
+    .optional(),
   theme: z.object({
     primaryColor: z.string(),
     backgroundColor: z.string(),
@@ -456,47 +483,52 @@ const hyperFollowSchema = z.object({
 });
 
 // POST /api/distribution/hyperfollow - Create campaign
-router.post('/hyperfollow', requireAuth, upload.single('headerImage'), async (req: Request, res: Response) => {
-  try {
-    const userId = (req.user as any).id;
-    const file = req.file;
-    
-    const data = hyperFollowSchema.parse(JSON.parse(req.body.data));
+router.post(
+  '/hyperfollow',
+  requireAuth,
+  upload.single('headerImage'),
+  async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const file = req.file;
 
-    const headerImageUrl = file ? `/uploads/distribution/${file.filename}` : data.headerImage;
+      const data = hyperFollowSchema.parse(JSON.parse(req.body.data));
 
-    const campaign = await storage.createHyperFollowPage({
-      userId,
-      title: data.title,
-      slug: data.slug,
-      imageUrl: headerImageUrl,
-      links: {
-        platforms: data.platforms,
-        socialLinks: data.socialLinks,
-        artistName: data.artistName,
-        description: data.description,
-        releaseId: data.releaseId,
-        collectEmails: data.collectEmails,
-        theme: data.theme,
-        analytics: {
-          pageViews: 0,
-          preSaves: 0,
-          emailSignups: 0,
-          platformClicks: {},
+      const headerImageUrl = file ? `/uploads/distribution/${file.filename}` : data.headerImage;
+
+      const campaign = await storage.createHyperFollowPage({
+        userId,
+        title: data.title,
+        slug: data.slug,
+        imageUrl: headerImageUrl,
+        links: {
+          platforms: data.platforms,
+          socialLinks: data.socialLinks,
+          artistName: data.artistName,
+          description: data.description,
+          releaseId: data.releaseId,
+          collectEmails: data.collectEmails,
+          theme: data.theme,
+          analytics: {
+            pageViews: 0,
+            preSaves: 0,
+            emailSignups: 0,
+            platformClicks: {},
+          },
+          emailList: [],
         },
-        emailList: [],
-      },
-    });
+      });
 
-    res.json(campaign);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation error', details: error.errors });
+      res.json(campaign);
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      logger.error('Error creating HyperFollow campaign:', error);
+      res.status(500).json({ error: 'Failed to create campaign' });
     }
-    console.error('Error creating HyperFollow campaign:', error);
-    res.status(500).json({ error: 'Failed to create campaign' });
   }
-});
+);
 
 // GET /api/distribution/hyperfollow - List user campaigns
 router.get('/hyperfollow', requireAuth, async (req: Request, res: Response) => {
@@ -504,8 +536,8 @@ router.get('/hyperfollow', requireAuth, async (req: Request, res: Response) => {
     const userId = (req.user as any).id;
     const campaigns = await storage.getHyperFollowPages(userId);
     res.json(campaigns);
-  } catch (error) {
-    console.error('Error fetching HyperFollow campaigns:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching HyperFollow campaigns:', error);
     res.status(500).json({ error: 'Failed to fetch campaigns' });
   }
 });
@@ -515,60 +547,69 @@ router.get('/hyperfollow/:slug', async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
     const campaign = await storage.getHyperFollowPageBySlug(slug);
-    
+
     if (!campaign) {
       return res.status(404).json({ error: 'Campaign not found' });
     }
 
     res.json(campaign);
-  } catch (error) {
-    console.error('Error fetching HyperFollow campaign:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching HyperFollow campaign:', error);
     res.status(500).json({ error: 'Failed to fetch campaign' });
   }
 });
 
 // PATCH /api/distribution/hyperfollow/:id - Update campaign
-router.patch('/hyperfollow/:id', requireAuth, upload.single('headerImage'), async (req: Request, res: Response) => {
-  try {
-    const userId = (req.user as any).id;
-    const { id } = req.params;
-    const file = req.file;
+router.patch(
+  '/hyperfollow/:id',
+  requireAuth,
+  upload.single('headerImage'),
+  async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const { id } = req.params;
+      const file = req.file;
 
-    const campaign = await storage.getHyperFollowPage(id);
-    if (!campaign || campaign.userId !== userId) {
-      return res.status(404).json({ error: 'Campaign not found' });
+      const campaign = await storage.getHyperFollowPage(id);
+      if (!campaign || campaign.userId !== userId) {
+        return res.status(404).json({ error: 'Campaign not found' });
+      }
+
+      const data = hyperFollowSchema.partial().parse(JSON.parse(req.body.data || '{}'));
+
+      const headerImageUrl = file
+        ? `/uploads/distribution/${file.filename}`
+        : data.headerImage || campaign.imageUrl;
+
+      const updatedCampaign = await storage.updateHyperFollowPage(id, {
+        title: data.title || campaign.title,
+        slug: data.slug || campaign.slug,
+        imageUrl: headerImageUrl,
+        links: {
+          ...(campaign.links as any),
+          platforms: data.platforms || (campaign.links as any).platforms,
+          socialLinks: data.socialLinks || (campaign.links as any).socialLinks,
+          artistName: data.artistName || (campaign.links as any).artistName,
+          description:
+            data.description !== undefined ? data.description : (campaign.links as any).description,
+          collectEmails:
+            data.collectEmails !== undefined
+              ? data.collectEmails
+              : (campaign.links as any).collectEmails,
+          theme: data.theme || (campaign.links as any).theme,
+        },
+      });
+
+      res.json(updatedCampaign);
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      logger.error('Error updating HyperFollow campaign:', error);
+      res.status(500).json({ error: 'Failed to update campaign' });
     }
-
-    const data = hyperFollowSchema.partial().parse(JSON.parse(req.body.data || '{}'));
-
-    const headerImageUrl = file 
-      ? `/uploads/distribution/${file.filename}` 
-      : data.headerImage || campaign.imageUrl;
-
-    const updatedCampaign = await storage.updateHyperFollowPage(id, {
-      title: data.title || campaign.title,
-      slug: data.slug || campaign.slug,
-      imageUrl: headerImageUrl,
-      links: {
-        ...(campaign.links as any),
-        platforms: data.platforms || (campaign.links as any).platforms,
-        socialLinks: data.socialLinks || (campaign.links as any).socialLinks,
-        artistName: data.artistName || (campaign.links as any).artistName,
-        description: data.description !== undefined ? data.description : (campaign.links as any).description,
-        collectEmails: data.collectEmails !== undefined ? data.collectEmails : (campaign.links as any).collectEmails,
-        theme: data.theme || (campaign.links as any).theme,
-      },
-    });
-
-    res.json(updatedCampaign);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation error', details: error.errors });
-    }
-    console.error('Error updating HyperFollow campaign:', error);
-    res.status(500).json({ error: 'Failed to update campaign' });
   }
-});
+);
 
 // DELETE /api/distribution/hyperfollow/:id - Delete campaign
 router.delete('/hyperfollow/:id', requireAuth, async (req: Request, res: Response) => {
@@ -583,8 +624,8 @@ router.delete('/hyperfollow/:id', requireAuth, async (req: Request, res: Respons
 
     await storage.deleteHyperFollowPage(id);
     res.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting HyperFollow campaign:', error);
+  } catch (error: unknown) {
+    logger.error('Error deleting HyperFollow campaign:', error);
     res.status(500).json({ error: 'Failed to delete campaign' });
   }
 });
@@ -593,11 +634,13 @@ router.delete('/hyperfollow/:id', requireAuth, async (req: Request, res: Respons
 router.post('/hyperfollow/:slug/track', async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
-    const { eventType, platform, email } = z.object({
-      eventType: z.enum(['pageView', 'preSave', 'emailSignup', 'platformClick']),
-      platform: z.string().optional(),
-      email: z.string().email().optional(),
-    }).parse(req.body);
+    const { eventType, platform, email } = z
+      .object({
+        eventType: z.enum(['pageView', 'preSave', 'emailSignup', 'platformClick']),
+        platform: z.string().optional(),
+        email: z.string().email().optional(),
+      })
+      .parse(req.body);
 
     const campaign = await storage.getHyperFollowPageBySlug(slug);
     if (!campaign) {
@@ -638,11 +681,11 @@ router.post('/hyperfollow/:slug/track', async (req: Request, res: Response) => {
     });
 
     res.json({ success: true, analytics });
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
-    console.error('Error tracking HyperFollow event:', error);
+    logger.error('Error tracking HyperFollow event:', error);
     res.status(500).json({ error: 'Failed to track event' });
   }
 });
@@ -665,11 +708,11 @@ router.get('/releases/:id/status', requireAuth, async (req: Request, res: Respon
     // Get real-time status from LabelGrid if we have an external release ID
     const metadata = release.metadata as any;
     let labelGridStatus = null;
-    
+
     if (metadata?.labelGridReleaseId) {
       try {
         labelGridStatus = await labelGridService.getReleaseStatus(metadata.labelGridReleaseId);
-        
+
         // Update local database with latest status
         if (labelGridStatus.platforms) {
           for (const platformStatus of labelGridStatus.platforms) {
@@ -681,22 +724,22 @@ router.get('/releases/:id/status', requireAuth, async (req: Request, res: Respon
             });
           }
         }
-      } catch (error) {
-        console.error('Error fetching LabelGrid status:', error);
+      } catch (error: unknown) {
+        logger.error('Error fetching LabelGrid status:', error);
         // Fall back to database status
       }
     }
 
     // Get dispatch status from database
     const statuses = await storage.getDistroDispatchStatuses(id);
-    
+
     // Calculate overall progress
-    const liveCount = statuses.filter((s: any) => s.status === 'live').length;
+    const liveCount = statuses.filter((s: unknown) => s.status === 'live').length;
     const totalCount = statuses.length || 1;
     const overallProgress = (liveCount / totalCount) * 100;
 
     res.json({
-      statuses: statuses.map((status: any) => ({
+      statuses: statuses.map((status: unknown) => ({
         platform: status.providerId,
         platformName: status.providerName || status.providerId,
         status: status.status,
@@ -709,14 +752,16 @@ router.get('/releases/:id/status', requireAuth, async (req: Request, res: Respon
         lastChecked: status.updatedAt,
       })),
       overallProgress: Math.round(overallProgress),
-      labelGridStatus: labelGridStatus ? {
-        releaseId: labelGridStatus.releaseId,
-        status: labelGridStatus.status,
-        estimatedLiveDate: labelGridStatus.estimatedLiveDate,
-      } : null,
+      labelGridStatus: labelGridStatus
+        ? {
+            releaseId: labelGridStatus.releaseId,
+            status: labelGridStatus.status,
+            estimatedLiveDate: labelGridStatus.estimatedLiveDate,
+          }
+        : null,
     });
-  } catch (error) {
-    console.error('Error fetching release status:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching release status:', error);
     res.status(500).json({ error: 'Failed to fetch release status' });
   }
 });
@@ -736,8 +781,8 @@ router.post('/releases/:id/check-status', requireAuth, async (req: Request, res:
     await distributionService.refreshReleaseStatus(id);
 
     res.json({ success: true, message: 'Status refresh initiated' });
-  } catch (error) {
-    console.error('Error refreshing release status:', error);
+  } catch (error: unknown) {
+    logger.error('Error refreshing release status:', error);
     res.status(500).json({ error: 'Failed to refresh release status' });
   }
 });
@@ -749,6 +794,7 @@ router.post('/releases/:id/check-status', requireAuth, async (req: Request, res:
 import { ddexPackageService } from '../services/ddexPackageService';
 import { createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
+import { logger } from '../logger.js';
 
 // POST /api/distribution/releases/:id/ddex/preview - Generate and preview XML
 router.post('/releases/:id/ddex/preview', requireAuth, async (req: Request, res: Response) => {
@@ -782,7 +828,7 @@ router.post('/releases/:id/ddex/preview', requireAuth, async (req: Request, res:
         coverArtPath: release.coverArtUrl,
         territories: metadata.territories,
       },
-      tracks.map((track: any, index: number) => ({
+      tracks.map((track: unknown, index: number) => ({
         id: track.id,
         title: track.title,
         isrc: track.isrc || '',
@@ -805,8 +851,8 @@ router.post('/releases/:id/ddex/preview', requireAuth, async (req: Request, res:
       xml,
       validation,
     });
-  } catch (error) {
-    console.error('Error generating DDEX preview:', error);
+  } catch (error: unknown) {
+    logger.error('Error generating DDEX preview:', error);
     res.status(500).json({ error: 'Failed to generate DDEX preview' });
   }
 });
@@ -845,7 +891,7 @@ router.get('/releases/:id/ddex/download', requireAuth, async (req: Request, res:
         coverArtPath: release.coverArtUrl,
         territories: metadata.territories,
       },
-      tracks.map((track: any, index: number) => ({
+      tracks.map((track: unknown, index: number) => ({
         id: track.id,
         title: track.title,
         isrc: track.isrc || '',
@@ -864,13 +910,13 @@ router.get('/releases/:id/ddex/download', requireAuth, async (req: Request, res:
 
     res.download(outputPath, `${release.title}_DDEX.zip`, (err) => {
       if (err) {
-        console.error('Error downloading DDEX package:', err);
+        logger.error('Error downloading DDEX package:', err);
       }
       // Clean up file after download
       fs.unlinkSync(outputPath);
     });
-  } catch (error) {
-    console.error('Error creating DDEX package:', error);
+  } catch (error: unknown) {
+    logger.error('Error creating DDEX package:', error);
     res.status(500).json({ error: 'Failed to create DDEX package' });
   }
 });
@@ -887,7 +933,9 @@ router.post('/releases/:id/submit', requireAuth, async (req: Request, res: Respo
     }
 
     // Update release status to submitted
-    await storage.updateDistroRelease(id, { metadata: { ...(release.metadata as any), status: 'submitted' } });
+    await storage.updateDistroRelease(id, {
+      metadata: { ...(release.metadata as any), status: 'submitted' },
+    });
 
     // Create dispatch records for each selected platform
     const metadata = release.metadata as any;
@@ -905,8 +953,8 @@ router.post('/releases/:id/submit', requireAuth, async (req: Request, res: Respo
     }
 
     res.json({ success: true, message: 'Release submitted for distribution' });
-  } catch (error) {
-    console.error('Error submitting release:', error);
+  } catch (error: unknown) {
+    logger.error('Error submitting release:', error);
     res.status(500).json({ error: 'Failed to submit release' });
   }
 });
@@ -937,8 +985,8 @@ router.post('/releases/:id/takedown', requireAuth, async (req: Request, res: Res
 
     // Update dispatch statuses for takedown
     const statuses = await storage.getDistroDispatchStatuses(id);
-    const platformsToTakedown = data.allPlatforms 
-      ? statuses.map((s: any) => s.providerId)
+    const platformsToTakedown = data.allPlatforms
+      ? statuses.map((s: unknown) => s.providerId)
       : data.platforms || [];
 
     for (const status of statuses) {
@@ -967,16 +1015,16 @@ router.post('/releases/:id/takedown', requireAuth, async (req: Request, res: Res
       },
     });
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Takedown request submitted',
       estimatedCompletionDays: 14,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
-    console.error('Error requesting takedown:', error);
+    logger.error('Error requesting takedown:', error);
     res.status(500).json({ error: 'Failed to request takedown' });
   }
 });
@@ -994,8 +1042,8 @@ router.get('/releases/:id/takedown-status', requireAuth, async (req: Request, re
 
     const statuses = await storage.getDistroDispatchStatuses(id);
     const takedownStatuses = statuses
-      .filter((s: any) => s.status === 'takedown_requested' || s.status === 'removed')
-      .map((s: any) => {
+      .filter((s: unknown) => s.status === 'takedown_requested' || s.status === 'removed')
+      .map((s: unknown) => {
         const logs = s.logs ? JSON.parse(s.logs) : {};
         return {
           platform: s.providerId,
@@ -1008,9 +1056,9 @@ router.get('/releases/:id/takedown-status', requireAuth, async (req: Request, re
         };
       });
 
-    const allCompleted = takedownStatuses.every((s: any) => s.status === 'removed');
+    const allCompleted = takedownStatuses.every((s: unknown) => s.status === 'removed');
     const totalRequested = takedownStatuses.length;
-    const totalCompleted = takedownStatuses.filter((s: any) => s.status === 'removed').length;
+    const totalCompleted = takedownStatuses.filter((s: unknown) => s.status === 'removed').length;
 
     res.json({
       statuses: takedownStatuses,
@@ -1021,8 +1069,8 @@ router.get('/releases/:id/takedown-status', requireAuth, async (req: Request, re
         progressPercentage: totalRequested > 0 ? (totalCompleted / totalRequested) * 100 : 0,
       },
     });
-  } catch (error) {
-    console.error('Error fetching takedown status:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching takedown status:', error);
     res.status(500).json({ error: 'Failed to fetch takedown status' });
   }
 });
@@ -1043,12 +1091,12 @@ router.get('/releases/:id/analytics', requireAuth, async (req: Request, res: Res
     }
 
     const metadata = release.metadata as any;
-    
+
     // Get analytics from LabelGrid if we have an external release ID
     if (metadata?.labelGridReleaseId) {
       try {
         const analytics = await labelGridService.getReleaseAnalytics(metadata.labelGridReleaseId);
-        
+
         // Save analytics to database for historical tracking
         await storage.createAnalytics({
           userId,
@@ -1061,9 +1109,9 @@ router.get('/releases/:id/analytics', requireAuth, async (req: Request, res: Res
         });
 
         res.json(analytics);
-      } catch (error) {
-        console.error('Error fetching LabelGrid analytics:', error);
-        res.status(500).json({ 
+      } catch (error: unknown) {
+        logger.error('Error fetching LabelGrid analytics:', error);
+        res.status(500).json({
           error: 'Failed to fetch analytics from LabelGrid',
           message: 'Please try again later or check your LabelGrid connection',
         });
@@ -1079,8 +1127,8 @@ router.get('/releases/:id/analytics', requireAuth, async (req: Request, res: Res
         message: 'Release not yet distributed to LabelGrid',
       });
     }
-  } catch (error) {
-    console.error('Error fetching release analytics:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching release analytics:', error);
     res.status(500).json({ error: 'Failed to fetch release analytics' });
   }
 });

@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { storage } from './storage';
 import { customAI } from './custom-ai-engine';
+import { logger } from './logger.js';
 
 type UpdateFrequency = 'hourly' | 'daily' | 'weekly';
 
@@ -55,12 +56,12 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     this.performanceBaseline.set('avg_ai_response_time', 500);
   }
 
-  private hashObject(obj: any): number {
+  private hashObject(obj: unknown): number {
     const str = JSON.stringify(obj);
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return Math.abs(hash);
@@ -70,7 +71,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return Math.abs(hash);
@@ -87,37 +88,37 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     return hash % arrayLength;
   }
 
-  private calculateAccuracyFromParams(params: any): number {
+  private calculateAccuracyFromParams(params: unknown): number {
     const hash = this.hashObject(params);
     const base = 0.75 + (hash % 20) / 100;
     return Math.min(base, 0.95);
   }
 
-  private calculatePrecisionFromParams(params: any): number {
+  private calculatePrecisionFromParams(params: unknown): number {
     const hash = this.hashObject(params);
     const base = 0.72 + (hash % 23) / 100;
     return Math.min(base, 0.94);
   }
 
-  private calculateRecallFromParams(params: any): number {
+  private calculateRecallFromParams(params: unknown): number {
     const hash = this.hashObject(params);
-    const base = 0.70 + (hash % 25) / 100;
+    const base = 0.7 + (hash % 25) / 100;
     return Math.min(base, 0.95);
   }
 
-  private calculateF1FromParams(params: any): number {
+  private calculateF1FromParams(params: unknown): number {
     const hash = this.hashObject(params);
     const base = 0.73 + (hash % 22) / 100;
     return Math.min(base, 0.95);
   }
 
-  private estimateLatencyFromParams(params: any): number {
+  private estimateLatencyFromParams(params: unknown): number {
     const paramCount = Object.keys(params).length;
     const hash = this.hashObject(params);
     return 50 + paramCount * 10 + (hash % 100);
   }
 
-  private estimateThroughputFromParams(params: any): number {
+  private estimateThroughputFromParams(params: unknown): number {
     const paramCount = Object.keys(params).length;
     const hash = this.hashObject(params);
     return 100 + paramCount * 20 + (hash % 400);
@@ -137,7 +138,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     this.status.isRunning = true;
     this.scheduleNextRun();
     this.emit('started');
-    console.log('🚀 Platform Self-Updating System started');
+    logger.info('🚀 Platform Self-Updating System started');
   }
 
   async stop(): Promise<void> {
@@ -149,7 +150,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       this.timer = null;
     }
     this.emit('stopped');
-    console.log('🛑 Platform Self-Updating System stopped');
+    logger.info('🛑 Platform Self-Updating System stopped');
   }
 
   getStatus(): AutoUpdatesStatus {
@@ -163,9 +164,11 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     this.status.nextRunAt = next.toISOString();
     if (this.timer) clearTimeout(this.timer);
     this.timer = setTimeout(() => {
-      this.runOnce().catch(() => void 0).finally(() => {
-        if (this.running) this.scheduleNextRun();
-      });
+      this.runOnce()
+        .catch(() => void 0)
+        .finally(() => {
+          if (this.running) this.scheduleNextRun();
+        });
     }, delay);
   }
 
@@ -185,41 +188,41 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     const result: Record<string, any> = {};
     const startedAt = new Date();
 
-    console.log('🔄 Running autonomous platform update cycle...');
+    logger.info('🔄 Running autonomous platform update cycle...');
 
     try {
       if (this.config.industryMonitoringEnabled) {
         result.industryMonitoring = await this.runIndustryMonitoring();
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       result.industryMonitoringError = e?.message || 'industry monitoring failed';
-      console.error('Industry monitoring error:', e);
+      logger.error('Industry monitoring error:', e);
     }
 
     try {
       if (this.config.aiTuningEnabled) {
         result.aiTuning = await this.runAITuning();
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       result.aiTuningError = e?.message || 'AI tuning failed';
-      console.error('AI tuning error:', e);
+      logger.error('AI tuning error:', e);
     }
 
     try {
       if (this.config.platformOptimizationEnabled) {
         result.platformOptimization = await this.runPlatformOptimization();
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       result.platformOptimizationError = e?.message || 'platform optimization failed';
-      console.error('Platform optimization error:', e);
+      logger.error('Platform optimization error:', e);
     }
 
     this.status.lastRunAt = startedAt.toISOString();
     this.status.runsCompleted += 1;
     this.status.lastResult = result;
     this.emit('runCompleted', result);
-    
-    console.log('✅ Autonomous update cycle completed:', result);
+
+    logger.info('✅ Autonomous update cycle completed:', result);
     return result;
   }
 
@@ -228,16 +231,16 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
   // ==========================================
 
   private async runIndustryMonitoring(): Promise<any> {
-    console.log('📊 Running industry monitoring module...');
-    const trends: any[] = [];
+    logger.info('📊 Running industry monitoring module...');
+    const trends: unknown[] = [];
 
     trends.push(await this.detectMusicIndustryTrends());
     trends.push(await this.detectSocialPlatformChanges());
     trends.push(await this.analyzeCompetitorPerformance());
     trends.push(await this.detectAlgorithmChanges());
 
-    const significantTrends = trends.filter(t => t.impact !== 'low');
-    
+    const significantTrends = trends.filter((t) => t.impact !== 'low');
+
     for (const trend of significantTrends) {
       await storage.createTrendEvent(trend);
     }
@@ -245,7 +248,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     return {
       trendsDetected: trends.length,
       significantTrends: significantTrends.length,
-      trends: trends.map(t => ({ source: t.source, eventType: t.eventType, impact: t.impact }))
+      trends: trends.map((t) => ({ source: t.source, eventType: t.eventType, impact: t.impact })),
     };
   }
 
@@ -255,9 +258,13 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     const randomGenre = genres[this.selectDeterministicIndex(timestamp, genres.length)];
     const trendTypes = ['rising', 'declining', 'stable', 'emerging'];
     const trendType = trendTypes[this.selectDeterministicIndex(timestamp + 1, trendTypes.length)];
-    
-    const impact = trendType === 'emerging' || trendType === 'rising' ? 'high' : 
-                   trendType === 'declining' ? 'medium' : 'low';
+
+    const impact =
+      trendType === 'emerging' || trendType === 'rising'
+        ? 'high'
+        : trendType === 'declining'
+          ? 'medium'
+          : 'low';
 
     return {
       source: 'music_industry_analysis',
@@ -269,8 +276,8 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         trendType,
         confidence: this.deterministicValue(timestamp, 0.7, 1.0),
         dataPoints: Math.floor(this.deterministicValue(timestamp + 2, 1000, 6000)),
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     };
   }
 
@@ -282,10 +289,10 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       'algorithm_update',
       'feature_launch',
       'content_policy_change',
-      'engagement_pattern_shift'
+      'engagement_pattern_shift',
     ];
     const changeType = changes[this.selectDeterministicIndex(timestamp + 1, changes.length)];
-    
+
     const impact = changeType === 'algorithm_update' ? 'high' : 'medium';
     const contentTypes = ['video', 'image', 'carousel', 'stories'];
 
@@ -298,22 +305,27 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         platform,
         changeType,
         engagementShift: this.deterministicValue(timestamp + 2, -0.25, 0.25).toFixed(3),
-        affectedContentTypes: contentTypes[this.selectDeterministicIndex(timestamp + 3, contentTypes.length)],
-        detectedAt: new Date().toISOString()
-      }
+        affectedContentTypes:
+          contentTypes[this.selectDeterministicIndex(timestamp + 3, contentTypes.length)],
+        detectedAt: new Date().toISOString(),
+      },
     };
   }
 
   private async detectAlgorithmChanges(): Promise<any> {
     const recentMetrics = this.autopilotMetrics;
     const avgEngagement = this.performanceBaseline.get('avg_engagement_rate') || 0.05;
-    
+
     const timestamp = Date.now();
     const currentEngagement = this.deterministicValue(timestamp, 0.04, 0.12);
-    const changePercent = ((currentEngagement - avgEngagement) / avgEngagement * 100).toFixed(1);
-    
-    const impact = Math.abs(currentEngagement - avgEngagement) > 0.02 ? 'high' : 
-                   Math.abs(currentEngagement - avgEngagement) > 0.01 ? 'medium' : 'low';
+    const changePercent = (((currentEngagement - avgEngagement) / avgEngagement) * 100).toFixed(1);
+
+    const impact =
+      Math.abs(currentEngagement - avgEngagement) > 0.02
+        ? 'high'
+        : Math.abs(currentEngagement - avgEngagement) > 0.01
+          ? 'medium'
+          : 'low';
 
     return {
       source: 'engagement_analysis',
@@ -325,8 +337,8 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         currentEngagement,
         changePercent: parseFloat(changePercent),
         sampleSize: Math.floor(this.deterministicValue(timestamp + 1, 500, 2000)),
-        confidence: this.deterministicValue(timestamp + 2, 0.65, 0.9)
-      }
+        confidence: this.deterministicValue(timestamp + 2, 0.65, 0.9),
+      },
     };
   }
 
@@ -335,11 +347,12 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       'viral_content_pattern',
       'posting_schedule_optimization',
       'content_format_innovation',
-      'audience_growth_strategy'
+      'audience_growth_strategy',
     ];
     const timestamp = Date.now();
-    const insight = competitorInsights[this.selectDeterministicIndex(timestamp, competitorInsights.length)];
-    
+    const insight =
+      competitorInsights[this.selectDeterministicIndex(timestamp, competitorInsights.length)];
+
     return {
       source: 'competitor_analysis',
       eventType: insight,
@@ -350,8 +363,8 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         successRate: this.deterministicValue(timestamp + 1, 0.5, 1.0).toFixed(2),
         sampleSize: Math.floor(this.deterministicValue(timestamp + 2, 50, 200)),
         topPerformers: Math.floor(this.deterministicValue(timestamp + 3, 10, 30)),
-        analyzedAt: new Date().toISOString()
-      }
+        analyzedAt: new Date().toISOString(),
+      },
     };
   }
 
@@ -360,39 +373,39 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
   // ==========================================
 
   private async runAITuning(): Promise<any> {
-    console.log('🤖 Running AI tuning module...');
-    const tuningResults: any[] = [];
+    logger.info('🤖 Running AI tuning module...');
+    const tuningResults: unknown[] = [];
 
     tuningResults.push(await this.tuneContentGeneration());
     tuningResults.push(await this.tuneMusicAnalysis());
     tuningResults.push(await this.tuneSocialPosting());
-    
+
     return {
-      modelsUpdated: tuningResults.filter(r => r.updated).length,
+      modelsUpdated: tuningResults.filter((r) => r.updated).length,
       totalModels: tuningResults.length,
-      results: tuningResults
+      results: tuningResults,
     };
   }
 
   private async tuneContentGeneration(): Promise<any> {
     const recentTrends = await storage.getRecentTrendEvents(7);
     const currentVersion = await storage.getActiveModelVersion('content_generation');
-    
+
     const baseParams = currentVersion?.parameters || {
       temperature: 0.7,
       maxTokens: 150,
       topP: 0.9,
       frequencyPenalty: 0.3,
       presencePenalty: 0.2,
-      templates: ['engaging', 'professional', 'casual']
+      templates: ['engaging', 'professional', 'casual'],
     };
 
-    const engagementBoost = recentTrends.filter(t => t.impact === 'high').length * 0.05;
+    const engagementBoost = recentTrends.filter((t) => t.impact === 'high').length * 0.05;
     const newParams = {
       ...baseParams,
       temperature: Math.min(0.95, baseParams.temperature + engagementBoost),
       adaptiveBoost: engagementBoost,
-      trendContext: recentTrends.slice(0, 5).map(t => t.eventType)
+      trendContext: recentTrends.slice(0, 5).map((t) => t.eventType),
     };
 
     const performanceImprovement = engagementBoost * 100;
@@ -404,51 +417,53 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         expectedImprovement: performanceImprovement.toFixed(2) + '%',
         baselineEngagement: 0.05,
         projectedEngagement: (0.05 * (1 + engagementBoost)).toFixed(4),
-        trendsConsidered: recentTrends.length
+        trendsConsidered: recentTrends.length,
       },
-      isActive: false
+      isActive: false,
     });
 
     if (performanceImprovement > 5) {
       await storage.activateModelVersion(newVersion.id, 'content_generation');
       await customAI.updateModelParameters('content_generation', newParams);
-      
-      console.log(`✨ Content generation model updated: ${performanceImprovement.toFixed(1)}% improvement expected`);
-      
+
+      logger.info(
+        `✨ Content generation model updated: ${performanceImprovement.toFixed(1)}% improvement expected`
+      );
+
       return {
         modelType: 'content_generation',
         updated: true,
         version: newVersion.version,
         improvement: performanceImprovement.toFixed(2) + '%',
-        activated: true
+        activated: true,
       };
     }
 
     return {
       modelType: 'content_generation',
       updated: false,
-      reason: 'Insufficient improvement threshold'
+      reason: 'Insufficient improvement threshold',
     };
   }
 
   private async tuneMusicAnalysis(): Promise<any> {
     const currentVersion = await storage.getActiveModelVersion('music_analysis');
-    
+
     const baseParams = currentVersion?.parameters || {
       bpmTolerance: 2,
       keyConfidenceThreshold: 0.7,
       genreClassificationDepth: 3,
-      moodDetectionSensitivity: 0.8
+      moodDetectionSensitivity: 0.8,
     };
 
     const musicTrends = await storage.getTrendEvents(10, 'music_industry_analysis');
-    const genreShifts = musicTrends.filter(t => t.eventType === 'genre_trend');
+    const genreShifts = musicTrends.filter((t) => t.eventType === 'genre_trend');
 
     const newParams = {
       ...baseParams,
       genreClassificationDepth: genreShifts.length > 5 ? 4 : 3,
       trendAwareAnalysis: true,
-      recentGenreTrends: genreShifts.slice(0, 3).map(t => t.metadata?.genre)
+      recentGenreTrends: genreShifts.slice(0, 3).map((t) => t.metadata?.genre),
     };
 
     const newVersion = await storage.createModelVersion({
@@ -458,57 +473,57 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       performanceMetrics: {
         genreTrendsIncorporated: genreShifts.length,
         accuracyImprovement: '3-5%',
-        processingTimeImpact: 'minimal'
+        processingTimeImpact: 'minimal',
       },
-      isActive: false
+      isActive: false,
     });
 
     if (genreShifts.length > 3) {
       await storage.activateModelVersion(newVersion.id, 'music_analysis');
       await customAI.updateModelParameters('music_analysis', newParams);
-      
-      console.log(`🎵 Music analysis model updated with ${genreShifts.length} genre trends`);
-      
+
+      logger.info(`🎵 Music analysis model updated with ${genreShifts.length} genre trends`);
+
       return {
         modelType: 'music_analysis',
         updated: true,
         version: newVersion.version,
         trendsIncorporated: genreShifts.length,
-        activated: true
+        activated: true,
       };
     }
 
     return {
       modelType: 'music_analysis',
       updated: false,
-      reason: 'Insufficient trend signals'
+      reason: 'Insufficient trend signals',
     };
   }
 
   private async tuneSocialPosting(): Promise<any> {
     const platformChanges = await storage.getTrendEvents(10);
-    const algorithmChanges = platformChanges.filter(t => 
-      t.eventType === 'algorithm_update' || t.eventType === 'engagement_pattern_shift'
+    const algorithmChanges = platformChanges.filter(
+      (t) => t.eventType === 'algorithm_update' || t.eventType === 'engagement_pattern_shift'
     );
 
     const currentVersion = await storage.getActiveModelVersion('social_posting');
-    
+
     const baseParams = currentVersion?.parameters || {
       optimalPostingTimes: [9, 12, 15, 18, 21],
       hashtagDensity: 5,
       contentMixRatio: { video: 0.4, image: 0.4, text: 0.2 },
-      engagementHooks: ['question', 'cta', 'teaser']
+      engagementHooks: ['question', 'cta', 'teaser'],
     };
 
     const platformOptimizations: any = {};
     for (const change of algorithmChanges) {
       const platform = change.metadata?.platform || change.source;
       const shift = parseFloat(change.metadata?.engagementShift || '0');
-      
+
       platformOptimizations[platform] = {
         adjustedTiming: shift > 0,
         contentFormatPriority: change.metadata?.affectedContentTypes || 'mixed',
-        boostFactor: 1 + Math.abs(shift)
+        boostFactor: 1 + Math.abs(shift),
       };
     }
 
@@ -516,7 +531,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       ...baseParams,
       platformOptimizations,
       algorithmAwarePosting: true,
-      lastTuned: new Date().toISOString()
+      lastTuned: new Date().toISOString(),
     };
 
     const newVersion = await storage.createModelVersion({
@@ -526,30 +541,32 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       performanceMetrics: {
         platformsOptimized: Object.keys(platformOptimizations).length,
         algorithmChangesConsidered: algorithmChanges.length,
-        expectedEngagementBoost: '10-15%'
+        expectedEngagementBoost: '10-15%',
       },
-      isActive: false
+      isActive: false,
     });
 
     if (algorithmChanges.length > 0) {
       await storage.activateModelVersion(newVersion.id, 'social_posting');
       await customAI.updateModelParameters('social_posting', newParams);
-      
-      console.log(`📱 Social posting strategy updated for ${Object.keys(platformOptimizations).length} platforms`);
-      
+
+      logger.info(
+        `📱 Social posting strategy updated for ${Object.keys(platformOptimizations).length} platforms`
+      );
+
       return {
         modelType: 'social_posting',
         updated: true,
         version: newVersion.version,
         platformsOptimized: Object.keys(platformOptimizations).length,
-        activated: true
+        activated: true,
       };
     }
 
     return {
       modelType: 'social_posting',
       updated: false,
-      reason: 'No significant algorithm changes detected'
+      reason: 'No significant algorithm changes detected',
     };
   }
 
@@ -558,17 +575,17 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
   // ==========================================
 
   private async runPlatformOptimization(): Promise<any> {
-    console.log('⚡ Running platform optimization module...');
-    const optimizations: any[] = [];
+    logger.info('⚡ Running platform optimization module...');
+    const optimizations: unknown[] = [];
 
     optimizations.push(await this.optimizeDatabaseQueries());
     optimizations.push(await this.optimizeAIParameters());
     optimizations.push(await this.optimizeFeatureUsage());
 
     return {
-      optimizationsExecuted: optimizations.filter(o => o.executed).length,
+      optimizationsExecuted: optimizations.filter((o) => o.executed).length,
       totalChecks: optimizations.length,
-      results: optimizations
+      results: optimizations,
     };
   }
 
@@ -576,12 +593,12 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     const avgQueryTime = this.performanceBaseline.get('avg_db_query_time') || 100;
     const seed = `db_query_${Date.now()}`;
     const currentQueryTime = this.deterministicValue(seed, 80, 120);
-    
-    const improvement = ((avgQueryTime - currentQueryTime) / avgQueryTime * 100);
-    
+
+    const improvement = ((avgQueryTime - currentQueryTime) / avgQueryTime) * 100;
+
     const queriesAnalyzedSeed = `queries_${Date.now()}`;
     const queriesAnalyzed = Math.floor(this.deterministicValue(queriesAnalyzedSeed, 500, 1000));
-    
+
     const task = await storage.createOptimizationTask({
       taskType: 'db_query',
       status: 'completed',
@@ -590,27 +607,27 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         before: { avgQueryTime: avgQueryTime.toFixed(2) + 'ms' },
         after: { avgQueryTime: currentQueryTime.toFixed(2) + 'ms' },
         improvement: improvement.toFixed(1) + '%',
-        queriesAnalyzed
+        queriesAnalyzed,
       },
       executedAt: new Date(),
-      completedAt: new Date()
+      completedAt: new Date(),
     });
 
     if (Math.abs(improvement) > 5) {
       this.performanceBaseline.set('avg_db_query_time', currentQueryTime);
-      
+
       return {
         type: 'db_query',
         executed: true,
         taskId: task.id,
-        improvement: improvement.toFixed(1) + '%'
+        improvement: improvement.toFixed(1) + '%',
       };
     }
 
     return {
       type: 'db_query',
       executed: false,
-      reason: 'Performance within acceptable range'
+      reason: 'Performance within acceptable range',
     };
   }
 
@@ -618,9 +635,9 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     const avgResponseTime = this.performanceBaseline.get('avg_ai_response_time') || 500;
     const seed = `ai_response_${Date.now()}`;
     const currentResponseTime = this.deterministicValue(seed, 400, 600);
-    
-    const improvement = ((avgResponseTime - currentResponseTime) / avgResponseTime * 100);
-    
+
+    const improvement = ((avgResponseTime - currentResponseTime) / avgResponseTime) * 100;
+
     const task = await storage.createOptimizationTask({
       taskType: 'ai_parameter',
       status: 'completed',
@@ -629,27 +646,27 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         before: { avgResponseTime: avgResponseTime.toFixed(2) + 'ms' },
         after: { avgResponseTime: currentResponseTime.toFixed(2) + 'ms' },
         improvement: improvement.toFixed(1) + '%',
-        modelsOptimized: ['content_generation', 'music_analysis']
+        modelsOptimized: ['content_generation', 'music_analysis'],
       },
       executedAt: new Date(),
-      completedAt: new Date()
+      completedAt: new Date(),
     });
 
     if (Math.abs(improvement) > 10) {
       this.performanceBaseline.set('avg_ai_response_time', currentResponseTime);
-      
+
       return {
         type: 'ai_parameter',
         executed: true,
         taskId: task.id,
-        improvement: improvement.toFixed(1) + '%'
+        improvement: improvement.toFixed(1) + '%',
       };
     }
 
     return {
       type: 'ai_parameter',
       executed: false,
-      reason: 'AI performance within target range'
+      reason: 'AI performance within target range',
     };
   }
 
@@ -660,7 +677,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       const featureSeed = `${feature}_${seed}_${idx}`;
       return this.deterministicValue(featureSeed, 0, 1) > 0.6;
     });
-    
+
     if (underutilizedFeatures.length > 0) {
       const task = await storage.createOptimizationTask({
         taskType: 'ui_improvement',
@@ -672,48 +689,48 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
           recommendedActions: [
             'Improve feature discoverability',
             'Add contextual onboarding',
-            'Optimize feature placement'
+            'Optimize feature placement',
           ],
-          potentialEngagementBoost: '15-25%'
+          potentialEngagementBoost: '15-25%',
         },
         executedAt: new Date(),
-        completedAt: new Date()
+        completedAt: new Date(),
       });
 
       return {
         type: 'ui_improvement',
         executed: true,
         taskId: task.id,
-        featuresIdentified: underutilizedFeatures.length
+        featuresIdentified: underutilizedFeatures.length,
       };
     }
 
     return {
       type: 'ui_improvement',
       executed: false,
-      reason: 'All features have healthy usage patterns'
+      reason: 'All features have healthy usage patterns',
     };
   }
 
   // Integration methods for AutonomousAutopilot
-  subscribeToAutopilotMetrics(autopilot: any): void {
-    autopilot.on('contentPublished', (data: any) => {
+  subscribeToAutopilotMetrics(autopilot: unknown): void {
+    autopilot.on('contentPublished', (data: unknown) => {
       this.autopilotMetrics.set(`content_${data.id}`, data);
       this.updateEngagementBaseline(data);
     });
 
-    autopilot.on('performanceAnalyzed', (data: any) => {
+    autopilot.on('performanceAnalyzed', (data: unknown) => {
       this.autopilotMetrics.set(`performance_${data.contentId}`, data);
       this.updateEngagementBaseline(data);
     });
 
-    console.log('✅ Subscribed to AutonomousAutopilot performance metrics');
+    logger.info('✅ Subscribed to AutonomousAutopilot performance metrics');
   }
 
-  private updateEngagementBaseline(data: any): void {
+  private updateEngagementBaseline(data: unknown): void {
     if (data.engagement) {
       const current = this.performanceBaseline.get('avg_engagement_rate') || 0.05;
-      const newAvg = (current * 0.9) + (data.engagement * 0.1);
+      const newAvg = current * 0.9 + data.engagement * 0.1;
       this.performanceBaseline.set('avg_engagement_rate', newAvg);
     }
   }
@@ -743,23 +760,23 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     const startTime = Date.now();
     const timestamp = Date.now();
     const versionNumber = `v${Math.floor(timestamp / 1000)}.0`;
-    
+
     const versionHash = this.generateVersionHash(modelId, parameters, timestamp);
-    
+
     const performanceMetrics = {
       accuracy: this.calculateAccuracyFromParams(parameters),
       precision: this.calculatePrecisionFromParams(parameters),
       recall: this.calculateRecallFromParams(parameters),
       f1Score: this.calculateF1FromParams(parameters),
       latencyMs: this.estimateLatencyFromParams(parameters),
-      throughput: this.estimateThroughputFromParams(parameters)
+      throughput: this.estimateThroughputFromParams(parameters),
     };
 
     const changelog = this.generateChangelog(changes, parameters, performanceMetrics);
-    
-    console.log(`📝 Creating AI model version ${versionNumber} for model ${modelId}`);
-    console.log(`   Hash: ${versionHash}`);
-    console.log(`   Changes: ${changes}`);
+
+    logger.info(`📝 Creating AI model version ${versionNumber} for model ${modelId}`);
+    logger.info(`   Hash: ${versionHash}`);
+    logger.info(`   Changes: ${changes}`);
 
     const versionData = await storage.createAIModelVersion({
       modelId,
@@ -770,7 +787,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       trainingDatasetId: trainingDatasetId || null,
       performanceMetrics,
       changelog,
-      status: 'development'
+      status: 'development',
     });
 
     const deploymentModel = await storage.getAIModelByName('deployment_manager_v1');
@@ -781,54 +798,64 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         inferenceType: 'model_versioning',
         inputData: { modelId, changes, parameters },
         outputData: { versionNumber, versionHash, performanceMetrics },
-        executionTime: Date.now() - startTime
+        executionTime: Date.now() - startTime,
       });
     }
-    
+
     return versionData;
   }
 
-  private generateVersionHash(modelId: string, parameters: Record<string, any>, timestamp: number): string {
+  private generateVersionHash(
+    modelId: string,
+    parameters: Record<string, any>,
+    timestamp: number
+  ): string {
     const hashInput = JSON.stringify({ modelId, parameters, timestamp });
     let hash = 0;
     for (let i = 0; i < hashInput.length; i++) {
       const char = hashInput.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return Math.abs(hash).toString(16).padStart(16, '0');
   }
 
-  private generateChangelog(changes: string, parameters: Record<string, any>, metrics: any): string {
+  private generateChangelog(
+    changes: string,
+    parameters: Record<string, any>,
+    metrics: unknown
+  ): string {
     const lines = [
       `## Changes`,
       `- ${changes}`,
       ``,
       `## Parameters Updated`,
-      ...Object.entries(parameters).slice(0, 5).map(([key, value]) => 
-        `- ${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`
-      ),
+      ...Object.entries(parameters)
+        .slice(0, 5)
+        .map(
+          ([key, value]) => `- ${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`
+        ),
       ``,
       `## Performance Metrics`,
       `- Accuracy: ${(metrics.accuracy * 100).toFixed(2)}%`,
       `- Precision: ${(metrics.precision * 100).toFixed(2)}%`,
       `- F1 Score: ${(metrics.f1Score * 100).toFixed(2)}%`,
       `- Latency: ${metrics.latencyMs.toFixed(2)}ms`,
-      `- Throughput: ${metrics.throughput.toFixed(0)} req/s`
+      `- Throughput: ${metrics.throughput.toFixed(0)} req/s`,
     ];
     return lines.join('\n');
   }
 
   async rollbackToVersion(modelId: string, targetVersionId: string, reason: string): Promise<any> {
-    console.log(`🔄 Rolling back model ${modelId} to version ${targetVersionId}`);
-    console.log(`   Reason: ${reason}`);
-    
+    logger.info(`🔄 Rolling back model ${modelId} to version ${targetVersionId}`);
+    logger.info(`   Reason: ${reason}`);
+
     return {
       modelId,
       targetVersionId,
       reason,
       status: 'rollback_initiated',
-      rolledBackAt: new Date()
+      rolledBackAt: new Date(),
     };
   }
 
@@ -843,7 +870,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
   ): Promise<any> {
     const startTime = Date.now();
     const userSegment = this.selectCanaryUsers(initialPercentage);
-    
+
     const deployment = await storage.createCanaryDeployment({
       modelId,
       versionId,
@@ -853,14 +880,14 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       successCriteria: {
         errorRateThreshold: 0.01,
         latencyDegradationThreshold: 0.15,
-        minSampleSize: 100
+        minSampleSize: 100,
       },
-      status: 'active'
+      status: 'active',
     });
 
-    console.log(`🐦 Starting canary deployment for model ${modelId} version ${versionId}`);
-    console.log(`   Initial rollout: ${initialPercentage}%`);
-    console.log(`   Deployment ID: ${deployment.id}`);
+    logger.info(`🐦 Starting canary deployment for model ${modelId} version ${versionId}`);
+    logger.info(`   Initial rollout: ${initialPercentage}%`);
+    logger.info(`   Deployment ID: ${deployment.id}`);
 
     const deploymentModel = await storage.getAIModelByName('deployment_manager_v1');
     if (deploymentModel) {
@@ -870,7 +897,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         inferenceType: 'canary_deployment',
         inputData: { modelId, versionId, strategy: 'canary', percentage: initialPercentage },
         outputData: { deploymentId: deployment.id, userSegment },
-        executionTime: Date.now() - startTime
+        executionTime: Date.now() - startTime,
       });
     }
 
@@ -889,12 +916,12 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       filters: {
         excludeBetaUsers: false,
         excludePremiumUsers: false,
-        geographicDistribution: true
+        geographicDistribution: true,
       },
       estimatedUsers: Math.floor(10000 * (percentage / 100)),
-      selectionSeed: this.hashString(`canary_${timestamp}_${percentage}`)
+      selectionSeed: this.hashString(`canary_${timestamp}_${percentage}`),
     };
-    
+
     return criteria;
   }
 
@@ -904,36 +931,36 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       errorRate: this.deterministicValue(`${modelId}_${versionId}_canary`, 0, 0.005),
       avgLatency: this.deterministicValue(`${modelId}_${versionId}_lat`, 80, 110),
       throughput: this.deterministicValue(`${modelId}_${versionId}_thr`, 450, 550),
-      userSatisfaction: this.deterministicValue(`${modelId}_${versionId}_sat`, 0.92, 0.99)
+      userSatisfaction: this.deterministicValue(`${modelId}_${versionId}_sat`, 0.92, 0.99),
     };
 
     const controlMetrics = {
       errorRate: this.deterministicValue(`${modelId}_baseline_err`, 0, 0.008),
       avgLatency: this.deterministicValue(`${modelId}_baseline_lat`, 90, 125),
       throughput: this.deterministicValue(`${modelId}_baseline_thr`, 420, 510),
-      userSatisfaction: this.deterministicValue(`${modelId}_baseline_sat`, 0.89, 0.97)
+      userSatisfaction: this.deterministicValue(`${modelId}_baseline_sat`, 0.89, 0.97),
     };
 
-    const performanceImproved = 
+    const performanceImproved =
       canaryMetrics.errorRate < controlMetrics.errorRate * 1.2 &&
       canaryMetrics.avgLatency < controlMetrics.avgLatency * 1.15;
 
     if (performanceImproved) {
-      console.log(`✅ Canary ${versionId} performing well - advancing rollout`);
+      logger.info(`✅ Canary ${versionId} performing well - advancing rollout`);
     } else {
-      console.log(`⚠️ Canary ${versionId} performance degradation detected`);
+      logger.info(`⚠️ Canary ${versionId} performance degradation detected`);
     }
   }
 
   async advanceCanaryRollout(deploymentId: string, newPercentage: number): Promise<any> {
-    console.log(`📈 Advancing canary deployment ${deploymentId} to ${newPercentage}%`);
-    
+    logger.info(`📈 Advancing canary deployment ${deploymentId} to ${newPercentage}%`);
+
     return {
       deploymentId,
       previousPercentage: 5,
       newPercentage,
       stage: newPercentage === 100 ? 'complete' : 'expanding',
-      advancedAt: new Date()
+      advancedAt: new Date(),
     };
   }
 
@@ -953,27 +980,27 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
   ): Promise<any> {
     const startTime = Date.now();
     const frequency = config.frequency || 'weekly';
-    
+
     const schedule = await storage.createRetrainingSchedule({
       modelId,
       triggerType,
       frequency,
-      performanceThreshold: config.performanceThreshold || { accuracy: 0.85, f1Score: 0.80 },
+      performanceThreshold: config.performanceThreshold || { accuracy: 0.85, f1Score: 0.8 },
       driftThreshold: config.driftThreshold || 0.15,
       isActive: true,
       retrainingConfig: {
         batchSize: 32,
         epochs: 10,
         learningRate: 0.001,
-        validationSplit: 0.2
+        validationSplit: 0.2,
       },
-      nextRunAt: this.calculateNextRun(frequency)
+      nextRunAt: this.calculateNextRun(frequency),
     });
 
-    console.log(`📅 Scheduled retraining for model ${modelId}`);
-    console.log(`   Trigger: ${triggerType}`);
-    console.log(`   Frequency: ${frequency}`);
-    console.log(`   Schedule ID: ${schedule.id}`);
+    logger.info(`📅 Scheduled retraining for model ${modelId}`);
+    logger.info(`   Trigger: ${triggerType}`);
+    logger.info(`   Frequency: ${frequency}`);
+    logger.info(`   Schedule ID: ${schedule.id}`);
 
     const schedulerModel = await storage.getAIModelByName('retraining_scheduler_v1');
     if (schedulerModel) {
@@ -983,7 +1010,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         inferenceType: 'retraining_schedule',
         inputData: { modelId, triggerType, config },
         outputData: { scheduleId: schedule.id, nextRunAt: schedule.nextRunAt },
-        executionTime: Date.now() - startTime
+        executionTime: Date.now() - startTime,
       });
     }
 
@@ -996,7 +1023,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       daily: 24 * 60 * 60 * 1000,
       weekly: 7 * 24 * 60 * 60 * 1000,
       monthly: 30 * 24 * 60 * 60 * 1000,
-      quarterly: 90 * 24 * 60 * 60 * 1000
+      quarterly: 90 * 24 * 60 * 60 * 1000,
     };
     return new Date(now.getTime() + (delays[frequency] || delays.weekly));
   }
@@ -1004,11 +1031,11 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
   async executeRetraining(scheduleId: string, modelId: string): Promise<any> {
     const startTime = Date.now();
     const timestamp = Date.now();
-    
+
     const datasetInfo = {
       recordCount: Math.floor(this.deterministicValue(`${modelId}_dataset`, 50000, 100000)),
       features: 128,
-      timeRange: '30 days'
+      timeRange: '30 days',
     };
 
     const run = await storage.createRetrainingRun({
@@ -1019,12 +1046,12 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       datasetInfo,
       trainingMetrics: {},
       validationMetrics: {},
-      qualityChecksPassed: false
+      qualityChecksPassed: false,
     });
 
-    console.log(`🔄 Executing retraining for model ${modelId}`);
-    console.log(`   Dataset: ${datasetInfo.recordCount} records`);
-    console.log(`   Run ID: ${run.id}`);
+    logger.info(`🔄 Executing retraining for model ${modelId}`);
+    logger.info(`   Dataset: ${datasetInfo.recordCount} records`);
+    logger.info(`   Run ID: ${run.id}`);
 
     const schedulerModel = await storage.getAIModelByName('retraining_scheduler_v1');
     if (schedulerModel) {
@@ -1034,7 +1061,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         inferenceType: 'retraining_execution',
         inputData: { scheduleId, modelId, datasetInfo },
         outputData: { runId: run.id, status: 'running' },
-        executionTime: Date.now() - startTime
+        executionTime: Date.now() - startTime,
       });
     }
 
@@ -1045,25 +1072,26 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     return run;
   }
 
-  private async completeRetraining(run: any, modelId: string): Promise<void> {
+  private async completeRetraining(run: unknown, modelId: string): Promise<void> {
     const trainingMetrics = {
       finalLoss: this.deterministicValue(`${modelId}_loss`, 0.08, 0.12),
       finalAccuracy: this.deterministicValue(`${modelId}_train_acc`, 0.88, 0.96),
-      trainingTime: this.deterministicValue(`${modelId}_time`, 3600, 5400)
+      trainingTime: this.deterministicValue(`${modelId}_time`, 3600, 5400),
     };
 
     const validationMetrics = {
       accuracy: this.deterministicValue(`${modelId}_val_acc`, 0.86, 0.95),
       precision: this.deterministicValue(`${modelId}_prec`, 0.84, 0.94),
       recall: this.deterministicValue(`${modelId}_recall`, 0.82, 0.94),
-      f1Score: this.deterministicValue(`${modelId}_f1`, 0.85, 0.95)
+      f1Score: this.deterministicValue(`${modelId}_f1`, 0.85, 0.95),
     };
 
-    const qualityChecksPassed = validationMetrics.accuracy > 0.85 && validationMetrics.f1Score > 0.80;
+    const qualityChecksPassed =
+      validationMetrics.accuracy > 0.85 && validationMetrics.f1Score > 0.8;
     const status = qualityChecksPassed ? 'completed' : 'failed';
 
-    console.log(`${qualityChecksPassed ? '✅' : '❌'} Retraining ${status}`);
-    console.log(`   Validation accuracy: ${(validationMetrics.accuracy * 100).toFixed(2)}%`);
+    logger.info(`${qualityChecksPassed ? '✅' : '❌'} Retraining ${status}`);
+    logger.info(`   Validation accuracy: ${(validationMetrics.accuracy * 100).toFixed(2)}%`);
   }
 
   // ==========================================
@@ -1075,16 +1103,16 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       modelId,
       metrics,
       measuredAt: new Date(),
-      metricTypes: Object.keys(metrics)
+      metricTypes: Object.keys(metrics),
     };
 
     Object.entries(metrics).forEach(([key, value]) => {
       this.performanceBaseline.set(`${modelId}_${key}`, value);
     });
 
-    console.log(`📊 Updated performance baseline for model ${modelId}`);
+    logger.info(`📊 Updated performance baseline for model ${modelId}`);
     Object.entries(metrics).forEach(([key, value]) => {
-      console.log(`   ${key}: ${typeof value === 'number' ? value.toFixed(4) : value}`);
+      logger.info(`   ${key}: ${typeof value === 'number' ? value.toFixed(4) : value}`);
     });
 
     this.emit('baselineUpdated', { modelId, metrics });
@@ -1092,9 +1120,17 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     return baseline;
   }
 
-  async checkPerformanceRegression(modelId: string, currentMetrics: Record<string, number>): Promise<any> {
-    const regressions: Array<{ metric: string; baseline: number; current: number; degradation: number }> = [];
-    const threshold = 0.10;
+  async checkPerformanceRegression(
+    modelId: string,
+    currentMetrics: Record<string, number>
+  ): Promise<any> {
+    const regressions: Array<{
+      metric: string;
+      baseline: number;
+      current: number;
+      degradation: number;
+    }> = [];
+    const threshold = 0.1;
 
     for (const [metric, currentValue] of Object.entries(currentMetrics)) {
       const baselineKey = `${modelId}_${metric}`;
@@ -1102,22 +1138,22 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
 
       if (baselineValue !== undefined) {
         const degradation = (baselineValue - currentValue) / baselineValue;
-        
+
         if (degradation > threshold) {
           regressions.push({
             metric,
             baseline: baselineValue,
             current: currentValue,
-            degradation
+            degradation,
           });
         }
       }
     }
 
     if (regressions.length > 0) {
-      console.log(`⚠️ Performance regression detected for model ${modelId}`);
-      regressions.forEach(r => {
-        console.log(`   ${r.metric}: ${(r.degradation * 100).toFixed(1)}% degradation`);
+      logger.info(`⚠️ Performance regression detected for model ${modelId}`);
+      regressions.forEach((r) => {
+        logger.info(`   ${r.metric}: ${(r.degradation * 100).toFixed(1)}% degradation`);
       });
 
       this.emit('performanceRegression', { modelId, regressions });
@@ -1127,24 +1163,28 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       modelId,
       hasRegression: regressions.length > 0,
       regressions,
-      checkedAt: new Date()
+      checkedAt: new Date(),
     };
   }
 
-  async trackMetricTrend(modelId: string, metricName: string, windowDays: number = 30): Promise<any> {
+  async trackMetricTrend(
+    modelId: string,
+    metricName: string,
+    windowDays: number = 30
+  ): Promise<any> {
     const dataPoints = [];
     const now = Date.now();
     const dayMs = 24 * 60 * 60 * 1000;
 
     for (let i = 0; i < windowDays; i++) {
-      const date = new Date(now - (i * dayMs));
+      const date = new Date(now - i * dayMs);
       const baseValue = 0.85;
       const noise = this.deterministicValue(`${modelId}_${metricName}_${i}`, -0.025, 0.025);
       const trend = -0.001 * i;
-      
+
       dataPoints.push({
         date,
-        value: baseValue + noise + trend
+        value: baseValue + noise + trend,
       });
     }
 
@@ -1156,16 +1196,19 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       windowDays,
       dataPoints: dataPoints.reverse(),
       trend,
-      analyzedAt: new Date()
+      analyzedAt: new Date(),
     };
   }
 
   private calculateTrend(dataPoints: Array<{ date: Date; value: number }>): string {
     if (dataPoints.length < 2) return 'insufficient_data';
 
-    const values = dataPoints.map(d => d.value);
-    const avgFirst = values.slice(0, Math.floor(values.length / 3)).reduce((a, b) => a + b, 0) / (values.length / 3);
-    const avgLast = values.slice(-Math.floor(values.length / 3)).reduce((a, b) => a + b, 0) / (values.length / 3);
+    const values = dataPoints.map((d) => d.value);
+    const avgFirst =
+      values.slice(0, Math.floor(values.length / 3)).reduce((a, b) => a + b, 0) /
+      (values.length / 3);
+    const avgLast =
+      values.slice(-Math.floor(values.length / 3)).reduce((a, b) => a + b, 0) / (values.length / 3);
 
     const change = (avgLast - avgFirst) / avgFirst;
 
@@ -1185,14 +1228,14 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
   ): Promise<any> {
     const startTime = Date.now();
     const preDeploymentChecks = await this.runPreDeploymentChecks(modelId, versionId);
-    
-    console.log(`🚀 Deploying model ${modelId} version ${versionId}`);
-    console.log(`   Strategy: ${strategy}`);
-    console.log(`   Pre-deployment checks: ${preDeploymentChecks.passed ? 'PASSED' : 'FAILED'}`);
+
+    logger.info(`🚀 Deploying model ${modelId} version ${versionId}`);
+    logger.info(`   Strategy: ${strategy}`);
+    logger.info(`   Pre-deployment checks: ${preDeploymentChecks.passed ? 'PASSED' : 'FAILED'}`);
 
     if (!preDeploymentChecks.passed) {
-      console.log(`❌ Deployment aborted due to failed pre-deployment checks`);
-      
+      logger.info(`❌ Deployment aborted due to failed pre-deployment checks`);
+
       const deployment = await storage.createDeploymentHistory({
         modelId,
         versionId,
@@ -1200,9 +1243,9 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         environment: 'production',
         status: 'aborted',
         preDeploymentChecks,
-        deployedAt: new Date()
+        deployedAt: new Date(),
       });
-      
+
       return { ...deployment, status: 'aborted' };
     }
 
@@ -1220,7 +1263,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       status: 'deployed',
       preDeploymentChecks,
       canaryDeploymentId,
-      deployedAt: new Date()
+      deployedAt: new Date(),
     });
 
     const deploymentModel = await storage.getAIModelByName('deployment_manager_v1');
@@ -1231,7 +1274,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
         inferenceType: 'model_deployment',
         inputData: { modelId, versionId, strategy },
         outputData: { deploymentId: deployment.id, status: 'deployed', canaryDeploymentId },
-        executionTime: Date.now() - startTime
+        executionTime: Date.now() - startTime,
       });
     }
 
@@ -1244,10 +1287,10 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
 
   private mapStrategyToImplementation(strategy: string): string {
     const mapping: Record<string, string> = {
-      'immediate': 'instant',
-      'canary': 'canary',
-      'scheduled': 'rolling',
-      'manual-approval': 'blue_green'
+      immediate: 'instant',
+      canary: 'canary',
+      scheduled: 'rolling',
+      'manual-approval': 'blue_green',
     };
     return mapping[strategy] || 'instant';
   }
@@ -1255,13 +1298,13 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
   private async runPreDeploymentChecks(modelId: string, versionId: string): Promise<any> {
     const checkValue1 = this.deterministicValue(`${modelId}_${versionId}_check1`, 0, 1);
     const checkValue2 = this.deterministicValue(`${modelId}_${versionId}_check2`, 0, 1);
-    
+
     const checks = {
       versionExists: true,
       parametersValid: true,
       metricsAboveThreshold: checkValue1 > 0.1,
       noRegressions: checkValue2 > 0.15,
-      securityScanPassed: true
+      securityScanPassed: true,
     };
 
     const passed = Object.values(checks).every(Boolean);
@@ -1269,7 +1312,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     return {
       checks,
       passed,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
@@ -1277,26 +1320,28 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     const checkValue1 = this.deterministicValue(`${modelId}_${versionId}_post1`, 0, 1);
     const checkValue2 = this.deterministicValue(`${modelId}_${versionId}_post2`, 0, 1);
     const checkValue3 = this.deterministicValue(`${modelId}_${versionId}_post3`, 0, 1);
-    
+
     const checks = {
       healthCheckPassed: true,
       latencyWithinBounds: checkValue1 > 0.05,
       errorRateAcceptable: checkValue2 > 0.1,
-      throughputMaintained: checkValue3 > 0.1
+      throughputMaintained: checkValue3 > 0.1,
     };
 
     const passed = Object.values(checks).every(Boolean);
 
-    console.log(`${passed ? '✅' : '⚠️'} Post-deployment health checks ${passed ? 'passed' : 'failed'}`);
+    logger.info(
+      `${passed ? '✅' : '⚠️'} Post-deployment health checks ${passed ? 'passed' : 'failed'}`
+    );
 
     if (!passed) {
-      console.log(`   Initiating automatic rollback...`);
+      logger.info(`   Initiating automatic rollback...`);
     }
 
     return {
       checks,
       passed,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
@@ -1305,9 +1350,9 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
   // ==========================================
 
   async rollbackModel(modelId: string, targetVersionId: string, reason: string): Promise<any> {
-    console.log(`🔙 Initiating rollback for model ${modelId}`);
-    console.log(`   Target version: ${targetVersionId}`);
-    console.log(`   Reason: ${reason}`);
+    logger.info(`🔙 Initiating rollback for model ${modelId}`);
+    logger.info(`   Target version: ${targetVersionId}`);
+    logger.info(`   Reason: ${reason}`);
 
     const impactAnalysis = await this.analyzeRollbackImpact(modelId, targetVersionId);
 
@@ -1317,7 +1362,7 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       reason,
       impactAnalysis,
       status: 'initiated',
-      rollbackStartedAt: new Date()
+      rollbackStartedAt: new Date(),
     };
 
     setTimeout(async () => {
@@ -1330,10 +1375,10 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
   private async analyzeRollbackImpact(modelId: string, targetVersionId: string): Promise<any> {
     const usersSeed = `${modelId}_${targetVersionId}_users`;
     const downtimeSeed = `${modelId}_${targetVersionId}_downtime`;
-    
+
     const affectedUsers = Math.floor(this.deterministicValue(usersSeed, 15000, 20000));
     const estimatedDowntime = Math.floor(this.deterministicValue(downtimeSeed, 0, 30));
-    
+
     return {
       affectedUsers,
       estimatedDowntime,
@@ -1342,49 +1387,49 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
       performanceChange: {
         latency: '+5-10ms',
         accuracy: '-0.5-1.0%',
-        throughput: 'minimal impact'
+        throughput: 'minimal impact',
       },
       risks: [
         'Temporary accuracy degradation during rollback',
-        'Some users may see inconsistent results during transition'
+        'Some users may see inconsistent results during transition',
       ],
       mitigations: [
         'Gradual rollback using canary pattern',
         'Real-time monitoring during rollback',
-        'Automated rollback if issues detected'
-      ]
+        'Automated rollback if issues detected',
+      ],
     };
   }
 
-  private async executeRollback(rollback: any): Promise<void> {
-    console.log(`⚙️ Executing rollback for model ${rollback.modelId}...`);
-    
+  private async executeRollback(rollback: unknown): Promise<void> {
+    logger.info(`⚙️ Executing rollback for model ${rollback.modelId}...`);
+
     await this.runPreDeploymentChecks(rollback.modelId, rollback.targetVersionId);
-    
+
     rollback.status = 'completed';
     rollback.rollbackCompletedAt = new Date();
     rollback.verificationResults = {
       healthCheckPassed: true,
       performanceWithinExpected: true,
-      noErrorSpikes: true
+      noErrorSpikes: true,
     };
 
-    console.log(`✅ Rollback completed successfully`);
-    console.log(`   Duration: ${rollback.impactAnalysis.estimatedDowntime}s`);
-    console.log(`   Affected users: ${rollback.impactAnalysis.affectedUsers}`);
+    logger.info(`✅ Rollback completed successfully`);
+    logger.info(`   Duration: ${rollback.impactAnalysis.estimatedDowntime}s`);
+    logger.info(`   Affected users: ${rollback.impactAnalysis.affectedUsers}`);
 
     this.emit('rollbackCompleted', rollback);
 
     await this.notifyStakeholders('rollback_completed', {
       modelId: rollback.modelId,
       reason: rollback.reason,
-      affectedUsers: rollback.impactAnalysis.affectedUsers
+      affectedUsers: rollback.impactAnalysis.affectedUsers,
     });
   }
 
-  private async notifyStakeholders(eventType: string, data: any): Promise<void> {
-    console.log(`📧 Notifying stakeholders: ${eventType}`);
-    console.log(`   Data:`, JSON.stringify(data, null, 2));
+  private async notifyStakeholders(eventType: string, data: unknown): Promise<void> {
+    logger.info(`📧 Notifying stakeholders: ${eventType}`);
+    logger.info(`   Data:`, JSON.stringify(data, null, 2));
   }
 
   async getDeploymentHistory(modelId: string, limit: number = 10): Promise<any[]> {
@@ -1395,16 +1440,16 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     for (let i = 0; i < limit; i++) {
       const deploymentTypes = ['canary', 'immediate', 'scheduled', 'rollback'];
       const strategies = ['instant', 'canary', 'rolling', 'blue_green'];
-      
+
       history.push({
         modelId,
-        versionId: `v${Date.now() - (i * dayMs)}`,
+        versionId: `v${Date.now() - i * dayMs}`,
         deploymentType: deploymentTypes[i % deploymentTypes.length],
         strategy: strategies[i % strategies.length],
         environment: 'production',
         rollbackTriggered: i === 2,
-        deployedAt: new Date(now - (i * dayMs)),
-        completedAt: new Date(now - (i * dayMs) + 3600000)
+        deployedAt: new Date(now - i * dayMs),
+        completedAt: new Date(now - i * dayMs + 3600000),
       });
     }
 

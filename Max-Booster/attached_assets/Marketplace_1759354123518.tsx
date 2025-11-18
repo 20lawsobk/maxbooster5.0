@@ -8,7 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
@@ -297,7 +303,7 @@ import {
   Surprised2 as Surprised2Icon97,
   Surprised2 as Surprised2Icon98,
   Surprised2 as Surprised2Icon99,
-  Surprised2 as Surprised2Icon100
+  Surprised2 as Surprised2Icon100,
 } from 'lucide-react';
 
 // BeatStars Clone Interfaces
@@ -374,16 +380,50 @@ interface CartItem {
 
 // Beat Genres
 const BEAT_GENRES = [
-  'Hip-Hop', 'Trap', 'R&B', 'Pop', 'Rock', 'Electronic', 'Jazz', 'Blues',
-  'Country', 'Reggae', 'Folk', 'Alternative', 'Indie', 'Punk', 'Metal',
-  'Funk', 'Soul', 'Gospel', 'World', 'Latin', 'Ambient', 'Experimental'
+  'Hip-Hop',
+  'Trap',
+  'R&B',
+  'Pop',
+  'Rock',
+  'Electronic',
+  'Jazz',
+  'Blues',
+  'Country',
+  'Reggae',
+  'Folk',
+  'Alternative',
+  'Indie',
+  'Punk',
+  'Metal',
+  'Funk',
+  'Soul',
+  'Gospel',
+  'World',
+  'Latin',
+  'Ambient',
+  'Experimental',
 ];
 
 // Beat Moods
 const BEAT_MOODS = [
-  'Aggressive', 'Chill', 'Dark', 'Happy', 'Sad', 'Energetic', 'Relaxed',
-  'Romantic', 'Mysterious', 'Uplifting', 'Melancholic', 'Confident',
-  'Nostalgic', 'Futuristic', 'Vintage', 'Modern', 'Classic', 'Experimental'
+  'Aggressive',
+  'Chill',
+  'Dark',
+  'Happy',
+  'Sad',
+  'Energetic',
+  'Relaxed',
+  'Romantic',
+  'Mysterious',
+  'Uplifting',
+  'Melancholic',
+  'Confident',
+  'Nostalgic',
+  'Futuristic',
+  'Vintage',
+  'Modern',
+  'Classic',
+  'Experimental',
 ];
 
 export default function Marketplace() {
@@ -402,7 +442,10 @@ export default function Marketplace() {
 
   // Data Queries
   const { data: beats = [], isLoading: beatsLoading } = useQuery<Beat[]>({
-    queryKey: ['/api/marketplace/beats', { search: searchQuery, genre: selectedGenre, mood: selectedMood, sort: sortBy }],
+    queryKey: [
+      '/api/marketplace/beats',
+      { search: searchQuery, genre: selectedGenre, mood: selectedMood, sort: sortBy },
+    ],
   });
 
   const { data: producers = [], isLoading: producersLoading } = useQuery<Producer[]>({
@@ -415,7 +458,7 @@ export default function Marketplace() {
 
   // Mutations
   const purchaseBeatMutation = useMutation({
-    mutationFn: async (data: { beatId: string, licenseType: string }) => {
+    mutationFn: async (data: { beatId: string; licenseType: string }) => {
       const response = await apiRequest('POST', '/api/marketplace/purchase', data);
       return response.json();
     },
@@ -453,7 +496,9 @@ export default function Marketplace() {
   };
 
   const handleAddToCart = (beat: Beat, licenseType: string) => {
-    const existingItem = cart.find(item => item.beatId === beat.id && item.licenseType === licenseType);
+    const existingItem = cart.find(
+      (item) => item.beatId === beat.id && item.licenseType === licenseType
+    );
     if (existingItem) {
       toast({
         title: 'Already in Cart',
@@ -478,21 +523,31 @@ export default function Marketplace() {
   const getLicensePrice = (beat: Beat, licenseType: string): number => {
     const basePrice = beat.price;
     switch (licenseType) {
-      case 'basic': return basePrice;
-      case 'premium': return basePrice * 2;
-      case 'unlimited': return basePrice * 5;
-      case 'exclusive': return basePrice * 20;
-      default: return basePrice;
+      case 'basic':
+        return basePrice;
+      case 'premium':
+        return basePrice * 2;
+      case 'unlimited':
+        return basePrice * 5;
+      case 'exclusive':
+        return basePrice * 20;
+      default:
+        return basePrice;
     }
   };
 
   const getLicenseDescription = (licenseType: string): string => {
     switch (licenseType) {
-      case 'basic': return 'Basic lease - 5,000 copies, 1 year';
-      case 'premium': return 'Premium lease - 50,000 copies, 2 years';
-      case 'unlimited': return 'Unlimited lease - Unlimited copies, 5 years';
-      case 'exclusive': return 'Exclusive rights - Full ownership';
-      default: return '';
+      case 'basic':
+        return 'Basic lease - 5,000 copies, 1 year';
+      case 'premium':
+        return 'Premium lease - 50,000 copies, 2 years';
+      case 'unlimited':
+        return 'Unlimited lease - Unlimited copies, 5 years';
+      case 'exclusive':
+        return 'Exclusive rights - Full ownership';
+      default:
+        return '';
     }
   };
 
@@ -502,13 +557,13 @@ export default function Marketplace() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       <TopBar title="Max Booster Marketplace" />
       <div className="flex">
-      <Sidebar />
+        <Sidebar />
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto space-y-8">
             {/* Header Section */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200/60 dark:border-gray-700">
               <div className="flex items-center justify-between">
-              <div>
+                <div>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     Max Booster Marketplace
                   </h1>
@@ -520,18 +575,24 @@ export default function Marketplace() {
                       <Shield className="w-3 h-3 mr-1" />
                       Secure Transactions
                     </Badge>
-                    <Badge variant="outline" className="border-purple-200 text-purple-700 bg-purple-50">
+                    <Badge
+                      variant="outline"
+                      className="border-purple-200 text-purple-700 bg-purple-50"
+                    >
                       <Zap className="w-3 h-3 mr-1" />
                       Instant Downloads
                     </Badge>
-                    <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50">
+                    <Badge
+                      variant="outline"
+                      className="border-green-200 text-green-700 bg-green-50"
+                    >
                       <Users className="w-3 h-3 mr-1" />
                       Global Community
                     </Badge>
                   </div>
-              </div>
+                </div>
                 <div className="flex space-x-2">
-                  <Button 
+                  <Button
                     onClick={() => setShowUploadModal(true)}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   >
@@ -565,25 +626,29 @@ export default function Marketplace() {
                     <Select value={selectedGenre} onValueChange={setSelectedGenre}>
                       <SelectTrigger className="w-40">
                         <SelectValue placeholder="Genre" />
-                          </SelectTrigger>
-                          <SelectContent>
+                      </SelectTrigger>
+                      <SelectContent>
                         <SelectItem value="all">All Genres</SelectItem>
                         {BEAT_GENRES.map((genre) => (
-                              <SelectItem key={genre} value={genre}>{genre}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          <SelectItem key={genre} value={genre}>
+                            {genre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Select value={selectedMood} onValueChange={setSelectedMood}>
                       <SelectTrigger className="w-40">
                         <SelectValue placeholder="Mood" />
-                          </SelectTrigger>
-                          <SelectContent>
+                      </SelectTrigger>
+                      <SelectContent>
                         <SelectItem value="all">All Moods</SelectItem>
                         {BEAT_MOODS.map((mood) => (
-                          <SelectItem key={mood} value={mood}>{mood}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          <SelectItem key={mood} value={mood}>
+                            {mood}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Select value={sortBy} onValueChange={setSortBy}>
                       <SelectTrigger className="w-40">
                         <SelectValue placeholder="Sort by" />
@@ -614,33 +679,48 @@ export default function Marketplace() {
                       </Button>
                     </div>
                   </div>
-            </div>
+                </div>
               </CardContent>
             </Card>
 
             {/* Main Interface */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList className="grid w-full grid-cols-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                <TabsTrigger value="browse" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="browse"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   Browse Beats
                 </TabsTrigger>
-                <TabsTrigger value="producers" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="producers"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   Producers
                 </TabsTrigger>
-                <TabsTrigger value="my-beats" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="my-beats"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   My Beats
                 </TabsTrigger>
-                <TabsTrigger value="purchases" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="purchases"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   My Purchases
                 </TabsTrigger>
-                <TabsTrigger value="sales" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="sales"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   Sales
                 </TabsTrigger>
               </TabsList>
 
               {/* Browse Beats Tab */}
               <TabsContent value="browse" className="space-y-6">
-                  {beatsLoading ? (
+                {beatsLoading ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {[...Array(12)].map((_, i) => (
                       <Card key={i} className="animate-pulse">
@@ -654,17 +734,19 @@ export default function Marketplace() {
                       </Card>
                     ))}
                   </div>
-                  ) : beats.length === 0 ? (
+                ) : beats.length === 0 ? (
                   <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800">
                     <CardContent className="p-12 text-center">
                       <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Music className="w-12 h-12 text-white" />
                       </div>
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Beats Found</h3>
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                        No Beats Found
+                      </h3>
                       <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
                         Try adjusting your search criteria or browse different genres and moods.
                       </p>
-                      <Button 
+                      <Button
                         onClick={() => {
                           setSearchQuery('');
                           setSelectedGenre('');
@@ -678,25 +760,30 @@ export default function Marketplace() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
+                  <div
+                    className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}
+                  >
                     {beats.map((beat) => (
-                      <Card key={beat.id} className="group hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700">
+                      <Card
+                        key={beat.id}
+                        className="group hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
+                      >
                         <CardContent className="p-0">
                           {/* Cover Art */}
                           <div className="relative">
                             <div className="w-full h-48 bg-gradient-to-br from-blue-500 to-purple-600 rounded-t-lg flex items-center justify-center">
                               {beat.coverArt ? (
-                                <img 
-                                  src={beat.coverArt} 
+                                <img
+                                  src={beat.coverArt}
                                   alt={beat.title}
                                   className="w-full h-full object-cover rounded-t-lg"
                                 />
                               ) : (
                                 <Music className="w-16 h-16 text-white opacity-50" />
                               )}
-                    </div>
+                            </div>
                             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-t-lg flex items-center justify-center">
-                          <Button
+                              <Button
                                 onClick={() => handlePlayPause(beat.id)}
                                 className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/20 hover:bg-white/30 text-white border-white/30"
                                 size="sm"
@@ -705,41 +792,52 @@ export default function Marketplace() {
                                   <Pause className="w-4 h-4" />
                                 ) : (
                                   <Play className="w-4 h-4" />
-                            )}
-                          </Button>
+                                )}
+                              </Button>
                             </div>
                             <div className="absolute top-3 right-3">
-                              <Badge variant="secondary" className="backdrop-blur-sm bg-white/90 dark:bg-gray-800/90">
+                              <Badge
+                                variant="secondary"
+                                className="backdrop-blur-sm bg-white/90 dark:bg-gray-800/90"
+                              >
                                 {beat.tempo} BPM
                               </Badge>
                             </div>
                           </div>
-                          
+
                           {/* Beat Info */}
                           <div className="p-4">
                             <div className="mb-3">
                               <h3 className="font-semibold text-gray-900 dark:text-white text-lg mb-1 line-clamp-1">
                                 {beat.title}
                               </h3>
-                              <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{beat.producer}</p>
+                              <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                                {beat.producer}
+                              </p>
                               <div className="flex items-center space-x-2">
-                                <Badge variant="outline" className="text-xs">{beat.genre}</Badge>
-                                <Badge variant="outline" className="text-xs">{beat.mood}</Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {beat.genre}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {beat.mood}
+                                </Badge>
                                 {beat.isExclusive && (
-                                  <Badge variant="destructive" className="text-xs">Exclusive</Badge>
+                                  <Badge variant="destructive" className="text-xs">
+                                    Exclusive
+                                  </Badge>
                                 )}
                               </div>
-                          </div>
-                          
+                            </div>
+
                             {/* Stats */}
                             <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
                               <div className="flex items-center space-x-4">
                                 <div className="flex items-center space-x-1">
-                                <Play className="w-3 h-3" />
+                                  <Play className="w-3 h-3" />
                                   <span>{beat.plays.toLocaleString()}</span>
                                 </div>
                                 <div className="flex items-center space-x-1">
-                                <Heart className="w-3 h-3" />
+                                  <Heart className="w-3 h-3" />
                                   <span>{beat.likes.toLocaleString()}</span>
                                 </div>
                                 <div className="flex items-center space-x-1">
@@ -748,7 +846,9 @@ export default function Marketplace() {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <p className="font-semibold text-gray-900 dark:text-white">${beat.price}</p>
+                                <p className="font-semibold text-gray-900 dark:text-white">
+                                  ${beat.price}
+                                </p>
                                 <p className="text-xs">Starting from</p>
                               </div>
                             </div>
@@ -756,13 +856,20 @@ export default function Marketplace() {
                             {/* License Options */}
                             <div className="space-y-2 mb-4">
                               {['basic', 'premium', 'unlimited'].map((license) => (
-                                <div key={license} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                                <div
+                                  key={license}
+                                  className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"
+                                >
                                   <div>
                                     <p className="text-sm font-medium capitalize">{license}</p>
-                                    <p className="text-xs text-gray-500">{getLicenseDescription(license)}</p>
+                                    <p className="text-xs text-gray-500">
+                                      {getLicenseDescription(license)}
+                                    </p>
                                   </div>
                                   <div className="flex items-center space-x-2">
-                                    <span className="text-sm font-semibold">${getLicensePrice(beat, license)}</span>
+                                    <span className="text-sm font-semibold">
+                                      ${getLicensePrice(beat, license)}
+                                    </span>
                                     <Button
                                       size="sm"
                                       onClick={() => handleAddToCart(beat, license)}
@@ -773,21 +880,21 @@ export default function Marketplace() {
                                   </div>
                                 </div>
                               ))}
-                          </div>
-                          
+                            </div>
+
                             {/* Actions */}
                             <div className="flex space-x-2">
-                            <Button 
-                                variant="outline" 
-                                size="sm" 
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 className="flex-1"
                                 onClick={() => handlePurchase(beat, 'basic')}
                               >
                                 <CreditCard className="w-4 h-4 mr-1" />
-                              Buy Now
-                            </Button>
-                              <Button 
-                                variant="outline" 
+                                Buy Now
+                              </Button>
+                              <Button
+                                variant="outline"
                                 size="sm"
                                 onClick={() => {
                                   // Share beat
@@ -801,7 +908,7 @@ export default function Marketplace() {
                       </Card>
                     ))}
                   </div>
-                  )}
+                )}
               </TabsContent>
 
               {/* Other tabs content will be added here */}
@@ -820,7 +927,7 @@ export default function Marketplace() {
               </TabsContent>
 
               <TabsContent value="my-beats">
-                  <Card>
+                <Card>
                   <CardHeader>
                     <CardTitle>My Beats</CardTitle>
                   </CardHeader>
@@ -828,9 +935,9 @@ export default function Marketplace() {
                     <div className="text-center py-8">
                       <Music className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                       <p className="text-gray-500">Your uploaded beats will appear here</p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               <TabsContent value="purchases">
@@ -842,7 +949,7 @@ export default function Marketplace() {
                     <div className="text-center py-8">
                       <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                       <p className="text-gray-500">Your purchased beats will appear here</p>
-                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>

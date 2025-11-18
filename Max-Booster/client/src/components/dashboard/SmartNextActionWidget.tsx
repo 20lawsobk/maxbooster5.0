@@ -18,7 +18,7 @@ import {
   X,
   ArrowRight,
   Lightbulb,
-  TrendingUp
+  TrendingUp,
 } from 'lucide-react';
 
 const iconMap = {
@@ -29,11 +29,17 @@ const iconMap = {
   Megaphone,
   BarChart3,
   Sparkles,
-  TrendingUp
+  TrendingUp,
 };
 
 interface NextActionRecommendation {
-  action: 'create_project' | 'add_tracks' | 'distribute' | 'promote_social' | 'launch_ads' | 'check_analytics';
+  action:
+    | 'create_project'
+    | 'add_tracks'
+    | 'distribute'
+    | 'promote_social'
+    | 'launch_ads'
+    | 'check_analytics';
   title: string;
   description: string;
   ctaText: string;
@@ -43,6 +49,9 @@ interface NextActionRecommendation {
   priority: 'high' | 'medium' | 'low';
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function SmartNextActionWidget() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
@@ -58,7 +67,12 @@ export function SmartNextActionWidget() {
     retry: false, // Don't retry auth check
   });
 
-  const { data: recommendation, isLoading, error, refetch } = useQuery<NextActionRecommendation>({
+  const {
+    data: recommendation,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<NextActionRecommendation>({
     queryKey: ['/api/dashboard/next-action'],
     enabled: !isDismissed && !!authUser, // Only fetch if not dismissed AND authenticated
     staleTime: 5 * 60 * 1000,
@@ -70,12 +84,12 @@ export function SmartNextActionWidget() {
       try {
         await apiRequest('POST', '/api/analytics/track-event', {
           eventType: 'smart_next_action_view',
-          eventData: { action }
+          eventData: { action },
         });
-      } catch (error) {
-        console.error('Failed to track impression:', error);
+      } catch (error: unknown) {
+        logger.error('Failed to track impression:', error);
       }
-    }
+    },
   });
 
   const trackClickMutation = useMutation({
@@ -83,12 +97,12 @@ export function SmartNextActionWidget() {
       try {
         await apiRequest('POST', '/api/analytics/track-event', {
           eventType: 'smart_next_action_click',
-          eventData: { action }
+          eventData: { action },
         });
-      } catch (error) {
-        console.error('Failed to track click:', error);
+      } catch (error: unknown) {
+        logger.error('Failed to track click:', error);
       }
-    }
+    },
   });
 
   useEffect(() => {
@@ -138,7 +152,7 @@ export function SmartNextActionWidget() {
   if (error || !recommendation) {
     // Log error for debugging but don't show to user
     if (error) {
-      console.debug('SmartNextActionWidget error:', error);
+      logger.debug('SmartNextActionWidget error:', error);
     }
     return null;
   }
@@ -150,28 +164,30 @@ export function SmartNextActionWidget() {
       bg: 'bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-red-950/20 dark:via-orange-950/20 dark:to-yellow-950/20',
       border: 'border-red-200 dark:border-red-800',
       badge: 'bg-red-100 text-red-800 border-red-300',
-      button: 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700'
+      button: 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700',
     },
     medium: {
       gradient: 'from-blue-500 via-purple-500 to-pink-500',
       bg: 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20',
       border: 'border-blue-200 dark:border-blue-800',
       badge: 'bg-blue-100 text-blue-800 border-blue-300',
-      button: 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+      button:
+        'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700',
     },
     low: {
       gradient: 'from-green-500 via-emerald-500 to-teal-500',
       bg: 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-teal-950/20',
       border: 'border-green-200 dark:border-green-800',
       badge: 'bg-green-100 text-green-800 border-green-300',
-      button: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
-    }
+      button:
+        'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700',
+    },
   };
 
   const colors = priorityColors[recommendation.priority];
 
   return (
-    <Card 
+    <Card
       className={`overflow-hidden border-2 ${colors.border} ${colors.bg} shadow-lg hover:shadow-xl transition-all duration-300`}
       role="region"
       aria-label="Smart next action recommendation"
@@ -179,7 +195,7 @@ export function SmartNextActionWidget() {
       <div className="absolute top-0 left-0 right-0 h-1.5">
         <div className={`h-full bg-gradient-to-r ${colors.gradient} animate-pulse`} />
       </div>
-      
+
       <CardContent className="p-6 pt-8">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-4">
@@ -192,15 +208,18 @@ export function SmartNextActionWidget() {
                   <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                     What's Next?
                   </h3>
-                  <Badge className={colors.badge} aria-label={`Priority: ${recommendation.priority}`}>
-                    {recommendation.priority === 'high' ? '⚡ High Priority' : 
-                     recommendation.priority === 'medium' ? '📌 Recommended' : 
-                     '💡 Suggested'}
+                  <Badge
+                    className={colors.badge}
+                    aria-label={`Priority: ${recommendation.priority}`}
+                  >
+                    {recommendation.priority === 'high'
+                      ? '⚡ High Priority'
+                      : recommendation.priority === 'medium'
+                        ? '📌 Recommended'
+                        : '💡 Suggested'}
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Your personalized next step
-                </p>
+                <p className="text-sm text-muted-foreground">Your personalized next step</p>
               </div>
             </div>
 
@@ -209,13 +228,14 @@ export function SmartNextActionWidget() {
                 <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                   {recommendation.title}
                 </h4>
-                <p className="text-gray-700 dark:text-gray-300">
-                  {recommendation.description}
-                </p>
+                <p className="text-gray-700 dark:text-gray-300">{recommendation.description}</p>
               </div>
 
               <div className="flex items-start gap-2 p-3 rounded-lg bg-white/60 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700">
-                <Lightbulb className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                <Lightbulb
+                  className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"
+                  aria-hidden="true"
+                />
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
                     Why this matters:
@@ -237,7 +257,7 @@ export function SmartNextActionWidget() {
                 {recommendation.ctaText}
                 <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="sm"

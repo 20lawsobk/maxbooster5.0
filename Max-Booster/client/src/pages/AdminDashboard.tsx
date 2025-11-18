@@ -47,7 +47,7 @@ import {
   Search,
   Filter,
   Trash2,
-  RotateCcw
+  RotateCcw,
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -63,7 +63,9 @@ export default function AdminDashboard() {
           <CardContent className="p-6 text-center">
             <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-            <p className="text-gray-600">You don't have permission to access the admin dashboard.</p>
+            <p className="text-gray-600">
+              You don't have permission to access the admin dashboard.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -71,34 +73,54 @@ export default function AdminDashboard() {
   }
 
   // Fetch audit results
-  const { data: auditResults, isLoading: auditLoading, refetch: refetchAudit } = useQuery({
+  const {
+    data: auditResults,
+    isLoading: auditLoading,
+    refetch: refetchAudit,
+  } = useQuery({
     queryKey: ['/api/audit/results'],
     enabled: !!user && user.role === 'admin',
     refetchInterval: 30000,
   });
 
   // Fetch testing results
-  const { data: testResults, isLoading: testLoading, refetch: refetchTests } = useQuery({
+  const {
+    data: testResults,
+    isLoading: testLoading,
+    refetch: refetchTests,
+  } = useQuery({
     queryKey: ['/api/testing/results'],
     enabled: !!user && user.role === 'admin',
     refetchInterval: 60000,
   });
 
   // Fetch system metrics
-  const { data: systemMetrics, isLoading: metricsLoading, refetch: refetchMetrics } = useQuery({
+  const {
+    data: systemMetrics,
+    isLoading: metricsLoading,
+    refetch: refetchMetrics,
+  } = useQuery({
     queryKey: ['/api/admin/metrics'],
     enabled: !!user && user.role === 'admin',
     refetchInterval: 10000,
   });
 
   // Fetch user analytics
-  const { data: userAnalytics, isLoading: userAnalyticsLoading, refetch: refetchAnalytics } = useQuery({
+  const {
+    data: userAnalytics,
+    isLoading: userAnalyticsLoading,
+    refetch: refetchAnalytics,
+  } = useQuery({
     queryKey: ['/api/admin/analytics'],
     enabled: !!user && user.role === 'admin',
   });
 
   // Fetch recent activity
-  const { data: recentActivity = [], isLoading: activityLoading, refetch: refetchActivity } = useQuery({
+  const {
+    data: recentActivity = [],
+    isLoading: activityLoading,
+    refetch: refetchActivity,
+  } = useQuery({
     queryKey: ['/api/admin/activity'],
     enabled: !!user && user.role === 'admin',
   });
@@ -112,7 +134,7 @@ export default function AdminDashboard() {
         refetchTests(),
         refetchMetrics(),
         refetchAnalytics(),
-        refetchActivity()
+        refetchActivity(),
       ]);
     } finally {
       setRefreshing(false);
@@ -141,19 +163,20 @@ export default function AdminDashboard() {
     return { status: 'poor', color: 'text-red-600', bg: 'bg-red-100' };
   };
 
-  const auditHealth = auditData ? getHealthStatus(auditData.overallScore) : { status: 'unknown', color: 'text-gray-600', bg: 'bg-gray-100' };
-  const testHealth = testData ? getHealthStatus(testData.overallScore) : { status: 'unknown', color: 'text-gray-600', bg: 'bg-gray-100' };
+  const auditHealth = auditData
+    ? getHealthStatus(auditData.overallScore)
+    : { status: 'unknown', color: 'text-gray-600', bg: 'bg-gray-100' };
+  const testHealth = testData
+    ? getHealthStatus(testData.overallScore)
+    : { status: 'unknown', color: 'text-gray-600', bg: 'bg-gray-100' };
 
   return (
     <div className="min-h-screen flex bg-gray-50">
       <Sidebar />
-      
+
       <main className="flex-1">
-        <TopBar 
-          title="Admin Dashboard" 
-          subtitle="System monitoring and management"
-        />
-        
+        <TopBar title="Admin Dashboard" subtitle="System monitoring and management" />
+
         <div className="p-6 space-y-6">
           {/* Header with refresh button */}
           <div className="flex justify-between items-center">
@@ -161,8 +184,8 @@ export default function AdminDashboard() {
               <h1 className="text-2xl font-bold text-gray-900">System Overview</h1>
               <p className="text-gray-600">Monitor system health, security, and performance</p>
             </div>
-            <Button 
-              onClick={handleRefresh} 
+            <Button
+              onClick={handleRefresh}
               disabled={refreshing}
               className="flex items-center space-x-2"
               data-testid="button-refresh-dashboard"
@@ -177,12 +200,17 @@ export default function AdminDashboard() {
             {auditLoading || !auditData ? (
               <Skeleton className="h-32 w-full" data-testid="card-audit-score" />
             ) : (
-              <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200" data-testid="card-audit-score">
+              <Card
+                className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200"
+                data-testid="card-audit-score"
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-green-700">Audit Score</p>
-                      <p className="text-3xl font-bold text-green-900">{auditData.overallScore}/100</p>
+                      <p className="text-3xl font-bold text-green-900">
+                        {auditData.overallScore}/100
+                      </p>
                       <p className="text-xs text-green-600 mt-1">Security & Compliance</p>
                     </div>
                     <div className={`p-3 rounded-full ${auditHealth.bg}`}>
@@ -196,12 +224,17 @@ export default function AdminDashboard() {
             {testLoading || !testData ? (
               <Skeleton className="h-32 w-full" data-testid="card-test-score" />
             ) : (
-              <Card className="bg-gradient-to-br from-blue-50 to-cyan-100 border-blue-200" data-testid="card-test-score">
+              <Card
+                className="bg-gradient-to-br from-blue-50 to-cyan-100 border-blue-200"
+                data-testid="card-test-score"
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-blue-700">Test Score</p>
-                      <p className="text-3xl font-bold text-blue-900">{testData.overallScore}/100</p>
+                      <p className="text-3xl font-bold text-blue-900">
+                        {testData.overallScore}/100
+                      </p>
                       <p className="text-xs text-blue-600 mt-1">Quality Assurance</p>
                     </div>
                     <div className={`p-3 rounded-full ${testHealth.bg}`}>
@@ -215,7 +248,10 @@ export default function AdminDashboard() {
             {metricsLoading || !metricsData ? (
               <Skeleton className="h-32 w-full" data-testid="card-system-uptime" />
             ) : (
-              <Card className="bg-gradient-to-br from-purple-50 to-violet-100 border-purple-200" data-testid="card-system-uptime">
+              <Card
+                className="bg-gradient-to-br from-purple-50 to-violet-100 border-purple-200"
+                data-testid="card-system-uptime"
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -234,12 +270,17 @@ export default function AdminDashboard() {
             {metricsLoading || !metricsData ? (
               <Skeleton className="h-32 w-full" data-testid="card-active-users" />
             ) : (
-              <Card className="bg-gradient-to-br from-orange-50 to-amber-100 border-orange-200" data-testid="card-active-users">
+              <Card
+                className="bg-gradient-to-br from-orange-50 to-amber-100 border-orange-200"
+                data-testid="card-active-users"
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-orange-700">Active Users</p>
-                      <p className="text-3xl font-bold text-orange-900">{metricsData.activeUsers.toLocaleString()}</p>
+                      <p className="text-3xl font-bold text-orange-900">
+                        {metricsData.activeUsers.toLocaleString()}
+                      </p>
                       <p className="text-xs text-orange-600 mt-1">Currently Online</p>
                     </div>
                     <div className="p-3 bg-orange-200 rounded-full">
@@ -254,15 +295,33 @@ export default function AdminDashboard() {
           {/* Main Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-9">
-              <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
-              <TabsTrigger value="audit" data-testid="tab-audit">Audit</TabsTrigger>
-              <TabsTrigger value="testing" data-testid="tab-testing">Testing</TabsTrigger>
-              <TabsTrigger value="performance" data-testid="tab-performance">Performance</TabsTrigger>
-              <TabsTrigger value="users" data-testid="tab-users">Users</TabsTrigger>
-              <TabsTrigger value="compliance" data-testid="tab-compliance">Compliance</TabsTrigger>
-              <TabsTrigger value="tokens" data-testid="tab-tokens">Tokens</TabsTrigger>
-              <TabsTrigger value="webhooks" data-testid="tab-webhooks">Webhooks</TabsTrigger>
-              <TabsTrigger value="logs" data-testid="tab-logs">Logs</TabsTrigger>
+              <TabsTrigger value="overview" data-testid="tab-overview">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="audit" data-testid="tab-audit">
+                Audit
+              </TabsTrigger>
+              <TabsTrigger value="testing" data-testid="tab-testing">
+                Testing
+              </TabsTrigger>
+              <TabsTrigger value="performance" data-testid="tab-performance">
+                Performance
+              </TabsTrigger>
+              <TabsTrigger value="users" data-testid="tab-users">
+                Users
+              </TabsTrigger>
+              <TabsTrigger value="compliance" data-testid="tab-compliance">
+                Compliance
+              </TabsTrigger>
+              <TabsTrigger value="tokens" data-testid="tab-tokens">
+                Tokens
+              </TabsTrigger>
+              <TabsTrigger value="webhooks" data-testid="tab-webhooks">
+                Webhooks
+              </TabsTrigger>
+              <TabsTrigger value="logs" data-testid="tab-logs">
+                Logs
+              </TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
@@ -336,21 +395,27 @@ export default function AdminDashboard() {
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="text-center p-4 bg-blue-50 rounded-lg">
-                            <p className="text-2xl font-bold text-blue-600">{analyticsData.newUsers}</p>
+                            <p className="text-2xl font-bold text-blue-600">
+                              {analyticsData.newUsers}
+                            </p>
                             <p className="text-sm text-blue-600">New Users Today</p>
                           </div>
                           <div className="text-center p-4 bg-green-50 rounded-lg">
-                            <p className="text-2xl font-bold text-green-600">{analyticsData.totalRevenue.toLocaleString()}</p>
+                            <p className="text-2xl font-bold text-green-600">
+                              {analyticsData.totalRevenue.toLocaleString()}
+                            </p>
                             <p className="text-sm text-green-600">Total Revenue</p>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="text-sm font-medium">Monthly Growth</span>
                             <div className="flex items-center space-x-2">
                               <TrendingUp className="h-4 w-4 text-green-600" />
-                              <span className="text-sm font-bold text-green-600">+{analyticsData.monthlyGrowth}%</span>
+                              <span className="text-sm font-bold text-green-600">
+                                +{analyticsData.monthlyGrowth}%
+                              </span>
                             </div>
                           </div>
                           <Progress value={analyticsData.monthlyGrowth} className="h-2" />
@@ -359,12 +424,16 @@ export default function AdminDashboard() {
                         <div className="space-y-2">
                           <h4 className="font-medium text-gray-900">Top Countries</h4>
                           {analyticsData.topCountries && analyticsData.topCountries.length > 0 ? (
-                            analyticsData.topCountries.slice(0, 3).map((country: any, index: number) => (
-                              <div key={index} className="flex items-center justify-between">
-                                <span className="text-sm text-gray-600">{country.country}</span>
-                                <span className="text-sm font-bold">{country.users.toLocaleString()}</span>
-                              </div>
-                            ))
+                            analyticsData.topCountries
+                              .slice(0, 3)
+                              .map((country: unknown, index: number) => (
+                                <div key={index} className="flex items-center justify-between">
+                                  <span className="text-sm text-gray-600">{country.country}</span>
+                                  <span className="text-sm font-bold">
+                                    {country.users.toLocaleString()}
+                                  </span>
+                                </div>
+                              ))
                           ) : (
                             <p className="text-sm text-gray-500">No data available</p>
                           )}
@@ -388,12 +457,20 @@ export default function AdminDashboard() {
                     <Skeleton className="h-48 w-full" />
                   ) : recentActivity.length > 0 ? (
                     <div className="space-y-4">
-                      {recentActivity.map((activity: any, index: number) => (
-                        <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                          <div className={`w-2 h-2 rounded-full ${
-                            activity.type === 'success' ? 'bg-green-500' : 
-                            activity.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-                          }`} />
+                      {recentActivity.map((activity: unknown, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg"
+                        >
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              activity.type === 'success'
+                                ? 'bg-green-500'
+                                : activity.type === 'error'
+                                  ? 'bg-red-500'
+                                  : 'bg-blue-500'
+                            }`}
+                          />
                           <div className="flex-1">
                             <p className="text-sm font-medium text-gray-900">{activity.action}</p>
                             <p className="text-xs text-gray-500">{activity.user}</p>
@@ -430,11 +507,19 @@ export default function AdminDashboard() {
                       <div className="space-y-4">
                         {[
                           { name: 'Security', score: auditData.securityScore, icon: Shield },
-                          { name: 'Functionality', score: auditData.functionalityScore, icon: CheckCircle },
+                          {
+                            name: 'Functionality',
+                            score: auditData.functionalityScore,
+                            icon: CheckCircle,
+                          },
                           { name: 'Performance', score: auditData.performanceScore, icon: Zap },
-                          { name: 'Code Quality', score: auditData.codeQualityScore, icon: FileText },
+                          {
+                            name: 'Code Quality',
+                            score: auditData.codeQualityScore,
+                            icon: FileText,
+                          },
                           { name: 'Accessibility', score: auditData.accessibilityScore, icon: Eye },
-                          { name: 'SEO', score: auditData.seoScore, icon: Target }
+                          { name: 'SEO', score: auditData.seoScore, icon: Target },
                         ].map((item, index) => {
                           const health = getHealthStatus(item.score);
                           return (
@@ -444,7 +529,9 @@ export default function AdminDashboard() {
                                   <item.icon className="h-5 w-5 text-gray-600" />
                                   <span className="text-sm font-medium">{item.name}</span>
                                 </div>
-                                <span className={`text-sm font-bold ${health.color}`}>{item.score}/100</span>
+                                <span className={`text-sm font-bold ${health.color}`}>
+                                  {item.score}/100
+                                </span>
                               </div>
                               <Progress value={item.score} className="h-2" />
                             </div>
@@ -470,12 +557,17 @@ export default function AdminDashboard() {
                         <Skeleton className="h-32 w-full" />
                       ) : (
                         <div className="space-y-3">
-                          {auditData.issues.map((issue: any, index: number) => (
-                            <Alert key={index} className={`${
-                              issue.severity === 'critical' ? 'border-red-200 bg-red-50' :
-                              issue.severity === 'high' ? 'border-orange-200 bg-orange-50' :
-                              'border-yellow-200 bg-yellow-50'
-                            }`}>
+                          {auditData.issues.map((issue: unknown, index: number) => (
+                            <Alert
+                              key={index}
+                              className={`${
+                                issue.severity === 'critical'
+                                  ? 'border-red-200 bg-red-50'
+                                  : issue.severity === 'high'
+                                    ? 'border-orange-200 bg-orange-50'
+                                    : 'border-yellow-200 bg-yellow-50'
+                              }`}
+                            >
                               <AlertTriangle className="h-4 w-4" />
                               <AlertDescription>
                                 <div>
@@ -512,8 +604,11 @@ export default function AdminDashboard() {
                         <Skeleton className="h-32 w-full" />
                       ) : (
                         <div className="space-y-3">
-                          {auditData.recommendations.map((rec: any, index: number) => (
-                            <div key={index} className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          {auditData.recommendations.map((rec: unknown, index: number) => (
+                            <div
+                              key={index}
+                              className="p-3 bg-blue-50 border border-blue-200 rounded-lg"
+                            >
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                   <p className="font-medium text-gray-900">{rec.title}</p>
@@ -552,9 +647,14 @@ export default function AdminDashboard() {
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                       {Object.entries(auditData.compliance).map(([key, value]: [string, any]) => (
-                        <div key={key} className={`p-4 rounded-lg text-center ${
-                          value ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'
-                        }`}>
+                        <div
+                          key={key}
+                          className={`p-4 rounded-lg text-center ${
+                            value
+                              ? 'bg-green-50 border border-green-200'
+                              : 'bg-gray-50 border border-gray-200'
+                          }`}
+                        >
                           {value ? (
                             <CheckSquare className="h-6 w-6 text-green-600 mx-auto mb-2" />
                           ) : (
@@ -587,11 +687,27 @@ export default function AdminDashboard() {
                       <div className="space-y-4">
                         {[
                           { name: 'Unit Tests', score: testData.unitTestScore, icon: CheckCircle },
-                          { name: 'Integration Tests', score: testData.integrationTestScore, icon: Zap },
+                          {
+                            name: 'Integration Tests',
+                            score: testData.integrationTestScore,
+                            icon: Zap,
+                          },
                           { name: 'E2E Tests', score: testData.e2eTestScore, icon: Eye },
-                          { name: 'Performance Tests', score: testData.performanceTestScore, icon: Activity },
-                          { name: 'Security Tests', score: testData.securityTestScore, icon: Shield },
-                          { name: 'Accessibility Tests', score: testData.accessibilityTestScore, icon: Users }
+                          {
+                            name: 'Performance Tests',
+                            score: testData.performanceTestScore,
+                            icon: Activity,
+                          },
+                          {
+                            name: 'Security Tests',
+                            score: testData.securityTestScore,
+                            icon: Shield,
+                          },
+                          {
+                            name: 'Accessibility Tests',
+                            score: testData.accessibilityTestScore,
+                            icon: Users,
+                          },
                         ].map((item, index) => {
                           const health = getHealthStatus(item.score);
                           return (
@@ -601,7 +717,9 @@ export default function AdminDashboard() {
                                   <item.icon className="h-5 w-5 text-gray-600" />
                                   <span className="text-sm font-medium">{item.name}</span>
                                 </div>
-                                <span className={`text-sm font-bold ${health.color}`}>{item.score}/100</span>
+                                <span className={`text-sm font-bold ${health.color}`}>
+                                  {item.score}/100
+                                </span>
                               </div>
                               <Progress value={item.score} className="h-2" />
                             </div>
@@ -627,19 +745,27 @@ export default function AdminDashboard() {
                       <div className="space-y-6">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="text-center p-4 bg-green-50 rounded-lg">
-                            <p className="text-2xl font-bold text-green-600">{testData.passedTests}</p>
+                            <p className="text-2xl font-bold text-green-600">
+                              {testData.passedTests}
+                            </p>
                             <p className="text-sm text-green-600">Passed</p>
                           </div>
                           <div className="text-center p-4 bg-red-50 rounded-lg">
-                            <p className="text-2xl font-bold text-red-600">{testData.failedTests}</p>
+                            <p className="text-2xl font-bold text-red-600">
+                              {testData.failedTests}
+                            </p>
                             <p className="text-sm text-red-600">Failed</p>
                           </div>
                           <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                            <p className="text-2xl font-bold text-yellow-600">{testData.skippedTests}</p>
+                            <p className="text-2xl font-bold text-yellow-600">
+                              {testData.skippedTests}
+                            </p>
                             <p className="text-sm text-yellow-600">Skipped</p>
                           </div>
                           <div className="text-center p-4 bg-blue-50 rounded-lg">
-                            <p className="text-2xl font-bold text-blue-600">{testData.totalTests}</p>
+                            <p className="text-2xl font-bold text-blue-600">
+                              {testData.totalTests}
+                            </p>
                             <p className="text-sm text-blue-600">Total Tests</p>
                           </div>
                         </div>
@@ -647,15 +773,17 @@ export default function AdminDashboard() {
                         <div>
                           <h4 className="font-medium text-gray-900 mb-3">Code Coverage</h4>
                           <div className="space-y-3">
-                            {Object.entries(testData.coverage).map(([key, value]: [string, any]) => (
-                              <div key={key} className="space-y-1">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm text-gray-600 capitalize">{key}</span>
-                                  <span className="text-sm font-bold">{value}%</span>
+                            {Object.entries(testData.coverage).map(
+                              ([key, value]: [string, any]) => (
+                                <div key={key} className="space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-600 capitalize">{key}</span>
+                                    <span className="text-sm font-bold">{value}%</span>
+                                  </div>
+                                  <Progress value={value} className="h-2" />
                                 </div>
-                                <Progress value={value} className="h-2" />
-                              </div>
-                            ))}
+                              )
+                            )}
                           </div>
                         </div>
                       </div>
@@ -681,7 +809,9 @@ export default function AdminDashboard() {
                     <div className="text-center p-6 bg-gray-50 rounded-lg">
                       <Activity className="h-12 w-12 text-gray-600 mx-auto mb-4" />
                       <p className="text-gray-600">Performance metrics will be displayed here</p>
-                      <p className="text-sm text-gray-500 mt-2">Response Time: {metricsData.responseTime}ms</p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Response Time: {metricsData.responseTime}ms
+                      </p>
                     </div>
                   )}
                 </CardContent>
@@ -704,7 +834,9 @@ export default function AdminDashboard() {
                     <div className="text-center p-6 bg-gray-50 rounded-lg">
                       <Users className="h-12 w-12 text-gray-600 mx-auto mb-4" />
                       <p className="text-gray-600">User management interface coming soon</p>
-                      <p className="text-sm text-gray-500 mt-2">Total Users: {metricsData.totalUsers}</p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Total Users: {metricsData.totalUsers}
+                      </p>
                     </div>
                   )}
                 </CardContent>
@@ -726,9 +858,14 @@ export default function AdminDashboard() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {Object.entries(auditData.compliance).map(([key, value]: [string, any]) => (
-                        <div key={key} className={`p-6 rounded-lg ${
-                          value ? 'bg-green-50 border-2 border-green-200' : 'bg-gray-50 border-2 border-gray-200'
-                        }`}>
+                        <div
+                          key={key}
+                          className={`p-6 rounded-lg ${
+                            value
+                              ? 'bg-green-50 border-2 border-green-200'
+                              : 'bg-gray-50 border-2 border-gray-200'
+                          }`}
+                        >
                           <div className="flex items-center justify-between mb-3">
                             <h3 className="text-lg font-semibold uppercase">{key}</h3>
                             {value ? (
@@ -773,7 +910,7 @@ export default function AdminDashboard() {
 function TokenManagementTab() {
   const [tokenUserId, setTokenUserId] = useState('');
   const [revokeTokenId, setRevokeTokenId] = useState('');
-  
+
   const { mutate: issueToken, isPending: issuingToken } = useMutation({
     mutationFn: async () => {
       const response = await fetch('/api/auth/token', {
@@ -785,7 +922,9 @@ function TokenManagementTab() {
       return response.json();
     },
     onSuccess: (data) => {
-      alert(`Token issued!\nAccess Token: ${data.accessToken.substring(0, 20)}...\nRefresh Token: ${data.refreshToken.substring(0, 20)}...`);
+      alert(
+        `Token issued!\nAccess Token: ${data.accessToken.substring(0, 20)}...\nRefresh Token: ${data.refreshToken.substring(0, 20)}...`
+      );
     },
   });
 
@@ -866,7 +1005,7 @@ function TokenManagementTab() {
 // Webhook Monitor Tab Component
 function WebhookMonitorTab() {
   const [eventId, setEventId] = useState('');
-  
+
   const { data: dlqData, isLoading: dlqLoading } = useQuery({
     queryKey: ['/api/webhooks/dead-letter'],
   });
@@ -951,8 +1090,12 @@ function WebhookMonitorTab() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2" data-testid="list-dlq-items">
-              {dlqData.queue.map((item: any, index: number) => (
-                <div key={item.id} className="p-3 bg-gray-50 rounded-lg" data-testid={`dlq-item-${index}`}>
+              {dlqData.queue.map((item: unknown, index: number) => (
+                <div
+                  key={item.id}
+                  className="p-3 bg-gray-50 rounded-lg"
+                  data-testid={`dlq-item-${index}`}
+                >
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-sm font-medium">Event ID: {item.webhookEventId}</p>
@@ -978,8 +1121,12 @@ function LogViewerTab() {
   const [level, setLevel] = useState('');
   const [service, setService] = useState('');
   const [limit, setLimit] = useState('100');
-  
-  const { data: logsData, isLoading: logsLoading, refetch: refetchLogs } = useQuery({
+
+  const {
+    data: logsData,
+    isLoading: logsLoading,
+    refetch: refetchLogs,
+  } = useQuery({
     queryKey: ['/api/logs/query', { level, service, limit }],
     enabled: false,
   });
@@ -1057,15 +1204,15 @@ function LogViewerTab() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2 max-h-96 overflow-y-auto" data-testid="list-log-events">
-              {logsData.logs.map((log: any, index: number) => (
+              {logsData.logs.map((log: unknown, index: number) => (
                 <div
                   key={log.id}
                   className={`p-3 rounded-lg text-sm ${
                     log.level === 'error' || log.level === 'critical'
                       ? 'bg-red-50 border-l-4 border-red-500'
                       : log.level === 'warn'
-                      ? 'bg-yellow-50 border-l-4 border-yellow-500'
-                      : 'bg-gray-50 border-l-4 border-gray-300'
+                        ? 'bg-yellow-50 border-l-4 border-yellow-500'
+                        : 'bg-gray-50 border-l-4 border-gray-300'
                   }`}
                   data-testid={`log-event-${index}`}
                 >

@@ -3,6 +3,7 @@ import { socialQueueService } from './socialQueueService';
 import { advertisingDispatchService } from './advertisingDispatchService';
 import { approvalService } from './approvalService';
 import type { SocialPost, AdCampaign } from '@shared/schema';
+import { logger } from '../logger.js';
 
 /**
  * Autonomous Service - Manages fully autonomous operations
@@ -11,15 +12,15 @@ import type { SocialPost, AdCampaign } from '@shared/schema';
 export class AutonomousService {
   private autonomousMode: boolean;
   private autonomousWhitelist: Set<string> = new Set();
-  
+
   constructor() {
     // Check environment variable or database config
     this.autonomousMode = process.env.AUTONOMOUS_MODE === 'true' || false;
-    
+
     // Initialize with admin users who can enable autonomous mode
     this.loadAutonomousWhitelist();
   }
-  
+
   /**
    * Load users who have autonomous mode enabled
    */
@@ -28,24 +29,24 @@ export class AutonomousService {
       // For now, just initialize with empty set
       // Will be populated when users enable autonomous mode
       this.autonomousWhitelist = new Set();
-      
+
       // Add admin users by default (optional)
       if (process.env.ADMIN_USER_IDS) {
         const adminIds = process.env.ADMIN_USER_IDS.split(',');
-        adminIds.forEach(id => this.autonomousWhitelist.add(id.trim()));
+        adminIds.forEach((id) => this.autonomousWhitelist.add(id.trim()));
       }
-    } catch (error) {
-      console.error('Error loading autonomous whitelist:', error);
+    } catch (error: unknown) {
+      logger.error('Error loading autonomous whitelist:', error);
     }
   }
-  
+
   /**
    * Check if a user has autonomous mode enabled
    */
   isAutonomousEnabled(userId: string): boolean {
     return this.autonomousMode || this.autonomousWhitelist.has(userId);
   }
-  
+
   /**
    * Enable/disable autonomous mode for a user
    */
@@ -55,11 +56,11 @@ export class AutonomousService {
     } else {
       this.autonomousWhitelist.delete(userId);
     }
-    
+
     // Update database
     await storage.updateUser(userId, { autonomousEnabled: enabled });
   }
-  
+
   /**
    * Post content autonomously (bypassing approval if enabled)
    */
@@ -70,11 +71,11 @@ export class AutonomousService {
   ): Promise<{ success: boolean; postId?: string; requiresApproval: boolean }> {
     try {
       const isAutonomous = this.isAutonomousEnabled(userId);
-      
+
       if (isAutonomous) {
         // AUTONOMOUS MODE: Direct publishing without approval
-        console.log(`[AUTONOMOUS] Publishing content directly for user ${userId}`);
-        
+        logger.info(`[AUTONOMOUS] Publishing content directly for user ${userId}`);
+
         // Create post and mark as auto-approved
         const post = await storage.createSocialPost({
           ...content,
@@ -85,22 +86,22 @@ export class AutonomousService {
           approvedBy: 'autonomous-system',
           approvedAt: new Date(),
         } as any);
-        
+
         // Queue for immediate publishing
         await socialQueueService.schedulePost(post.id, new Date());
-        
+
         // Trigger immediate dispatch
         await this.dispatchAutonomousContent(post.id);
-        
+
         return {
           success: true,
           postId: post.id,
-          requiresApproval: false
+          requiresApproval: false,
         };
       } else {
         // APPROVAL MODE: Route through approval workflow
-        console.log(`[APPROVAL] Routing content through approval for user ${userId}`);
-        
+        logger.info(`[APPROVAL] Routing content through approval for user ${userId}`);
+
         // Create post pending approval
         const post = await storage.createSocialPost({
           ...content,
@@ -109,30 +110,30 @@ export class AutonomousService {
           status: 'draft',
           approvalStatus: 'pending',
         } as any);
-        
+
         // Submit for approval
         await approvalService.submitForApproval({
           type: 'social_post',
           itemId: post.id,
           userId,
-          metadata: { platforms, content: content.content }
+          metadata: { platforms, content: content.content },
         });
-        
+
         return {
           success: true,
           postId: post.id,
-          requiresApproval: true
+          requiresApproval: true,
         };
       }
-    } catch (error) {
-      console.error('Error in autonomous posting:', error);
+    } catch (error: unknown) {
+      logger.error('Error in autonomous posting:', error);
       return {
         success: false,
-        requiresApproval: !this.isAutonomousEnabled(userId)
+        requiresApproval: !this.isAutonomousEnabled(userId),
       };
     }
   }
-  
+
   /**
    * Launch advertising campaign autonomously
    */
@@ -142,11 +143,11 @@ export class AutonomousService {
   ): Promise<{ success: boolean; campaignId?: string; requiresApproval: boolean }> {
     try {
       const isAutonomous = this.isAutonomousEnabled(userId);
-      
+
       if (isAutonomous) {
         // AUTONOMOUS MODE: Direct campaign launch
-        console.log(`[AUTONOMOUS] Launching campaign directly for user ${userId}`);
-        
+        logger.info(`[AUTONOMOUS] Launching campaign directly for user ${userId}`);
+
         // Create campaign and mark as auto-approved
         const newCampaign = await storage.createAdCampaign({
           ...campaign,
@@ -156,22 +157,22 @@ export class AutonomousService {
           approvedBy: 'autonomous-system',
           approvedAt: new Date(),
         } as any);
-        
+
         // Start campaign immediately
         await advertisingDispatchService.startCampaign(newCampaign.id);
-        
+
         // Begin autonomous optimization
         await this.optimizeCampaignAutonomously(newCampaign.id);
-        
+
         return {
           success: true,
           campaignId: newCampaign.id,
-          requiresApproval: false
+          requiresApproval: false,
         };
       } else {
         // APPROVAL MODE: Route through approval workflow
-        console.log(`[APPROVAL] Routing campaign through approval for user ${userId}`);
-        
+        logger.info(`[APPROVAL] Routing campaign through approval for user ${userId}`);
+
         // Create campaign pending approval
         const newCampaign = await storage.createAdCampaign({
           ...campaign,
@@ -179,33 +180,33 @@ export class AutonomousService {
           status: 'draft',
           approvalStatus: 'pending',
         } as any);
-        
+
         // Submit for approval
         await approvalService.submitForApproval({
           type: 'ad_campaign',
           itemId: newCampaign.id,
           userId,
-          metadata: { 
+          metadata: {
             budget: campaign.budget,
-            targetAudience: campaign.targetAudience 
-          }
+            targetAudience: campaign.targetAudience,
+          },
         });
-        
+
         return {
           success: true,
           campaignId: newCampaign.id,
-          requiresApproval: true
+          requiresApproval: true,
         };
       }
-    } catch (error) {
-      console.error('Error in autonomous campaign launch:', error);
+    } catch (error: unknown) {
+      logger.error('Error in autonomous campaign launch:', error);
       return {
         success: false,
-        requiresApproval: !this.isAutonomousEnabled(userId)
+        requiresApproval: !this.isAutonomousEnabled(userId),
       };
     }
   }
-  
+
   /**
    * Dispatch content autonomously without waiting
    */
@@ -214,24 +215,24 @@ export class AutonomousService {
       // Get post details
       const post = await storage.getSocialPost(postId);
       if (!post) return;
-      
+
       // Publish to all platforms immediately
       for (const platform of post.platforms || []) {
         await socialQueueService.publishToPlatform(postId, platform);
       }
-      
+
       // Update status
       await storage.updateSocialPost(postId, {
         status: 'published',
-        publishedAt: new Date()
+        publishedAt: new Date(),
       });
-      
-      console.log(`[AUTONOMOUS] Content ${postId} published successfully`);
-    } catch (error) {
-      console.error(`[AUTONOMOUS] Error dispatching content ${postId}:`, error);
+
+      logger.info(`[AUTONOMOUS] Content ${postId} published successfully`);
+    } catch (error: unknown) {
+      logger.error(`[AUTONOMOUS] Error dispatching content ${postId}:`, error);
     }
   }
-  
+
   /**
    * Continuously optimize campaign using AI
    */
@@ -241,54 +242,56 @@ export class AutonomousService {
       try {
         const campaign = await storage.getAdCampaign(campaignId);
         if (!campaign || campaign.status !== 'active') return;
-        
+
         // Get performance metrics
         const metrics = await advertisingDispatchService.getCampaignMetrics(campaignId);
-        
+
         // AI-driven optimization decisions
         if (metrics.ctr < 0.01) {
           // Low CTR - adjust targeting
           await advertisingDispatchService.optimizeTargeting(campaignId);
         }
-        
+
         if (metrics.conversionRate < 0.02) {
           // Low conversions - adjust creative
           await advertisingDispatchService.optimizeCreative(campaignId);
         }
-        
+
         if (metrics.roas < 2) {
           // Low ROAS - adjust bidding
           await advertisingDispatchService.optimizeBidding(campaignId);
         }
-        
-        console.log(`[AUTONOMOUS] Campaign ${campaignId} optimized - CTR: ${metrics.ctr}, ROAS: ${metrics.roas}`);
-      } catch (error) {
-        console.error(`[AUTONOMOUS] Error optimizing campaign ${campaignId}:`, error);
+
+        logger.info(
+          `[AUTONOMOUS] Campaign ${campaignId} optimized - CTR: ${metrics.ctr}, ROAS: ${metrics.roas}`
+        );
+      } catch (error: unknown) {
+        logger.error(`[AUTONOMOUS] Error optimizing campaign ${campaignId}:`, error);
       }
     }, 300000); // Optimize every 5 minutes
   }
-  
+
   /**
    * Run 24/7 autonomous operations
    */
   startAutonomousOperations(): void {
-    console.log('[AUTONOMOUS] Starting 24/7 autonomous operations...');
-    
+    logger.info('[AUTONOMOUS] Starting 24/7 autonomous operations...');
+
     // Check for scheduled posts every minute
     setInterval(async () => {
       try {
         const autonomousUsers = Array.from(this.autonomousWhitelist);
-        
+
         for (const userId of autonomousUsers) {
           // Get user's content queue
           const pendingPosts = await storage.getPendingSocialPosts(userId);
-          
+
           for (const post of pendingPosts) {
             if (post.scheduledAt && new Date(post.scheduledAt) <= new Date()) {
               await this.dispatchAutonomousContent(post.id);
             }
           }
-          
+
           // Check campaigns that need optimization
           const activeCampaigns = await storage.getActiveAdCampaigns(userId);
           for (const campaign of activeCampaigns) {
@@ -298,12 +301,12 @@ export class AutonomousService {
             }
           }
         }
-      } catch (error) {
-        console.error('[AUTONOMOUS] Error in 24/7 operations:', error);
+      } catch (error: unknown) {
+        logger.error('[AUTONOMOUS] Error in 24/7 operations:', error);
       }
     }, 60000); // Run every minute
-    
-    console.log('[AUTONOMOUS] 24/7 operations started successfully');
+
+    logger.info('[AUTONOMOUS] 24/7 operations started successfully');
   }
 }
 

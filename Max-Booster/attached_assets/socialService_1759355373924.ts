@@ -6,7 +6,7 @@ export class SocialService {
         case 'twitter':
           // Twitter API v2 OAuth
           break;
-        case 'instagram': 
+        case 'instagram':
           // Instagram Basic Display API
           break;
         case 'youtube':
@@ -25,8 +25,8 @@ export class SocialService {
 
       return { success: true, accountId: `${platform}_${userId}` };
     } catch (error) {
-      console.error("Platform connection error:", error);
-      throw new Error("Failed to connect platform");
+      console.error('Platform connection error:', error);
+      throw new Error('Failed to connect platform');
     }
   }
 
@@ -35,8 +35,8 @@ export class SocialService {
       // In production, this would post to connected social media platforms
       return { success: true, publishedAt: new Date() };
     } catch (error) {
-      console.error("Post publishing error:", error);
-      throw new Error("Failed to publish post");
+      console.error('Post publishing error:', error);
+      throw new Error('Failed to publish post');
     }
   }
 
@@ -47,11 +47,11 @@ export class SocialService {
         totalFollowers: 0,
         totalReach: 0,
         engagementRate: 0,
-        topPosts: []
+        topPosts: [],
       };
     } catch (error) {
-      console.error("Social analytics error:", error);
-      throw new Error("Failed to fetch social analytics");
+      console.error('Social analytics error:', error);
+      throw new Error('Failed to fetch social analytics');
     }
   }
 
@@ -60,19 +60,19 @@ export class SocialService {
       // AI-powered post amplification without ad spend
       // Uses organic optimization strategies like:
       // - Optimal posting times
-      // - Hashtag optimization  
+      // - Hashtag optimization
       // - Cross-platform syndication
       // - Engagement pattern analysis
-      
+
       return {
         success: true,
         amplificationId: `amp_${postId}`,
         projectedReachIncrease: 45,
-        projectedEngagementIncrease: 28
+        projectedEngagementIncrease: 28,
       };
     } catch (error) {
-      console.error("Post amplification error:", error);
-      throw new Error("Failed to amplify post");
+      console.error('Post amplification error:', error);
+      throw new Error('Failed to amplify post');
     }
   }
 }

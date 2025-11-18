@@ -11,6 +11,9 @@ interface VUMeterProps {
   className?: string;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function VUMeter({
   level,
   peak = level,
@@ -24,63 +27,59 @@ export function VUMeter({
   const animationFrameRef = useRef<number>();
   const needleAngleRef = useRef<number>(-45);
   const targetAngleRef = useRef<number>(-45);
-  
+
   // Spring animation for smooth needle movement
   const springLevel = useSpring(level, {
     stiffness: 200,
     damping: 15,
   });
-  
-  const needleRotation = useTransform(
-    springLevel,
-    [-60, 0, 3],
-    [-45, 0, 45]
-  );
+
+  const needleRotation = useTransform(springLevel, [-60, 0, 3], [-45, 0, 45]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
+
     // Set canvas resolution
     canvas.width = width;
     canvas.height = height;
-    
+
     const centerX = width / 2;
     const centerY = height - 10;
     const radius = height - 20;
-    
+
     const draw = () => {
       // Clear canvas
       ctx.clearRect(0, 0, width, height);
-      
+
       // Draw meter background
       if (style === 'classic') {
         drawClassicMeter(ctx, centerX, centerY, radius);
       } else {
         drawModernMeter(ctx, centerX, centerY, radius);
       }
-      
+
       // Update needle angle with smoothing
       const dbToAngle = (db: number) => {
         const normalized = Math.max(-60, Math.min(3, db));
         return ((normalized + 60) / 63) * 90 - 45;
       };
-      
+
       targetAngleRef.current = dbToAngle(level);
       const diff = targetAngleRef.current - needleAngleRef.current;
       needleAngleRef.current += diff * 0.15; // Smooth animation
-      
+
       // Draw needle
       drawNeedle(ctx, centerX, centerY, radius * 0.9, needleAngleRef.current);
-      
+
       animationFrameRef.current = requestAnimationFrame(draw);
     };
-    
+
     draw();
-    
+
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
@@ -103,14 +102,14 @@ export function VUMeter({
     ctx.arc(centerX, centerY, radius, Math.PI, 0);
     ctx.closePath();
     ctx.fill();
-    
+
     // Draw scale arc
     ctx.strokeStyle = '#4a4a4f';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius * 0.85, Math.PI * 0.75, Math.PI * 0.25);
     ctx.stroke();
-    
+
     // Draw VU scale markings
     const marks = [
       { value: -20, label: '-20', color: '#22c55e' },
@@ -121,12 +120,12 @@ export function VUMeter({
       { value: 0, label: '0', color: '#ef4444' },
       { value: 3, label: '+3', color: '#ef4444' },
     ];
-    
-    marks.forEach(mark => {
+
+    marks.forEach((mark) => {
       const angle = ((mark.value + 60) / 63) * 90 - 45;
-      const radians = (angle - 90) * Math.PI / 180;
+      const radians = ((angle - 90) * Math.PI) / 180;
       const tickLength = mark.value === 0 ? 12 : 8;
-      
+
       // Draw tick
       ctx.strokeStyle = mark.color;
       ctx.lineWidth = mark.value === 0 ? 2 : 1;
@@ -140,7 +139,7 @@ export function VUMeter({
         centerY + Math.sin(radians) * radius * 0.85
       );
       ctx.stroke();
-      
+
       // Draw label
       if (showScale) {
         ctx.fillStyle = mark.color;
@@ -153,7 +152,7 @@ export function VUMeter({
         );
       }
     });
-    
+
     // Draw red zone
     ctx.strokeStyle = '#ef4444';
     ctx.lineWidth = 3;
@@ -171,21 +170,21 @@ export function VUMeter({
     // Draw modern meter background
     ctx.fillStyle = 'var(--meter-background)';
     ctx.fillRect(0, 0, width, height);
-    
+
     // Draw gradient arc segments
     const segments = 30;
     for (let i = 0; i < segments; i++) {
-      const startAngle = (Math.PI * 0.75) + (i / segments) * (Math.PI * 0.5);
-      const endAngle = (Math.PI * 0.75) + ((i + 1) / segments) * (Math.PI * 0.5);
+      const startAngle = Math.PI * 0.75 + (i / segments) * (Math.PI * 0.5);
+      const endAngle = Math.PI * 0.75 + ((i + 1) / segments) * (Math.PI * 0.5);
       const db = (i / segments) * 63 - 60;
-      
+
       let color: string;
       if (db < -18) color = 'var(--meter-green)';
       else if (db < -6) color = 'var(--meter-yellow)';
       else color = 'var(--meter-red)';
-      
+
       const opacity = level > db ? 1 : 0.2;
-      
+
       ctx.strokeStyle = color;
       ctx.globalAlpha = opacity;
       ctx.lineWidth = 4;
@@ -193,9 +192,9 @@ export function VUMeter({
       ctx.arc(centerX, centerY, radius * 0.8, startAngle, endAngle);
       ctx.stroke();
     }
-    
+
     ctx.globalAlpha = 1;
-    
+
     // Draw digital readout
     ctx.fillStyle = 'var(--studio-text)';
     ctx.font = 'bold 12px monospace';
@@ -210,19 +209,16 @@ export function VUMeter({
     length: number,
     angle: number
   ) => {
-    const radians = (angle - 90) * Math.PI / 180;
-    
+    const radians = ((angle - 90) * Math.PI) / 180;
+
     // Draw needle shadow
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(centerX + 1, centerY + 1);
-    ctx.lineTo(
-      centerX + Math.cos(radians) * length + 1,
-      centerY + Math.sin(radians) * length + 1
-    );
+    ctx.lineTo(centerX + Math.cos(radians) * length + 1, centerY + Math.sin(radians) * length + 1);
     ctx.stroke();
-    
+
     // Draw needle
     const gradient = ctx.createLinearGradient(
       centerX,
@@ -233,23 +229,20 @@ export function VUMeter({
     gradient.addColorStop(0, '#ff0000');
     gradient.addColorStop(0.5, '#ff6666');
     gradient.addColorStop(1, '#ffaaaa');
-    
+
     ctx.strokeStyle = gradient;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
-    ctx.lineTo(
-      centerX + Math.cos(radians) * length,
-      centerY + Math.sin(radians) * length
-    );
+    ctx.lineTo(centerX + Math.cos(radians) * length, centerY + Math.sin(radians) * length);
     ctx.stroke();
-    
+
     // Draw needle pivot
     ctx.fillStyle = '#333';
     ctx.beginPath();
     ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
     ctx.fill();
-    
+
     ctx.fillStyle = '#666';
     ctx.beginPath();
     ctx.arc(centerX, centerY, 2, 0, Math.PI * 2);
@@ -258,11 +251,8 @@ export function VUMeter({
 
   return (
     <div className={`relative ${className}`}>
-      <canvas
-        ref={canvasRef}
-        style={{ width: `${width}px`, height: `${height}px` }}
-      />
-      
+      <canvas ref={canvasRef} style={{ width: `${width}px`, height: `${height}px` }} />
+
       {/* Peak indicator LED */}
       {peak > 0 && (
         <motion.div

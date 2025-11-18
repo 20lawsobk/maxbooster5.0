@@ -12,38 +12,38 @@ import { Home } from 'lucide-react';
 
 // Mapping of route segments to human-readable labels
 const ROUTE_LABELS: Record<string, string> = {
-  'dashboard': 'Dashboard',
-  'projects': 'Projects',
-  'analytics': 'Analytics',
+  dashboard: 'Dashboard',
+  projects: 'Projects',
+  analytics: 'Analytics',
   'social-media': 'Social Media',
-  'advertising': 'Advertising',
-  'marketplace': 'Marketplace',
-  'royalties': 'Royalties',
-  'studio': 'Studio',
-  'distribution': 'Distribution',
-  'pricing': 'Pricing',
-  'subscribe': 'Subscribe',
-  'admin': 'Admin',
-  'settings': 'Settings',
-  'features': 'Features',
+  advertising: 'Advertising',
+  marketplace: 'Marketplace',
+  royalties: 'Royalties',
+  studio: 'Studio',
+  distribution: 'Distribution',
+  pricing: 'Pricing',
+  subscribe: 'Subscribe',
+  admin: 'Admin',
+  settings: 'Settings',
+  features: 'Features',
   'api-docs': 'API',
-  'documentation': 'Documentation',
-  'about': 'About',
-  'blog': 'Blog',
-  'contact': 'Contact',
-  'security': 'Security',
-  'dmca': 'DMCA',
-  'terms': 'Terms',
-  'privacy': 'Privacy',
-  'help': 'Help',
-  'login': 'Login',
-  'register': 'Register',
-  'payment': 'Payment',
-  'success': 'Success',
-  'edit': 'Edit',
-  'create': 'Create',
-  'new': 'New',
-  'view': 'View',
+  documentation: 'Documentation',
+  about: 'About',
+  blog: 'Blog',
+  contact: 'Contact',
+  security: 'Security',
+  dmca: 'DMCA',
+  terms: 'Terms',
+  privacy: 'Privacy',
+  help: 'Help',
+  login: 'Login',
+  register: 'Register',
+  payment: 'Payment',
+  success: 'Success',
+  edit: 'Edit',
+  create: 'Create',
+  new: 'New',
+  view: 'View',
   'forgot-password': 'Forgot Password',
   'solo-founder-story': 'Solo Founder Story',
 };
@@ -54,6 +54,9 @@ interface BreadcrumbItem {
   isLast: boolean;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
   // Handle root path
   if (pathname === '/') {
@@ -71,8 +74,9 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
     const isLast = index === segments.length - 1;
 
     // Check if segment is a UUID or numeric ID
-    const isId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment) ||
-                 /^\d+$/.test(segment);
+    const isId =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment) ||
+      /^\d+$/.test(segment);
 
     let label: string;
     if (isId) {
@@ -87,9 +91,12 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
       }
     } else {
       // Use mapping or capitalize the segment
-      label = ROUTE_LABELS[segment] || segment.split('-').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1)
-      ).join(' ');
+      label =
+        ROUTE_LABELS[segment] ||
+        segment
+          .split('-')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
     }
 
     breadcrumbs.push({
@@ -102,13 +109,21 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
   return breadcrumbs;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function BreadcrumbTrail() {
   const [location] = useLocation();
   const breadcrumbs = generateBreadcrumbs(location);
 
   // Don't show breadcrumbs on landing page, login, or register pages
-  if (location === '/' || location === '/login' || location.startsWith('/register') || 
-      location === '/terms' || location === '/privacy') {
+  if (
+    location === '/' ||
+    location === '/login' ||
+    location.startsWith('/register') ||
+    location === '/terms' ||
+    location === '/privacy'
+  ) {
     return null;
   }
 
@@ -127,12 +142,14 @@ export function BreadcrumbTrail() {
             <div key={item.href} className="inline-flex items-center gap-1.5">
               <BreadcrumbItem>
                 {item.isLast ? (
-                  <BreadcrumbPage data-testid={`breadcrumb-current-${item.label.toLowerCase().replace(/\s+/g, '-')}`}>
+                  <BreadcrumbPage
+                    data-testid={`breadcrumb-current-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
                     {item.label}
                   </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
-                    <Link 
+                    <Link
                       href={item.href}
                       data-testid={`breadcrumb-link-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                     >
@@ -152,7 +169,7 @@ export function BreadcrumbTrail() {
             <>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link 
+                  <Link
                     href={mobileItems[0].href}
                     data-testid={`breadcrumb-link-mobile-${mobileItems[0].label.toLowerCase().replace(/\s+/g, '-')}`}
                   >
@@ -167,7 +184,7 @@ export function BreadcrumbTrail() {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link 
+                  <Link
                     href={mobileItems[1].href}
                     data-testid={`breadcrumb-link-mobile-penultimate-${mobileItems[1].label.toLowerCase().replace(/\s+/g, '-')}`}
                   >
@@ -177,7 +194,9 @@ export function BreadcrumbTrail() {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage data-testid={`breadcrumb-current-mobile-${mobileItems[2].label.toLowerCase().replace(/\s+/g, '-')}`}>
+                <BreadcrumbPage
+                  data-testid={`breadcrumb-current-mobile-${mobileItems[2].label.toLowerCase().replace(/\s+/g, '-')}`}
+                >
                   {mobileItems[2].label}
                 </BreadcrumbPage>
               </BreadcrumbItem>
@@ -188,12 +207,14 @@ export function BreadcrumbTrail() {
                 <div key={item.href} className="inline-flex items-center gap-1.5">
                   <BreadcrumbItem>
                     {item.isLast ? (
-                      <BreadcrumbPage data-testid={`breadcrumb-current-mobile-${item.label.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <BreadcrumbPage
+                        data-testid={`breadcrumb-current-mobile-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                      >
                         {item.label}
                       </BreadcrumbPage>
                     ) : (
                       <BreadcrumbLink asChild>
-                        <Link 
+                        <Link
                           href={item.href}
                           data-testid={`breadcrumb-link-mobile-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                         >

@@ -1,6 +1,7 @@
-import { nanoid } from "nanoid";
-import fs from "fs";
-import path from "path";
+import { nanoid } from 'nanoid';
+import fs from 'fs';
+import path from 'path';
+import { logger } from '../logger.js';
 
 export interface AuditLog {
   id: string;
@@ -46,7 +47,7 @@ export class SecurityService {
     userId: string,
     action: string,
     resource: string,
-    metadata?: any,
+    metadata?: unknown,
     ipAddress?: string,
     userAgent?: string
   ): Promise<AuditLog> {
@@ -68,9 +69,9 @@ export class SecurityService {
       await this.writeAuditLogToFile(log);
 
       return log;
-    } catch (error) {
-      console.error("Error creating audit log:", error);
-      throw new Error("Failed to create audit log");
+    } catch (error: unknown) {
+      logger.error('Error creating audit log:', error);
+      throw new Error('Failed to create audit log');
     }
   }
 
@@ -89,23 +90,23 @@ export class SecurityService {
       let logs = Array.from(this.auditLogs.values());
 
       if (filters.userId) {
-        logs = logs.filter(log => log.userId === filters.userId);
+        logs = logs.filter((log) => log.userId === filters.userId);
       }
 
       if (filters.action) {
-        logs = logs.filter(log => log.action === filters.action);
+        logs = logs.filter((log) => log.action === filters.action);
       }
 
       if (filters.resource) {
-        logs = logs.filter(log => log.resource === filters.resource);
+        logs = logs.filter((log) => log.resource === filters.resource);
       }
 
       if (filters.startDate) {
-        logs = logs.filter(log => log.timestamp >= filters.startDate!);
+        logs = logs.filter((log) => log.timestamp >= filters.startDate!);
       }
 
       if (filters.endDate) {
-        logs = logs.filter(log => log.timestamp <= filters.endDate!);
+        logs = logs.filter((log) => log.timestamp <= filters.endDate!);
       }
 
       // Sort by timestamp descending
@@ -116,9 +117,9 @@ export class SecurityService {
       }
 
       return logs;
-    } catch (error) {
-      console.error("Error fetching audit logs:", error);
-      throw new Error("Failed to fetch audit logs");
+    } catch (error: unknown) {
+      logger.error('Error fetching audit logs:', error);
+      throw new Error('Failed to fetch audit logs');
     }
   }
 
@@ -142,7 +143,7 @@ export class SecurityService {
               status = 'degraded';
               message = 'Database response time is slow';
             }
-          } catch (error) {
+          } catch (error: unknown) {
             status = 'down';
             message = 'Database is unreachable';
           }
@@ -153,7 +154,7 @@ export class SecurityService {
           try {
             // In production, make a test API call
             status = 'healthy';
-          } catch (error) {
+          } catch (error: unknown) {
             status = 'down';
             message = 'Stripe API is unreachable';
           }
@@ -167,7 +168,7 @@ export class SecurityService {
               status = 'degraded';
               message = 'Uploads directory not accessible';
             }
-          } catch (error) {
+          } catch (error: unknown) {
             status = 'down';
             message = 'Storage service is down';
           }
@@ -188,8 +189,8 @@ export class SecurityService {
       this.healthChecks.set(service, healthCheck);
 
       return healthCheck;
-    } catch (error) {
-      console.error(`Error checking health for ${service}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Error checking health for ${service}:`, error);
       throw new Error(`Failed to check health for ${service}`);
     }
   }
@@ -225,9 +226,9 @@ export class SecurityService {
       }
 
       return incident;
-    } catch (error) {
-      console.error("Error creating incident:", error);
-      throw new Error("Failed to create incident");
+    } catch (error: unknown) {
+      logger.error('Error creating incident:', error);
+      throw new Error('Failed to create incident');
     }
   }
 
@@ -238,7 +239,7 @@ export class SecurityService {
     try {
       const incident = this.incidents.get(incidentId);
       if (!incident) {
-        throw new Error("Incident not found");
+        throw new Error('Incident not found');
       }
 
       incident.status = 'resolved';
@@ -248,9 +249,9 @@ export class SecurityService {
       this.incidents.set(incidentId, incident);
 
       return incident;
-    } catch (error) {
-      console.error("Error resolving incident:", error);
-      throw new Error("Failed to resolve incident");
+    } catch (error: unknown) {
+      logger.error('Error resolving incident:', error);
+      throw new Error('Failed to resolve incident');
     }
   }
 
@@ -266,11 +267,11 @@ export class SecurityService {
       let incidents = Array.from(this.incidents.values());
 
       if (filters?.severity) {
-        incidents = incidents.filter(i => i.severity === filters.severity);
+        incidents = incidents.filter((i) => i.severity === filters.severity);
       }
 
       if (filters?.status) {
-        incidents = incidents.filter(i => i.status === filters.status);
+        incidents = incidents.filter((i) => i.status === filters.status);
       }
 
       // Sort by created date descending
@@ -281,9 +282,9 @@ export class SecurityService {
       }
 
       return incidents;
-    } catch (error) {
-      console.error("Error fetching incidents:", error);
-      throw new Error("Failed to fetch incidents");
+    } catch (error: unknown) {
+      logger.error('Error fetching incidents:', error);
+      throw new Error('Failed to fetch incidents');
     }
   }
 
@@ -301,9 +302,9 @@ export class SecurityService {
       // In real implementation, use a proper RBAC system
 
       return true; // Placeholder
-    } catch (error) {
-      console.error("Error checking RBAC:", error);
-      throw new Error("Failed to check permissions");
+    } catch (error: unknown) {
+      logger.error('Error checking RBAC:', error);
+      throw new Error('Failed to check permissions');
     }
   }
 
@@ -335,9 +336,9 @@ export class SecurityService {
           errorsToday: 0, // Track in error handler
         },
       };
-    } catch (error) {
-      console.error("Error fetching system metrics:", error);
-      throw new Error("Failed to fetch system metrics");
+    } catch (error: unknown) {
+      logger.error('Error fetching system metrics:', error);
+      throw new Error('Failed to fetch system metrics');
     }
   }
 
@@ -370,7 +371,7 @@ export class SecurityService {
     // 1. Send email to security team
     // 2. Send Slack/Discord notification
     // 3. Create PagerDuty alert for critical incidents
-    console.log(`SECURITY ALERT: ${incident.severity} - ${incident.title}`);
+    logger.info(`SECURITY ALERT: ${incident.severity} - ${incident.title}`);
   }
 }
 

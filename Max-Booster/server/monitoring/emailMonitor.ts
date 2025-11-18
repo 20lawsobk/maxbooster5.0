@@ -1,4 +1,5 @@
 import type { MailDataRequired } from '@sendgrid/mail';
+import { logger } from '../logger.js';
 
 interface EmailLog {
   timestamp: Date;
@@ -15,10 +16,15 @@ class EmailMonitor {
   private deliveryRates = {
     sent: 0,
     failed: 0,
-    total: 0
+    total: 0,
   };
 
-  logEmail(email: MailDataRequired, status: 'sent' | 'failed', error?: string, deliveryTime?: number) {
+  logEmail(
+    email: MailDataRequired,
+    status: 'sent' | 'failed',
+    error?: string,
+    deliveryTime?: number
+  ) {
     const log: EmailLog = {
       timestamp: new Date(),
       to: Array.isArray(email.to) ? email.to[0].toString() : email.to.toString(),
@@ -26,13 +32,13 @@ class EmailMonitor {
       subject: email.subject as string,
       status,
       error,
-      deliveryTime
+      deliveryTime,
     };
-    
+
     this.logs.push(log);
     this.updateMetrics(status);
-    
-    console.log(`[EmailMonitor] ${status.toUpperCase()}: ${log.to} ${error ? `(${error})` : ''}`);
+
+    logger.info(`[EmailMonitor] ${status.toUpperCase()}: ${log.to} ${error ? `(${error})` : ''}`);
   }
 
   private updateMetrics(status: 'sent' | 'failed') {
@@ -42,8 +48,8 @@ class EmailMonitor {
   }
 
   getDeliveryRate(): number {
-    return this.deliveryRates.total === 0 
-      ? 100 
+    return this.deliveryRates.total === 0
+      ? 100
       : (this.deliveryRates.sent / this.deliveryRates.total) * 100;
   }
 
@@ -51,14 +57,12 @@ class EmailMonitor {
     return {
       deliveryRate: this.getDeliveryRate(),
       ...this.deliveryRates,
-      recentLogs: this.logs.slice(-10)
+      recentLogs: this.logs.slice(-10),
     };
   }
 
   getRecentFailures() {
-    return this.logs
-      .filter(log => log.status === 'failed')
-      .slice(-10);
+    return this.logs.filter((log) => log.status === 'failed').slice(-10);
   }
 }
 

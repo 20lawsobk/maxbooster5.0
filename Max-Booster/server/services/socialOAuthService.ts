@@ -23,8 +23,13 @@ export class SocialOAuthService {
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET || '',
       authUrl: 'https://www.facebook.com/v18.0/dialog/oauth',
       tokenUrl: 'https://graph.facebook.com/v18.0/oauth/access_token',
-      scopes: ['pages_show_list', 'pages_manage_posts', 'instagram_basic', 'instagram_content_publish'],
-      redirectUri: `${process.env.DOMAIN}/api/oauth/callback/facebook`
+      scopes: [
+        'pages_show_list',
+        'pages_manage_posts',
+        'instagram_basic',
+        'instagram_content_publish',
+      ],
+      redirectUri: `${process.env.DOMAIN}/api/oauth/callback/facebook`,
     });
 
     // Twitter/X OAuth
@@ -34,7 +39,7 @@ export class SocialOAuthService {
       authUrl: 'https://twitter.com/i/oauth2/authorize',
       tokenUrl: 'https://api.twitter.com/2/oauth2/token',
       scopes: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'],
-      redirectUri: `${process.env.DOMAIN}/api/oauth/callback/twitter`
+      redirectUri: `${process.env.DOMAIN}/api/oauth/callback/twitter`,
     });
 
     // YouTube OAuth
@@ -43,8 +48,11 @@ export class SocialOAuthService {
       clientSecret: process.env.YOUTUBE_CLIENT_SECRET || '',
       authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
       tokenUrl: 'https://oauth2.googleapis.com/token',
-      scopes: ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube'],
-      redirectUri: `${process.env.DOMAIN}/api/oauth/callback/youtube`
+      scopes: [
+        'https://www.googleapis.com/auth/youtube.upload',
+        'https://www.googleapis.com/auth/youtube',
+      ],
+      redirectUri: `${process.env.DOMAIN}/api/oauth/callback/youtube`,
     });
 
     // TikTok OAuth
@@ -54,7 +62,7 @@ export class SocialOAuthService {
       authUrl: 'https://www.tiktok.com/auth/authorize/',
       tokenUrl: 'https://open-api.tiktok.com/oauth/access_token/',
       scopes: ['user.info.basic', 'video.list', 'video.upload'],
-      redirectUri: `${process.env.DOMAIN}/api/oauth/callback/tiktok`
+      redirectUri: `${process.env.DOMAIN}/api/oauth/callback/tiktok`,
     });
 
     // LinkedIn OAuth
@@ -64,7 +72,7 @@ export class SocialOAuthService {
       authUrl: 'https://www.linkedin.com/oauth/v2/authorization',
       tokenUrl: 'https://www.linkedin.com/oauth/v2/accessToken',
       scopes: ['r_liteprofile', 'w_member_social'],
-      redirectUri: `${process.env.DOMAIN}/api/oauth/callback/linkedin`
+      redirectUri: `${process.env.DOMAIN}/api/oauth/callback/linkedin`,
     });
 
     // Threads OAuth (using Instagram Graph API)
@@ -74,7 +82,7 @@ export class SocialOAuthService {
       authUrl: 'https://www.threads.net/oauth/authorize',
       tokenUrl: 'https://graph.threads.net/oauth/access_token',
       scopes: ['threads_basic', 'threads_content_publish'],
-      redirectUri: `${process.env.DOMAIN}/api/oauth/callback/threads`
+      redirectUri: `${process.env.DOMAIN}/api/oauth/callback/threads`,
     });
   }
 
@@ -94,7 +102,7 @@ export class SocialOAuthService {
       response_type: 'code',
       state: `${userId}:${platform}:${Date.now()}`, // Include user ID in state
       access_type: 'offline', // For refresh tokens
-      prompt: 'consent'
+      prompt: 'consent',
     });
 
     return `${config.authUrl}?${params.toString()}`;
@@ -114,17 +122,21 @@ export class SocialOAuthService {
     }
 
     try {
-      const response = await axios.post(config.tokenUrl, {
-        client_id: config.clientId,
-        client_secret: config.clientSecret,
-        code,
-        redirect_uri: config.redirectUri,
-        grant_type: 'authorization_code'
-      }, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+      const response = await axios.post(
+        config.tokenUrl,
+        {
+          client_id: config.clientId,
+          client_secret: config.clientSecret,
+          code,
+          redirect_uri: config.redirectUri,
+          grant_type: 'authorization_code',
+        },
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
         }
-      });
+      );
 
       const { access_token, refresh_token, expires_in } = response.data;
 
@@ -132,7 +144,7 @@ export class SocialOAuthService {
       await this.saveTokens(userId, platform, {
         accessToken: access_token,
         refreshToken: refresh_token,
-        expiresAt: expires_in ? new Date(Date.now() + expires_in * 1000) : undefined
+        expiresAt: expires_in ? new Date(Date.now() + expires_in * 1000) : undefined,
       });
 
       logger.info(`OAuth tokens saved for user ${userId} on platform ${platform}`);
@@ -140,10 +152,13 @@ export class SocialOAuthService {
       return {
         accessToken: access_token,
         refreshToken: refresh_token,
-        expiresIn: expires_in
+        expiresIn: expires_in,
       };
-    } catch (error: any) {
-      logger.error(`OAuth token exchange failed for ${platform}:`, error.response?.data || error.message);
+    } catch (error: unknown) {
+      logger.error(
+        `OAuth token exchange failed for ${platform}:`,
+        error.response?.data || error.message
+      );
       throw new Error(`Failed to connect ${platform} account`);
     }
   }
@@ -171,7 +186,7 @@ export class SocialOAuthService {
         client_id: config.clientId,
         client_secret: config.clientSecret,
         refresh_token: tokens.refreshToken,
-        grant_type: 'refresh_token'
+        grant_type: 'refresh_token',
       });
 
       const { access_token, expires_in } = response.data;
@@ -179,16 +194,16 @@ export class SocialOAuthService {
       // Update access token in database
       await this.updateAccessToken(userId, platform, {
         accessToken: access_token,
-        expiresAt: expires_in ? new Date(Date.now() + expires_in * 1000) : undefined
+        expiresAt: expires_in ? new Date(Date.now() + expires_in * 1000) : undefined,
       });
 
       logger.info(`Access token refreshed for user ${userId} on platform ${platform}`);
 
       return {
         accessToken: access_token,
-        expiresIn: expires_in
+        expiresIn: expires_in,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(`Token refresh failed for ${platform}:`, error.response?.data || error.message);
       throw new Error(`Failed to refresh ${platform} access token`);
     }
@@ -201,7 +216,7 @@ export class SocialOAuthService {
     try {
       const token = await storage.getUserSocialToken(userId, platform);
       return !!token;
-    } catch (error) {
+    } catch (error: unknown) {
       return false;
     }
   }
@@ -230,7 +245,7 @@ export class SocialOAuthService {
       // Clear tokens from database
       await storage.updateUserSocialToken(userId, platform, '');
       logger.info(`Platform ${platform} disconnected for user ${userId}`);
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error(`Failed to disconnect ${platform}:`, error);
       throw error;
     }
@@ -252,7 +267,7 @@ export class SocialOAuthService {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       expiresAt: tokens.expiresAt?.toISOString(),
-      connectedAt: new Date().toISOString()
+      connectedAt: new Date().toISOString(),
     };
 
     await storage.updateUserSocialToken(userId, platform, JSON.stringify(tokenData));
@@ -261,10 +276,7 @@ export class SocialOAuthService {
   /**
    * Get stored tokens from database
    */
-  private async getStoredTokens(
-    userId: string,
-    platform: string
-  ): Promise<any> {
+  private async getStoredTokens(userId: string, platform: string): Promise<any> {
     const tokenString = await storage.getUserSocialToken(userId, platform);
     if (!tokenString) return null;
 
@@ -293,7 +305,7 @@ export class SocialOAuthService {
       ...existing,
       accessToken: update.accessToken,
       expiresAt: update.expiresAt?.toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     await storage.updateUserSocialToken(userId, platform, JSON.stringify(updated));

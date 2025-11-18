@@ -1,5 +1,5 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { errorService, captureException } from "./errorService";
+import { QueryClient, QueryFunction } from '@tanstack/react-query';
+import { errorService, captureException } from './errorService';
 
 // Default timeout for API calls (30 seconds)
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -10,22 +10,25 @@ function createAbortControllerWithTimeout(timeoutMs: number = DEFAULT_TIMEOUT_MS
   const timeoutId = setTimeout(() => {
     controller.abort(new Error(`Request timeout after ${timeoutMs}ms`));
   }, timeoutMs);
-  
+
   // Clear timeout if request completes
   const originalAbort = controller.abort.bind(controller);
-  controller.abort = function(reason?: any) {
+  controller.abort = function (reason?: unknown) {
     clearTimeout(timeoutId);
     originalAbort(reason);
   };
-  
+
   return controller;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     const error = new Error(`${res.status}: ${text}`);
-    
+
     // Capture error to our error service
     captureException(error, {
       action: 'api-response-error',
@@ -35,11 +38,14 @@ async function throwIfResNotOk(res: Response) {
         statusText: res.statusText,
       },
     });
-    
+
     throw error;
   }
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function apiRequest(
   method: string,
   url: string,
@@ -54,7 +60,7 @@ export async function apiRequest(
   const isFormData = data instanceof FormData;
   const controller = options?.signal ? null : createAbortControllerWithTimeout(options?.timeout);
   const signal = options?.signal || controller?.signal;
-  
+
   try {
     // Add breadcrumb for debugging
     errorService.addBreadcrumb('api-request', {
@@ -62,18 +68,18 @@ export async function apiRequest(
       url,
       hasData: !!data,
     });
-    
+
     const res = await fetch(url, {
       method,
-      headers: isFormData ? {} : (data ? { "Content-Type": "application/json" } : {}),
-      body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
-      credentials: "include",
+      headers: isFormData ? {} : data ? { 'Content-Type': 'application/json' } : {},
+      body: isFormData ? data : data ? JSON.stringify(data) : undefined,
+      credentials: 'include',
       signal,
     });
 
     await throwIfResNotOk(res);
     return res;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle timeout errors
     if (error.name === 'AbortError' || error.message?.includes('timeout')) {
       const timeoutError = new Error(`Request to ${url} timed out`);
@@ -83,7 +89,7 @@ export async function apiRequest(
       });
       throw timeoutError;
     }
-    
+
     // Handle network errors but DON'T auto-retry - let users retry manually
     if (error.message?.includes('NetworkError') || error.message?.includes('fetch')) {
       captureException(error, {
@@ -91,37 +97,35 @@ export async function apiRequest(
         metadata: { method, url },
       });
     }
-    
+
     throw error;
   }
 }
 
-type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
+type UnauthorizedBehavior = 'returnNull' | 'throw';
+export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey, signal }) => {
     const controller = signal ? null : createAbortControllerWithTimeout();
     const abortSignal = signal || controller?.signal;
-    
+
     try {
       errorService.addBreadcrumb('query-fetch', {
         queryKey: queryKey.join('/'),
       });
-      
-      const res = await fetch(queryKey.join("/") as string, {
-        credentials: "include",
+
+      const res = await fetch(queryKey.join('/') as string, {
+        credentials: 'include',
         signal: abortSignal,
       });
 
-      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+      if (unauthorizedBehavior === 'returnNull' && res.status === 401) {
         return null;
       }
 
       await throwIfResNotOk(res);
       return await res.json();
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle timeout errors
       if (error.name === 'AbortError' || error.message?.includes('timeout')) {
         const timeoutError = new Error(`Query ${queryKey.join('/')} timed out`);
@@ -131,13 +135,13 @@ export const getQueryFn: <T>(options: {
         });
         throw timeoutError;
       }
-      
+
       // Capture other errors
       captureException(error, {
         action: 'query-error',
         metadata: { queryKey: queryKey.join('/') },
       });
-      
+
       throw error;
     }
   };
@@ -150,7 +154,7 @@ function retryDelayWithJitter(attemptIndex: number): number {
 }
 
 // Determine if error is retryable
-function shouldRetry(error: any): boolean {
+function shouldRetry(error: unknown): boolean {
   // Don't retry on client errors (4xx)
   if (error.message?.includes('401') || error.message?.includes('403')) {
     return false;
@@ -158,12 +162,12 @@ function shouldRetry(error: any): boolean {
   if (error.message?.match(/4\d{2}/)) {
     return false;
   }
-  
+
   // Don't retry on server errors (5xx) to prevent loading loops
   if (error.message?.match(/5\d{2}/)) {
     return false;
   }
-  
+
   // Only retry on network errors and timeouts
   return (
     error.message?.includes('NetworkError') ||
@@ -177,7 +181,7 @@ function shouldRetry(error: any): boolean {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
+      queryFn: getQueryFn({ on401: 'throw' }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false, // Disable auto-refetch on reconnect

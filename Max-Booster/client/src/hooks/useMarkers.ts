@@ -3,6 +3,9 @@ import { apiRequest } from '@/lib/queryClient';
 import { useStudioStore, type Marker } from '@/lib/studioStore';
 import { useToast } from '@/hooks/use-toast';
 
+/**
+ * TODO: Add function documentation
+ */
 export function useMarkers(projectId: string | null) {
   const { markers, addMarker, updateMarker, deleteMarker } = useStudioStore();
   const { toast } = useToast();
@@ -21,15 +24,15 @@ export function useMarkers(projectId: string | null) {
     onSuccess: (data) => {
       // Sync markers from API to Zustand store
       if (data.markers) {
-        const currentMarkerIds = new Set(markers.map(m => m.id));
-        const apiMarkerIds = new Set(data.markers.map((m: any) => m.id));
-        
+        const currentMarkerIds = new Set(markers.map((m) => m.id));
+        const apiMarkerIds = new Set(data.markers.map((m: unknown) => m.id));
+
         // Add or update markers from API
-        data.markers.forEach((marker: any) => {
+        data.markers.forEach((marker: unknown) => {
           if (!currentMarkerIds.has(marker.id)) {
             addMarker(marker);
           } else {
-            const currentMarker = markers.find(m => m.id === marker.id);
+            const currentMarker = markers.find((m) => m.id === marker.id);
             if (currentMarker && JSON.stringify(currentMarker) !== JSON.stringify(marker)) {
               updateMarker(marker.id, marker);
             }
@@ -42,7 +45,11 @@ export function useMarkers(projectId: string | null) {
   const createMarkerMutation = useMutation({
     mutationFn: async (marker: Omit<Marker, 'id'>) => {
       if (!projectId) throw new Error('No project selected');
-      const response = await apiRequest('POST', `/api/studio/projects/${projectId}/markers`, marker);
+      const response = await apiRequest(
+        'POST',
+        `/api/studio/projects/${projectId}/markers`,
+        marker
+      );
       return await response.json();
     },
     onMutate: async (newMarker) => {
@@ -64,7 +71,7 @@ export function useMarkers(projectId: string | null) {
       queryClient.invalidateQueries({ queryKey: ['markers', projectId] });
       toast({ title: 'Marker created' });
     },
-    onError: (error: any, variables, context) => {
+    onError: (error: unknown, variables, context) => {
       // Rollback: Remove temporary marker
       if (context?.tempId) {
         deleteMarker(context.tempId);
@@ -84,7 +91,7 @@ export function useMarkers(projectId: string | null) {
     },
     onMutate: async ({ id, updates }) => {
       // Optimistic update: Update marker in Zustand store immediately
-      const previousMarker = markers.find(m => m.id === id);
+      const previousMarker = markers.find((m) => m.id === id);
       if (previousMarker) {
         updateMarker(id, updates);
       }
@@ -95,7 +102,7 @@ export function useMarkers(projectId: string | null) {
       updateMarker(data.id, data);
       queryClient.invalidateQueries({ queryKey: ['markers', projectId] });
     },
-    onError: (error: any, { id }, context) => {
+    onError: (error: unknown, { id }, context) => {
       // Rollback: Restore previous marker state
       if (context?.previousMarker) {
         updateMarker(id, context.previousMarker);
@@ -115,7 +122,7 @@ export function useMarkers(projectId: string | null) {
     },
     onMutate: async (id) => {
       // Optimistic update: Remove marker from Zustand store immediately
-      const previousMarker = markers.find(m => m.id === id);
+      const previousMarker = markers.find((m) => m.id === id);
       deleteMarker(id);
       return { previousMarker };
     },
@@ -123,7 +130,7 @@ export function useMarkers(projectId: string | null) {
       queryClient.invalidateQueries({ queryKey: ['markers', projectId] });
       toast({ title: 'Marker deleted' });
     },
-    onError: (error: any, id, context) => {
+    onError: (error: unknown, id, context) => {
       // Rollback: Restore deleted marker
       if (context?.previousMarker) {
         addMarker(context.previousMarker);

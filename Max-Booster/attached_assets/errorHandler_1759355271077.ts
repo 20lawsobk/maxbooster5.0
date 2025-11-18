@@ -63,12 +63,14 @@ export function globalErrorHandler(
     message = 'Invalid data format';
     code = 'INVALID_FORMAT';
     isOperational = true;
-  } else if (err.code === '23505') { // PostgreSQL unique violation
+  } else if (err.code === '23505') {
+    // PostgreSQL unique violation
     statusCode = 409;
     message = 'Resource already exists';
     code = 'DUPLICATE_RESOURCE';
     isOperational = true;
-  } else if (err.code === '23503') { // PostgreSQL foreign key violation
+  } else if (err.code === '23503') {
+    // PostgreSQL foreign key violation
     statusCode = 400;
     message = 'Referenced resource not found';
     code = 'INVALID_REFERENCE';
@@ -101,7 +103,7 @@ export function globalErrorHandler(
       statusCode,
       timestamp: new Date().toISOString(),
       requestId: req.headers['x-request-id'] as string,
-    }
+    },
   };
 
   // Add stack trace and context in development
@@ -134,7 +136,7 @@ export function globalErrorHandler(
         method: req.method,
         url: req.originalUrl,
         statusCode,
-      }
+      },
     },
     result: statusCode >= 500 ? 'error' : 'failure',
     risk: statusCode >= 500 ? 'high' : 'medium',
@@ -187,7 +189,7 @@ export function handleUnhandledRejection(server?: any) {
         stack: reason?.stack,
       },
       result: 'error',
-      risk: 'critical'
+      risk: 'critical',
     });
 
     // Graceful shutdown in production
@@ -219,7 +221,7 @@ export function handleUncaughtException(server?: any) {
         stack: error.stack,
       },
       result: 'error',
-      risk: 'critical'
+      risk: 'critical',
     });
 
     console.log('💥 Starting graceful shutdown due to uncaught exception...');
@@ -230,7 +232,7 @@ export function handleUncaughtException(server?: any) {
 // Graceful shutdown function
 function gracefulShutdown(server: any, reason: string) {
   console.log(`🛑 Graceful shutdown initiated (${reason})`);
-  
+
   if (server) {
     // Stop accepting new connections
     server.close((err: any) => {
@@ -239,13 +241,13 @@ function gracefulShutdown(server: any, reason: string) {
       } else {
         console.log('✅ HTTP server closed');
       }
-      
+
       // Force exit after timeout if graceful shutdown takes too long
       setTimeout(() => {
         console.log('💥 Force exit after graceful shutdown timeout');
         process.exit(1);
       }, 10000); // 10 second timeout
-      
+
       // Exit process
       process.exit(1);
     });
@@ -261,7 +263,7 @@ export function setupGracefulShutdown(server: any) {
     console.log('📨 SIGTERM received');
     gracefulShutdown(server, 'SIGTERM');
   });
-  
+
   process.on('SIGINT', () => {
     console.log('📨 SIGINT received');
     gracefulShutdown(server, 'SIGINT');

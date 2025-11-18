@@ -1,6 +1,6 @@
-import { db } from "../db";
-import { users, analytics, projects, posts, orders, sessions } from "@shared/schema";
-import { sql, gte, lte, desc, and, count, sum, avg, eq } from "drizzle-orm";
+import { db } from '../db';
+import { users, analytics, projects, posts, orders, sessions } from '@shared/schema';
+import { sql, gte, lte, desc, and, count, sum, avg, eq } from 'drizzle-orm';
 
 interface PredictMetricRequest {
   metric: 'streams' | 'engagement' | 'revenue';
@@ -57,7 +57,13 @@ interface InsightsResponse {
   insights: Insight[];
 }
 
-function linearRegression(dataPoints: { x: number; y: number }[]): { slope: number; intercept: number } {
+/**
+ * TODO: Add function documentation
+ */
+function linearRegression(dataPoints: { x: number; y: number }[]): {
+  slope: number;
+  intercept: number;
+} {
   if (dataPoints.length === 0) {
     return { slope: 0, intercept: 0 };
   }
@@ -74,6 +80,9 @@ function linearRegression(dataPoints: { x: number; y: number }[]): { slope: numb
   return { slope, intercept };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function calculateStandardDeviation(values: number[]): number {
   if (values.length === 0) return 0;
   const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
@@ -81,6 +90,9 @@ function calculateStandardDeviation(values: number[]): number {
   return Math.sqrt(variance);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function calculateMovingAverage(values: number[], window: number): number[] {
   const result: number[] = [];
   for (let i = 0; i < values.length; i++) {
@@ -92,6 +104,9 @@ function calculateMovingAverage(values: number[], window: number): number[] {
   return result;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function predictMetric(params: PredictMetricRequest): Promise<PredictMetricResponse> {
   const { metric, timeframe } = params;
 
@@ -112,7 +127,7 @@ export async function predictMetric(params: PredictMetricRequest): Promise<Predi
       .groupBy(analytics.date)
       .orderBy(analytics.date);
 
-    historicalData = results.map(r => ({
+    historicalData = results.map((r) => ({
       date: r.date,
       value: Number(r.value) || 0,
     }));
@@ -128,8 +143,8 @@ export async function predictMetric(params: PredictMetricRequest): Promise<Predi
       .orderBy(posts.publishedAt);
 
     historicalData = results
-      .filter(r => r.date !== null)
-      .map(r => ({
+      .filter((r) => r.date !== null)
+      .map((r) => ({
         date: r.date!,
         value: Number(r.value) || 0,
       }));
@@ -144,7 +159,7 @@ export async function predictMetric(params: PredictMetricRequest): Promise<Predi
       .groupBy(analytics.date)
       .orderBy(analytics.date);
 
-    historicalData = analyticsRevenue.map(r => ({
+    historicalData = analyticsRevenue.map((r) => ({
       date: r.date,
       value: Number(r.value) || 0,
     }));
@@ -174,10 +189,10 @@ export async function predictMetric(params: PredictMetricRequest): Promise<Predi
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + i);
 
-    const values = historicalData.map(d => d.value);
+    const values = historicalData.map((d) => d.value);
     const stdDev = calculateStandardDeviation(values);
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const confidence = stdDev === 0 ? 1 : Math.max(0, Math.min(1, 1 - (stdDev / mean)));
+    const confidence = stdDev === 0 ? 1 : Math.max(0, Math.min(1, 1 - stdDev / mean));
 
     predictions.push({
       date: futureDate.toISOString().split('T')[0],
@@ -191,10 +206,10 @@ export async function predictMetric(params: PredictMetricRequest): Promise<Predi
     trend = slope > 0 ? 'up' : 'down';
   }
 
-  const values = historicalData.map(d => d.value);
+  const values = historicalData.map((d) => d.value);
   const stdDev = calculateStandardDeviation(values);
   const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-  const accuracy = stdDev === 0 ? 1 : Math.max(0, Math.min(1, 1 - (stdDev / (mean || 1))));
+  const accuracy = stdDev === 0 ? 1 : Math.max(0, Math.min(1, 1 - stdDev / (mean || 1)));
 
   return {
     predictions,
@@ -203,6 +218,9 @@ export async function predictMetric(params: PredictMetricRequest): Promise<Predi
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function predictChurn(): Promise<ChurnPredictionResponse> {
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -293,6 +311,9 @@ export async function predictChurn(): Promise<ChurnPredictionResponse> {
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function forecastRevenue(timeframe: string = '30d'): Promise<RevenueForecastResponse> {
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -336,7 +357,7 @@ export async function forecastRevenue(timeframe: string = '30d'): Promise<Revenu
     futureMonth.setMonth(futureMonth.getMonth() + i);
     const monthName = futureMonth.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
 
-    const confidence = Math.max(0.5, 1 - (i * 0.08));
+    const confidence = Math.max(0.5, 1 - i * 0.08);
 
     forecast.push({
       month: monthName,
@@ -355,6 +376,9 @@ export async function forecastRevenue(timeframe: string = '30d'): Promise<Revenu
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function detectAnomalies(): Promise<AnomaliesResponse> {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -378,9 +402,9 @@ export async function detectAnomalies(): Promise<AnomaliesResponse> {
   const anomalies: Anomaly[] = [];
 
   const metrics = [
-    { name: 'streams', values: analyticsData.map(d => Number(d.streams)) },
-    { name: 'revenue', values: analyticsData.map(d => Number(d.revenue)) },
-    { name: 'listeners', values: analyticsData.map(d => Number(d.listeners)) },
+    { name: 'streams', values: analyticsData.map((d) => Number(d.streams)) },
+    { name: 'revenue', values: analyticsData.map((d) => Number(d.revenue)) },
+    { name: 'listeners', values: analyticsData.map((d) => Number(d.listeners)) },
   ];
 
   for (const metric of metrics) {
@@ -420,6 +444,9 @@ export async function detectAnomalies(): Promise<AnomaliesResponse> {
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function generateInsights(): Promise<InsightsResponse> {
   const insights: Insight[] = [];
   const now = new Date();
@@ -477,7 +504,8 @@ export async function generateInsights(): Promise<InsightsResponse> {
   const previousProjectCount = Number(previousProjects[0]?.count || 0);
 
   if (recentProjectCount > 0 && previousProjectCount > 0) {
-    const projectGrowth = ((recentProjectCount - previousProjectCount) / previousProjectCount) * 100;
+    const projectGrowth =
+      ((recentProjectCount - previousProjectCount) / previousProjectCount) * 100;
 
     if (projectGrowth > 15) {
       insights.push({
@@ -599,9 +627,14 @@ interface CareerGrowthResponse {
   recommendations: string[];
 }
 
-export async function predictCareerGrowth(params: CareerGrowthRequest): Promise<CareerGrowthResponse> {
+/**
+ * TODO: Add function documentation
+ */
+export async function predictCareerGrowth(
+  params: CareerGrowthRequest
+): Promise<CareerGrowthResponse> {
   const { userId, metric, timeline } = params;
-  
+
   const days = timeline === '30d' ? 30 : timeline === '90d' ? 90 : 180;
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
@@ -615,14 +648,11 @@ export async function predictCareerGrowth(params: CareerGrowthRequest): Promise<
         value: sql<number>`CAST(COALESCE(SUM(${analytics.totalStreams}), 0) AS INTEGER)`,
       })
       .from(analytics)
-      .where(and(
-        eq(analytics.userId, userId),
-        gte(analytics.date, startDate)
-      ))
+      .where(and(eq(analytics.userId, userId), gte(analytics.date, startDate)))
       .groupBy(analytics.date)
       .orderBy(analytics.date);
 
-    historicalData = results.map(r => ({
+    historicalData = results.map((r) => ({
       date: r.date,
       value: Number(r.value) || 0,
     }));
@@ -633,14 +663,11 @@ export async function predictCareerGrowth(params: CareerGrowthRequest): Promise<
         value: sql<number>`CAST(COALESCE(SUM(${analytics.totalFollowers}), 0) AS INTEGER)`,
       })
       .from(analytics)
-      .where(and(
-        eq(analytics.userId, userId),
-        gte(analytics.date, startDate)
-      ))
+      .where(and(eq(analytics.userId, userId), gte(analytics.date, startDate)))
       .groupBy(analytics.date)
       .orderBy(analytics.date);
 
-    historicalData = results.map(r => ({
+    historicalData = results.map((r) => ({
       date: r.date,
       value: Number(r.value) || 0,
     }));
@@ -651,14 +678,11 @@ export async function predictCareerGrowth(params: CareerGrowthRequest): Promise<
         value: sql<number>`CAST(COALESCE(AVG(${analytics.engagementRate}), 0) AS INTEGER)`,
       })
       .from(analytics)
-      .where(and(
-        eq(analytics.userId, userId),
-        gte(analytics.date, startDate)
-      ))
+      .where(and(eq(analytics.userId, userId), gte(analytics.date, startDate)))
       .groupBy(analytics.date)
       .orderBy(analytics.date);
 
-    historicalData = results.map(r => ({
+    historicalData = results.map((r) => ({
       date: r.date,
       value: Number(r.value) || 0,
     }));
@@ -670,25 +694,22 @@ export async function predictCareerGrowth(params: CareerGrowthRequest): Promise<
   }));
 
   const { slope, intercept } = linearRegression(dataPoints);
-  
-  const currentValue = historicalData.length > 0 
-    ? historicalData[historicalData.length - 1].value 
-    : 0;
-  
+
+  const currentValue =
+    historicalData.length > 0 ? historicalData[historicalData.length - 1].value : 0;
+
   const futureDays = timeline === '30d' ? 30 : timeline === '90d' ? 60 : 90;
   const predictedValue = Math.max(0, slope * (dataPoints.length + futureDays) + intercept);
-  
-  const growthRate = currentValue > 0 
-    ? ((predictedValue - currentValue) / currentValue) * 100 
-    : 0;
 
-  const values = historicalData.map(d => d.value);
+  const growthRate = currentValue > 0 ? ((predictedValue - currentValue) / currentValue) * 100 : 0;
+
+  const values = historicalData.map((d) => d.value);
   const stdDev = calculateStandardDeviation(values);
   const mean = values.reduce((sum, v) => sum + v, 0) / (values.length || 1);
   const confidence = Math.min(95, Math.max(50, 100 - (stdDev / (mean || 1)) * 100));
 
   const recommendations: string[] = [];
-  
+
   if (growthRate > 20) {
     recommendations.push(`Excellent growth trajectory! Continue your current strategy.`);
     recommendations.push(`Consider scaling up your content production to capitalize on momentum.`);
@@ -718,6 +739,9 @@ interface CareerMilestone {
   estimatedDate: string;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function getCareerMilestones(userId: string): Promise<CareerMilestone[]> {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -728,10 +752,7 @@ export async function getCareerMilestones(userId: string): Promise<CareerMilesto
       totalFollowers: sql<number>`CAST(COALESCE(SUM(${analytics.totalFollowers}), 0) AS INTEGER)`,
     })
     .from(analytics)
-    .where(and(
-      eq(analytics.userId, userId),
-      gte(analytics.date, thirtyDaysAgo)
-    ));
+    .where(and(eq(analytics.userId, userId), gte(analytics.date, thirtyDaysAgo)));
 
   const streams = Number(analyticsData[0]?.totalStreams || 0);
   const followers = Number(analyticsData[0]?.totalFollowers || 0);
@@ -740,34 +761,36 @@ export async function getCareerMilestones(userId: string): Promise<CareerMilesto
 
   // Streams milestones
   const streamMilestones = [1000, 5000, 10000, 50000, 100000, 500000, 1000000];
-  const nextStreamMilestone = streamMilestones.find(m => m > streams) || 10000000;
+  const nextStreamMilestone = streamMilestones.find((m) => m > streams) || 10000000;
   const streamProgress = (streams / nextStreamMilestone) * 100;
-  const daysToStreamMilestone = streams > 0 
-    ? Math.ceil((nextStreamMilestone - streams) / (streams / 30)) 
-    : 365;
+  const daysToStreamMilestone =
+    streams > 0 ? Math.ceil((nextStreamMilestone - streams) / (streams / 30)) : 365;
 
   milestones.push({
     type: 'streams',
     current: streams,
     nextMilestone: nextStreamMilestone,
     progress: Math.min(99, Math.round(streamProgress)),
-    estimatedDate: new Date(Date.now() + daysToStreamMilestone * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    estimatedDate: new Date(
+      Date.now() + daysToStreamMilestone * 24 * 60 * 60 * 1000
+    ).toLocaleDateString(),
   });
 
   // Followers milestones
   const followerMilestones = [100, 500, 1000, 5000, 10000, 50000, 100000];
-  const nextFollowerMilestone = followerMilestones.find(m => m > followers) || 1000000;
+  const nextFollowerMilestone = followerMilestones.find((m) => m > followers) || 1000000;
   const followerProgress = (followers / nextFollowerMilestone) * 100;
-  const daysToFollowerMilestone = followers > 0 
-    ? Math.ceil((nextFollowerMilestone - followers) / (followers / 30)) 
-    : 365;
+  const daysToFollowerMilestone =
+    followers > 0 ? Math.ceil((nextFollowerMilestone - followers) / (followers / 30)) : 365;
 
   milestones.push({
     type: 'followers',
     current: followers,
     nextMilestone: nextFollowerMilestone,
     progress: Math.min(99, Math.round(followerProgress)),
-    estimatedDate: new Date(Date.now() + daysToFollowerMilestone * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    estimatedDate: new Date(
+      Date.now() + daysToFollowerMilestone * 24 * 60 * 60 * 1000
+    ).toLocaleDateString(),
   });
 
   return milestones;
@@ -785,6 +808,9 @@ interface FanbaseData {
   growthOpportunities: string[];
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function getFanbaseInsights(userId: string): Promise<FanbaseData> {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -796,10 +822,7 @@ export async function getFanbaseInsights(userId: string): Promise<FanbaseData> {
       engagementRate: sql<number>`CAST(COALESCE(AVG(${analytics.engagementRate}), 0) AS NUMERIC)`,
     })
     .from(analytics)
-    .where(and(
-      eq(analytics.userId, userId),
-      gte(analytics.date, thirtyDaysAgo)
-    ));
+    .where(and(eq(analytics.userId, userId), gte(analytics.date, thirtyDaysAgo)));
 
   const totalFans = Number(analyticsData[0]?.totalFollowers || 0);
   const totalStreams = Number(analyticsData[0]?.totalStreams || 0);
@@ -825,18 +848,24 @@ export async function getFanbaseInsights(userId: string): Promise<FanbaseData> {
 
   // Growth opportunities based on current metrics
   const growthOpportunities: string[] = [];
-  
+
   if (engagementRate < 5) {
-    growthOpportunities.push('Low engagement rate - Focus on creating more interactive content and stories');
+    growthOpportunities.push(
+      'Low engagement rate - Focus on creating more interactive content and stories'
+    );
   }
-  
+
   if (totalStreams < 1000) {
     growthOpportunities.push('Limited reach - Consider playlist pitching and collaborations');
   } else if (totalStreams > 10000) {
-    growthOpportunities.push('Strong streaming performance - Perfect time to launch merchandise or exclusive content');
+    growthOpportunities.push(
+      'Strong streaming performance - Perfect time to launch merchandise or exclusive content'
+    );
   }
-  
-  growthOpportunities.push('Expand to emerging platforms like TikTok and Instagram Reels for discovery');
+
+  growthOpportunities.push(
+    'Expand to emerging platforms like TikTok and Instagram Reels for discovery'
+  );
   growthOpportunities.push('Build email list for direct fan communication and tour announcements');
 
   return {
@@ -855,6 +884,9 @@ interface ReleaseStrategy {
   recommendations: string[];
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function getReleaseStrategy(userId: string): Promise<ReleaseStrategy> {
   const ninetyDaysAgo = new Date();
   ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
@@ -866,10 +898,7 @@ export async function getReleaseStrategy(userId: string): Promise<ReleaseStrateg
       avgEngagement: sql<number>`CAST(COALESCE(AVG(${analytics.engagementRate}), 0) AS NUMERIC)`,
     })
     .from(analytics)
-    .where(and(
-      eq(analytics.userId, userId),
-      gte(analytics.date, ninetyDaysAgo)
-    ))
+    .where(and(eq(analytics.userId, userId), gte(analytics.date, ninetyDaysAgo)))
     .groupBy(sql`EXTRACT(DOW FROM ${analytics.date})`);
 
   // Find best day (highest engagement)
@@ -895,11 +924,13 @@ export async function getReleaseStrategy(userId: string): Promise<ReleaseStrateg
   recommendations.push('Build pre-save campaign starting 2-3 weeks before release date');
   recommendations.push('Coordinate social media teasers starting 1 week before release');
   recommendations.push('Plan Instagram/TikTok content for release day to drive engagement');
-  
+
   if (maxEngagement > 5) {
     recommendations.push('Your fanbase is highly engaged - consider a surprise drop strategy');
   } else {
-    recommendations.push('Focus on building anticipation with behind-the-scenes content before release');
+    recommendations.push(
+      'Focus on building anticipation with behind-the-scenes content before release'
+    );
   }
 
   return {

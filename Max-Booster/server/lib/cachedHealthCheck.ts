@@ -1,10 +1,10 @@
 /**
  * Cached Health Check System
- * 
+ *
  * Consolidates and caches health check queries to reduce database load.
  * Instead of running multiple health queries every minute, this system:
  * - Runs a single batched health check query
- * - Caches results for 30-60 seconds  
+ * - Caches results for 30-60 seconds
  * - Serves cached results to multiple consumers
  * - Reduces slow query warnings from frequent health checks
  */
@@ -36,9 +36,12 @@ interface HealthCheckResult {
 /**
  * Perform comprehensive health check with caching
  */
+/**
+ * TODO: Add function documentation
+ */
 export async function getCachedHealthCheck(ttlSeconds: number = 30): Promise<HealthCheckResult> {
   const cacheKey = createCacheKey('health', 'system');
-  
+
   return await queryCache.getOrCompute(
     cacheKey,
     async () => {
@@ -62,11 +65,14 @@ export async function getCachedHealthCheck(ttlSeconds: number = 30): Promise<Hea
 /**
  * Database health check
  */
+/**
+ * TODO: Add function documentation
+ */
 async function checkDatabaseHealth() {
   try {
     // Single lightweight query instead of multiple heavy queries
     await db.execute(`SELECT 1`);
-    
+
     const poolStatus = {
       totalCount: pool.totalCount,
       idleCount: pool.idleCount,
@@ -79,7 +85,7 @@ async function checkDatabaseHealth() {
       idleConnections: poolStatus.idleCount,
       activeConnections: poolStatus.totalCount - poolStatus.idleCount,
     };
-  } catch (error) {
+  } catch (error: unknown) {
     return {
       connected: false,
       poolSize: 0,
@@ -92,9 +98,12 @@ async function checkDatabaseHealth() {
 /**
  * Process health check
  */
+/**
+ * TODO: Add function documentation
+ */
 async function checkProcessHealth() {
   const memUsage = process.memoryUsage();
-  
+
   return {
     memory: {
       heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024), // MB
@@ -113,6 +122,9 @@ async function checkProcessHealth() {
 /**
  * Lightweight liveness probe (no caching, always fresh)
  */
+/**
+ * TODO: Add function documentation
+ */
 export function getLivenessProbe() {
   return {
     status: 'alive',
@@ -124,9 +136,12 @@ export function getLivenessProbe() {
 /**
  * Readiness probe with minimal caching (10s)
  */
+/**
+ * TODO: Add function documentation
+ */
 export async function getReadinessProbe(): Promise<{ ready: boolean; checks: any }> {
   const health = await getCachedHealthCheck(10); // 10 second cache
-  
+
   return {
     ready: health.database.connected && health.memory.heapUsed < 1500, // < 1.5GB
     checks: {

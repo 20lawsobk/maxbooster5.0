@@ -1,18 +1,19 @@
 /**
  * Queue Service - Redis-backed job queue for async processing
- * 
+ *
  * Handles all long-running operations:
  * - Audio processing (FFmpeg)
  * - CSV imports
  * - Analytics calculations
  * - Email sending
- * 
+ *
  * This enables horizontal scaling by offloading CPU-intensive work to dedicated worker processes.
  */
 
 import { Queue, Worker, Job, QueueEvents } from 'bullmq';
 import { config } from '../config/defaults.js';
 import { Redis } from 'ioredis';
+import { logger } from '../logger.js';
 
 const isDevelopment = config.nodeEnv === 'development';
 let hasLoggedWarning = false;
@@ -87,20 +88,22 @@ function createRedisConnection() {
   redisClient.on('error', (err) => {
     // Log once and continue gracefully in all environments
     if (!hasLoggedWarning) {
-      console.warn(`⚠️  Queue Service: Redis unavailable (${err.message}), queues will use fallback behavior`);
+      logger.warn(
+        `⚠️  Queue Service: Redis unavailable (${err.message}), queues will use fallback behavior`
+      );
       hasLoggedWarning = true;
     }
   });
 
   redisClient.on('connect', () => {
     if (isDevelopment) {
-      console.log(`✅ Queue Service Redis connected`);
+      logger.info(`✅ Queue Service Redis connected`);
     }
   });
 
   // Don't call connect() - let it connect lazily on first use
   // This prevents promise rejection errors from being logged
-  
+
   return redisClient;
 }
 
@@ -173,7 +176,7 @@ class QueueService {
       },
     });
 
-    console.log('📋 Job queues initialized');
+    logger.info('📋 Job queues initialized');
   }
 
   /**
@@ -193,9 +196,7 @@ class QueueService {
   /**
    * Add a CSV import job
    */
-  async addCSVImportJob(
-    data: CSVImportJobData
-  ): Promise<Job<CSVImportJobData, CSVImportResult>> {
+  async addCSVImportJob(data: CSVImportJobData): Promise<Job<CSVImportJobData, CSVImportResult>> {
     return await this.csvQueue.add('import', data, {
       timeout: config.queue.timeout.csv,
     });
@@ -218,10 +219,7 @@ class QueueService {
   /**
    * Add an email job
    */
-  async addEmailJob(
-    data: EmailJobData,
-    priority?: number
-  ): Promise<Job<EmailJobData, void>> {
+  async addEmailJob(data: EmailJobData, priority?: number): Promise<Job<EmailJobData, void>> {
     return await this.emailQueue.add('send', data, {
       priority,
       timeout: config.queue.timeout.email,
@@ -231,7 +229,10 @@ class QueueService {
   /**
    * Get job status and progress
    */
-  async getJobStatus(queueName: string, jobId: string): Promise<{
+  async getJobStatus(
+    queueName: string,
+    jobId: string
+  ): Promise<{
     state: string;
     progress: number;
     result?: any;
@@ -265,7 +266,7 @@ class QueueService {
     failed: number;
   }> {
     const queue = this.getQueue(queueName);
-    
+
     const [waiting, active, completed, failed] = await Promise.all([
       queue.getWaitingCount(),
       queue.getActiveCount(),
@@ -296,7 +297,7 @@ class QueueService {
   async pauseQueue(queueName: string): Promise<void> {
     const queue = this.getQueue(queueName);
     await queue.pause();
-    console.log(`⏸️  Queue ${queueName} paused`);
+    logger.info(`⏸️  Queue ${queueName} paused`);
   }
 
   /**
@@ -305,7 +306,7 @@ class QueueService {
   async resumeQueue(queueName: string): Promise<void> {
     const queue = this.getQueue(queueName);
     await queue.resume();
-    console.log(`▶️  Queue ${queueName} resumed`);
+    logger.info(`▶️  Queue ${queueName} resumed`);
   }
 
   /**
@@ -318,7 +319,7 @@ class QueueService {
   ): Promise<void> {
     const queue = this.getQueue(queueName);
     await queue.clean(grace, 1000, status);
-    console.log(`🧹 Cleaned ${status} jobs from ${queueName} queue`);
+    logger.info(`🧹 Cleaned ${status} jobs from ${queueName} queue`);
   }
 
   /**
@@ -354,7 +355,7 @@ class QueueService {
       await events.close();
     }
 
-    console.log('📋 All queues closed');
+    logger.info('📋 All queues closed');
   }
 }
 

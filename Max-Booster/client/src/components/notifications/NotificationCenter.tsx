@@ -3,11 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Bell, Check, CheckCheck, Settings, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +42,9 @@ interface NotificationPreferences {
   system: boolean;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function NotificationCenter() {
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [requestedPermission, setRequestedPermission] = useState(false);
@@ -58,11 +57,11 @@ export function NotificationCenter() {
     onMessage: (message) => {
       // Handle incoming WebSocket messages
       if (message.type === 'notification') {
-        console.log('📬 Real-time notification received via WebSocket:', message.data);
-        
+        logger.info('📬 Real-time notification received via WebSocket:', message.data);
+
         // Invalidate queries to refetch notifications
         queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-        
+
         // Show toast for new notification
         if (message.data && message.data.title) {
           toast({
@@ -71,18 +70,18 @@ export function NotificationCenter() {
           });
         }
       } else if (message.type === 'auth_success') {
-        console.log('✅ WebSocket authenticated via session cookie');
+        logger.info('✅ WebSocket authenticated via session cookie');
       }
     },
     onConnect: () => {
-      console.log('🔌 WebSocket connected - authenticated via session cookie');
+      logger.info('🔌 WebSocket connected - authenticated via session cookie');
     },
     onDisconnect: () => {
-      console.log('🔌 WebSocket disconnected - falling back to polling');
+      logger.info('🔌 WebSocket disconnected - falling back to polling');
     },
     onError: (error) => {
-      console.error('❌ WebSocket error:', error);
-    }
+      logger.error('❌ WebSocket error:', error);
+    },
   });
 
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
@@ -159,7 +158,7 @@ export function NotificationCenter() {
     if ('Notification' in window && Notification.permission === 'default') {
       const permission = await Notification.requestPermission();
       setRequestedPermission(true);
-      
+
       if (permission === 'granted') {
         toast({
           title: 'Browser notifications enabled',
@@ -237,9 +236,7 @@ export function NotificationCenter() {
 
           <ScrollArea className="h-96">
             {isLoading ? (
-              <div className="p-4 text-center text-sm text-gray-500">
-                Loading notifications...
-              </div>
+              <div className="p-4 text-center text-sm text-gray-500">Loading notifications...</div>
             ) : notifications.length === 0 ? (
               <div className="p-8 text-center">
                 <Bell className="h-12 w-12 mx-auto text-gray-300 mb-2" />
@@ -257,14 +254,10 @@ export function NotificationCenter() {
                     data-testid={`notification-${notification.id}`}
                   >
                     <div className="flex items-start space-x-3">
-                      <div className="text-2xl">
-                        {getNotificationIcon(notification.type)}
-                      </div>
+                      <div className="text-2xl">{getNotificationIcon(notification.type)}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className="font-medium text-sm truncate">
-                            {notification.title}
-                          </p>
+                          <p className="font-medium text-sm truncate">{notification.title}</p>
                           <div className="flex items-center space-x-2">
                             {!notification.read && (
                               <div className="w-2 h-2 rounded-full bg-blue-600" />
@@ -337,18 +330,20 @@ export function NotificationCenter() {
                       <Label htmlFor="browser-notifications" className="cursor-pointer">
                         Browser Notifications
                       </Label>
-                      {!requestedPermission && 'Notification' in window && Notification.permission === 'default' && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="p-0 h-auto"
-                            onClick={requestBrowserNotificationPermission}
-                          >
-                            Enable browser notifications
-                          </Button>
-                        </p>
-                      )}
+                      {!requestedPermission &&
+                        'Notification' in window &&
+                        Notification.permission === 'default' && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="p-0 h-auto"
+                              onClick={requestBrowserNotificationPermission}
+                            >
+                              Enable browser notifications
+                            </Button>
+                          </p>
+                        )}
                     </div>
                     <Switch
                       id="browser-notifications"

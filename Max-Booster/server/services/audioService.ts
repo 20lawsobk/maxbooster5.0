@@ -10,6 +10,7 @@ import { storageService } from './storageService.js';
 import os from 'os';
 import { queueService } from './queueService.js';
 import type { AudioConvertJobData, AudioMixJobData, AudioJobResult } from './queueService.js';
+import { logger } from '../logger.js';
 import {
   AUDIO_FORMATS,
   SAMPLE_RATES,
@@ -100,8 +101,8 @@ export class AudioService {
       };
 
       return uploadData;
-    } catch (error) {
-      console.error('Error generating upload URL:', error);
+    } catch (error: unknown) {
+      logger.error('Error generating upload URL:', error);
       throw new Error('Failed to generate upload URL');
     }
   }
@@ -140,8 +141,8 @@ export class AudioService {
       };
 
       return analysis;
-    } catch (error) {
-      console.error('Error processing audio file:', error);
+    } catch (error: unknown) {
+      logger.error('Error processing audio file:', error);
       throw new Error('Failed to process audio file');
     }
   }
@@ -196,15 +197,15 @@ export class AudioService {
       const downsampledData = this.downsampleAudio(samples, 2000); // 2000 points for waveform
       
       return downsampledData;
-    } catch (error) {
-      console.error('Error generating waveform:', error);
+    } catch (error: unknown) {
+      logger.error('Error generating waveform:', error);
       // Fallback to mock data
       return this.generateMockWaveform();
     } finally {
       // Clean up temp file
       try {
         await fsPromises.unlink(tempWavPath);
-      } catch (error) {
+      } catch (error: unknown) {
         // Ignore cleanup errors
       }
     }
@@ -305,7 +306,7 @@ export class AudioService {
     const tempOutputPath = path.join(os.tmpdir(), `converted_${randomUUID()}.${outputFormat}`);
     
     try {
-      console.log(`Converting ${inputPath} to ${outputFormat} format (${audioFormat}, ${sampleRate}Hz, ${bitDepth}-bit)`);
+      logger.info(`Converting ${inputPath} to ${outputFormat} format (${audioFormat}, ${sampleRate}Hz, ${bitDepth}-bit)`);
       
       // Validate audio configuration
       const validation = this.validateAudioQuality({ sampleRate, bitDepth, audioFormat });
@@ -333,7 +334,7 @@ export class AudioService {
               .audioCodec(wavCodec)
               .audioFrequency(options.sampleRate)
               .audioChannels(options.channels);
-            console.log(`  WAV export: ${wavCodec} @ ${options.sampleRate}Hz`);
+            logger.info(`  WAV export: ${wavCodec} @ ${options.sampleRate}Hz`);
             break;
           case 'mp3':
             command = command
@@ -395,21 +396,21 @@ export class AudioService {
       // Get duration from metadata
       const metadata = await this.getAudioMetadata(tempOutputPath);
       
-      console.log(`✅ Successfully converted to ${outputFormat}`);
+      logger.info(`✅ Successfully converted to ${outputFormat}`);
       
       return {
         storageKey: key,
         duration: metadata.duration,
         format: outputFormat
       };
-    } catch (error) {
-      console.error('Error converting audio format:', error);
+    } catch (error: unknown) {
+      logger.error('Error converting audio format:', error);
       throw new Error('Failed to convert audio format');
     } finally {
       // Clean up temp file
       try {
         await fsPromises.unlink(tempOutputPath);
-      } catch (error) {
+      } catch (error: unknown) {
         // Ignore cleanup errors
       }
     }
@@ -433,7 +434,7 @@ export class AudioService {
     const { filePath } = data;
     
     try {
-      console.log(`Generating waveform for ${filePath}`);
+      logger.info(`Generating waveform for ${filePath}`);
       
       const waveformData = await this.generateWaveformFromFile(filePath);
       const metadata = await this.getAudioMetadata(filePath);
@@ -460,15 +461,15 @@ export class AudioService {
       // Schedule cleanup after 24 hours
       await storageService.deleteWithTTL(key, 86400000);
       
-      console.log(`✅ Successfully generated waveform`);
+      logger.info(`✅ Successfully generated waveform`);
       
       return {
         storageKey: key,
         duration: metadata.duration,
         format: 'json'
       };
-    } catch (error) {
-      console.error('Error generating waveform:', error);
+    } catch (error: unknown) {
+      logger.error('Error generating waveform:', error);
       throw new Error('Failed to generate waveform');
     }
   }
@@ -478,12 +479,12 @@ export class AudioService {
       // TODO: Generate a 30-second preview of the audio file
       const previewPath = filePath.replace(/\.[^/.]+$/, '_preview.mp3');
       
-      console.log(`Generating preview for ${filePath} from ${startTime}s for ${duration}s`);
+      logger.info(`Generating preview for ${filePath} from ${startTime}s for ${duration}s`);
       
       // Mock preview generation
       return previewPath;
-    } catch (error) {
-      console.error('Error generating audio preview:', error);
+    } catch (error: unknown) {
+      logger.error('Error generating audio preview:', error);
       throw new Error('Failed to generate audio preview');
     }
   }
@@ -508,8 +509,8 @@ export class AudioService {
       
       // Constrain to reasonable BPM range
       return Math.max(60, Math.min(200, bpm));
-    } catch (error) {
-      console.error('Error detecting BPM:', error);
+    } catch (error: unknown) {
+      logger.error('Error detecting BPM:', error);
       return 120;
     }
   }
@@ -525,8 +526,8 @@ export class AudioService {
       const modeIndex = waveformData[0] > 0 ? 0 : 1;
       
       return `${keys[keyIndex]} ${modes[modeIndex]}`;
-    } catch (error) {
-      console.error('Error detecting key:', error);
+    } catch (error: unknown) {
+      logger.error('Error detecting key:', error);
       return 'C Major';
     }
   }
@@ -558,11 +559,11 @@ export class AudioService {
       const metadata = await this.getAudioMetadata(filePath);
       const bpm = await this.detectBPM(waveformData, metadata.sampleRate);
       
-      console.log(`Analyzed tempo for ${filePath}: ${bpm} BPM`);
+      logger.info(`Analyzed tempo for ${filePath}: ${bpm} BPM`);
       
       return { bpm, confidence: 0.85 };
-    } catch (error) {
-      console.error('Error analyzing audio tempo:', error);
+    } catch (error: unknown) {
+      logger.error('Error analyzing audio tempo:', error);
       return { bpm: 120, confidence: 0.5 };
     }
   }
@@ -577,35 +578,35 @@ export class AudioService {
       const scale = scales[Math.floor(Math.random() * scales.length)];
       const confidence = 0.7 + Math.random() * 0.3;
       
-      console.log(`Detected key for ${filePath}: ${key} ${scale} (${Math.round(confidence * 100)}% confidence)`);
+      logger.info(`Detected key for ${filePath}: ${key} ${scale} (${Math.round(confidence * 100)}% confidence)`);
       
       return { key, scale, confidence };
-    } catch (error) {
-      console.error('Error detecting audio key:', error);
+    } catch (error: unknown) {
+      logger.error('Error detecting audio key:', error);
       throw new Error('Failed to detect audio key');
     }
   }
 
-  async applyAudioEffects(filePath: string, effects: any[]): Promise<string> {
+  async applyAudioEffects(filePath: string, effects: unknown[]): Promise<string> {
     try {
       // TODO: Apply audio effects using audio processing libraries
       const processedPath = filePath.replace(/\.[^/.]+$/, '_processed.wav');
       
-      console.log(`Applying effects to ${filePath}:`, effects);
+      logger.info(`Applying effects to ${filePath}:`, effects);
       
       // Mock effects processing
       for (const effect of effects) {
-        console.log(`Applying ${effect.type} with settings:`, effect.settings);
+        logger.info(`Applying ${effect.type} with settings:`, effect.settings);
       }
       
       return processedPath;
-    } catch (error) {
-      console.error('Error applying audio effects:', error);
+    } catch (error: unknown) {
+      logger.error('Error applying audio effects:', error);
       throw new Error('Failed to apply audio effects');
     }
   }
 
-  async mixAudioTracks(tracks: any[], userId: string, outputPath?: string): Promise<JobResponse> {
+  async mixAudioTracks(tracks: unknown[], userId: string, outputPath?: string): Promise<JobResponse> {
     const tracksData = tracks.map(track => ({
       storageKey: track.filePath || track.storageKey,
       volume: track.volume || 1.0
@@ -629,7 +630,7 @@ export class AudioService {
     const tempMixPath = path.join(os.tmpdir(), `mix_${randomUUID()}.${outputFormat}`);
     
     try {
-      console.log(`Mixing ${tracks.length} tracks`);
+      logger.info(`Mixing ${tracks.length} tracks`);
       
       if (tracks.length === 0) {
         throw new Error('No tracks to mix');
@@ -718,7 +719,7 @@ export class AudioService {
         // Get duration from metadata
         const metadata = await this.getAudioMetadata(tempMixPath);
         
-        console.log(`✅ Successfully mixed ${tempTracks.length} tracks`);
+        logger.info(`✅ Successfully mixed ${tempTracks.length} tracks`);
         
         return {
           storageKey: key,
@@ -730,49 +731,49 @@ export class AudioService {
         for (const track of tempTracks) {
           try {
             await fsPromises.unlink(track.filePath);
-          } catch (error) {
+          } catch (error: unknown) {
             // Ignore cleanup errors
           }
         }
       }
-    } catch (error) {
-      console.error('Error mixing audio tracks:', error);
+    } catch (error: unknown) {
+      logger.error('Error mixing audio tracks:', error);
       throw new Error('Failed to mix audio tracks');
     } finally {
       // Clean up temp mix file
       try {
         await fsPromises.unlink(tempMixPath);
-      } catch (error) {
+      } catch (error: unknown) {
         // Ignore cleanup errors
       }
     }
   }
 
-  async masterAudio(filePath: string, masteringSettings: any): Promise<string> {
+  async masterAudio(filePath: string, masteringSettings: unknown): Promise<string> {
     try {
       // TODO: Apply mastering processing to final mix
       const masteredPath = filePath.replace(/\.[^/.]+$/, '_mastered.wav');
       
-      console.log(`Mastering ${filePath} with settings:`, masteringSettings);
+      logger.info(`Mastering ${filePath} with settings:`, masteringSettings);
       
       // Mock mastering process
       return masteredPath;
-    } catch (error) {
-      console.error('Error mastering audio:', error);
+    } catch (error: unknown) {
+      logger.error('Error mastering audio:', error);
       throw new Error('Failed to master audio');
     }
   }
 
-  async exportStems(tracks: any[], outputDir: string, format: string = 'wav'): Promise<{ stems: string[], zip?: string }> {
+  async exportStems(tracks: unknown[], outputDir: string, format: string = 'wav'): Promise<{ stems: string[], zip?: string }> {
     try {
-      console.log(`Exporting ${tracks.length} stems as ${format}`);
+      logger.info(`Exporting ${tracks.length} stems as ${format}`);
       
       const stems: string[] = [];
       
       // Export each track as individual stem
       for (const track of tracks) {
         if (!track.filePath || !fs.existsSync(track.filePath)) {
-          console.warn(`Skipping track ${track.name}: file not found at ${track.filePath}`);
+          logger.warn(`Skipping track ${track.name}: file not found at ${track.filePath}`);
           continue;
         }
         
@@ -797,16 +798,16 @@ export class AudioService {
         // The converted file will be auto-cleaned by TTL
       }
       
-      console.log(`✅ Exported ${stems.length} stems successfully`);
+      logger.info(`✅ Exported ${stems.length} stems successfully`);
       
       return { stems };
-    } catch (error) {
-      console.error('Error exporting stems:', error);
+    } catch (error: unknown) {
+      logger.error('Error exporting stems:', error);
       throw new Error('Failed to export stems');
     }
   }
 
-  async exportProjectAudio(projectId: string, tracks: any[], format: string, exportType: 'mixdown' | 'stems'): Promise<any> {
+  async exportProjectAudio(projectId: string, tracks: unknown[], format: string, exportType: 'mixdown' | 'stems'): Promise<any> {
     try {
       if (exportType === 'stems') {
         // Export individual stems
@@ -843,13 +844,13 @@ export class AudioService {
           // Clean up temp mix file
           try {
             await fsPromises.unlink(tempMixPath);
-          } catch (error) {
+          } catch (error: unknown) {
             // Ignore cleanup errors
           }
         }
       }
-    } catch (error) {
-      console.error('Error exporting project audio:', error);
+    } catch (error: unknown) {
+      logger.error('Error exporting project audio:', error);
       throw new Error('Failed to export project audio');
     }
   }

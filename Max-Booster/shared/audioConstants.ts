@@ -9,7 +9,7 @@ export const AUDIO_FORMATS = {
   FLOAT32: 'float32',
 } as const;
 
-export type AudioFormat = typeof AUDIO_FORMATS[keyof typeof AUDIO_FORMATS];
+export type AudioFormat = (typeof AUDIO_FORMATS)[keyof typeof AUDIO_FORMATS];
 
 export const SAMPLE_RATES = {
   SR_44100: 44100,
@@ -18,7 +18,7 @@ export const SAMPLE_RATES = {
   SR_192000: 192000,
 } as const;
 
-export type SampleRate = typeof SAMPLE_RATES[keyof typeof SAMPLE_RATES];
+export type SampleRate = (typeof SAMPLE_RATES)[keyof typeof SAMPLE_RATES];
 
 export const BIT_DEPTHS = {
   BD_16: 16,
@@ -26,7 +26,7 @@ export const BIT_DEPTHS = {
   BD_32: 32,
 } as const;
 
-export type BitDepth = typeof BIT_DEPTHS[keyof typeof BIT_DEPTHS];
+export type BitDepth = (typeof BIT_DEPTHS)[keyof typeof BIT_DEPTHS];
 
 export const BUFFER_SIZES = {
   ULTRA_LOW_LATENCY: 64,
@@ -36,7 +36,7 @@ export const BUFFER_SIZES = {
   ULTRA_HIGH_QUALITY: 1024,
 } as const;
 
-export type BufferSize = typeof BUFFER_SIZES[keyof typeof BUFFER_SIZES];
+export type BufferSize = (typeof BUFFER_SIZES)[keyof typeof BUFFER_SIZES];
 
 export const AUDIO_QUALITY_PRESETS = {
   PODCAST: {
@@ -133,11 +133,7 @@ export const SUPPORTED_SAMPLE_RATES = [
   SAMPLE_RATES.SR_192000,
 ] as const;
 
-export const SUPPORTED_BIT_DEPTHS = [
-  BIT_DEPTHS.BD_16,
-  BIT_DEPTHS.BD_24,
-  BIT_DEPTHS.BD_32,
-] as const;
+export const SUPPORTED_BIT_DEPTHS = [BIT_DEPTHS.BD_16, BIT_DEPTHS.BD_24, BIT_DEPTHS.BD_32] as const;
 
 export const SUPPORTED_FORMATS = [
   AUDIO_FORMATS.PCM16,
@@ -187,17 +183,20 @@ export function isSupportedFormat(format: string): format is AudioFormat {
   return SUPPORTED_FORMATS.includes(format as AudioFormat);
 }
 
-export function getRecommendedBufferSize(sampleRate: SampleRate, latencyTarget: 'recording' | 'mixing' | 'mastering'): BufferSize {
+export function getRecommendedBufferSize(
+  sampleRate: SampleRate,
+  latencyTarget: 'recording' | 'mixing' | 'mastering'
+): BufferSize {
   const target = LATENCY_TARGETS[latencyTarget];
-  
+
   if (sampleRate >= SAMPLE_RATES.SR_96000) {
-    return target.bufferSize === BUFFER_SIZES.ULTRA_LOW_LATENCY 
-      ? BUFFER_SIZES.LOW_LATENCY 
+    return target.bufferSize === BUFFER_SIZES.ULTRA_LOW_LATENCY
+      ? BUFFER_SIZES.LOW_LATENCY
       : target.bufferSize === BUFFER_SIZES.LOW_LATENCY
-      ? BUFFER_SIZES.BALANCED
-      : BUFFER_SIZES.HIGH_QUALITY;
+        ? BUFFER_SIZES.BALANCED
+        : BUFFER_SIZES.HIGH_QUALITY;
   }
-  
+
   return target.bufferSize;
 }
 
@@ -209,8 +208,8 @@ export function getMaxTracksForConfig(sampleRate: SampleRate, bufferSize: Buffer
   if (sampleRate >= SAMPLE_RATES.SR_192000) {
     return TRACK_LIMITS.STANDARD;
   } else if (sampleRate >= SAMPLE_RATES.SR_96000) {
-    return bufferSize >= BUFFER_SIZES.HIGH_QUALITY 
-      ? TRACK_LIMITS.PROFESSIONAL 
+    return bufferSize >= BUFFER_SIZES.HIGH_QUALITY
+      ? TRACK_LIMITS.PROFESSIONAL
       : TRACK_LIMITS.STANDARD;
   } else {
     return TRACK_LIMITS.PROFESSIONAL;
@@ -223,31 +222,49 @@ export function validateAudioConfig(config: {
   bitDepth?: number;
 }): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-  
+
   if (config.format && !isSupportedFormat(config.format)) {
-    errors.push(`Unsupported audio format: ${config.format}. Supported: ${SUPPORTED_FORMATS.join(', ')}`);
+    errors.push(
+      `Unsupported audio format: ${config.format}. Supported: ${SUPPORTED_FORMATS.join(', ')}`
+    );
   }
-  
+
   if (config.sampleRate && !isSupportedSampleRate(config.sampleRate)) {
-    errors.push(`Unsupported sample rate: ${config.sampleRate}Hz. Supported: ${SUPPORTED_SAMPLE_RATES.join(', ')}Hz`);
+    errors.push(
+      `Unsupported sample rate: ${config.sampleRate}Hz. Supported: ${SUPPORTED_SAMPLE_RATES.join(', ')}Hz`
+    );
   }
-  
+
   if (config.bitDepth && !isSupportedBitDepth(config.bitDepth)) {
-    errors.push(`Unsupported bit depth: ${config.bitDepth}-bit. Supported: ${SUPPORTED_BIT_DEPTHS.join(', ')}-bit`);
+    errors.push(
+      `Unsupported bit depth: ${config.bitDepth}-bit. Supported: ${SUPPORTED_BIT_DEPTHS.join(', ')}-bit`
+    );
   }
-  
-  if (config.format === AUDIO_FORMATS.FLOAT32 && config.bitDepth && config.bitDepth !== BIT_DEPTHS.BD_32) {
+
+  if (
+    config.format === AUDIO_FORMATS.FLOAT32 &&
+    config.bitDepth &&
+    config.bitDepth !== BIT_DEPTHS.BD_32
+  ) {
     errors.push('Float32 format requires 32-bit depth');
   }
-  
-  if (config.format === AUDIO_FORMATS.PCM16 && config.bitDepth && config.bitDepth !== BIT_DEPTHS.BD_16) {
+
+  if (
+    config.format === AUDIO_FORMATS.PCM16 &&
+    config.bitDepth &&
+    config.bitDepth !== BIT_DEPTHS.BD_16
+  ) {
     errors.push('PCM16 format requires 16-bit depth');
   }
-  
-  if (config.format === AUDIO_FORMATS.PCM24 && config.bitDepth && config.bitDepth !== BIT_DEPTHS.BD_24) {
+
+  if (
+    config.format === AUDIO_FORMATS.PCM24 &&
+    config.bitDepth &&
+    config.bitDepth !== BIT_DEPTHS.BD_24
+  ) {
     errors.push('PCM24 format requires 24-bit depth');
   }
-  
+
   return {
     valid: errors.length === 0,
     errors,

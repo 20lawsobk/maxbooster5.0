@@ -39,7 +39,8 @@ export default function DMCA() {
             </span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Max Booster respects the intellectual property rights of others and expects our users to do the same
+            Max Booster respects the intellectual property rights of others and expects our users to
+            do the same
           </p>
         </div>
       </section>
@@ -55,13 +56,15 @@ export default function DMCA() {
               </div>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  Max Booster complies with the Digital Millennium Copyright Act (DMCA) and will respond to valid 
-                  notices of copyright infringement. If you believe that your copyrighted work has been copied in a 
-                  way that constitutes copyright infringement and is accessible on our platform, please notify us.
+                  Max Booster complies with the Digital Millennium Copyright Act (DMCA) and will
+                  respond to valid notices of copyright infringement. If you believe that your
+                  copyrighted work has been copied in a way that constitutes copyright infringement
+                  and is accessible on our platform, please notify us.
                 </p>
                 <p>
-                  We take copyright infringement seriously and will promptly remove or disable access to content that 
-                  is claimed to be infringing upon the copyright of any person.
+                  We take copyright infringement seriously and will promptly remove or disable
+                  access to content that is claimed to be infringing upon the copyright of any
+                  person.
                 </p>
               </div>
             </CardContent>
@@ -75,14 +78,21 @@ export default function DMCA() {
               </div>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  If you are a copyright owner (or authorized to act on behalf of one) and believe that content on 
-                  Max Booster infringes your copyright, you may submit a DMCA takedown notice containing:
+                  If you are a copyright owner (or authorized to act on behalf of one) and believe
+                  that content on Max Booster infringes your copyright, you may submit a DMCA
+                  takedown notice containing:
                 </p>
                 <ol className="list-decimal list-inside space-y-2 ml-4">
                   <li>Identification of the copyrighted work claimed to have been infringed</li>
-                  <li>Identification of the material claimed to be infringing and its location on our platform</li>
+                  <li>
+                    Identification of the material claimed to be infringing and its location on our
+                    platform
+                  </li>
                   <li>Your contact information (address, telephone number, email address)</li>
-                  <li>A statement that you have a good faith belief that the use is not authorized by the copyright owner</li>
+                  <li>
+                    A statement that you have a good faith belief that the use is not authorized by
+                    the copyright owner
+                  </li>
                   <li>A statement that the information in the notification is accurate</li>
                   <li>Your physical or electronic signature</li>
                 </ol>
@@ -96,13 +106,18 @@ export default function DMCA() {
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-700 mb-2">Send all DMCA notices to:</p>
                 <p className="font-medium text-gray-900 mb-4">
-                  DMCA Agent<br />
-                  Max Booster<br />
-                  Email: <a href="mailto:dmca@maxbooster.com" className="text-blue-600 hover:underline">dmca@maxbooster.com</a>
+                  DMCA Agent
+                  <br />
+                  Max Booster
+                  <br />
+                  Email:{' '}
+                  <a href="mailto:dmca@maxbooster.com" className="text-blue-600 hover:underline">
+                    dmca@maxbooster.com
+                  </a>
                 </p>
                 <p className="text-sm text-gray-600">
-                  Please allow 1-2 business days for processing. We will notify the affected user and may request 
-                  additional information if needed.
+                  Please allow 1-2 business days for processing. We will notify the affected user
+                  and may request additional information if needed.
                 </p>
               </div>
             </CardContent>
@@ -113,19 +128,25 @@ export default function DMCA() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Counter-Notification</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  If you believe that your content was removed by mistake or misidentification, you may file a 
-                  counter-notification containing:
+                  If you believe that your content was removed by mistake or misidentification, you
+                  may file a counter-notification containing:
                 </p>
                 <ol className="list-decimal list-inside space-y-2 ml-4">
                   <li>Identification of the material that was removed and its former location</li>
-                  <li>A statement under penalty of perjury that you have a good faith belief the material was removed by mistake</li>
+                  <li>
+                    A statement under penalty of perjury that you have a good faith belief the
+                    material was removed by mistake
+                  </li>
                   <li>Your name, address, phone number, and email</li>
-                  <li>A statement consenting to jurisdiction of the federal court in your district</li>
+                  <li>
+                    A statement consenting to jurisdiction of the federal court in your district
+                  </li>
                   <li>Your physical or electronic signature</li>
                 </ol>
                 <p className="text-sm text-gray-600 mt-4">
-                  Upon receipt of a valid counter-notification, we will forward it to the original complainant. If they 
-                  do not file a court action within 10-14 business days, we may restore the content.
+                  Upon receipt of a valid counter-notification, we will forward it to the original
+                  complainant. If they do not file a court action within 10-14 business days, we may
+                  restore the content.
                 </p>
               </div>
             </CardContent>
@@ -136,12 +157,13 @@ export default function DMCA() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Repeat Infringer Policy</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  Max Booster maintains a policy of terminating accounts of users who are repeat infringers. We may 
-                  suspend or terminate accounts that receive multiple valid DMCA notices.
+                  Max Booster maintains a policy of terminating accounts of users who are repeat
+                  infringers. We may suspend or terminate accounts that receive multiple valid DMCA
+                  notices.
                 </p>
                 <p className="bg-yellow-50 border-l-4 border-yellow-400 p-4 text-sm">
-                  <strong>Note:</strong> Submitting a false DMCA notice may result in legal liability. Please ensure 
-                  your claim is legitimate before filing.
+                  <strong>Note:</strong> Submitting a false DMCA notice may result in legal
+                  liability. Please ensure your claim is legitimate before filing.
                 </p>
               </div>
             </CardContent>

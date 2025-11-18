@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +23,7 @@ import {
   Tv,
   Radio,
   Brain,
-  Rocket
+  Rocket,
 } from 'lucide-react';
 
 interface CreateAdDialogProps {
@@ -30,27 +36,67 @@ const adObjectives = [
   { value: 'traffic', label: 'Drive Traffic', icon: MousePointerClick },
   { value: 'engagement', label: 'Increase Engagement', icon: Users },
   { value: 'conversions', label: 'Get More Streams', icon: Play },
-  { value: 'followers', label: 'Grow Following', icon: TrendingUp }
+  { value: 'followers', label: 'Grow Following', icon: TrendingUp },
 ];
 
 const platforms = [
-  { value: 'spotify', label: 'Spotify Personal Network', icon: Music, description: 'Use your Spotify for Artists profile for organic promotion' },
-  { value: 'youtube', label: 'YouTube Channel Network', icon: Tv, description: 'Leverage your YouTube channel for cross-promotion' },
-  { value: 'instagram', label: 'Instagram Profile Power', icon: Users, description: 'Transform your Instagram into a promotional hub' },
-  { value: 'facebook', label: 'Facebook Profile Amplification', icon: Users, description: 'Use your Facebook profile and connections' },
-  { value: 'tiktok', label: 'TikTok Personal Brand', icon: Play, description: 'Amplify through your TikTok presence' },
-  { value: 'twitter', label: 'Twitter Personal Network', icon: Radio, description: 'Leverage your Twitter following and engagement' }
+  {
+    value: 'spotify',
+    label: 'Spotify Personal Network',
+    icon: Music,
+    description: 'Use your Spotify for Artists profile for organic promotion',
+  },
+  {
+    value: 'youtube',
+    label: 'YouTube Channel Network',
+    icon: Tv,
+    description: 'Leverage your YouTube channel for cross-promotion',
+  },
+  {
+    value: 'instagram',
+    label: 'Instagram Profile Power',
+    icon: Users,
+    description: 'Transform your Instagram into a promotional hub',
+  },
+  {
+    value: 'facebook',
+    label: 'Facebook Profile Amplification',
+    icon: Users,
+    description: 'Use your Facebook profile and connections',
+  },
+  {
+    value: 'tiktok',
+    label: 'TikTok Personal Brand',
+    icon: Play,
+    description: 'Amplify through your TikTok presence',
+  },
+  {
+    value: 'twitter',
+    label: 'Twitter Personal Network',
+    icon: Radio,
+    description: 'Leverage your Twitter following and engagement',
+  },
 ];
 
 const musicInterests = [
-  'Hip Hop', 'Pop', 'R&B', 'Rock', 'Electronic', 'Country',
-  'Jazz', 'Classical', 'Reggae', 'Alternative', 'Indie', 'Folk'
+  'Hip Hop',
+  'Pop',
+  'R&B',
+  'Rock',
+  'Electronic',
+  'Country',
+  'Jazz',
+  'Classical',
+  'Reggae',
+  'Alternative',
+  'Indie',
+  'Folk',
 ];
 
 export default function CreateAdDialog({ open, onOpenChange }: CreateAdDialogProps) {
   const { toast } = useToast();
   const { createCampaign, isCreating } = useAdvertisement();
-  
+
   const [formData, setFormData] = useState({
     name: '',
     objective: '',
@@ -61,8 +107,8 @@ export default function CreateAdDialog({ open, onOpenChange }: CreateAdDialogPro
       ageMax: 65,
       interests: [] as string[],
       locations: [] as string[],
-      platforms: [] as string[]
-    }
+      platforms: [] as string[],
+    },
   });
 
   const handleSubmit = () => {
@@ -86,7 +132,7 @@ export default function CreateAdDialog({ open, onOpenChange }: CreateAdDialogPro
 
     createCampaign(formData);
     onOpenChange(false);
-    
+
     // Reset form
     setFormData({
       name: '',
@@ -98,32 +144,32 @@ export default function CreateAdDialog({ open, onOpenChange }: CreateAdDialogPro
         ageMax: 65,
         interests: [],
         locations: [],
-        platforms: []
-      }
+        platforms: [],
+      },
     });
   };
 
   const toggleInterest = (interest: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       targetAudience: {
         ...prev.targetAudience,
         interests: prev.targetAudience.interests.includes(interest)
-          ? prev.targetAudience.interests.filter(i => i !== interest)
-          : [...prev.targetAudience.interests, interest]
-      }
+          ? prev.targetAudience.interests.filter((i) => i !== interest)
+          : [...prev.targetAudience.interests, interest],
+      },
     }));
   };
 
   const togglePlatform = (platform: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       targetAudience: {
         ...prev.targetAudience,
         platforms: prev.targetAudience.platforms.includes(platform)
-          ? prev.targetAudience.platforms.filter(p => p !== platform)
-          : [...prev.targetAudience.platforms, platform]
-      }
+          ? prev.targetAudience.platforms.filter((p) => p !== platform)
+          : [...prev.targetAudience.platforms, platform],
+      },
     }));
   };
 
@@ -139,7 +185,7 @@ export default function CreateAdDialog({ open, onOpenChange }: CreateAdDialogPro
             Set up an organic campaign that completely bypasses all native advertising platforms
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="campaign-name">Campaign Name</Label>
@@ -147,7 +193,7 @@ export default function CreateAdDialog({ open, onOpenChange }: CreateAdDialogPro
               id="campaign-name"
               placeholder="e.g., Summer Single AI Domination"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
             />
           </div>
 
@@ -162,7 +208,7 @@ export default function CreateAdDialog({ open, onOpenChange }: CreateAdDialogPro
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
                       : 'border-border hover:border-blue-400'
                   }`}
-                  onClick={() => setFormData(prev => ({ ...prev, objective: value }))}
+                  onClick={() => setFormData((prev) => ({ ...prev, objective: value }))}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="text-sm font-medium">{label}</span>
@@ -179,9 +225,7 @@ export default function CreateAdDialog({ open, onOpenChange }: CreateAdDialogPro
                   <div className="text-2xl font-bold text-red-600 line-through opacity-50">
                     ${formData.budget}
                   </div>
-                  <div className="text-lg font-bold text-green-600">
-                    $0 (AI Elimination)
-                  </div>
+                  <div className="text-lg font-bold text-green-600">$0 (AI Elimination)</div>
                   <div className="text-xs text-muted-foreground">
                     AI completely eliminates all advertising costs through organic domination
                   </div>
@@ -193,14 +237,14 @@ export default function CreateAdDialog({ open, onOpenChange }: CreateAdDialogPro
               <div className="space-y-3">
                 <Slider
                   value={[formData.duration]}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, duration: value[0] }))}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, duration: value[0] }))
+                  }
                   max={30}
                   min={1}
                   step={1}
                 />
-                <div className="text-center font-semibold">
-                  {formData.duration} days
-                </div>
+                <div className="text-center font-semibold">{formData.duration} days</div>
               </div>
             </div>
           </div>
@@ -241,10 +285,12 @@ export default function CreateAdDialog({ open, onOpenChange }: CreateAdDialogPro
                 <Label className="text-sm">Min Age: {formData.targetAudience.ageMin}</Label>
                 <Slider
                   value={[formData.targetAudience.ageMin]}
-                  onValueChange={(value) => setFormData(prev => ({
-                    ...prev,
-                    targetAudience: { ...prev.targetAudience, ageMin: value[0] }
-                  }))}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      targetAudience: { ...prev.targetAudience, ageMin: value[0] },
+                    }))
+                  }
                   max={65}
                   min={13}
                   step={1}
@@ -254,10 +300,12 @@ export default function CreateAdDialog({ open, onOpenChange }: CreateAdDialogPro
                 <Label className="text-sm">Max Age: {formData.targetAudience.ageMax}</Label>
                 <Slider
                   value={[formData.targetAudience.ageMax]}
-                  onValueChange={(value) => setFormData(prev => ({
-                    ...prev,
-                    targetAudience: { ...prev.targetAudience, ageMax: value[0] }
-                  }))}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      targetAudience: { ...prev.targetAudience, ageMax: value[0] },
+                    }))
+                  }
                   max={65}
                   min={13}
                   step={1}
@@ -286,10 +334,7 @@ export default function CreateAdDialog({ open, onOpenChange }: CreateAdDialogPro
           </div>
 
           <div className="flex justify-end space-x-3">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button

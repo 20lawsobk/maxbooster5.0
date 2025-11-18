@@ -27,9 +27,9 @@ export default function RegisterSuccess() {
   useEffect(() => {
     if (!sessionId) {
       toast({
-        title: "Invalid Session",
-        description: "No payment session found. Please try again.",
-        variant: "destructive",
+        title: 'Invalid Session',
+        description: 'No payment session found. Please try again.',
+        variant: 'destructive',
       });
       navigate('/pricing');
       return;
@@ -47,12 +47,12 @@ export default function RegisterSuccess() {
         // We'll verify the session exists and payment was successful on form submit
         setPaymentValid(true);
         setIsVerifying(false);
-      } catch (error) {
+      } catch (error: unknown) {
         setIsVerifying(false);
         toast({
-          title: "Payment Verification Failed",
-          description: "Unable to verify your payment. Please contact support.",
-          variant: "destructive",
+          title: 'Payment Verification Failed',
+          description: 'Unable to verify your payment. Please contact support.',
+          variant: 'destructive',
         });
         navigate('/pricing');
       }
@@ -67,37 +67,37 @@ export default function RegisterSuccess() {
 
     try {
       if (password !== confirmPassword) {
-        throw new Error("Passwords do not match");
+        throw new Error('Passwords do not match');
       }
 
       if (password.length < 6) {
-        throw new Error("Password must be at least 6 characters long");
+        throw new Error('Password must be at least 6 characters long');
       }
 
       // Create account after payment verification
       const response = await apiRequest('POST', '/api/register-after-payment', {
         sessionId,
-        password
+        password,
       });
 
       const data = await response.json();
 
       if (data.user) {
         toast({
-          title: "Welcome to Max Booster!",
-          description: "Your account has been created and your subscription is active.",
+          title: 'Welcome to Max Booster!',
+          description: 'Your account has been created and your subscription is active.',
         });
-        
+
         // Force page reload to update authentication state
         window.location.href = '/dashboard';
       } else {
         throw new Error(data.error || 'Account creation failed');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Account Creation Failed",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive",
+        title: 'Account Creation Failed',
+        description: error.message || 'Something went wrong. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -124,7 +124,9 @@ export default function RegisterSuccess() {
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Payment Verification Failed</h1>
-            <p className="text-gray-600 mb-6">We couldn't verify your payment. Please try again or contact support.</p>
+            <p className="text-gray-600 mb-6">
+              We couldn't verify your payment. Please try again or contact support.
+            </p>
             <Button onClick={() => navigate('/pricing')} data-testid="button-back-to-pricing">
               Back to Pricing
             </Button>
@@ -155,8 +157,8 @@ export default function RegisterSuccess() {
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">Payment Successful!</CardTitle>
             <p className="text-gray-600 mt-2">
-              Your payment has been processed successfully. 
-              Now create your password to complete your account setup.
+              Your payment has been processed successfully. Now create your password to complete
+              your account setup.
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -167,7 +169,7 @@ export default function RegisterSuccess() {
                   <Input
                     id="password"
                     name="password"
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Create a secure password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -183,22 +185,18 @@ export default function RegisterSuccess() {
                     onClick={() => setShowPassword(!showPassword)}
                     data-testid="button-toggle-password"
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
+                    type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="Confirm your password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -223,8 +221,8 @@ export default function RegisterSuccess() {
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full py-3 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
                 size="lg"
                 disabled={isLoading}

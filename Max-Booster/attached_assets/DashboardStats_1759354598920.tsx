@@ -11,7 +11,7 @@ import {
   Brain,
   Rocket,
   Shield,
-  Crown
+  Crown,
 } from 'lucide-react';
 
 export default function DashboardStats() {
@@ -23,7 +23,7 @@ export default function DashboardStats() {
   const totalClicks = ads.reduce((acc, ad) => acc + ad.clicks, 0);
   const totalConversions = ads.reduce((acc, ad) => acc + ad.conversions, 0);
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
-  const activeCampaigns = ads.filter(ad => ad.status === 'active').length;
+  const activeCampaigns = ads.filter((ad) => ad.status === 'active').length;
 
   const stats = [
     {
@@ -33,7 +33,7 @@ export default function DashboardStats() {
       icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-50 dark:bg-green-950/20',
-      borderColor: 'border-green-200 dark:border-green-800'
+      borderColor: 'border-green-200 dark:border-green-800',
     },
     {
       title: 'Impressions',
@@ -42,7 +42,7 @@ export default function DashboardStats() {
       icon: Eye,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50 dark:bg-blue-950/20',
-      borderColor: 'border-blue-200 dark:border-blue-800'
+      borderColor: 'border-blue-200 dark:border-blue-800',
     },
     {
       title: 'Clicks',
@@ -51,7 +51,7 @@ export default function DashboardStats() {
       icon: MousePointerClick,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50 dark:bg-purple-950/20',
-      borderColor: 'border-purple-200 dark:border-purple-800'
+      borderColor: 'border-purple-200 dark:border-purple-800',
     },
     {
       title: 'Viral Rate',
@@ -60,7 +60,7 @@ export default function DashboardStats() {
       icon: Target,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50 dark:bg-orange-950/20',
-      borderColor: 'border-orange-200 dark:border-orange-800'
+      borderColor: 'border-orange-200 dark:border-orange-800',
     },
     {
       title: 'Active Campaigns',
@@ -69,7 +69,7 @@ export default function DashboardStats() {
       icon: Rocket,
       color: 'text-cyan-600',
       bgColor: 'bg-cyan-50 dark:bg-cyan-950/20',
-      borderColor: 'border-cyan-200 dark:border-cyan-800'
+      borderColor: 'border-cyan-200 dark:border-cyan-800',
     },
     {
       title: 'AI Domination',
@@ -78,8 +78,8 @@ export default function DashboardStats() {
       icon: Crown,
       color: 'text-pink-600',
       bgColor: 'bg-pink-50 dark:bg-pink-950/20',
-      borderColor: 'border-pink-200 dark:border-pink-800'
-    }
+      borderColor: 'border-pink-200 dark:border-pink-800',
+    },
   ];
 
   return (
@@ -87,22 +87,16 @@ export default function DashboardStats() {
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (
-          <Card 
-            key={index} 
+          <Card
+            key={index}
             className={`${stat.bgColor} ${stat.borderColor} border-2 hover:shadow-lg transition-all duration-300`}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
-                    {stat.title}
-                  </p>
-                  <p className={`text-2xl font-bold ${stat.color}`}>
-                    {stat.value}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {stat.subtitle}
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">{stat.title}</p>
+                  <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{stat.subtitle}</p>
                 </div>
                 <div className={`p-3 rounded-full ${stat.bgColor} ${stat.borderColor} border-2`}>
                   <Icon className={`w-6 h-6 ${stat.color}`} />

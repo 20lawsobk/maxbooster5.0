@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { 
-  CheckCircle, 
-  Circle, 
-  X, 
-  ChevronDown, 
+import {
+  CheckCircle,
+  Circle,
+  X,
+  ChevronDown,
   ChevronUp,
   User,
   Sparkles,
@@ -17,7 +17,7 @@ import {
   Gift,
   Zap,
   ArrowRight,
-  HelpCircle
+  HelpCircle,
 } from 'lucide-react';
 import { Link } from 'wouter';
 
@@ -38,10 +38,10 @@ export default function OnboardingChecklist() {
     {
       id: 'create-account',
       title: 'Account Created',
-      description: 'You\'re all set up and ready to go!',
+      description: "You're all set up and ready to go!",
       icon: User,
       completed: true,
-      href: '/settings'
+      href: '/settings',
     },
     {
       id: 'explore-studio',
@@ -49,7 +49,7 @@ export default function OnboardingChecklist() {
       description: 'Create your first AI-powered track',
       icon: Sparkles,
       completed: false,
-      href: '/studio'
+      href: '/studio',
     },
     {
       id: 'generate-content',
@@ -57,7 +57,7 @@ export default function OnboardingChecklist() {
       description: 'Use AI to create social media posts',
       icon: Music,
       completed: false,
-      href: '/social-media'
+      href: '/social-media',
     },
     {
       id: 'connect-social',
@@ -65,7 +65,7 @@ export default function OnboardingChecklist() {
       description: 'Link your social accounts for automation',
       icon: Share2,
       completed: false,
-      href: '/social-media'
+      href: '/social-media',
     },
     {
       id: 'upgrade-account',
@@ -73,29 +73,29 @@ export default function OnboardingChecklist() {
       description: 'Upgrade to access unlimited AI power',
       icon: Crown,
       completed: false,
-      href: '/pricing'
-    }
+      href: '/pricing',
+    },
   ]);
 
   // Load progress from localStorage
   useEffect(() => {
     const savedProgress = localStorage.getItem('onboardingProgress');
     const savedDismissed = localStorage.getItem('onboardingDismissed');
-    
+
     if (savedProgress) {
       try {
         const progress = JSON.parse(savedProgress);
-        setSteps(prevSteps => 
-          prevSteps.map(step => ({
+        setSteps((prevSteps) =>
+          prevSteps.map((step) => ({
             ...step,
-            completed: progress[step.id] || step.completed
+            completed: progress[step.id] || step.completed,
           }))
         );
-      } catch (e) {
-        console.error('Failed to load onboarding progress');
+      } catch (e: unknown) {
+        logger.error('Failed to load onboarding progress');
       }
     }
-    
+
     if (savedDismissed === 'true') {
       setIsDismissed(true);
     }
@@ -103,16 +103,19 @@ export default function OnboardingChecklist() {
 
   // Save progress to localStorage
   const markStepComplete = (stepId: string) => {
-    const newSteps = steps.map(step => 
+    const newSteps = steps.map((step) =>
       step.id === stepId ? { ...step, completed: true } : step
     );
     setSteps(newSteps);
-    
-    const progress = newSteps.reduce((acc, step) => ({
-      ...acc,
-      [step.id]: step.completed
-    }), {});
-    
+
+    const progress = newSteps.reduce(
+      (acc, step) => ({
+        ...acc,
+        [step.id]: step.completed,
+      }),
+      {}
+    );
+
     localStorage.setItem('onboardingProgress', JSON.stringify(progress));
   };
 
@@ -126,14 +129,14 @@ export default function OnboardingChecklist() {
     localStorage.removeItem('onboardingDismissed');
   };
 
-  const completedCount = steps.filter(step => step.completed).length;
+  const completedCount = steps.filter((step) => step.completed).length;
   const progressPercentage = (completedCount / steps.length) * 100;
 
   // Demo mode bonus step
   const bonusStep = {
     icon: Gift,
     title: 'Demo Mode Active',
-    description: 'You\'re exploring Max Booster with full access!'
+    description: "You're exploring Max Booster with full access!",
   };
 
   if (isDismissed) {
@@ -209,11 +212,12 @@ export default function OnboardingChecklist() {
           <div className="space-y-2">
             {steps.map((step) => (
               <Link key={step.id} href={step.href || '#'}>
-                <div 
+                <div
                   className={`flex items-center space-x-3 p-3 rounded-lg transition-all cursor-pointer
-                    ${step.completed 
-                      ? 'bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800' 
-                      : 'bg-gray-50 dark:bg-gray-950/20 hover:bg-gray-100 dark:hover:bg-gray-900/30 border border-gray-200 dark:border-gray-800'
+                    ${
+                      step.completed
+                        ? 'bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800'
+                        : 'bg-gray-50 dark:bg-gray-950/20 hover:bg-gray-100 dark:hover:bg-gray-900/30 border border-gray-200 dark:border-gray-800'
                     }`}
                   onClick={() => !step.completed && markStepComplete(step.id)}
                   data-testid={`checklist-step-${step.id}`}
@@ -226,19 +230,19 @@ export default function OnboardingChecklist() {
                     )}
                   </div>
                   <div className="flex-shrink-0">
-                    <step.icon className={`w-5 h-5 ${step.completed ? 'text-green-600' : 'text-gray-600'}`} />
+                    <step.icon
+                      className={`w-5 h-5 ${step.completed ? 'text-green-600' : 'text-gray-600'}`}
+                    />
                   </div>
                   <div className="flex-1">
-                    <p className={`font-medium text-sm ${step.completed ? 'text-green-900 dark:text-green-100' : ''}`}>
+                    <p
+                      className={`font-medium text-sm ${step.completed ? 'text-green-900 dark:text-green-100' : ''}`}
+                    >
                       {step.title}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {step.description}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{step.description}</p>
                   </div>
-                  {!step.completed && (
-                    <ArrowRight className="w-4 h-4 text-gray-400" />
-                  )}
+                  {!step.completed && <ArrowRight className="w-4 h-4 text-gray-400" />}
                 </div>
               </Link>
             ))}

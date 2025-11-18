@@ -5,7 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
@@ -23,7 +29,7 @@ import {
   Target,
   Sparkles,
   FileAudio,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 
 const LUFS_TARGETS = [
@@ -75,9 +81,12 @@ interface LoudnessAnalysis {
 
 interface AIAssistantPanelProps {
   projectId?: string;
-  onApplyChanges?: (changes: any) => void;
+  onApplyChanges?: (changes: unknown) => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function AIAssistantPanel({ projectId, onApplyChanges }: AIAssistantPanelProps) {
   const { toast } = useToast();
   const [selectedLUFSTarget, setSelectedLUFSTarget] = useState('-14');
@@ -136,7 +145,7 @@ export function AIAssistantPanel({ projectId, onApplyChanges }: AIAssistantPanel
       });
       refetchSuggestions();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Analysis Failed',
         description: error.message || 'Unable to analyze loudness',
@@ -167,7 +176,7 @@ export function AIAssistantPanel({ projectId, onApplyChanges }: AIAssistantPanel
       }
       refetchSuggestions();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Reference Matching Failed',
         description: error.message || 'Unable to match reference track',
@@ -194,7 +203,7 @@ export function AIAssistantPanel({ projectId, onApplyChanges }: AIAssistantPanel
       }
       refetchSuggestions();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Preset Application Failed',
         description: error.message || 'Unable to apply genre preset',
@@ -327,10 +336,7 @@ export function AIAssistantPanel({ projectId, onApplyChanges }: AIAssistantPanel
                         {analyzeLoudnessMutation.data.targetLUFS} LUFS
                       </span>
                     </div>
-                    <Progress
-                      value={analyzeLoudnessMutation.data.confidence}
-                      className="h-2"
-                    />
+                    <Progress value={analyzeLoudnessMutation.data.confidence} className="h-2" />
                     <p className="text-xs text-muted-foreground">
                       Confidence: {analyzeLoudnessMutation.data.confidence}%
                     </p>
@@ -423,9 +429,7 @@ export function AIAssistantPanel({ projectId, onApplyChanges }: AIAssistantPanel
             {applyGenrePresetMutation.isPending && (
               <Alert>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <AlertDescription>
-                  Applying {selectedGenre} preset settings...
-                </AlertDescription>
+                <AlertDescription>Applying {selectedGenre} preset settings...</AlertDescription>
               </Alert>
             )}
           </TabsContent>
@@ -451,7 +455,9 @@ export function AIAssistantPanel({ projectId, onApplyChanges }: AIAssistantPanel
                     <div className="flex-1 space-y-1">
                       <p className="text-sm">{suggestion.message}</p>
                       <div className="flex items-center justify-between">
-                        <p className={`text-xs font-medium ${getConfidenceColor(suggestion.confidence)}`}>
+                        <p
+                          className={`text-xs font-medium ${getConfidenceColor(suggestion.confidence)}`}
+                        >
                           {suggestion.confidence}% confidence
                         </p>
                         {suggestion.action && (

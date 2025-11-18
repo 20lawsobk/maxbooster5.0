@@ -41,7 +41,7 @@ import {
   Info,
   CheckSquare,
   XSquare,
-  MinusSquare
+  MinusSquare,
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -57,7 +57,9 @@ export default function AdminDashboard() {
           <CardContent className="p-6 text-center">
             <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-            <p className="text-gray-600">You don't have permission to access the admin dashboard.</p>
+            <p className="text-gray-600">
+              You don't have permission to access the admin dashboard.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -65,14 +67,22 @@ export default function AdminDashboard() {
   }
 
   // Fetch audit results
-  const { data: auditResults, isLoading: auditLoading, refetch: refetchAudit } = useQuery({
+  const {
+    data: auditResults,
+    isLoading: auditLoading,
+    refetch: refetchAudit,
+  } = useQuery({
     queryKey: ['/api/audit/results'],
     enabled: !!user && user.role === 'admin',
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Fetch testing results
-  const { data: testResults, isLoading: testLoading, refetch: refetchTests } = useQuery({
+  const {
+    data: testResults,
+    isLoading: testLoading,
+    refetch: refetchTests,
+  } = useQuery({
     queryKey: ['/api/testing/results'],
     enabled: !!user && user.role === 'admin',
     refetchInterval: 60000, // Refresh every minute
@@ -95,10 +105,7 @@ export default function AdminDashboard() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([
-        refetchAudit(),
-        refetchTests()
-      ]);
+      await Promise.all([refetchAudit(), refetchTests()]);
     } finally {
       setRefreshing(false);
     }
@@ -129,8 +136,8 @@ export default function AdminDashboard() {
         severity: 'medium',
         title: 'Color Contrast Issue',
         description: 'Some text elements have insufficient color contrast',
-        recommendation: 'Update color scheme to meet WCAG AA standards'
-      }
+        recommendation: 'Update color scheme to meet WCAG AA standards',
+      },
     ],
     recommendations: [
       {
@@ -139,16 +146,16 @@ export default function AdminDashboard() {
         priority: 'low',
         title: 'Image Optimization',
         description: 'Consider implementing WebP format for better performance',
-        action: 'Convert images to WebP format and implement fallbacks'
-      }
+        action: 'Convert images to WebP format and implement fallbacks',
+      },
     ],
     compliance: {
       gdpr: true,
       ccpa: true,
       sox: true,
       hipaa: false,
-      pci: true
-    }
+      pci: true,
+    },
   };
 
   const mockTestResults = {
@@ -168,8 +175,8 @@ export default function AdminDashboard() {
       statements: 95.5,
       branches: 92.3,
       functions: 98.1,
-      lines: 94.7
-    }
+      lines: 94.7,
+    },
   };
 
   const mockSystemMetrics = {
@@ -182,7 +189,7 @@ export default function AdminDashboard() {
     projects: 8945,
     storage: 2.3, // TB
     uptime: 99.97,
-    responseTime: 145 // ms
+    responseTime: 145, // ms
   };
 
   const mockUserAnalytics = {
@@ -195,8 +202,8 @@ export default function AdminDashboard() {
       { country: 'United Kingdom', users: 2345, percentage: 14.9 },
       { country: 'Canada', users: 1234, percentage: 7.9 },
       { country: 'Germany', users: 987, percentage: 6.3 },
-      { country: 'Australia', users: 876, percentage: 5.6 }
-    ]
+      { country: 'Australia', users: 876, percentage: 5.6 },
+    ],
   };
 
   const auditData = auditResults || mockAuditResults;
@@ -218,13 +225,10 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen flex bg-gray-50">
       <Sidebar />
-      
+
       <main className="flex-1">
-        <TopBar 
-          title="Admin Dashboard" 
-          subtitle="System monitoring and management"
-        />
-        
+        <TopBar title="Admin Dashboard" subtitle="System monitoring and management" />
+
         <div className="p-6 space-y-6">
           {/* Header with refresh button */}
           <div className="flex justify-between items-center">
@@ -232,8 +236,8 @@ export default function AdminDashboard() {
               <h1 className="text-2xl font-bold text-gray-900">System Overview</h1>
               <p className="text-gray-600">Monitor system health, security, and performance</p>
             </div>
-            <Button 
-              onClick={handleRefresh} 
+            <Button
+              onClick={handleRefresh}
               disabled={refreshing}
               className="flex items-center space-x-2"
             >
@@ -249,7 +253,9 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-green-700">Audit Score</p>
-                    <p className="text-3xl font-bold text-green-900">{auditData.overallScore}/100</p>
+                    <p className="text-3xl font-bold text-green-900">
+                      {auditData.overallScore}/100
+                    </p>
                     <p className="text-xs text-green-600 mt-1">Security & Compliance</p>
                   </div>
                   <div className={`p-3 rounded-full ${auditHealth.bg}`}>
@@ -294,7 +300,9 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-orange-700">Active Users</p>
-                    <p className="text-3xl font-bold text-orange-900">{metricsData.activeUsers.toLocaleString()}</p>
+                    <p className="text-3xl font-bold text-orange-900">
+                      {metricsData.activeUsers.toLocaleString()}
+                    </p>
                     <p className="text-xs text-orange-600 mt-1">Currently Online</p>
                   </div>
                   <div className="p-3 bg-orange-200 rounded-full">
@@ -380,21 +388,27 @@ export default function AdminDashboard() {
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="text-center p-4 bg-blue-50 rounded-lg">
-                          <p className="text-2xl font-bold text-blue-600">{analyticsData.newUsers}</p>
+                          <p className="text-2xl font-bold text-blue-600">
+                            {analyticsData.newUsers}
+                          </p>
                           <p className="text-sm text-blue-600">New Users Today</p>
                         </div>
                         <div className="text-center p-4 bg-green-50 rounded-lg">
-                          <p className="text-2xl font-bold text-green-600">{analyticsData.totalRevenue.toLocaleString()}</p>
+                          <p className="text-2xl font-bold text-green-600">
+                            {analyticsData.totalRevenue.toLocaleString()}
+                          </p>
                           <p className="text-sm text-green-600">Total Revenue</p>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">Monthly Growth</span>
                           <div className="flex items-center space-x-2">
                             <TrendingUp className="h-4 w-4 text-green-600" />
-                            <span className="text-sm font-bold text-green-600">+{analyticsData.monthlyGrowth}%</span>
+                            <span className="text-sm font-bold text-green-600">
+                              +{analyticsData.monthlyGrowth}%
+                            </span>
                           </div>
                         </div>
                         <Progress value={analyticsData.monthlyGrowth} className="h-2" />
@@ -405,7 +419,9 @@ export default function AdminDashboard() {
                         {analyticsData.topCountries.slice(0, 3).map((country, index) => (
                           <div key={index} className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">{country.country}</span>
-                            <span className="text-sm font-bold">{country.users.toLocaleString()}</span>
+                            <span className="text-sm font-bold">
+                              {country.users.toLocaleString()}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -425,17 +441,50 @@ export default function AdminDashboard() {
                 <CardContent>
                   <div className="space-y-4">
                     {[
-                      { action: 'User registration', user: 'john.doe@example.com', time: '2 minutes ago', type: 'success' },
-                      { action: 'Project uploaded', user: 'jane.smith@example.com', time: '5 minutes ago', type: 'info' },
-                      { action: 'Payment processed', user: 'bob.wilson@example.com', time: '8 minutes ago', type: 'success' },
-                      { action: 'Security scan completed', user: 'System', time: '12 minutes ago', type: 'info' },
-                      { action: 'Database backup', user: 'System', time: '15 minutes ago', type: 'info' }
+                      {
+                        action: 'User registration',
+                        user: 'john.doe@example.com',
+                        time: '2 minutes ago',
+                        type: 'success',
+                      },
+                      {
+                        action: 'Project uploaded',
+                        user: 'jane.smith@example.com',
+                        time: '5 minutes ago',
+                        type: 'info',
+                      },
+                      {
+                        action: 'Payment processed',
+                        user: 'bob.wilson@example.com',
+                        time: '8 minutes ago',
+                        type: 'success',
+                      },
+                      {
+                        action: 'Security scan completed',
+                        user: 'System',
+                        time: '12 minutes ago',
+                        type: 'info',
+                      },
+                      {
+                        action: 'Database backup',
+                        user: 'System',
+                        time: '15 minutes ago',
+                        type: 'info',
+                      },
                     ].map((activity, index) => (
-                      <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                        <div className={`w-2 h-2 rounded-full ${
-                          activity.type === 'success' ? 'bg-green-500' : 
-                          activity.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-                        }`} />
+                      <div
+                        key={index}
+                        className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            activity.type === 'success'
+                              ? 'bg-green-500'
+                              : activity.type === 'error'
+                                ? 'bg-red-500'
+                                : 'bg-blue-500'
+                          }`}
+                        />
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900">{activity.action}</p>
                           <p className="text-xs text-gray-500">{activity.user}</p>
@@ -463,11 +512,15 @@ export default function AdminDashboard() {
                     <div className="space-y-4">
                       {[
                         { name: 'Security', score: auditData.securityScore, icon: Shield },
-                        { name: 'Functionality', score: auditData.functionalityScore, icon: CheckCircle },
+                        {
+                          name: 'Functionality',
+                          score: auditData.functionalityScore,
+                          icon: CheckCircle,
+                        },
                         { name: 'Performance', score: auditData.performanceScore, icon: Zap },
                         { name: 'Code Quality', score: auditData.codeQualityScore, icon: FileText },
                         { name: 'Accessibility', score: auditData.accessibilityScore, icon: Eye },
-                        { name: 'SEO', score: auditData.seoScore, icon: Target }
+                        { name: 'SEO', score: auditData.seoScore, icon: Target },
                       ].map((item, index) => {
                         const health = getHealthStatus(item.score);
                         return (
@@ -477,7 +530,9 @@ export default function AdminDashboard() {
                                 <item.icon className="h-5 w-5 text-gray-600" />
                                 <span className="text-sm font-medium">{item.name}</span>
                               </div>
-                              <span className={`text-sm font-bold ${health.color}`}>{item.score}/100</span>
+                              <span className={`text-sm font-bold ${health.color}`}>
+                                {item.score}/100
+                              </span>
                             </div>
                             <Progress value={item.score} className="h-2" />
                           </div>
@@ -500,11 +555,16 @@ export default function AdminDashboard() {
                     <CardContent>
                       <div className="space-y-3">
                         {auditData.issues.map((issue, index) => (
-                          <Alert key={index} className={`${
-                            issue.severity === 'critical' ? 'border-red-200 bg-red-50' :
-                            issue.severity === 'high' ? 'border-orange-200 bg-orange-50' :
-                            'border-yellow-200 bg-yellow-50'
-                          }`}>
+                          <Alert
+                            key={index}
+                            className={`${
+                              issue.severity === 'critical'
+                                ? 'border-red-200 bg-red-50'
+                                : issue.severity === 'high'
+                                  ? 'border-orange-200 bg-orange-50'
+                                  : 'border-yellow-200 bg-yellow-50'
+                            }`}
+                          >
                             <AlertTriangle className="h-4 w-4" />
                             <AlertDescription>
                               <div>
@@ -538,7 +598,10 @@ export default function AdminDashboard() {
                     <CardContent>
                       <div className="space-y-3">
                         {auditData.recommendations.map((rec, index) => (
-                          <div key={index} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <div
+                            key={index}
+                            className="p-3 bg-blue-50 rounded-lg border border-blue-200"
+                          >
                             <p className="font-medium text-gray-900">{rec.title}</p>
                             <p className="text-sm text-gray-600 mt-1">{rec.description}</p>
                             <Badge variant="outline" className="mt-2">
@@ -574,11 +637,23 @@ export default function AdminDashboard() {
                     <div className="space-y-4">
                       {[
                         { name: 'Unit Tests', score: testData.unitTestScore, icon: CheckSquare },
-                        { name: 'Integration Tests', score: testData.integrationTestScore, icon: CheckSquare },
+                        {
+                          name: 'Integration Tests',
+                          score: testData.integrationTestScore,
+                          icon: CheckSquare,
+                        },
                         { name: 'E2E Tests', score: testData.e2eTestScore, icon: CheckSquare },
-                        { name: 'Performance Tests', score: testData.performanceTestScore, icon: Zap },
+                        {
+                          name: 'Performance Tests',
+                          score: testData.performanceTestScore,
+                          icon: Zap,
+                        },
                         { name: 'Security Tests', score: testData.securityTestScore, icon: Shield },
-                        { name: 'Accessibility Tests', score: testData.accessibilityTestScore, icon: Eye }
+                        {
+                          name: 'Accessibility Tests',
+                          score: testData.accessibilityTestScore,
+                          icon: Eye,
+                        },
                       ].map((item, index) => {
                         const health = getHealthStatus(item.score);
                         return (
@@ -588,7 +663,9 @@ export default function AdminDashboard() {
                                 <item.icon className="h-5 w-5 text-gray-600" />
                                 <span className="text-sm font-medium">{item.name}</span>
                               </div>
-                              <span className={`text-sm font-bold ${health.color}`}>{item.score}/100</span>
+                              <span className={`text-sm font-bold ${health.color}`}>
+                                {item.score}/100
+                              </span>
                             </div>
                             <Progress value={item.score} className="h-2" />
                           </div>
@@ -610,11 +687,15 @@ export default function AdminDashboard() {
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="text-center p-4 bg-green-50 rounded-lg">
-                          <p className="text-2xl font-bold text-green-600">{testData.totalTests.toLocaleString()}</p>
+                          <p className="text-2xl font-bold text-green-600">
+                            {testData.totalTests.toLocaleString()}
+                          </p>
                           <p className="text-sm text-green-600">Total Tests</p>
                         </div>
                         <div className="text-center p-4 bg-blue-50 rounded-lg">
-                          <p className="text-2xl font-bold text-blue-600">{testData.passedTests.toLocaleString()}</p>
+                          <p className="text-2xl font-bold text-blue-600">
+                            {testData.passedTests.toLocaleString()}
+                          </p>
                           <p className="text-sm text-blue-600">Passed</p>
                         </div>
                       </div>
@@ -661,17 +742,23 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="text-center p-6 bg-green-50 rounded-lg">
                       <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                      <p className="text-2xl font-bold text-green-600">{testData.passedTests.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {testData.passedTests.toLocaleString()}
+                      </p>
                       <p className="text-sm text-green-600">Passed Tests</p>
                     </div>
                     <div className="text-center p-6 bg-red-50 rounded-lg">
                       <XCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-                      <p className="text-2xl font-bold text-red-600">{testData.failedTests.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-red-600">
+                        {testData.failedTests.toLocaleString()}
+                      </p>
                       <p className="text-sm text-red-600">Failed Tests</p>
                     </div>
                     <div className="text-center p-6 bg-gray-50 rounded-lg">
                       <MinusSquare className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                      <p className="text-2xl font-bold text-gray-600">{testData.skippedTests.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-gray-600">
+                        {testData.skippedTests.toLocaleString()}
+                      </p>
                       <p className="text-sm text-gray-600">Skipped Tests</p>
                     </div>
                   </div>
@@ -694,9 +781,14 @@ export default function AdminDashboard() {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">Response Time</span>
-                        <span className="text-sm font-bold text-green-600">{metricsData.responseTime}ms</span>
+                        <span className="text-sm font-bold text-green-600">
+                          {metricsData.responseTime}ms
+                        </span>
                       </div>
-                      <Progress value={Math.max(0, 100 - (metricsData.responseTime / 5))} className="h-2" />
+                      <Progress
+                        value={Math.max(0, 100 - metricsData.responseTime / 5)}
+                        className="h-2"
+                      />
 
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">CPU Usage</span>
@@ -731,17 +823,23 @@ export default function AdminDashboard() {
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="text-center p-4 bg-blue-50 rounded-lg">
-                          <p className="text-2xl font-bold text-blue-600">{metricsData.totalUsers.toLocaleString()}</p>
+                          <p className="text-2xl font-bold text-blue-600">
+                            {metricsData.totalUsers.toLocaleString()}
+                          </p>
                           <p className="text-sm text-blue-600">Total Users</p>
                         </div>
                         <div className="text-center p-4 bg-green-50 rounded-lg">
-                          <p className="text-2xl font-bold text-green-600">{metricsData.projects.toLocaleString()}</p>
+                          <p className="text-2xl font-bold text-green-600">
+                            {metricsData.projects.toLocaleString()}
+                          </p>
                           <p className="text-sm text-green-600">Projects</p>
                         </div>
                       </div>
 
                       <div className="text-center p-4 bg-purple-50 rounded-lg">
-                        <p className="text-2xl font-bold text-purple-600">{metricsData.storage} TB</p>
+                        <p className="text-2xl font-bold text-purple-600">
+                          {metricsData.storage} TB
+                        </p>
                         <p className="text-sm text-purple-600">Storage Used</p>
                       </div>
 
@@ -768,17 +866,23 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="text-center p-6 bg-blue-50 rounded-lg">
                       <Users className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                      <p className="text-2xl font-bold text-blue-600">{analyticsData.totalUsers.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {analyticsData.totalUsers.toLocaleString()}
+                      </p>
                       <p className="text-sm text-blue-600">Total Users</p>
                     </div>
                     <div className="text-center p-6 bg-green-50 rounded-lg">
                       <Activity className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                      <p className="text-2xl font-bold text-green-600">{analyticsData.activeUsers.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {analyticsData.activeUsers.toLocaleString()}
+                      </p>
                       <p className="text-sm text-green-600">Active Users</p>
                     </div>
                     <div className="text-center p-6 bg-purple-50 rounded-lg">
                       <TrendingUp className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-                      <p className="text-2xl font-bold text-purple-600">+{analyticsData.monthlyGrowth}%</p>
+                      <p className="text-2xl font-bold text-purple-600">
+                        +{analyticsData.monthlyGrowth}%
+                      </p>
                       <p className="text-sm text-purple-600">Monthly Growth</p>
                     </div>
                   </div>
@@ -798,15 +902,40 @@ export default function AdminDashboard() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[
-                      { name: 'GDPR', status: auditData.compliance.gdpr, description: 'General Data Protection Regulation' },
-                      { name: 'CCPA', status: auditData.compliance.ccpa, description: 'California Consumer Privacy Act' },
-                      { name: 'SOX', status: auditData.compliance.sox, description: 'Sarbanes-Oxley Act' },
-                      { name: 'HIPAA', status: auditData.compliance.hipaa, description: 'Health Insurance Portability and Accountability Act' },
-                      { name: 'PCI DSS', status: auditData.compliance.pci, description: 'Payment Card Industry Data Security Standard' }
+                      {
+                        name: 'GDPR',
+                        status: auditData.compliance.gdpr,
+                        description: 'General Data Protection Regulation',
+                      },
+                      {
+                        name: 'CCPA',
+                        status: auditData.compliance.ccpa,
+                        description: 'California Consumer Privacy Act',
+                      },
+                      {
+                        name: 'SOX',
+                        status: auditData.compliance.sox,
+                        description: 'Sarbanes-Oxley Act',
+                      },
+                      {
+                        name: 'HIPAA',
+                        status: auditData.compliance.hipaa,
+                        description: 'Health Insurance Portability and Accountability Act',
+                      },
+                      {
+                        name: 'PCI DSS',
+                        status: auditData.compliance.pci,
+                        description: 'Payment Card Industry Data Security Standard',
+                      },
                     ].map((compliance, index) => (
-                      <div key={index} className={`p-6 rounded-lg border-2 ${
-                        compliance.status ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-                      }`}>
+                      <div
+                        key={index}
+                        className={`p-6 rounded-lg border-2 ${
+                          compliance.status
+                            ? 'bg-green-50 border-green-200'
+                            : 'bg-red-50 border-red-200'
+                        }`}
+                      >
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="font-semibold text-gray-900">{compliance.name}</h3>
                           {compliance.status ? (
@@ -816,9 +945,13 @@ export default function AdminDashboard() {
                           )}
                         </div>
                         <p className="text-sm text-gray-600">{compliance.description}</p>
-                        <Badge className={`mt-3 ${
-                          compliance.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <Badge
+                          className={`mt-3 ${
+                            compliance.status
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
                           {compliance.status ? 'Compliant' : 'Non-Compliant'}
                         </Badge>
                       </div>

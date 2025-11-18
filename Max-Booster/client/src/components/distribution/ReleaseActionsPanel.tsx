@@ -38,16 +38,16 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  MoreVertical, 
-  Eye, 
-  Edit, 
-  Copy, 
-  Trash2, 
+import {
+  MoreVertical,
+  Eye,
+  Edit,
+  Copy,
+  Trash2,
   AlertTriangle,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
 } from 'lucide-react';
 
 interface ReleaseActionsPanelProps {
@@ -66,27 +66,52 @@ interface ReleaseActionsPanelProps {
 
 const TAKEDOWN_REASONS = [
   { value: 'rights_issue', label: 'Rights Issue', description: 'Copyright or licensing problem' },
-  { value: 'quality_issue', label: 'Quality Issue', description: 'Audio or metadata quality problem' },
-  { value: 'artist_request', label: 'Requested by Artist', description: 'Artist wants to remove release' },
-  { value: 'contract_dispute', label: 'Contract Dispute', description: 'Legal or contractual issue' },
-  { value: 'duplicate', label: 'Duplicate Release', description: 'Release was uploaded multiple times' },
+  {
+    value: 'quality_issue',
+    label: 'Quality Issue',
+    description: 'Audio or metadata quality problem',
+  },
+  {
+    value: 'artist_request',
+    label: 'Requested by Artist',
+    description: 'Artist wants to remove release',
+  },
+  {
+    value: 'contract_dispute',
+    label: 'Contract Dispute',
+    description: 'Legal or contractual issue',
+  },
+  {
+    value: 'duplicate',
+    label: 'Duplicate Release',
+    description: 'Release was uploaded multiple times',
+  },
   { value: 'other', label: 'Other', description: 'Other reason not listed' },
 ];
 
 const PLATFORM_NAMES: Record<string, string> = {
-  'spotify': 'Spotify',
+  spotify: 'Spotify',
   'apple-music': 'Apple Music',
   'youtube-music': 'YouTube Music',
   'amazon-music': 'Amazon Music',
-  'tidal': 'TIDAL',
-  'deezer': 'Deezer',
-  'soundcloud': 'SoundCloud',
+  tidal: 'TIDAL',
+  deezer: 'Deezer',
+  soundcloud: 'SoundCloud',
 };
 
-export function ReleaseActionsPanel({ release, onView, onEdit, onDuplicate, onDelete }: ReleaseActionsPanelProps) {
+/**
+ * TODO: Add function documentation
+ */
+export function ReleaseActionsPanel({
+  release,
+  onView,
+  onEdit,
+  onDuplicate,
+  onDelete,
+}: ReleaseActionsPanelProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [showTakedownDialog, setShowTakedownDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [takedownReason, setTakedownReason] = useState('');
@@ -101,12 +126,16 @@ export function ReleaseActionsPanel({ release, onView, onEdit, onDuplicate, onDe
         throw new Error('Please select a reason for takedown');
       }
 
-      const response = await apiRequest('POST', `/api/distribution/releases/${release.id}/takedown`, {
-        reason: takedownReason,
-        explanation: takedownExplanation,
-        platforms: takedownAllPlatforms ? undefined : selectedPlatforms,
-        allPlatforms: takedownAllPlatforms,
-      });
+      const response = await apiRequest(
+        'POST',
+        `/api/distribution/releases/${release.id}/takedown`,
+        {
+          reason: takedownReason,
+          explanation: takedownExplanation,
+          platforms: takedownAllPlatforms ? undefined : selectedPlatforms,
+          allPlatforms: takedownAllPlatforms,
+        }
+      );
       return response.json();
     },
     onSuccess: () => {
@@ -118,7 +147,7 @@ export function ReleaseActionsPanel({ release, onView, onEdit, onDuplicate, onDe
       setShowTakedownDialog(false);
       resetTakedownForm();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Takedown failed',
         description: error.message || 'Failed to request takedown. Please try again.',
@@ -167,10 +196,8 @@ export function ReleaseActionsPanel({ release, onView, onEdit, onDuplicate, onDe
   };
 
   const togglePlatform = (platform: string) => {
-    setSelectedPlatforms(prev =>
-      prev.includes(platform)
-        ? prev.filter(p => p !== platform)
-        : [...prev, platform]
+    setSelectedPlatforms((prev) =>
+      prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]
     );
   };
 
@@ -187,7 +214,7 @@ export function ReleaseActionsPanel({ release, onView, onEdit, onDuplicate, onDe
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          
+
           {release.status === 'draft' && (
             <DropdownMenuItem onClick={onEdit}>
               <Edit className="h-4 w-4 mr-2" />
@@ -228,7 +255,8 @@ export function ReleaseActionsPanel({ release, onView, onEdit, onDuplicate, onDe
           <DialogHeader>
             <DialogTitle>Request Release Takedown</DialogTitle>
             <DialogDescription>
-              Remove your release from distribution platforms. This action typically takes 7-14 days to complete.
+              Remove your release from distribution platforms. This action typically takes 7-14 days
+              to complete.
             </DialogDescription>
           </DialogHeader>
 
@@ -266,10 +294,7 @@ export function ReleaseActionsPanel({ release, onView, onEdit, onDuplicate, onDe
                           checked={selectedPlatforms.includes(platform)}
                           onCheckedChange={() => togglePlatform(platform)}
                         />
-                        <label
-                          htmlFor={`platform-${platform}`}
-                          className="text-sm leading-none"
-                        >
+                        <label htmlFor={`platform-${platform}`} className="text-sm leading-none">
                           {PLATFORM_NAMES[platform] || platform}
                         </label>
                       </div>
@@ -366,7 +391,8 @@ export function ReleaseActionsPanel({ release, onView, onEdit, onDuplicate, onDe
               {release.status !== 'draft' && (
                 <span className="block mt-2 text-yellow-600">
                   <AlertTriangle className="h-4 w-4 inline mr-1" />
-                  Warning: This release is already distributed. Consider requesting a takedown instead.
+                  Warning: This release is already distributed. Consider requesting a takedown
+                  instead.
                 </span>
               )}
               <span className="block mt-2 font-medium">This action cannot be undone.</span>

@@ -23,11 +23,14 @@ interface PluginCatalogResponse {
 interface StudioBrowserProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
-  onFileSelect?: (file: any) => void;
-  recentFiles?: any[];
-  samples?: any[];
+  onFileSelect?: (file: unknown) => void;
+  recentFiles?: unknown[];
+  samples?: unknown[];
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function StudioBrowser({
   collapsed,
   onToggleCollapse,
@@ -46,38 +49,50 @@ export function StudioBrowser({
   // Filter and combine effect plugins (eq, dynamics, reverb, delay, modulation, distortion, filter, utility)
   const effectPlugins = useMemo(() => {
     if (!pluginCatalog) return [];
-    
-    const effectKinds = ['eq', 'dynamics', 'reverb', 'delay', 'modulation', 'distortion', 'filter', 'utility'];
+
+    const effectKinds = [
+      'eq',
+      'dynamics',
+      'reverb',
+      'delay',
+      'modulation',
+      'distortion',
+      'filter',
+      'utility',
+    ];
     const plugins: Plugin[] = [];
-    
-    effectKinds.forEach(kind => {
+
+    effectKinds.forEach((kind) => {
       if (pluginCatalog[kind]) {
         plugins.push(...pluginCatalog[kind]);
       }
     });
-    
+
     return plugins;
   }, [pluginCatalog]);
 
   // Filter instrument plugins (synth, sampler)
   const instrumentPlugins = useMemo(() => {
     if (!pluginCatalog) return [];
-    
+
     const instrumentKinds = ['synth', 'sampler'];
     const plugins: Plugin[] = [];
-    
-    instrumentKinds.forEach(kind => {
+
+    instrumentKinds.forEach((kind) => {
       if (pluginCatalog[kind]) {
         plugins.push(...pluginCatalog[kind]);
       }
     });
-    
+
     return plugins;
   }, [pluginCatalog]);
 
   if (collapsed) {
     return (
-      <div className="h-full flex flex-col items-center py-4" style={{ backgroundColor: 'var(--studio-inspector)' }}>
+      <div
+        className="h-full flex flex-col items-center py-4"
+        style={{ backgroundColor: 'var(--studio-inspector)' }}
+      >
         <Button
           size="sm"
           variant="ghost"
@@ -88,9 +103,9 @@ export function StudioBrowser({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <div 
+        <div
           className="text-xs font-medium rotate-180 mb-auto mt-4"
-          style={{ 
+          style={{
             writingMode: 'vertical-rl',
             color: 'var(--studio-text-muted)',
           }}
@@ -104,7 +119,10 @@ export function StudioBrowser({
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--studio-inspector)' }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b" style={{ borderColor: 'var(--studio-border)' }}>
+      <div
+        className="flex items-center justify-between p-3 border-b"
+        style={{ borderColor: 'var(--studio-border)' }}
+      >
         <h3 className="text-sm font-semibold" style={{ color: 'var(--studio-text)' }}>
           Browser
         </h3>
@@ -123,7 +141,10 @@ export function StudioBrowser({
       {/* Search */}
       <div className="p-3">
         <div className="relative">
-          <Search className="absolute left-2 top-2.5 h-4 w-4" style={{ color: 'var(--studio-text-muted)' }} />
+          <Search
+            className="absolute left-2 top-2.5 h-4 w-4"
+            style={{ color: 'var(--studio-text-muted)' }}
+          />
           <Input
             placeholder="Search files..."
             value={searchQuery}
@@ -141,15 +162,15 @@ export function StudioBrowser({
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList 
-          className="w-full grid grid-cols-4 rounded-none border-b h-10" 
-          style={{ 
+        <TabsList
+          className="w-full grid grid-cols-4 rounded-none border-b h-10"
+          style={{
             backgroundColor: 'var(--studio-bg-medium)',
             borderColor: 'var(--studio-border)',
           }}
         >
-          <TabsTrigger 
-            value="files" 
+          <TabsTrigger
+            value="files"
             className="text-xs data-[state=active]:bg-transparent"
             style={{
               color: 'var(--studio-text-muted)',
@@ -159,8 +180,8 @@ export function StudioBrowser({
             <File className="h-3.5 w-3.5 mr-1" />
             Files
           </TabsTrigger>
-          <TabsTrigger 
-            value="plugins" 
+          <TabsTrigger
+            value="plugins"
             className="text-xs data-[state=active]:bg-transparent"
             style={{
               color: 'var(--studio-text-muted)',
@@ -170,8 +191,8 @@ export function StudioBrowser({
             <Zap className="h-3.5 w-3.5 mr-1" />
             FX
           </TabsTrigger>
-          <TabsTrigger 
-            value="instruments" 
+          <TabsTrigger
+            value="instruments"
             className="text-xs data-[state=active]:bg-transparent"
             style={{
               color: 'var(--studio-text-muted)',
@@ -181,8 +202,8 @@ export function StudioBrowser({
             <Music className="h-3.5 w-3.5 mr-1" />
             Inst
           </TabsTrigger>
-          <TabsTrigger 
-            value="loops" 
+          <TabsTrigger
+            value="loops"
             className="text-xs data-[state=active]:bg-transparent"
             style={{
               color: 'var(--studio-text-muted)',
@@ -199,9 +220,9 @@ export function StudioBrowser({
             <div className="p-3 space-y-1">
               {recentFiles.length > 0 ? (
                 recentFiles
-                  .filter(file => 
-                    !searchQuery || 
-                    file.name?.toLowerCase().includes(searchQuery.toLowerCase())
+                  .filter(
+                    (file) =>
+                      !searchQuery || file.name?.toLowerCase().includes(searchQuery.toLowerCase())
                   )
                   .map((file, index) => (
                     <button
@@ -242,18 +263,24 @@ export function StudioBrowser({
             <div className="p-3 space-y-1">
               {isLoadingPlugins ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-5 w-5 animate-spin" style={{ color: 'var(--studio-text-muted)' }} />
+                  <Loader2
+                    className="h-5 w-5 animate-spin"
+                    style={{ color: 'var(--studio-text-muted)' }}
+                  />
                   <span className="ml-2 text-sm" style={{ color: 'var(--studio-text-muted)' }}>
                     Loading effects...
                   </span>
                 </div>
               ) : effectPlugins.length > 0 ? (
                 effectPlugins
-                  .filter(plugin => 
-                    !searchQuery || 
-                    plugin.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    plugin.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    plugin.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .filter(
+                    (plugin) =>
+                      !searchQuery ||
+                      plugin.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      plugin.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      plugin.tags?.some((tag) =>
+                        tag.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
                   )
                   .map((plugin, index) => (
                     <button
@@ -274,10 +301,16 @@ export function StudioBrowser({
                     >
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <Zap className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--studio-text-muted)' }} />
+                          <Zap
+                            className="h-4 w-4 flex-shrink-0"
+                            style={{ color: 'var(--studio-text-muted)' }}
+                          />
                           <span className="truncate font-medium">{plugin.name}</span>
                         </div>
-                        <div className="ml-6 flex items-center gap-2 text-xs" style={{ color: 'var(--studio-text-muted)' }}>
+                        <div
+                          className="ml-6 flex items-center gap-2 text-xs"
+                          style={{ color: 'var(--studio-text-muted)' }}
+                        >
                           <span>{plugin.manufacturer}</span>
                           {plugin.tags && plugin.tags.length > 0 && (
                             <>
@@ -305,18 +338,24 @@ export function StudioBrowser({
             <div className="p-3 space-y-1">
               {isLoadingPlugins ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-5 w-5 animate-spin" style={{ color: 'var(--studio-text-muted)' }} />
+                  <Loader2
+                    className="h-5 w-5 animate-spin"
+                    style={{ color: 'var(--studio-text-muted)' }}
+                  />
                   <span className="ml-2 text-sm" style={{ color: 'var(--studio-text-muted)' }}>
                     Loading instruments...
                   </span>
                 </div>
               ) : instrumentPlugins.length > 0 ? (
                 instrumentPlugins
-                  .filter(plugin => 
-                    !searchQuery || 
-                    plugin.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    plugin.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    plugin.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .filter(
+                    (plugin) =>
+                      !searchQuery ||
+                      plugin.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      plugin.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      plugin.tags?.some((tag) =>
+                        tag.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
                   )
                   .map((plugin, index) => (
                     <button
@@ -337,10 +376,16 @@ export function StudioBrowser({
                     >
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <Music className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--studio-text-muted)' }} />
+                          <Music
+                            className="h-4 w-4 flex-shrink-0"
+                            style={{ color: 'var(--studio-text-muted)' }}
+                          />
                           <span className="truncate font-medium">{plugin.name}</span>
                         </div>
-                        <div className="ml-6 flex items-center gap-2 text-xs" style={{ color: 'var(--studio-text-muted)' }}>
+                        <div
+                          className="ml-6 flex items-center gap-2 text-xs"
+                          style={{ color: 'var(--studio-text-muted)' }}
+                        >
                           <span>{plugin.manufacturer}</span>
                           {plugin.tags && plugin.tags.length > 0 && (
                             <>
@@ -368,9 +413,9 @@ export function StudioBrowser({
             <div className="p-3 space-y-1">
               {samples.length > 0 ? (
                 samples
-                  .filter(sample => 
-                    !searchQuery || 
-                    sample.name?.toLowerCase().includes(searchQuery.toLowerCase())
+                  .filter(
+                    (sample) =>
+                      !searchQuery || sample.name?.toLowerCase().includes(searchQuery.toLowerCase())
                   )
                   .map((sample, index) => (
                     <button

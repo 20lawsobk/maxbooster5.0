@@ -11,57 +11,62 @@ interface KeyboardShortcut {
   preventDefault?: boolean;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled = true) {
   const shortcutsRef = useRef(shortcuts);
-  
+
   useEffect(() => {
     shortcutsRef.current = shortcuts;
   }, [shortcuts]);
-  
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (!enabled) return;
-    
-    // Don't handle shortcuts when typing in input fields
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || 
-        target.tagName === 'TEXTAREA' || 
-        target.contentEditable === 'true') {
-      return;
-    }
-    
-    for (const shortcut of shortcutsRef.current) {
-      const ctrlMatch = shortcut.ctrl === undefined || shortcut.ctrl === (e.ctrlKey || e.metaKey);
-      const shiftMatch = shortcut.shift === undefined || shortcut.shift === e.shiftKey;
-      const altMatch = shortcut.alt === undefined || shortcut.alt === e.altKey;
-      const metaMatch = shortcut.meta === undefined || shortcut.meta === e.metaKey;
-      const keyMatch = shortcut.key.toLowerCase() === e.key.toLowerCase();
-      
-      if (keyMatch && ctrlMatch && shiftMatch && altMatch && metaMatch) {
-        if (shortcut.preventDefault !== false) {
-          e.preventDefault();
-        }
-        shortcut.handler();
-        break;
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!enabled) return;
+
+      // Don't handle shortcuts when typing in input fields
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.contentEditable === 'true'
+      ) {
+        return;
       }
-    }
-  }, [enabled]);
-  
+
+      for (const shortcut of shortcutsRef.current) {
+        const ctrlMatch = shortcut.ctrl === undefined || shortcut.ctrl === (e.ctrlKey || e.metaKey);
+        const shiftMatch = shortcut.shift === undefined || shortcut.shift === e.shiftKey;
+        const altMatch = shortcut.alt === undefined || shortcut.alt === e.altKey;
+        const metaMatch = shortcut.meta === undefined || shortcut.meta === e.metaKey;
+        const keyMatch = shortcut.key.toLowerCase() === e.key.toLowerCase();
+
+        if (keyMatch && ctrlMatch && shiftMatch && altMatch && metaMatch) {
+          if (shortcut.preventDefault !== false) {
+            e.preventDefault();
+          }
+          shortcut.handler();
+          break;
+        }
+      }
+    },
+    [enabled]
+  );
+
   useEffect(() => {
     if (enabled) {
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }
   }, [handleKeyDown, enabled]);
-  
-  return shortcuts.map(s => ({
+
+  return shortcuts.map((s) => ({
     key: s.key,
     description: s.description || '',
-    modifiers: [
-      s.ctrl && 'Ctrl',
-      s.shift && 'Shift',
-      s.alt && 'Alt',
-      s.meta && 'Cmd'
-    ].filter(Boolean).join('+')
+    modifiers: [s.ctrl && 'Ctrl', s.shift && 'Shift', s.alt && 'Alt', s.meta && 'Cmd']
+      .filter(Boolean)
+      .join('+'),
   }));
 }
 

@@ -1,7 +1,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Plus, Trash2 } from 'lucide-react';
@@ -20,18 +26,17 @@ interface LyricsEditorProps {
   onChange: (lyrics: LyricsData[]) => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function LyricsEditor({ tracks, lyricsData, onChange }: LyricsEditorProps) {
   const updateLyrics = (trackNumber: number, updates: Partial<LyricsData>) => {
-    const existing = lyricsData.find(l => l.trackNumber === trackNumber);
-    
+    const existing = lyricsData.find((l) => l.trackNumber === trackNumber);
+
     if (existing) {
-      onChange(
-        lyricsData.map(l =>
-          l.trackNumber === trackNumber ? { ...l, ...updates } : l
-        )
-      );
+      onChange(lyricsData.map((l) => (l.trackNumber === trackNumber ? { ...l, ...updates } : l)));
     } else {
-      const track = tracks.find(t => t.trackNumber === trackNumber);
+      const track = tracks.find((t) => t.trackNumber === trackNumber);
       if (track) {
         onChange([
           ...lyricsData,
@@ -41,19 +46,19 @@ export function LyricsEditor({ tracks, lyricsData, onChange }: LyricsEditorProps
             lyrics: '',
             language: 'English',
             hasExplicitContent: false,
-            ...updates
-          }
+            ...updates,
+          },
         ]);
       }
     }
   };
 
   const removeLyrics = (trackNumber: number) => {
-    onChange(lyricsData.filter(l => l.trackNumber !== trackNumber));
+    onChange(lyricsData.filter((l) => l.trackNumber !== trackNumber));
   };
 
   const getLyricsForTrack = (trackNumber: number): LyricsData | undefined => {
-    return lyricsData.find(l => l.trackNumber === trackNumber);
+    return lyricsData.find((l) => l.trackNumber === trackNumber);
   };
 
   const hasLyrics = (trackNumber: number): boolean => {
@@ -69,7 +74,8 @@ export function LyricsEditor({ tracks, lyricsData, onChange }: LyricsEditorProps
           Track Lyrics
         </CardTitle>
         <CardDescription>
-          Add lyrics for your tracks. This helps DSPs display synchronized lyrics and improves discoverability.
+          Add lyrics for your tracks. This helps DSPs display synchronized lyrics and improves
+          discoverability.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -85,10 +91,7 @@ export function LyricsEditor({ tracks, lyricsData, onChange }: LyricsEditorProps
               const isExpanded = hasLyrics(track.trackNumber);
 
               return (
-                <div
-                  key={track.trackNumber}
-                  className="border rounded-lg p-4 space-y-4"
-                >
+                <div key={track.trackNumber} className="border rounded-lg p-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center flex-shrink-0">
@@ -103,7 +106,7 @@ export function LyricsEditor({ tracks, lyricsData, onChange }: LyricsEditorProps
                         )}
                       </div>
                     </div>
-                    
+
                     {isExpanded ? (
                       <Button
                         type="button"
@@ -130,9 +133,7 @@ export function LyricsEditor({ tracks, lyricsData, onChange }: LyricsEditorProps
                   {isExpanded && (
                     <div className="space-y-4 pt-2">
                       <div className="space-y-2">
-                        <Label htmlFor={`lyrics-${track.trackNumber}`}>
-                          Lyrics
-                        </Label>
+                        <Label htmlFor={`lyrics-${track.trackNumber}`}>Lyrics</Label>
                         <Textarea
                           id={`lyrics-${track.trackNumber}`}
                           placeholder="Enter lyrics line by line..."
@@ -143,7 +144,8 @@ export function LyricsEditor({ tracks, lyricsData, onChange }: LyricsEditorProps
                           className="min-h-[200px] font-mono text-sm"
                         />
                         <p className="text-xs text-muted-foreground">
-                          {(trackLyrics?.lyrics || '').split('\n').filter(l => l.trim()).length} lines
+                          {(trackLyrics?.lyrics || '').split('\n').filter((l) => l.trim()).length}{' '}
+                          lines
                         </p>
                       </div>
 
@@ -185,7 +187,7 @@ export function LyricsEditor({ tracks, lyricsData, onChange }: LyricsEditorProps
                               checked={trackLyrics?.hasExplicitContent || false}
                               onChange={(e) =>
                                 updateLyrics(track.trackNumber, {
-                                  hasExplicitContent: e.target.checked
+                                  hasExplicitContent: e.target.checked,
                                 })
                               }
                               className="rounded border-gray-300"

@@ -1,14 +1,19 @@
 import { storage } from '../storage';
+import { logger } from '../logger.js';
 
+/**
+ * TODO: Add function documentation
+ */
 export async function initializeAIInsightsModels() {
-  console.log('📊 Initializing AI Insights Engine Models...');
-  
+  logger.info('📊 Initializing AI Insights Engine Models...');
+
   try {
     const models = [
       {
         modelName: 'time_series_predictor_v1',
         modelType: 'insights',
-        description: 'Time series forecasting engine for predictive analytics with exponential smoothing and seasonal decomposition',
+        description:
+          'Time series forecasting engine for predictive analytics with exponential smoothing and seasonal decomposition',
         category: 'analytics',
         isActive: true,
         isBeta: false,
@@ -16,7 +21,8 @@ export async function initializeAIInsightsModels() {
       {
         modelName: 'cohort_analyzer_v1',
         modelType: 'insights',
-        description: 'Cohort analysis engine for retention, LTV, and engagement tracking across user segments',
+        description:
+          'Cohort analysis engine for retention, LTV, and engagement tracking across user segments',
         category: 'analytics',
         isActive: true,
         isBeta: false,
@@ -24,7 +30,8 @@ export async function initializeAIInsightsModels() {
       {
         modelName: 'churn_predictor_v1',
         modelType: 'insights',
-        description: 'Machine learning-based churn prediction with personalized retention recommendations',
+        description:
+          'Machine learning-based churn prediction with personalized retention recommendations',
         category: 'analytics',
         isActive: true,
         isBeta: false,
@@ -32,7 +39,8 @@ export async function initializeAIInsightsModels() {
       {
         modelName: 'revenue_forecaster_v1',
         modelType: 'insights',
-        description: 'Revenue forecasting engine with MRR/ARR predictions and multi-scenario analysis',
+        description:
+          'Revenue forecasting engine with MRR/ARR predictions and multi-scenario analysis',
         category: 'analytics',
         isActive: true,
         isBeta: false,
@@ -49,14 +57,14 @@ export async function initializeAIInsightsModels() {
 
     for (const modelData of models) {
       const existing = await storage.getAIModelByName(modelData.modelName);
-      
+
       if (existing) {
-        console.log(`✓ AI Model ${modelData.modelName} already exists`);
+        logger.info(`✓ AI Model ${modelData.modelName} already exists`);
         continue;
       }
 
       const model = await storage.createAIModel(modelData);
-      console.log(`✓ Created AI Model: ${model.modelName}`);
+      logger.info(`✓ Created AI Model: ${model.modelName}`);
 
       const version = await storage.createAIModelVersion({
         modelId: model.id,
@@ -81,7 +89,7 @@ export async function initializeAIInsightsModels() {
         currentVersionId: version.id,
       });
 
-      console.log(`  ✓ Created version: ${version.versionNumber}`);
+      logger.info(`  ✓ Created version: ${version.versionNumber}`);
 
       await storage.createPerformanceMetric({
         modelId: model.id,
@@ -105,17 +113,20 @@ export async function initializeAIInsightsModels() {
         metadata: { baseline: true },
       });
 
-      console.log(`  ✓ Created baseline performance metrics`);
+      logger.info(`  ✓ Created baseline performance metrics`);
     }
 
-    console.log('✅ AI Insights Engine Models initialized successfully!');
+    logger.info('✅ AI Insights Engine Models initialized successfully!');
     return true;
-  } catch (error) {
-    console.error('❌ Failed to initialize AI Insights Models:', error);
+  } catch (error: unknown) {
+    logger.error('❌ Failed to initialize AI Insights Models:', error);
     throw error;
   }
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function getModelFeatures(modelName: string): string[] {
   const features: Record<string, string[]> = {
     time_series_predictor_v1: [
@@ -171,6 +182,9 @@ function getModelFeatures(modelName: string): string[] {
   return features[modelName] || [];
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function getModelAccuracy(modelName: string): number {
   const accuracies: Record<string, number> = {
     time_series_predictor_v1: 0.87,
@@ -187,11 +201,11 @@ function getModelAccuracy(modelName: string): number {
 if (require.main === module) {
   initializeAIInsightsModels()
     .then(() => {
-      console.log('Script completed successfully');
+      logger.info('Script completed successfully');
       process.exit(0);
     })
     .catch((error) => {
-      console.error('Script failed:', error);
+      logger.error('Script failed:', error);
       process.exit(1);
     });
 }

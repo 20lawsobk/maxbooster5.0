@@ -1,6 +1,9 @@
 import { cn } from '@/lib/utils';
 import { Skeleton } from './skeleton';
 
+/**
+ * TODO: Add function documentation
+ */
 export function SkeletonCard({ className }: { className?: string }) {
   return (
     <div className={cn('rounded-lg border bg-card p-6 space-y-4', className)}>
@@ -20,6 +23,9 @@ export function SkeletonCard({ className }: { className?: string }) {
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function SkeletonTable({ rows = 5 }: { rows?: number }) {
   return (
     <div className="rounded-lg border bg-card">
@@ -45,6 +51,9 @@ export function SkeletonTable({ rows = 5 }: { rows?: number }) {
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function SkeletonChart({ className }: { className?: string }) {
   return (
     <div className={cn('rounded-lg border bg-card p-6', className)}>
@@ -74,6 +83,9 @@ export function SkeletonChart({ className }: { className?: string }) {
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function SkeletonList({ items = 3 }: { items?: number }) {
   return (
     <div className="space-y-3">
@@ -91,6 +103,9 @@ export function SkeletonList({ items = 3 }: { items?: number }) {
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function SkeletonDashboardStats() {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -108,6 +123,9 @@ export function SkeletonDashboardStats() {
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function SkeletonProjectCard() {
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
@@ -125,6 +143,9 @@ export function SkeletonProjectCard() {
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function SkeletonStudioTrack() {
   return (
     <div className="flex items-center space-x-3 p-2 border-b">
@@ -145,26 +166,29 @@ interface SkeletonLoaderProps {
   columns?: number;
   height?: string | number;
   className?: string;
-  variant?: "table" | "card" | "list" | "grid";
+  variant?: 'table' | 'card' | 'list' | 'grid';
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function SkeletonLoader({
   rows = 3,
   columns = 1,
-  height = "h-20",
+  height = 'h-20',
   className,
-  variant = "card"
+  variant = 'card',
 }: SkeletonLoaderProps) {
-  const heightClass = typeof height === "number" ? `h-[${height}px]` : height;
+  const heightClass = typeof height === 'number' ? `h-[${height}px]` : height;
 
   // Render table variant
-  if (variant === "table") {
+  if (variant === 'table') {
     return (
-      <div className={cn("space-y-3", className)}>
+      <div className={cn('space-y-3', className)}>
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="flex gap-4">
             {Array.from({ length: columns }).map((_, j) => (
-              <Skeleton key={j} className={cn(heightClass, "flex-1")} />
+              <Skeleton key={j} className={cn(heightClass, 'flex-1')} />
             ))}
           </div>
         ))}
@@ -173,9 +197,9 @@ export function SkeletonLoader({
   }
 
   // Render list variant
-  if (variant === "list") {
+  if (variant === 'list') {
     return (
-      <div className={cn("space-y-3", className)}>
+      <div className={cn('space-y-3', className)}>
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="flex items-center gap-3">
             <Skeleton className="h-12 w-12 rounded-full" />
@@ -190,9 +214,12 @@ export function SkeletonLoader({
   }
 
   // Render grid variant
-  if (variant === "grid") {
+  if (variant === 'grid') {
     return (
-      <div className={cn(`grid gap-4`, className)} style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+      <div
+        className={cn(`grid gap-4`, className)}
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      >
         {Array.from({ length: rows * columns }).map((_, i) => (
           <Skeleton key={i} className={heightClass} />
         ))}
@@ -202,7 +229,7 @@ export function SkeletonLoader({
 
   // Default card variant
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn('space-y-4', className)}>
       {Array.from({ length: rows }).map((_, i) => (
         <Skeleton key={i} className={heightClass} />
       ))}

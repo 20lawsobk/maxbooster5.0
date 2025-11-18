@@ -1,16 +1,31 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { Wand2, Copy, RefreshCw, Send, Sparkles, MessageSquare, Calendar, Hash } from "lucide-react";
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Wand2,
+  Copy,
+  RefreshCw,
+  Send,
+  Sparkles,
+  MessageSquare,
+  Calendar,
+  Hash,
+} from 'lucide-react';
 
 interface GeneratedContent {
   content: string[];
@@ -36,17 +51,17 @@ export function ContentGenerator() {
       setGeneratedContent(data);
       setSelectedVersion(data.content[0]);
       toast({
-        title: "Content Generated!",
-        description: "AI has created multiple versions for you to choose from.",
+        title: 'Content Generated!',
+        description: 'AI has created multiple versions for you to choose from.',
       });
     },
     onError: (error) => {
       toast({
-        title: "Generation Failed",
-        description: "Failed to generate content. Please try again.",
-        variant: "destructive",
+        title: 'Generation Failed',
+        description: 'Failed to generate content. Please try again.',
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   const postMutation = useMutation({
@@ -56,19 +71,19 @@ export function ContentGenerator() {
     },
     onSuccess: () => {
       toast({
-        title: "Post Scheduled!",
-        description: "Your post has been scheduled successfully.",
+        title: 'Post Scheduled!',
+        description: 'Your post has been scheduled successfully.',
       });
       setGeneratedContent(null);
       setSelectedVersion('');
     },
     onError: (error) => {
       toast({
-        title: "Scheduling Failed", 
-        description: "Failed to schedule post. Please try again.",
-        variant: "destructive",
+        title: 'Scheduling Failed',
+        description: 'Failed to schedule post. Please try again.',
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   const contentTypes = [
@@ -96,7 +111,12 @@ export function ContentGenerator() {
     { value: 'youtube', label: 'YouTube', maxLength: 5000, features: ['long-form', 'timestamps'] },
     { value: 'tiktok', label: 'TikTok', maxLength: 300, features: ['hashtags', 'trending'] },
     { value: 'facebook', label: 'Facebook', maxLength: 63206, features: ['long-form', 'links'] },
-    { value: 'linkedin', label: 'LinkedIn', maxLength: 1300, features: ['professional', 'articles'] },
+    {
+      value: 'linkedin',
+      label: 'LinkedIn',
+      maxLength: 1300,
+      features: ['professional', 'articles'],
+    },
   ];
 
   const handleGenerate = () => {
@@ -106,14 +126,14 @@ export function ContentGenerator() {
   const handleCopyContent = (content: string) => {
     navigator.clipboard.writeText(content);
     toast({
-      title: "Copied!",
-      description: "Content copied to clipboard.",
+      title: 'Copied!',
+      description: 'Content copied to clipboard.',
     });
   };
 
   const handleSchedulePost = () => {
     if (!selectedVersion) return;
-    
+
     postMutation.mutate({
       content: selectedVersion,
       platforms: [formData.platform],
@@ -121,11 +141,11 @@ export function ContentGenerator() {
   };
 
   const getCharacterCount = (content: string) => {
-    const selectedPlatform = platforms.find(p => p.value === formData.platform);
+    const selectedPlatform = platforms.find((p) => p.value === formData.platform);
     return {
       current: content.length,
       max: selectedPlatform?.maxLength || 280,
-      isOverLimit: content.length > (selectedPlatform?.maxLength || 280)
+      isOverLimit: content.length > (selectedPlatform?.maxLength || 280),
     };
   };
 
@@ -145,9 +165,11 @@ export function ContentGenerator() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="contentType">Content Type</Label>
-                <Select 
-                  value={formData.contentType} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, contentType: value }))}
+                <Select
+                  value={formData.contentType}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, contentType: value }))
+                  }
                 >
                   <SelectTrigger data-testid="select-content-type">
                     <SelectValue />
@@ -164,9 +186,9 @@ export function ContentGenerator() {
 
               <div className="space-y-2">
                 <Label htmlFor="platform">Target Platform</Label>
-                <Select 
-                  value={formData.platform} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, platform: value }))}
+                <Select
+                  value={formData.platform}
+                  onValueChange={(value) => setFormData((prev) => ({ ...prev, platform: value }))}
                 >
                   <SelectTrigger data-testid="select-platform">
                     <SelectValue />
@@ -180,7 +202,7 @@ export function ContentGenerator() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Max {platforms.find(p => p.value === formData.platform)?.maxLength} characters
+                  Max {platforms.find((p) => p.value === formData.platform)?.maxLength} characters
                 </p>
               </div>
 
@@ -190,10 +212,10 @@ export function ContentGenerator() {
                   {tones.map((tone) => (
                     <Button
                       key={tone.value}
-                      variant={formData.tone === tone.value ? "default" : "outline"}
+                      variant={formData.tone === tone.value ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => setFormData(prev => ({ ...prev, tone: tone.value }))}
-                      className={formData.tone === tone.value ? "bg-primary/20 text-primary" : ""}
+                      onClick={() => setFormData((prev) => ({ ...prev, tone: tone.value }))}
+                      className={formData.tone === tone.value ? 'bg-primary/20 text-primary' : ''}
                       data-testid={`tone-${tone.value}`}
                     >
                       <span className="mr-1">{tone.emoji}</span>
@@ -211,14 +233,16 @@ export function ContentGenerator() {
                 <Textarea
                   id="customPrompt"
                   value={formData.customPrompt}
-                  onChange={(e) => setFormData(prev => ({ ...prev, customPrompt: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, customPrompt: e.target.value }))
+                  }
                   placeholder="Add specific details, mentions, hashtags, or custom instructions..."
                   rows={6}
                   data-testid="textarea-custom-prompt"
                 />
               </div>
 
-              <Button 
+              <Button
                 onClick={handleGenerate}
                 disabled={generateMutation.isPending}
                 className="w-full bg-primary hover:bg-primary/90"
@@ -236,7 +260,10 @@ export function ContentGenerator() {
 
           {/* Generated Content */}
           {generatedContent && (
-            <div className="space-y-4 pt-6 border-t border-border" data-testid="generated-content-section">
+            <div
+              className="space-y-4 pt-6 border-t border-border"
+              data-testid="generated-content-section"
+            >
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold flex items-center">
                   <MessageSquare className="h-5 w-5 mr-2 text-accent" />
@@ -257,7 +284,11 @@ export function ContentGenerator() {
               <Tabs defaultValue="0" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   {generatedContent.content.slice(0, 2).map((_, index) => (
-                    <TabsTrigger key={index} value={index.toString()} data-testid={`tab-version-${index}`}>
+                    <TabsTrigger
+                      key={index}
+                      value={index.toString()}
+                      data-testid={`tab-version-${index}`}
+                    >
                       Version {index + 1}
                     </TabsTrigger>
                   ))}
@@ -272,14 +303,16 @@ export function ContentGenerator() {
                           <div className="space-y-3">
                             <div className="flex items-center justify-between">
                               <Badge variant="outline" className="bg-primary/10 text-primary">
-                                {platforms.find(p => p.value === formData.platform)?.label}
+                                {platforms.find((p) => p.value === formData.platform)?.label}
                               </Badge>
-                              <div className={`text-xs ${charCount.isOverLimit ? 'text-destructive' : 'text-muted-foreground'}`}>
+                              <div
+                                className={`text-xs ${charCount.isOverLimit ? 'text-destructive' : 'text-muted-foreground'}`}
+                              >
                                 {charCount.current}/{charCount.max}
                               </div>
                             </div>
 
-                            <div 
+                            <div
                               className="p-4 bg-background rounded-lg border border-border min-h-[120px] whitespace-pre-wrap"
                               data-testid={`content-preview-${index}`}
                             >
@@ -300,7 +333,9 @@ export function ContentGenerator() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setSelectedVersion(content)}
-                                className={selectedVersion === content ? "bg-accent/20 text-accent" : ""}
+                                className={
+                                  selectedVersion === content ? 'bg-accent/20 text-accent' : ''
+                                }
                                 data-testid={`button-select-${index}`}
                               >
                                 <Hash className="h-4 w-4 mr-2" />

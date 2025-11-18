@@ -4,10 +4,10 @@ import { simulateAutonomousUpgrade } from '../server/simulations/autonomousUpgra
 
 async function recordDeploymentMetrics() {
   console.log('Recording deployment KPI metrics...');
-  
+
   const adResults = await runComprehensiveSimulation();
   const upgradeResults = await simulateAutonomousUpgrade();
-  
+
   const timestamp = new Date().toISOString();
   const deployment = {
     timestamp,
@@ -16,17 +16,24 @@ async function recordDeploymentMetrics() {
       minAmplification: adResults.summary.minAmplification,
       maxAmplification: adResults.summary.maxAmplification,
       cost: 0,
-      status: adResults.summary.allScenariosPass ? 'PASS' : 'FAIL'
+      status: adResults.summary.allScenariosPass ? 'PASS' : 'FAIL',
     },
     autonomousUpgrade: {
       successRate: upgradeResults.metrics.upgradeSuccessRate,
       algorithmQuality: upgradeResults.metrics.algorithmQualityAverage,
       zeroDowntime: upgradeResults.metrics.zeroDowntime,
-      status: upgradeResults.metrics.upgradeSuccessRate >= 95 && upgradeResults.metrics.algorithmQualityAverage >= 100 ? 'PASS' : 'FAIL'
+      status:
+        upgradeResults.metrics.upgradeSuccessRate >= 95 &&
+        upgradeResults.metrics.algorithmQualityAverage >= 100
+          ? 'PASS'
+          : 'FAIL',
     },
-    overallStatus: (adResults.summary.allScenariosPass && upgradeResults.metrics.upgradeSuccessRate >= 95) ? 'COMPLIANT' : 'NON-COMPLIANT'
+    overallStatus:
+      adResults.summary.allScenariosPass && upgradeResults.metrics.upgradeSuccessRate >= 95
+        ? 'COMPLIANT'
+        : 'NON-COMPLIANT',
   };
-  
+
   const logPath = 'deployments.json';
   let deployments = [];
   if (fs.existsSync(logPath)) {
@@ -34,7 +41,7 @@ async function recordDeploymentMetrics() {
   }
   deployments.push(deployment);
   fs.writeFileSync(logPath, JSON.stringify(deployments, null, 2));
-  
+
   console.log('✓ Deployment metrics recorded');
   console.log(JSON.stringify(deployment, null, 2));
 }

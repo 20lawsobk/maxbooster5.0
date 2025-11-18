@@ -27,8 +27,8 @@ export default function Pricing() {
         'Custom Branding & White-label',
         'Cloud Storage (100GB)',
         'Priority Email & Chat Support',
-        'Early Access to New Features'
-      ]
+        'Early Access to New Features',
+      ],
     },
     {
       id: 'yearly',
@@ -53,8 +53,8 @@ export default function Pricing() {
         'Priority Email & Chat Support',
         'Early Access to New Features',
         'API Access & Integrations',
-        'Premium Content Library'
-      ]
+        'Premium Content Library',
+      ],
     },
     {
       id: 'lifetime',
@@ -79,32 +79,37 @@ export default function Pricing() {
         'API Access & Integrations',
         'Premium Content Library',
         'Personal Account Manager',
-        'Custom Enterprise Integrations'
-      ]
-    }
+        'Custom Enterprise Integrations',
+      ],
+    },
   ];
 
   const faqItems = [
     {
       question: 'What payment methods do you accept?',
-      answer: 'We accept all major credit cards (Visa, MasterCard, American Express) and PayPal through our secure Stripe payment processing.'
+      answer:
+        'We accept all major credit cards (Visa, MasterCard, American Express) and PayPal through our secure Stripe payment processing.',
     },
     {
       question: 'Can I change my plan later?',
-      answer: 'Yes! You can upgrade or downgrade your plan at any time. Changes will be prorated and reflected in your next billing cycle.'
+      answer:
+        'Yes! You can upgrade or downgrade your plan at any time. Changes will be prorated and reflected in your next billing cycle.',
     },
     {
       question: 'Do you offer a money-back guarantee?',
-      answer: 'Absolutely! We offer a full 90-day 100% money-back guarantee. If you\'re not completely satisfied, we\'ll refund your entire payment, no questions asked.'
+      answer:
+        "Absolutely! We offer a full 90-day 100% money-back guarantee. If you're not completely satisfied, we'll refund your entire payment, no questions asked.",
     },
     {
       question: 'What happens to my projects if I cancel?',
-      answer: 'Your projects and data remain accessible for 30 days after cancellation. You can download all your content during this period.'
+      answer:
+        'Your projects and data remain accessible for 30 days after cancellation. You can download all your content during this period.',
     },
     {
       question: 'Do you offer student discounts?',
-      answer: 'Yes! Students receive 50% off all plans with valid student verification through our partner program.'
-    }
+      answer:
+        'Yes! Students receive 50% off all plans with valid student verification through our partner program.',
+    },
   ];
 
   return (
@@ -142,8 +147,8 @@ export default function Pricing() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Choose the plan that fits your needs. All plans include our core AI features, 
-            studio access, and music distribution capabilities.
+            Choose the plan that fits your needs. All plans include our core AI features, studio
+            access, and music distribution capabilities.
           </p>
           <div className="flex items-center justify-center text-sm text-gray-500">
             <Check className="h-4 w-4 mr-2 text-green-500" />
@@ -154,11 +159,11 @@ export default function Pricing() {
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
           {plans.map((plan) => (
-            <Card 
-              key={plan.id} 
+            <Card
+              key={plan.id}
               className={`relative ${
-                plan.popular 
-                  ? 'border-primary shadow-2xl scale-105 z-10' 
+                plan.popular
+                  ? 'border-primary shadow-2xl scale-105 z-10'
                   : 'shadow-lg hover:shadow-xl'
               } transition-all duration-300`}
             >
@@ -167,19 +172,13 @@ export default function Pricing() {
                   Most Popular
                 </Badge>
               )}
-              
+
               <CardHeader className="text-center pb-4">
-                <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
-                  {plan.name}
-                </CardTitle>
+                <CardTitle className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</CardTitle>
                 <div className="mb-4">
                   <div className="flex items-baseline justify-center">
-                    <span className="text-5xl font-bold text-gray-900">
-                      ${plan.price}
-                    </span>
-                    <span className="text-gray-500 ml-2">
-                      /{plan.period}
-                    </span>
+                    <span className="text-5xl font-bold text-gray-900">${plan.price}</span>
+                    <span className="text-gray-500 ml-2">/{plan.period}</span>
                   </div>
                   {plan.originalPrice && (
                     <div className="text-sm text-gray-500 mt-1">
@@ -209,10 +208,10 @@ export default function Pricing() {
                 </ul>
 
                 <Link href={`/register/payment/${plan.id}`}>
-                  <Button 
+                  <Button
                     className={`w-full py-3 ${
-                      plan.popular 
-                        ? 'bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90' 
+                      plan.popular
+                        ? 'bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90'
                         : ''
                     }`}
                     variant={plan.popular ? 'default' : 'outline'}
@@ -224,10 +223,9 @@ export default function Pricing() {
                 </Link>
 
                 <p className="text-center text-xs text-gray-500 mt-3">
-                  {plan.period === 'once' 
-                    ? 'One-time payment, lifetime access' 
-                    : 'No commitment, cancel anytime'
-                  }
+                  {plan.period === 'once'
+                    ? 'One-time payment, lifetime access'
+                    : 'No commitment, cancel anytime'}
                 </p>
               </CardContent>
             </Card>
@@ -236,10 +234,8 @@ export default function Pricing() {
 
         {/* Features Comparison */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Compare Plans
-          </h2>
-          
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Compare Plans</h2>
+
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -256,40 +252,120 @@ export default function Pricing() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {[
-                    { feature: 'Complete AI-Powered Studio', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'Active Projects', monthly: 'Unlimited', yearly: 'Unlimited', lifetime: 'Unlimited' },
-                    { feature: 'Professional Analytics', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'Social Media Management', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'Distribution to All Platforms', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'AI Mastering & Enhancement', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'Beat Marketplace Access', monthly: true, yearly: true, lifetime: true },
+                    {
+                      feature: 'Complete AI-Powered Studio',
+                      monthly: true,
+                      yearly: true,
+                      lifetime: true,
+                    },
+                    {
+                      feature: 'Active Projects',
+                      monthly: 'Unlimited',
+                      yearly: 'Unlimited',
+                      lifetime: 'Unlimited',
+                    },
+                    {
+                      feature: 'Professional Analytics',
+                      monthly: true,
+                      yearly: true,
+                      lifetime: true,
+                    },
+                    {
+                      feature: 'Social Media Management',
+                      monthly: true,
+                      yearly: true,
+                      lifetime: true,
+                    },
+                    {
+                      feature: 'Distribution to All Platforms',
+                      monthly: true,
+                      yearly: true,
+                      lifetime: true,
+                    },
+                    {
+                      feature: 'AI Mastering & Enhancement',
+                      monthly: true,
+                      yearly: true,
+                      lifetime: true,
+                    },
+                    {
+                      feature: 'Beat Marketplace Access',
+                      monthly: true,
+                      yearly: true,
+                      lifetime: true,
+                    },
                     { feature: 'Custom Branding', monthly: true, yearly: true, lifetime: true },
-                    { feature: 'Cloud Storage', monthly: '100GB', yearly: '500GB', lifetime: 'Unlimited' },
-                    { feature: 'Support Level', monthly: 'Email + Chat', yearly: 'Email + Chat', lifetime: 'Phone + Video' },
-                    { feature: 'API Access & Integrations', monthly: false, yearly: true, lifetime: true },
-                    { feature: 'Premium Content Library', monthly: false, yearly: true, lifetime: true },
-                    { feature: 'Personal Account Manager', monthly: false, yearly: false, lifetime: true },
-                    { feature: 'Enterprise Integrations', monthly: false, yearly: false, lifetime: true },
+                    {
+                      feature: 'Cloud Storage',
+                      monthly: '100GB',
+                      yearly: '500GB',
+                      lifetime: 'Unlimited',
+                    },
+                    {
+                      feature: 'Support Level',
+                      monthly: 'Email + Chat',
+                      yearly: 'Email + Chat',
+                      lifetime: 'Phone + Video',
+                    },
+                    {
+                      feature: 'API Access & Integrations',
+                      monthly: false,
+                      yearly: true,
+                      lifetime: true,
+                    },
+                    {
+                      feature: 'Premium Content Library',
+                      monthly: false,
+                      yearly: true,
+                      lifetime: true,
+                    },
+                    {
+                      feature: 'Personal Account Manager',
+                      monthly: false,
+                      yearly: false,
+                      lifetime: true,
+                    },
+                    {
+                      feature: 'Enterprise Integrations',
+                      monthly: false,
+                      yearly: false,
+                      lifetime: true,
+                    },
                   ].map((row, index) => (
                     <tr key={index}>
                       <td className="p-6 font-medium text-gray-900">{row.feature}</td>
                       <td className="p-6 text-center">
-                        {typeof row.monthly === 'boolean' 
-                          ? (row.monthly ? <Check className="h-5 w-5 text-green-500 mx-auto" /> : '—')
-                          : row.monthly
-                        }
+                        {typeof row.monthly === 'boolean' ? (
+                          row.monthly ? (
+                            <Check className="h-5 w-5 text-green-500 mx-auto" />
+                          ) : (
+                            '—'
+                          )
+                        ) : (
+                          row.monthly
+                        )}
                       </td>
                       <td className="p-6 text-center bg-primary/5">
-                        {typeof row.yearly === 'boolean' 
-                          ? (row.yearly ? <Check className="h-5 w-5 text-green-500 mx-auto" /> : '—')
-                          : row.yearly
-                        }
+                        {typeof row.yearly === 'boolean' ? (
+                          row.yearly ? (
+                            <Check className="h-5 w-5 text-green-500 mx-auto" />
+                          ) : (
+                            '—'
+                          )
+                        ) : (
+                          row.yearly
+                        )}
                       </td>
                       <td className="p-6 text-center">
-                        {typeof row.lifetime === 'boolean' 
-                          ? (row.lifetime ? <Check className="h-5 w-5 text-green-500 mx-auto" /> : '—')
-                          : row.lifetime
-                        }
+                        {typeof row.lifetime === 'boolean' ? (
+                          row.lifetime ? (
+                            <Check className="h-5 w-5 text-green-500 mx-auto" />
+                          ) : (
+                            '—'
+                          )
+                        ) : (
+                          row.lifetime
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -304,7 +380,7 @@ export default function Pricing() {
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
             Frequently Asked Questions
           </h2>
-          
+
           <div className="max-w-3xl mx-auto">
             <div className="space-y-6">
               {faqItems.map((faq, index) => (
@@ -321,19 +397,26 @@ export default function Pricing() {
 
         {/* CTA Section */}
         <div className="text-center mt-20 p-12 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl text-white">
-          <h2 className="text-3xl font-bold mb-4">
-            Ready to Boost Your Music Career?
-          </h2>
+          <h2 className="text-3xl font-bold mb-4">Ready to Boost Your Music Career?</h2>
           <p className="text-xl mb-8 opacity-90">
             Join thousands of artists who are already using Max Booster to grow their careers.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register/payment/yearly">
-              <Button size="lg" variant="secondary" className="px-8 py-4" data-testid="button-get-started-cta">
+              <Button
+                size="lg"
+                variant="secondary"
+                className="px-8 py-4"
+                data-testid="button-get-started-cta"
+              >
                 Get Started Now
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="px-8 py-4 border-white text-white hover:bg-white hover:text-primary">
+            <Button
+              size="lg"
+              variant="outline"
+              className="px-8 py-4 border-white text-white hover:bg-white hover:text-primary"
+            >
               Contact Sales
             </Button>
           </div>

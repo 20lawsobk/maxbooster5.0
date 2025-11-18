@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
@@ -33,6 +39,9 @@ interface StemExport {
   errorMessage?: string;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function StemExportDialog({ open, onOpenChange, projectId }: StemExportDialogProps) {
   const { toast } = useToast();
   const [selectedTracks, setSelectedTracks] = useState<Set<string>>(new Set());
@@ -53,7 +62,7 @@ export function StemExportDialog({ open, onOpenChange, projectId }: StemExportDi
 
   useEffect(() => {
     if (open && tracks.length > 0) {
-      const allTrackIds = new Set(tracks.map(t => t.id));
+      const allTrackIds = new Set(tracks.map((t) => t.id));
       setSelectedTracks(allTrackIds);
     }
   }, [open, tracks]);
@@ -85,8 +94,8 @@ export function StemExportDialog({ open, onOpenChange, projectId }: StemExportDi
               });
             }
           }
-        } catch (error) {
-          console.error('Error polling export status:', error);
+        } catch (error: unknown) {
+          logger.error('Error polling export status:', error);
           if (pollInterval) clearInterval(pollInterval);
           setIsExporting(false);
         }
@@ -99,7 +108,7 @@ export function StemExportDialog({ open, onOpenChange, projectId }: StemExportDi
   }, [exportJobId, toast]);
 
   const handleToggleTrack = (trackId: string) => {
-    setSelectedTracks(prev => {
+    setSelectedTracks((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(trackId)) {
         newSet.delete(trackId);
@@ -111,7 +120,7 @@ export function StemExportDialog({ open, onOpenChange, projectId }: StemExportDi
   };
 
   const handleSelectAll = () => {
-    const allTrackIds = new Set(tracks.map(t => t.id));
+    const allTrackIds = new Set(tracks.map((t) => t.id));
     setSelectedTracks(allTrackIds);
   };
 
@@ -145,8 +154,8 @@ export function StemExportDialog({ open, onOpenChange, projectId }: StemExportDi
 
       const data = await res.json();
       setExportJobId(data.jobId);
-    } catch (error) {
-      console.error('Error starting stem export:', error);
+    } catch (error: unknown) {
+      logger.error('Error starting stem export:', error);
       toast({
         title: 'Export failed',
         description: 'Failed to start stem export. Please try again.',
@@ -222,11 +231,7 @@ export function StemExportDialog({ open, onOpenChange, projectId }: StemExportDi
                       {exportStatus.errorMessage || 'An error occurred during export'}
                     </p>
                   </div>
-                  <Button
-                    onClick={handleClose}
-                    variant="outline"
-                    className="border-gray-600"
-                  >
+                  <Button onClick={handleClose} variant="outline" className="border-gray-600">
                     Close
                   </Button>
                 </>
@@ -320,7 +325,7 @@ export function StemExportDialog({ open, onOpenChange, projectId }: StemExportDi
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Export Format</Label>
-                <Select value={exportFormat} onValueChange={(v: any) => setExportFormat(v)}>
+                <Select value={exportFormat} onValueChange={(v: unknown) => setExportFormat(v)}>
                   <SelectTrigger className="bg-[#1a1a1a] border-gray-700">
                     <SelectValue />
                   </SelectTrigger>
@@ -337,7 +342,10 @@ export function StemExportDialog({ open, onOpenChange, projectId }: StemExportDi
                 <>
                   <div className="space-y-2">
                     <Label>Sample Rate</Label>
-                    <Select value={sampleRate.toString()} onValueChange={(v) => setSampleRate(parseInt(v))}>
+                    <Select
+                      value={sampleRate.toString()}
+                      onValueChange={(v) => setSampleRate(parseInt(v))}
+                    >
                       <SelectTrigger className="bg-[#1a1a1a] border-gray-700">
                         <SelectValue />
                       </SelectTrigger>
@@ -350,7 +358,10 @@ export function StemExportDialog({ open, onOpenChange, projectId }: StemExportDi
                   </div>
                   <div className="space-y-2">
                     <Label>Bit Depth</Label>
-                    <Select value={bitDepth.toString()} onValueChange={(v) => setBitDepth(parseInt(v))}>
+                    <Select
+                      value={bitDepth.toString()}
+                      onValueChange={(v) => setBitDepth(parseInt(v))}
+                    >
                       <SelectTrigger className="bg-[#1a1a1a] border-gray-700">
                         <SelectValue />
                       </SelectTrigger>

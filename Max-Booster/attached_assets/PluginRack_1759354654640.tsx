@@ -1,21 +1,11 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Settings,
-  Plus,
-  Trash2,
-  RotateCcw,
-  Volume2,
-  Zap,
-  Waves,
-  Filter,
-  Mic
-} from "lucide-react";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Settings, Plus, Trash2, RotateCcw, Volume2, Zap, Waves, Filter, Mic } from 'lucide-react';
 
 interface Plugin {
   id: string;
@@ -39,14 +29,10 @@ interface PluginRackProps {
   onPluginUpdate: (trackId: string, pluginData: any) => void;
 }
 
-export default function PluginRack({ 
-  selectedTrack, 
-  tracks, 
-  onPluginUpdate 
-}: PluginRackProps) {
+export default function PluginRack({ selectedTrack, tracks, onPluginUpdate }: PluginRackProps) {
   const [selectedPlugin, setSelectedPlugin] = useState<string | null>(null);
 
-  const currentTrack = tracks.find(t => t.id === selectedTrack);
+  const currentTrack = tracks.find((t) => t.id === selectedTrack);
   const currentPlugins = currentTrack?.plugins || [];
 
   const availablePlugins = [
@@ -56,7 +42,7 @@ export default function PluginRack({
       type: 'Equalizer',
       manufacturer: 'Max Booster',
       icon: <Filter className="w-6 h-6" />,
-      color: 'text-primary'
+      color: 'text-primary',
     },
     {
       id: 'mb-comp',
@@ -64,7 +50,7 @@ export default function PluginRack({
       type: 'Dynamics',
       manufacturer: 'Max Booster',
       icon: <Waves className="w-6 h-6" />,
-      color: 'text-secondary'
+      color: 'text-secondary',
     },
     {
       id: 'mb-reverb',
@@ -72,7 +58,7 @@ export default function PluginRack({
       type: 'Reverb',
       manufacturer: 'Max Booster',
       icon: <Volume2 className="w-6 h-6" />,
-      color: 'text-accent'
+      color: 'text-accent',
     },
     {
       id: 'mb-delay',
@@ -80,7 +66,7 @@ export default function PluginRack({
       type: 'Delay',
       manufacturer: 'Max Booster',
       icon: <Zap className="w-6 h-6" />,
-      color: 'text-primary'
+      color: 'text-primary',
     },
     {
       id: 'mb-distortion',
@@ -88,7 +74,7 @@ export default function PluginRack({
       type: 'Saturation',
       manufacturer: 'Max Booster',
       icon: <Waves className="w-6 h-6" />,
-      color: 'text-destructive'
+      color: 'text-destructive',
     },
     {
       id: 'mb-chorus',
@@ -96,14 +82,14 @@ export default function PluginRack({
       type: 'Modulation',
       manufacturer: 'Max Booster',
       icon: <Volume2 className="w-6 h-6" />,
-      color: 'text-accent'
-    }
+      color: 'text-accent',
+    },
   ];
 
   const addPlugin = (pluginId: string) => {
     if (!selectedTrack) return;
 
-    const pluginTemplate = availablePlugins.find(p => p.id === pluginId);
+    const pluginTemplate = availablePlugins.find((p) => p.id === pluginId);
     if (!pluginTemplate) return;
 
     const newPlugin: Plugin = {
@@ -112,12 +98,12 @@ export default function PluginRack({
       type: pluginTemplate.type,
       manufacturer: pluginTemplate.manufacturer,
       enabled: true,
-      parameters: getDefaultParameters(pluginId)
+      parameters: getDefaultParameters(pluginId),
     };
 
     onPluginUpdate(selectedTrack, {
       action: 'add',
-      plugin: newPlugin
+      plugin: newPlugin,
     });
   };
 
@@ -126,7 +112,7 @@ export default function PluginRack({
 
     onPluginUpdate(selectedTrack, {
       action: 'remove',
-      pluginId
+      pluginId,
     });
   };
 
@@ -137,19 +123,19 @@ export default function PluginRack({
       action: 'updateParameter',
       pluginId,
       parameter,
-      value
+      value,
     });
   };
 
   const togglePlugin = (pluginId: string) => {
     if (!selectedTrack) return;
 
-    const plugin = currentPlugins.find(p => p.id === pluginId);
+    const plugin = currentPlugins.find((p) => p.id === pluginId);
     if (plugin) {
       onPluginUpdate(selectedTrack, {
         action: 'toggle',
         pluginId,
-        enabled: !plugin.enabled
+        enabled: !plugin.enabled,
       });
     }
   };
@@ -164,7 +150,7 @@ export default function PluginRack({
           midGain: 0,
           highMidGain: 0,
           highGain: 0,
-          highCut: 20000
+          highCut: 20000,
         };
       case 'mb-comp':
         return {
@@ -172,35 +158,35 @@ export default function PluginRack({
           ratio: 3,
           attack: 10,
           release: 100,
-          gain: 0
+          gain: 0,
         };
       case 'mb-reverb':
         return {
           roomSize: 50,
           damping: 50,
           wetness: 20,
-          width: 100
+          width: 100,
         };
       case 'mb-delay':
         return {
           time: 250,
           feedback: 25,
           wetness: 20,
-          sync: 0
+          sync: 0,
         };
       case 'mb-distortion':
         return {
           drive: 50,
           tone: 50,
           level: 50,
-          mix: 100
+          mix: 100,
         };
       case 'mb-chorus':
         return {
           rate: 0.5,
           depth: 50,
           feedback: 10,
-          mix: 30
+          mix: 30,
         };
       default:
         return {};
@@ -209,7 +195,7 @@ export default function PluginRack({
 
   const renderPluginControls = (plugin: Plugin) => {
     const controls = [];
-    
+
     for (const [param, value] of Object.entries(plugin.parameters)) {
       controls.push(
         <div key={param} className="space-y-2">
@@ -217,9 +203,7 @@ export default function PluginRack({
             <label className="text-sm font-medium capitalize">
               {param.replace(/([A-Z])/g, ' $1').toLowerCase()}
             </label>
-            <span className="text-sm font-mono">
-              {formatParameterValue(param, value)}
-            </span>
+            <span className="text-sm font-mono">{formatParameterValue(param, value)}</span>
           </div>
           <Slider
             value={[value]}
@@ -233,7 +217,7 @@ export default function PluginRack({
         </div>
       );
     }
-    
+
     return controls;
   };
 
@@ -300,16 +284,20 @@ export default function PluginRack({
         ) : (
           <Tabs defaultValue="rack" className="flex-1 flex flex-col">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="rack" data-testid="tab-plugin-rack">Plugin Rack</TabsTrigger>
-              <TabsTrigger value="browser" data-testid="tab-plugin-browser">Browser</TabsTrigger>
+              <TabsTrigger value="rack" data-testid="tab-plugin-rack">
+                Plugin Rack
+              </TabsTrigger>
+              <TabsTrigger value="browser" data-testid="tab-plugin-browser">
+                Browser
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="rack" className="flex-1 space-y-4">
               {currentPlugins.length > 0 ? (
                 <div className="space-y-4">
                   {currentPlugins.map((plugin, index) => (
-                    <Card 
-                      key={plugin.id} 
+                    <Card
+                      key={plugin.id}
                       className={`${!plugin.enabled ? 'opacity-50' : ''} transition-opacity`}
                       data-testid={`plugin-${plugin.id}`}
                     >
@@ -324,7 +312,7 @@ export default function PluginRack({
                               <p className="text-sm text-muted-foreground">{plugin.type}</p>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center space-x-2">
                             <Switch
                               checked={plugin.enabled}
@@ -342,23 +330,25 @@ export default function PluginRack({
                           </div>
                         </div>
                       </CardHeader>
-                      
+
                       <CardContent className="pt-0">
-                        <div 
+                        <div
                           className={`grid grid-cols-2 gap-4 ${
                             selectedPlugin === plugin.id ? 'block' : ''
                           }`}
                         >
                           {renderPluginControls(plugin)}
                         </div>
-                        
+
                         <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => {
                               // Reset to default parameters
-                              const defaultParams = getDefaultParameters(plugin.id.split('-')[0] + '-' + plugin.id.split('-')[1]);
+                              const defaultParams = getDefaultParameters(
+                                plugin.id.split('-')[0] + '-' + plugin.id.split('-')[1]
+                              );
                               for (const [param, value] of Object.entries(defaultParams)) {
                                 updatePluginParameter(plugin.id, param, value);
                               }
@@ -368,13 +358,13 @@ export default function PluginRack({
                             <RotateCcw className="w-4 h-4 mr-1" />
                             Reset
                           </Button>
-                          
+
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setSelectedPlugin(
-                              selectedPlugin === plugin.id ? null : plugin.id
-                            )}
+                            onClick={() =>
+                              setSelectedPlugin(selectedPlugin === plugin.id ? null : plugin.id)
+                            }
                             data-testid={`button-expand-plugin-${plugin.id}`}
                           >
                             {selectedPlugin === plugin.id ? 'Collapse' : 'Expand'}
@@ -399,8 +389,8 @@ export default function PluginRack({
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-3">
                   {availablePlugins.map((plugin) => (
-                    <Card 
-                      key={plugin.id} 
+                    <Card
+                      key={plugin.id}
                       className="cursor-pointer hover:bg-muted/30 transition-colors"
                       onClick={() => addPlugin(plugin.id)}
                       data-testid={`available-plugin-${plugin.id}`}
@@ -418,7 +408,7 @@ export default function PluginRack({
                               </p>
                             </div>
                           </div>
-                          
+
                           <Button size="sm" variant="outline">
                             <Plus className="w-4 h-4 mr-1" />
                             Add

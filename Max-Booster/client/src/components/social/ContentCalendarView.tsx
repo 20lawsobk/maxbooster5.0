@@ -3,7 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
-import { SiFacebook, SiInstagram, SiYoutube, SiTiktok, SiLinkedin, SiThreads, SiGoogle } from 'react-icons/si';
+import {
+  SiFacebook,
+  SiInstagram,
+  SiYoutube,
+  SiTiktok,
+  SiLinkedin,
+  SiThreads,
+  SiGoogle,
+} from 'react-icons/si';
 import { MessageCircle } from 'lucide-react';
 
 interface CalendarPost {
@@ -43,24 +51,29 @@ const PLATFORM_ICONS: Record<string, any> = {
   'google-business': SiGoogle,
 };
 
+/**
+ * TODO: Add function documentation
+ */
 export function ContentCalendarView({ posts, onDateClick }: ContentCalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const daysInMonth = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth() + 1,
-    0
-  ).getDate();
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
 
-  const firstDayOfMonth = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth(),
-    1
-  ).getDay();
+  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -79,7 +92,7 @@ export function ContentCalendarView({ posts, onDateClick }: ContentCalendarViewP
 
   const getPostsForDate = (day: number): CalendarPost[] => {
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return posts.filter(post => {
+    return posts.filter((post) => {
       const postDate = new Date(post.scheduledFor).toISOString().split('T')[0];
       return postDate === dateStr;
     });
@@ -92,7 +105,8 @@ export function ContentCalendarView({ posts, onDateClick }: ContentCalendarViewP
     for (let i = 0; i < totalCells; i++) {
       const dayNumber = i - firstDayOfMonth + 1;
       const isValidDay = dayNumber > 0 && dayNumber <= daysInMonth;
-      const isToday = isValidDay &&
+      const isToday =
+        isValidDay &&
         dayNumber === new Date().getDate() &&
         currentDate.getMonth() === new Date().getMonth() &&
         currentDate.getFullYear() === new Date().getFullYear();
@@ -112,10 +126,12 @@ export function ContentCalendarView({ posts, onDateClick }: ContentCalendarViewP
               transition-colors
             `}
           >
-            <div className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-600 dark:text-blue-400' : ''}`}>
+            <div
+              className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-600 dark:text-blue-400' : ''}`}
+            >
               {dayNumber}
             </div>
-            
+
             {dayPosts.length > 0 && (
               <div className="space-y-1">
                 {dayPosts.slice(0, 3).map((post) => (
@@ -135,7 +151,9 @@ export function ContentCalendarView({ posts, onDateClick }: ContentCalendarViewP
                         ) : null;
                       })}
                       {post.platforms.length > 3 && (
-                        <span className="text-[10px] text-gray-500">+{post.platforms.length - 3}</span>
+                        <span className="text-[10px] text-gray-500">
+                          +{post.platforms.length - 3}
+                        </span>
                       )}
                     </div>
                     <div className="truncate">{post.title || post.content}</div>

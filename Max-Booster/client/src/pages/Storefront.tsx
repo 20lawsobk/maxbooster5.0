@@ -172,7 +172,7 @@ export default function Storefront() {
         });
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Subscription Failed',
         description: error.message || 'Failed to process subscription',
@@ -269,11 +269,17 @@ export default function Storefront() {
             <div className="flex-1">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
-                  <h1 className="text-4xl md:text-5xl font-bold mb-2" style={{ fontFamily: fonts.heading }}>
+                  <h1
+                    className="text-4xl md:text-5xl font-bold mb-2"
+                    style={{ fontFamily: fonts.heading }}
+                  >
                     {storefront.name}
                   </h1>
                   {customization.bio && (
-                    <p className="text-lg text-muted-foreground max-w-2xl" style={{ fontFamily: fonts.body }}>
+                    <p
+                      className="text-lg text-muted-foreground max-w-2xl"
+                      style={{ fontFamily: fonts.body }}
+                    >
                       {customization.bio}
                     </p>
                   )}
@@ -364,20 +370,15 @@ export default function Storefront() {
                   .filter((tier) => tier.isActive)
                   .sort((a, b) => a.sortOrder - b.sortOrder)
                   .map((tier) => {
-                    const isLimited = tier.maxSubscribers && tier.currentSubscribers >= tier.maxSubscribers;
+                    const isLimited =
+                      tier.maxSubscribers && tier.currentSubscribers >= tier.maxSubscribers;
                     const isMostPopular = tier.sortOrder === 1;
 
                     return (
                       <Card
                         key={tier.id}
-                        className={`relative ${
-                          isMostPopular ? 'border-2 shadow-lg' : ''
-                        }`}
-                        style={
-                          isMostPopular
-                            ? { borderColor: colors.primary }
-                            : undefined
-                        }
+                        className={`relative ${isMostPopular ? 'border-2 shadow-lg' : ''}`}
+                        style={isMostPopular ? { borderColor: colors.primary } : undefined}
                       >
                         {isMostPopular && (
                           <div
@@ -389,7 +390,10 @@ export default function Storefront() {
                           </div>
                         )}
                         <CardHeader>
-                          <CardTitle className="flex items-center gap-2" style={{ fontFamily: fonts.heading }}>
+                          <CardTitle
+                            className="flex items-center gap-2"
+                            style={{ fontFamily: fonts.heading }}
+                          >
                             <Crown className="w-5 h-5" />
                             {tier.name}
                           </CardTitle>
@@ -403,9 +407,7 @@ export default function Storefront() {
                               <span className="text-4xl font-bold">
                                 ${(tier.priceCents / 100).toFixed(2)}
                               </span>
-                              <span className="text-muted-foreground">
-                                / {tier.interval}
-                              </span>
+                              <span className="text-muted-foreground">/ {tier.interval}</span>
                             </div>
                             {tier.maxSubscribers && (
                               <p className="text-sm text-muted-foreground">
@@ -430,7 +432,9 @@ export default function Storefront() {
                             {tier.benefits.discounts && tier.benefits.discounts.percentage > 0 && (
                               <div className="flex items-center gap-2 text-sm">
                                 <Check className="w-4 h-4 text-green-500" />
-                                <span>{tier.benefits.discounts.percentage}% discount on all purchases</span>
+                                <span>
+                                  {tier.benefits.discounts.percentage}% discount on all purchases
+                                </span>
                               </div>
                             )}
                             {tier.benefits.customPerks?.map((perk, idx) => (
@@ -446,11 +450,7 @@ export default function Storefront() {
                             size="lg"
                             disabled={isLimited}
                             onClick={() => subscribeMutation.mutate(tier.id)}
-                            style={
-                              isMostPopular
-                                ? { backgroundColor: colors.primary }
-                                : undefined
-                            }
+                            style={isMostPopular ? { backgroundColor: colors.primary } : undefined}
                           >
                             {isLimited ? 'Sold Out' : 'Subscribe Now'}
                           </Button>
@@ -495,7 +495,10 @@ export default function Storefront() {
                 }}
               >
                 {listings.map((listing) => (
-                  <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card
+                    key={listing.id}
+                    className="overflow-hidden hover:shadow-lg transition-shadow"
+                  >
                     <div className="relative">
                       {listing.coverArtUrl ? (
                         <img
@@ -524,15 +527,9 @@ export default function Storefront() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {listing.genre && (
-                          <Badge variant="outline">{listing.genre}</Badge>
-                        )}
-                        {listing.bpm && (
-                          <Badge variant="outline">{listing.bpm} BPM</Badge>
-                        )}
-                        {listing.key && (
-                          <Badge variant="outline">{listing.key}</Badge>
-                        )}
+                        {listing.genre && <Badge variant="outline">{listing.genre}</Badge>}
+                        {listing.bpm && <Badge variant="outline">{listing.bpm} BPM</Badge>}
+                        {listing.key && <Badge variant="outline">{listing.key}</Badge>}
                       </div>
 
                       <div className="flex items-center justify-between">

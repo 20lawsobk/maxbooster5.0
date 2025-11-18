@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import { exec } from 'child_process';
 import cron from 'node-cron';
 import { apiRequest } from '../shared/api-client';
+import { logger } from './logger.js';
 
 const execAsync = promisify(exec);
 
@@ -28,7 +29,7 @@ export class AutomationSystem extends EventEmitter {
       averageExecutionTime: 0,
       successRate: 0,
       lastExecution: Date.now(),
-      automationScore: 0
+      automationScore: 0,
     };
 
     this.initializeSystem();
@@ -46,22 +47,22 @@ export class AutomationSystem extends EventEmitter {
     try {
       // Register built-in actions
       this.registerBuiltInActions();
-      
+
       // Register built-in conditions
       this.registerBuiltInConditions();
-      
+
       // Register built-in triggers
       this.registerBuiltInTriggers();
-      
+
       // Load saved workflows
       await this.loadWorkflows();
-      
+
       // Start automation engine
       this.startAutomationEngine();
-      
-      console.log('🤖 Automation system initialized');
-    } catch (error) {
-      console.error('❌ Failed to initialize automation system:', error);
+
+      logger.info('🤖 Automation system initialized');
+    } catch (error: unknown) {
+      logger.error('❌ Failed to initialize automation system:', error);
     }
   }
 
@@ -73,10 +74,10 @@ export class AutomationSystem extends EventEmitter {
       description: 'Send email notification',
       parameters: ['to', 'subject', 'body', 'template'],
       execute: async (params) => {
-        console.log(`📧 Sending email to ${params.to}: ${params.subject}`);
+        logger.info(`📧 Sending email to ${params.to}: ${params.subject}`);
         // Implement email sending
         return { success: true, message: 'Email sent successfully' };
-      }
+      },
     });
 
     // Social media actions
@@ -85,10 +86,10 @@ export class AutomationSystem extends EventEmitter {
       description: 'Post content to social media platforms',
       parameters: ['platforms', 'content', 'media', 'schedule'],
       execute: async (params) => {
-        console.log(`📱 Posting to social media: ${params.platforms.join(', ')}`);
+        logger.info(`📱 Posting to social media: ${params.platforms.join(', ')}`);
         // Implement social media posting
         return { success: true, message: 'Posted to social media' };
-      }
+      },
     });
 
     // Distribution actions
@@ -97,10 +98,10 @@ export class AutomationSystem extends EventEmitter {
       description: 'Distribute music to streaming platforms',
       parameters: ['releaseId', 'platforms', 'metadata'],
       execute: async (params) => {
-        console.log(`🎵 Distributing music to ${params.platforms.join(', ')}`);
+        logger.info(`🎵 Distributing music to ${params.platforms.join(', ')}`);
         // Implement music distribution
         return { success: true, message: 'Music distributed successfully' };
-      }
+      },
     });
 
     // Analytics actions
@@ -109,10 +110,10 @@ export class AutomationSystem extends EventEmitter {
       description: 'Generate and send analytics report',
       parameters: ['reportType', 'recipients', 'format', 'schedule'],
       execute: async (params) => {
-        console.log(`📊 Generating ${params.reportType} analytics report`);
+        logger.info(`📊 Generating ${params.reportType} analytics report`);
         // Implement analytics report generation
         return { success: true, message: 'Analytics report generated' };
-      }
+      },
     });
 
     // AI actions
@@ -121,10 +122,10 @@ export class AutomationSystem extends EventEmitter {
       description: 'Use AI to mix and master track',
       parameters: ['trackId', 'style', 'quality'],
       execute: async (params) => {
-        console.log(`🎛️ AI mixing track ${params.trackId} with ${params.style} style`);
+        logger.info(`🎛️ AI mixing track ${params.trackId} with ${params.style} style`);
         // Implement AI mixing
         return { success: true, message: 'Track mixed with AI' };
-      }
+      },
     });
 
     this.registerAction('ai-master-track', {
@@ -132,10 +133,10 @@ export class AutomationSystem extends EventEmitter {
       description: 'Use AI to master track',
       parameters: ['trackId', 'targetLoudness', 'format'],
       execute: async (params) => {
-        console.log(`🎚️ AI mastering track ${params.trackId}`);
+        logger.info(`🎚️ AI mastering track ${params.trackId}`);
         // Implement AI mastering
         return { success: true, message: 'Track mastered with AI' };
-      }
+      },
     });
 
     // Marketplace actions
@@ -144,10 +145,10 @@ export class AutomationSystem extends EventEmitter {
       description: 'Upload beat to marketplace',
       parameters: ['beatData', 'pricing', 'licenses'],
       execute: async (params) => {
-        console.log(`🎶 Uploading beat to marketplace`);
+        logger.info(`🎶 Uploading beat to marketplace`);
         // Implement beat upload
         return { success: true, message: 'Beat uploaded to marketplace' };
-      }
+      },
     });
 
     // Payment actions
@@ -156,10 +157,10 @@ export class AutomationSystem extends EventEmitter {
       description: 'Process payment transaction',
       parameters: ['amount', 'currency', 'method', 'recipient'],
       execute: async (params) => {
-        console.log(`💳 Processing payment of ${params.amount} ${params.currency}`);
+        logger.info(`💳 Processing payment of ${params.amount} ${params.currency}`);
         // Implement payment processing
         return { success: true, message: 'Payment processed successfully' };
-      }
+      },
     });
 
     // Notification actions
@@ -168,10 +169,10 @@ export class AutomationSystem extends EventEmitter {
       description: 'Send push notification',
       parameters: ['title', 'message', 'recipients', 'type'],
       execute: async (params) => {
-        console.log(`🔔 Sending notification: ${params.title}`);
+        logger.info(`🔔 Sending notification: ${params.title}`);
         // Implement notification sending
         return { success: true, message: 'Notification sent' };
-      }
+      },
     });
 
     // Data actions
@@ -180,10 +181,10 @@ export class AutomationSystem extends EventEmitter {
       description: 'Backup user data',
       parameters: ['userId', 'dataType', 'destination'],
       execute: async (params) => {
-        console.log(`💾 Backing up ${params.dataType} data for user ${params.userId}`);
+        logger.info(`💾 Backing up ${params.dataType} data for user ${params.userId}`);
         // Implement data backup
         return { success: true, message: 'Data backed up successfully' };
-      }
+      },
     });
   }
 
@@ -197,9 +198,10 @@ export class AutomationSystem extends EventEmitter {
       evaluate: async (params) => {
         const now = new Date();
         const targetTime = new Date(params.time);
-        return now.getHours() === targetTime.getHours() && 
-               now.getMinutes() === targetTime.getMinutes();
-      }
+        return (
+          now.getHours() === targetTime.getHours() && now.getMinutes() === targetTime.getMinutes()
+        );
+      },
     });
 
     // User-based conditions
@@ -210,7 +212,7 @@ export class AutomationSystem extends EventEmitter {
       evaluate: async (params) => {
         // Implement user activity check
         return true;
-      }
+      },
     });
 
     // Performance-based conditions
@@ -221,7 +223,7 @@ export class AutomationSystem extends EventEmitter {
       evaluate: async (params) => {
         // Implement performance check
         return true;
-      }
+      },
     });
 
     // Revenue-based conditions
@@ -232,7 +234,7 @@ export class AutomationSystem extends EventEmitter {
       evaluate: async (params) => {
         // Implement revenue check
         return true;
-      }
+      },
     });
 
     // Stream-based conditions
@@ -243,7 +245,7 @@ export class AutomationSystem extends EventEmitter {
       evaluate: async (params) => {
         // Implement stream check
         return true;
-      }
+      },
     });
   }
 
@@ -257,7 +259,7 @@ export class AutomationSystem extends EventEmitter {
       start: (params, callback) => {
         const task = cron.schedule(params.cron, callback, {
           scheduled: false,
-          timezone: params.timezone
+          timezone: params.timezone,
         });
         task.start();
         return task;
@@ -266,7 +268,7 @@ export class AutomationSystem extends EventEmitter {
         if (trigger instanceof cron.ScheduledTask) {
           trigger.stop();
         }
-      }
+      },
     });
 
     // Event trigger
@@ -282,7 +284,7 @@ export class AutomationSystem extends EventEmitter {
         if (trigger && trigger.eventType) {
           this.off(trigger.eventType, trigger.callback);
         }
-      }
+      },
     });
 
     // Webhook trigger
@@ -296,14 +298,14 @@ export class AutomationSystem extends EventEmitter {
       },
       stop: (trigger) => {
         // Implement webhook stop
-      }
+      },
     });
   }
 
   // Start automation engine
   private startAutomationEngine(): void {
     this.isRunning = true;
-    
+
     // Start monitoring workflows
     setInterval(() => {
       this.monitorWorkflows();
@@ -314,7 +316,7 @@ export class AutomationSystem extends EventEmitter {
       this.executeWorkflows();
     }, 1000);
 
-    console.log('🚀 Automation engine started');
+    logger.info('🚀 Automation engine started');
   }
 
   // Monitor workflows
@@ -346,8 +348,8 @@ export class AutomationSystem extends EventEmitter {
             await this.triggerWorkflow(workflow);
             break;
           }
-        } catch (error) {
-          console.error(`Trigger error for workflow ${workflow.id}:`, error);
+        } catch (error: unknown) {
+          logger.error(`Trigger error for workflow ${workflow.id}:`, error);
         }
       }
     }
@@ -358,9 +360,9 @@ export class AutomationSystem extends EventEmitter {
     workflow.status = 'triggered';
     workflow.nextAction = 0;
     workflow.startTime = Date.now();
-    
-    console.log(`🎯 Workflow triggered: ${workflow.name}`);
-    
+
+    logger.info(`🎯 Workflow triggered: ${workflow.name}`);
+
     // Emit workflow triggered event
     this.emit('workflow:triggered', workflow);
   }
@@ -369,9 +371,9 @@ export class AutomationSystem extends EventEmitter {
   private async executeWorkflowStep(workflow: Workflow): Promise<void> {
     const actionConfig = workflow.actions[workflow.nextAction];
     const action = this.actions.get(actionConfig.type);
-    
+
     if (!action) {
-      console.error(`Action not found: ${actionConfig.type}`);
+      logger.error(`Action not found: ${actionConfig.type}`);
       workflow.status = 'failed';
       return;
     }
@@ -384,7 +386,7 @@ export class AutomationSystem extends EventEmitter {
           if (condition) {
             const conditionMet = await condition.evaluate(conditionConfig.parameters);
             if (!conditionMet) {
-              console.log(`Condition not met for action: ${actionConfig.type}`);
+              logger.info(`Condition not met for action: ${actionConfig.type}`);
               workflow.nextAction++;
               return;
             }
@@ -396,38 +398,37 @@ export class AutomationSystem extends EventEmitter {
       const startTime = Date.now();
       const result = await action.execute(actionConfig.parameters);
       const executionTime = Date.now() - startTime;
-      
+
       // Update metrics
       this.automationMetrics.totalExecutions++;
-      this.automationMetrics.averageExecutionTime = 
+      this.automationMetrics.averageExecutionTime =
         (this.automationMetrics.averageExecutionTime + executionTime) / 2;
-      
-      console.log(`✅ Action executed: ${actionConfig.type} in ${executionTime}ms`);
-      
+
+      logger.info(`✅ Action executed: ${actionConfig.type} in ${executionTime}ms`);
+
       // Move to next action
       workflow.nextAction++;
-      
+
       // Check if workflow is complete
       if (workflow.nextAction >= workflow.actions.length) {
         workflow.status = 'completed';
         workflow.endTime = Date.now();
         workflow.executionTime = workflow.endTime - workflow.startTime;
-        
+
         this.automationMetrics.completedWorkflows++;
-        console.log(`🎉 Workflow completed: ${workflow.name}`);
-        
+        logger.info(`🎉 Workflow completed: ${workflow.name}`);
+
         // Emit workflow completed event
         this.emit('workflow:completed', workflow);
       }
-      
-    } catch (error) {
-      console.error(`Action execution failed: ${actionConfig.type}`, error);
+    } catch (error: unknown) {
+      logger.error(`Action execution failed: ${actionConfig.type}`, error);
       workflow.status = 'failed';
       workflow.endTime = Date.now();
       workflow.error = error.message;
-      
+
       this.automationMetrics.failedWorkflows++;
-      
+
       // Emit workflow failed event
       this.emit('workflow:failed', workflow);
     }
@@ -444,14 +445,14 @@ export class AutomationSystem extends EventEmitter {
       status: 'inactive',
       nextAction: 0,
       createdAt: Date.now(),
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     };
 
     this.workflows.set(workflow.id, workflow);
     this.automationMetrics.totalWorkflows++;
-    
-    console.log(`📋 Workflow created: ${workflow.name}`);
-    
+
+    logger.info(`📋 Workflow created: ${workflow.name}`);
+
     return workflow;
   }
 
@@ -462,7 +463,7 @@ export class AutomationSystem extends EventEmitter {
 
     workflow.status = 'active';
     workflow.updatedAt = Date.now();
-    
+
     // Start triggers
     for (const triggerConfig of workflow.triggers) {
       const trigger = this.triggers.get(triggerConfig.type);
@@ -474,10 +475,10 @@ export class AutomationSystem extends EventEmitter {
         workflow.triggerInstances.push(triggerInstance);
       }
     }
-    
+
     this.automationMetrics.activeWorkflows++;
-    console.log(`▶️ Workflow started: ${workflow.name}`);
-    
+    logger.info(`▶️ Workflow started: ${workflow.name}`);
+
     return true;
   }
 
@@ -488,7 +489,7 @@ export class AutomationSystem extends EventEmitter {
 
     workflow.status = 'inactive';
     workflow.updatedAt = Date.now();
-    
+
     // Stop triggers
     if (workflow.triggerInstances) {
       for (const triggerInstance of workflow.triggerInstances) {
@@ -499,38 +500,38 @@ export class AutomationSystem extends EventEmitter {
       }
       workflow.triggerInstances = [];
     }
-    
+
     this.automationMetrics.activeWorkflows--;
-    console.log(`⏹️ Workflow stopped: ${workflow.name}`);
-    
+    logger.info(`⏹️ Workflow stopped: ${workflow.name}`);
+
     return true;
   }
 
   // Register action
   public registerAction(type: string, action: Action): void {
     this.actions.set(type, action);
-    console.log(`🔧 Action registered: ${action.name}`);
+    logger.info(`🔧 Action registered: ${action.name}`);
   }
 
   // Register condition
   public registerCondition(type: string, condition: Condition): void {
     this.conditions.set(type, condition);
-    console.log(`🔍 Condition registered: ${condition.name}`);
+    logger.info(`🔍 Condition registered: ${condition.name}`);
   }
 
   // Register trigger
   public registerTrigger(type: string, trigger: Trigger): void {
     this.triggers.set(type, trigger);
-    console.log(`🎯 Trigger registered: ${trigger.name}`);
+    logger.info(`🎯 Trigger registered: ${trigger.name}`);
   }
 
   // Load workflows from storage
   private async loadWorkflows(): Promise<void> {
     try {
       // Implement workflow loading from database
-      console.log('📂 Loading workflows from storage...');
-    } catch (error) {
-      console.error('Error loading workflows:', error);
+      logger.info('📂 Loading workflows from storage...');
+    } catch (error: unknown) {
+      logger.error('Error loading workflows:', error);
     }
   }
 
@@ -562,8 +563,8 @@ export class AutomationSystem extends EventEmitter {
     this.stopWorkflow(id);
     this.workflows.delete(id);
     this.automationMetrics.totalWorkflows--;
-    
-    console.log(`🗑️ Workflow deleted: ${workflow.name}`);
+
+    logger.info(`🗑️ Workflow deleted: ${workflow.name}`);
     return true;
   }
 }
@@ -574,88 +575,82 @@ export const WORKFLOW_TEMPLATES = {
   'music-release': {
     name: 'Music Release Workflow',
     description: 'Automated workflow for releasing music',
-    triggers: [
-      { type: 'schedule', parameters: { cron: '0 9 * * 1', timezone: 'UTC' } }
-    ],
+    triggers: [{ type: 'schedule', parameters: { cron: '0 9 * * 1', timezone: 'UTC' } }],
     actions: [
       {
         type: 'distribute-music',
         parameters: { releaseId: '{{releaseId}}', platforms: ['spotify', 'apple-music'] },
-        conditions: [
-          { type: 'time-based', parameters: { time: '09:00', days: ['monday'] } }
-        ]
+        conditions: [{ type: 'time-based', parameters: { time: '09:00', days: ['monday'] } }],
       },
       {
         type: 'post-social-media',
-        parameters: { platforms: ['instagram', 'twitter'], content: 'New release out now!' }
+        parameters: { platforms: ['instagram', 'twitter'], content: 'New release out now!' },
       },
       {
         type: 'send-email',
-        parameters: { to: '{{fanEmail}}', subject: 'New Release!', template: 'release' }
-      }
-    ]
+        parameters: { to: '{{fanEmail}}', subject: 'New Release!', template: 'release' },
+      },
+    ],
   },
 
   // Analytics report workflow
   'analytics-report': {
     name: 'Analytics Report Workflow',
     description: 'Generate and send weekly analytics reports',
-    triggers: [
-      { type: 'schedule', parameters: { cron: '0 8 * * 1', timezone: 'UTC' } }
-    ],
+    triggers: [{ type: 'schedule', parameters: { cron: '0 8 * * 1', timezone: 'UTC' } }],
     actions: [
       {
         type: 'generate-analytics-report',
-        parameters: { reportType: 'weekly', recipients: ['admin@maxbooster.com'] }
+        parameters: { reportType: 'weekly', recipients: ['admin@maxbooster.com'] },
       },
       {
         type: 'send-email',
-        parameters: { to: '{{adminEmail}}', subject: 'Weekly Analytics Report', template: 'analytics' }
-      }
-    ]
+        parameters: {
+          to: '{{adminEmail}}',
+          subject: 'Weekly Analytics Report',
+          template: 'analytics',
+        },
+      },
+    ],
   },
 
   // AI processing workflow
   'ai-processing': {
     name: 'AI Processing Workflow',
     description: 'Automated AI mixing and mastering',
-    triggers: [
-      { type: 'event', parameters: { eventType: 'track:uploaded' } }
-    ],
+    triggers: [{ type: 'event', parameters: { eventType: 'track:uploaded' } }],
     actions: [
       {
         type: 'ai-mix-track',
-        parameters: { trackId: '{{trackId}}', style: 'modern', quality: 'high' }
+        parameters: { trackId: '{{trackId}}', style: 'modern', quality: 'high' },
       },
       {
         type: 'ai-master-track',
-        parameters: { trackId: '{{trackId}}', targetLoudness: -14, format: 'wav' }
+        parameters: { trackId: '{{trackId}}', targetLoudness: -14, format: 'wav' },
       },
       {
         type: 'send-notification',
-        parameters: { title: 'AI Processing Complete', message: 'Your track has been processed!' }
-      }
-    ]
+        parameters: { title: 'AI Processing Complete', message: 'Your track has been processed!' },
+      },
+    ],
   },
 
   // Revenue tracking workflow
   'revenue-tracking': {
     name: 'Revenue Tracking Workflow',
     description: 'Track and process revenue payments',
-    triggers: [
-      { type: 'schedule', parameters: { cron: '0 0 1 * *', timezone: 'UTC' } }
-    ],
+    triggers: [{ type: 'schedule', parameters: { cron: '0 0 1 * *', timezone: 'UTC' } }],
     actions: [
       {
         type: 'process-payment',
-        parameters: { amount: '{{revenue}}', currency: 'USD', method: 'stripe' }
+        parameters: { amount: '{{revenue}}', currency: 'USD', method: 'stripe' },
       },
       {
         type: 'send-email',
-        parameters: { to: '{{userEmail}}', subject: 'Revenue Payment', template: 'payment' }
-      }
-    ]
-  }
+        parameters: { to: '{{userEmail}}', subject: 'Revenue Payment', template: 'payment' },
+      },
+    ],
+  },
 };
 
 // Interfaces
@@ -673,7 +668,7 @@ interface Workflow {
   error?: string;
   createdAt: number;
   updatedAt: number;
-  triggerInstances?: any[];
+  triggerInstances?: unknown[];
 }
 
 interface WorkflowConfig {
@@ -719,7 +714,7 @@ interface Trigger {
   description: string;
   parameters: string[];
   start: (params: Record<string, any>, callback: () => void) => any;
-  stop: (trigger: any) => void;
+  stop: (trigger: unknown) => void;
   evaluate?: (params: Record<string, any>) => Promise<boolean>;
 }
 

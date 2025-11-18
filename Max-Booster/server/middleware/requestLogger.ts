@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../logger.js';
 import { auditLogger } from './auditLogger.js';
 
 interface RequestLogData {
@@ -20,7 +21,7 @@ interface RequestLogData {
 // Request logging middleware
 export function requestLogger(req: Request, res: Response, next: NextFunction): void {
   const startTime = Date.now();
-  
+
   // Capture request details
   const logData: RequestLogData = {
     timestamp: new Date().toISOString(),
@@ -37,9 +38,9 @@ export function requestLogger(req: Request, res: Response, next: NextFunction): 
 
   // Override res.end to capture response details
   const originalEnd = res.end.bind(res);
-  res.end = function(chunk?: any, encoding?: any, cb?: any): any {
+  res.end = function (chunk?: unknown, encoding?: unknown, cb?: unknown): any {
     const responseTime = Date.now() - startTime;
-    
+
     // Update log data with response information
     logData.statusCode = res.statusCode;
     logData.responseTime = responseTime;
@@ -48,17 +49,17 @@ export function requestLogger(req: Request, res: Response, next: NextFunction): 
     // Determine log level based on status code
     const isError = res.statusCode >= 400;
     const isServerError = res.statusCode >= 500;
-    
+
     // Skip logging of static assets and health checks in production
-    const skipLogging = process.env.NODE_ENV === 'production' && (
-      req.originalUrl.includes('/src/') ||
-      req.originalUrl.includes('/@fs/') ||
-      req.originalUrl.includes('/@vite') ||
-      req.originalUrl.includes('.map') ||
-      req.originalUrl.includes('/api/health') ||
-      req.originalUrl.includes('/api/ready') ||
-      req.originalUrl.includes('/api/live')
-    );
+    const skipLogging =
+      process.env.NODE_ENV === 'production' &&
+      (req.originalUrl.includes('/src/') ||
+        req.originalUrl.includes('/@fs/') ||
+        req.originalUrl.includes('/@vite') ||
+        req.originalUrl.includes('.map') ||
+        req.originalUrl.includes('/api/health') ||
+        req.originalUrl.includes('/api/ready') ||
+        req.originalUrl.includes('/api/live'));
 
     if (!skipLogging) {
       // Log request for audit trail
@@ -82,7 +83,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction): 
             statusCode: logData.statusCode,
             responseTime: logData.responseTime,
             bodySize: logData.bodySize,
-          }
+          },
         },
         result: isError ? 'failure' : 'success',
         risk: isServerError ? 'high' : isError ? 'medium' : 'low',
@@ -93,17 +94,17 @@ export function requestLogger(req: Request, res: Response, next: NextFunction): 
       if (process.env.NODE_ENV === 'development' || isServerError) {
         const logLevel = isServerError ? 'error' : isError ? 'warn' : 'info';
         const message = `${logData.method} ${logData.url} - ${logData.statusCode} in ${responseTime}ms`;
-        
+
         if (logLevel === 'error') {
-          console.error(`❌ ${message}`, { requestId: logData.requestId });
+          logger.error(`❌ ${message}`, { requestId: logData.requestId });
         } else if (logLevel === 'warn') {
-          console.warn(`⚠️  ${message}`, { requestId: logData.requestId });
+          logger.warn(`⚠️  ${message}`, { requestId: logData.requestId });
         } else {
-          console.log(`✅ ${message}`);
+          logger.info(`✅ ${message}`);
         }
       }
     }
-    
+
     // Call original end method
     return originalEnd(chunk, encoding, cb);
   } as any;
@@ -115,7 +116,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction): 
 export function errorContext(req: Request, res: Response, next: NextFunction): void {
   // Add request context to any errors that occur
   const originalNext = next;
-  next = function(error?: any) {
+  next = function (error?: unknown) {
     if (error) {
       // Enhance error with request context
       error.requestContext = {

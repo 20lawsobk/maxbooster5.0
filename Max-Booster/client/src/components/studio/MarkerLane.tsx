@@ -25,6 +25,9 @@ const MARKER_COLORS = [
   '#ec4899', // pink
 ];
 
+/**
+ * TODO: Add function documentation
+ */
 export function MarkerLane({ duration, onTimelineClick }: MarkerLaneProps) {
   const {
     markers,
@@ -40,33 +43,39 @@ export function MarkerLane({ duration, onTimelineClick }: MarkerLaneProps) {
   const [editingMarkerId, setEditingMarkerId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
-  const handleAddMarker = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isAdding) return;
-    
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const clickTime = (x / rect.width) * duration;
-    
-    const newMarker: Marker = {
-      id: `marker-${Date.now()}`,
-      name: `Marker ${markers.length + 1}`,
-      time: Math.max(0, Math.min(clickTime, duration)),
-      position: Math.max(0, Math.min(clickTime, duration)),
-      color: MARKER_COLORS[markers.length % MARKER_COLORS.length],
-      type: 'marker',
-    };
-    
-    addMarker(newMarker);
-    setIsAdding(false);
-  }, [isAdding, duration, markers.length, addMarker]);
+  const handleAddMarker = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!isAdding) return;
 
-  const handleMarkerClick = useCallback((e: React.MouseEvent, marker: Marker) => {
-    e.stopPropagation();
-    selectMarker(marker.id);
-    if (onTimelineClick) {
-      onTimelineClick(marker.time);
-    }
-  }, [selectMarker, onTimelineClick]);
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const clickTime = (x / rect.width) * duration;
+
+      const newMarker: Marker = {
+        id: `marker-${Date.now()}`,
+        name: `Marker ${markers.length + 1}`,
+        time: Math.max(0, Math.min(clickTime, duration)),
+        position: Math.max(0, Math.min(clickTime, duration)),
+        color: MARKER_COLORS[markers.length % MARKER_COLORS.length],
+        type: 'marker',
+      };
+
+      addMarker(newMarker);
+      setIsAdding(false);
+    },
+    [isAdding, duration, markers.length, addMarker]
+  );
+
+  const handleMarkerClick = useCallback(
+    (e: React.MouseEvent, marker: Marker) => {
+      e.stopPropagation();
+      selectMarker(marker.id);
+      if (onTimelineClick) {
+        onTimelineClick(marker.time);
+      }
+    },
+    [selectMarker, onTimelineClick]
+  );
 
   const startEdit = useCallback((marker: Marker) => {
     setEditingMarkerId(marker.id);
@@ -81,19 +90,22 @@ export function MarkerLane({ duration, onTimelineClick }: MarkerLaneProps) {
     setEditingName('');
   }, [editingMarkerId, editingName, updateMarker]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      saveEdit();
-    } else if (e.key === 'Escape') {
-      setEditingMarkerId(null);
-      setEditingName('');
-    }
-  }, [saveEdit]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        saveEdit();
+      } else if (e.key === 'Escape') {
+        setEditingMarkerId(null);
+        setEditingName('');
+      }
+    },
+    [saveEdit]
+  );
 
   return (
     <div className="relative">
       {/* Marker Lane Header */}
-      <div 
+      <div
         className="h-8 flex items-center justify-between px-3 border-b"
         style={{
           background: 'var(--studio-bg-medium)',
@@ -122,7 +134,7 @@ export function MarkerLane({ duration, onTimelineClick }: MarkerLaneProps) {
       </div>
 
       {/* Marker Lane Content */}
-      <div 
+      <div
         className={`h-10 relative border-b ${isAdding ? 'cursor-crosshair' : ''}`}
         style={{
           background: 'var(--studio-bg-medium)',
@@ -132,7 +144,7 @@ export function MarkerLane({ duration, onTimelineClick }: MarkerLaneProps) {
       >
         {/* Guide text when adding */}
         {isAdding && markers.length === 0 && (
-          <div 
+          <div
             className="absolute inset-0 flex items-center justify-center text-xs"
             style={{ color: 'var(--studio-text-muted)' }}
           >
@@ -145,7 +157,7 @@ export function MarkerLane({ duration, onTimelineClick }: MarkerLaneProps) {
           const isSelected = marker.id === selectedMarkerId;
           const isEditing = marker.id === editingMarkerId;
           const position = (marker.time / duration) * 100;
-          
+
           return (
             <ContextMenu key={marker.id}>
               <ContextMenuTrigger>
@@ -175,7 +187,7 @@ export function MarkerLane({ duration, onTimelineClick }: MarkerLaneProps) {
                       style={{ backgroundColor: marker.color }}
                     />
                   </div>
-                  
+
                   {/* Marker Name */}
                   {isEditing ? (
                     <Input

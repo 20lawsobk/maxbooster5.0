@@ -14,10 +14,13 @@ interface ReleaseDateSchedulerProps {
   minWeeksAhead?: number;
 }
 
-export function ReleaseDateScheduler({ 
-  selectedDate, 
+/**
+ * TODO: Add function documentation
+ */
+export function ReleaseDateScheduler({
+  selectedDate,
   onChange,
-  minWeeksAhead = 2 
+  minWeeksAhead = 2,
 }: ReleaseDateSchedulerProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
@@ -41,23 +44,23 @@ export function ReleaseDateScheduler({
     {
       label: '2 Weeks',
       date: addWeeks(today, 2),
-      description: 'Minimum for editorial'
+      description: 'Minimum for editorial',
     },
     {
       label: '4 Weeks',
       date: addWeeks(today, 4),
-      description: 'Recommended for playlisting'
+      description: 'Recommended for playlisting',
     },
     {
       label: '6 Weeks',
       date: addWeeks(today, 6),
-      description: 'Best for marketing campaigns'
+      description: 'Best for marketing campaigns',
     },
     {
       label: '8 Weeks',
       date: addWeeks(today, 8),
-      description: 'Premium editorial consideration'
-    }
+      description: 'Premium editorial consideration',
+    },
   ];
 
   const getDayOfWeek = (date: Date): string => {
@@ -81,7 +84,7 @@ export function ReleaseDateScheduler({
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            <strong>Spotify Editorial Playlisting:</strong> Submit at least 2 weeks before release 
+            <strong>Spotify Editorial Playlisting:</strong> Submit at least 2 weeks before release
             for editorial review. 4+ weeks is recommended for maximum consideration.
           </AlertDescription>
         </Alert>
@@ -101,9 +104,7 @@ export function ReleaseDateScheduler({
                 {selectedDate ? (
                   <div className="flex items-center gap-2">
                     <span>{format(selectedDate, 'MMMM dd, yyyy')}</span>
-                    <span className="text-muted-foreground">
-                      ({getDayOfWeek(selectedDate)})
-                    </span>
+                    <span className="text-muted-foreground">({getDayOfWeek(selectedDate)})</span>
                   </div>
                 ) : (
                   <span>Select release date</span>
@@ -128,10 +129,17 @@ export function ReleaseDateScheduler({
                   <Clock className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-green-600 font-medium">
-                      Great! {Math.ceil((selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))} days advance notice
+                      Great!{' '}
+                      {Math.ceil(
+                        (selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+                      )}{' '}
+                      days advance notice
                     </p>
                     <p className="text-muted-foreground">
-                      {Math.ceil((selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 7))} weeks for editorial review
+                      {Math.ceil(
+                        (selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 7)
+                      )}{' '}
+                      weeks for editorial review
                     </p>
                   </div>
                 </>
@@ -156,7 +164,7 @@ export function ReleaseDateScheduler({
                 key={quick.label}
                 type="button"
                 className={`p-3 border-2 rounded-lg text-left transition-colors ${
-                  selectedDate && 
+                  selectedDate &&
                   format(selectedDate, 'yyyy-MM-dd') === format(quick.date, 'yyyy-MM-dd')
                     ? 'border-primary bg-primary/5'
                     : 'border-muted hover:border-primary/50'
@@ -167,9 +175,7 @@ export function ReleaseDateScheduler({
                 <div className="text-xs text-muted-foreground mt-1">
                   {format(quick.date, 'MMM dd, yyyy')}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {quick.description}
-                </div>
+                <div className="text-xs text-muted-foreground mt-1">{quick.description}</div>
               </button>
             ))}
           </div>
@@ -180,8 +186,9 @@ export function ReleaseDateScheduler({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              <strong>Tip:</strong> Most releases go live on Fridays (industry standard for new music). 
-              Consider {format(addDays(selectedDate, (5 - selectedDate.getDay() + 7) % 7), 'MMMM dd')} 
+              <strong>Tip:</strong> Most releases go live on Fridays (industry standard for new
+              music). Consider{' '}
+              {format(addDays(selectedDate, (5 - selectedDate.getDay() + 7) % 7), 'MMMM dd')}
               instead?
             </AlertDescription>
           </Alert>
@@ -201,7 +208,7 @@ export function ReleaseDateScheduler({
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-2 p-2 bg-muted/50 rounded">
                 <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
                 <div>
@@ -232,9 +239,7 @@ export function ReleaseDateScheduler({
                   <p className="font-medium">
                     {format(selectedDate, 'MMM dd')}: Release goes live! 🎉
                   </p>
-                  <p className="text-muted-foreground text-xs">
-                    Available to stream worldwide
-                  </p>
+                  <p className="text-muted-foreground text-xs">Available to stream worldwide</p>
                 </div>
               </div>
             </div>

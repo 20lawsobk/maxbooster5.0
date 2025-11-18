@@ -1,56 +1,59 @@
-import { lazy, Suspense, useState, useEffect } from "react";
-import { Switch, Route, useLocation } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/components/auth/AuthProvider";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { KeyboardShortcutsDialog } from "@/components/dialogs/KeyboardShortcutsDialog";
-import { SkipLinks } from "@/components/SkipLinks";
-import { LiveChatWidget } from "@/components/support/LiveChatWidget";
-import { useKeyboardShortcuts, announce } from "@/lib/accessibility";
-import Landing from "@/pages/Landing";
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
-import RegisterPayment from "@/pages/RegisterPayment";
-import RegisterSuccess from "@/pages/RegisterSuccess";
-import Terms from "@/pages/Terms";
-import Privacy from "@/pages/Privacy";
-import Help from "@/pages/Help";
-import Features from "@/pages/Features";
-import API from "@/pages/API";
-import Documentation from "@/pages/Documentation";
-import About from "@/pages/About";
-import Blog from "@/pages/Blog";
-import SoloFounderStory from "@/pages/SoloFounderStory";
-import Contact from "@/pages/Contact";
-import SecurityPage from "@/pages/SecurityPage";
-import DMCA from "@/pages/DMCA";
-import ForgotPassword from "@/pages/ForgotPassword";
-import NotFound from "@/pages/not-found";
+import { lazy, Suspense, useState, useEffect } from 'react';
+import { Switch, Route, useLocation } from 'wouter';
+import { queryClient } from './lib/queryClient';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { AuthProvider } from '@/components/auth/AuthProvider';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { KeyboardShortcutsDialog } from '@/components/dialogs/KeyboardShortcutsDialog';
+import { SkipLinks } from '@/components/SkipLinks';
+import { LiveChatWidget } from '@/components/support/LiveChatWidget';
+import { useKeyboardShortcuts, announce } from '@/lib/accessibility';
+import Landing from '@/pages/Landing';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import RegisterPayment from '@/pages/RegisterPayment';
+import RegisterSuccess from '@/pages/RegisterSuccess';
+import Terms from '@/pages/Terms';
+import Privacy from '@/pages/Privacy';
+import Help from '@/pages/Help';
+import Features from '@/pages/Features';
+import API from '@/pages/API';
+import Documentation from '@/pages/Documentation';
+import About from '@/pages/About';
+import Blog from '@/pages/Blog';
+import SoloFounderStory from '@/pages/SoloFounderStory';
+import Contact from '@/pages/Contact';
+import SecurityPage from '@/pages/SecurityPage';
+import DMCA from '@/pages/DMCA';
+import ForgotPassword from '@/pages/ForgotPassword';
+import NotFound from '@/pages/not-found';
 
 // Lazy load heavy pages for code splitting
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const Studio = lazy(() => import("@/pages/Studio"));
-const Marketplace = lazy(() => import("@/pages/Marketplace"));
-const Analytics = lazy(() => import("@/pages/Analytics"));
-const AIDashboard = lazy(() => import("@/pages/analytics/AIDashboard"));
-const SocialMedia = lazy(() => import("@/pages/SocialMedia"));
-const Advertisement = lazy(() => import("@/pages/Advertisement"));
-const Distribution = lazy(() => import("@/pages/Distribution"));
-const Royalties = lazy(() => import("@/pages/Royalties"));
-const Settings = lazy(() => import("@/pages/Settings"));
-const Admin = lazy(() => import("@/pages/Admin"));
-const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
-const SecurityDashboard = lazy(() => import("@/pages/admin/SecurityDashboard"));
-const SupportDashboard = lazy(() => import("@/pages/admin/SupportDashboard"));
-const Projects = lazy(() => import("@/pages/Projects"));
-const Pricing = lazy(() => import("@/pages/Pricing"));
-const Subscribe = lazy(() => import("@/pages/Subscribe"));
-const DeveloperApi = lazy(() => import("@/pages/DeveloperApi"));
-const SimplifiedDashboard = lazy(() => import("@/pages/SimplifiedDashboard"));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Studio = lazy(() => import('@/pages/Studio'));
+const Marketplace = lazy(() => import('@/pages/Marketplace'));
+const Analytics = lazy(() => import('@/pages/Analytics'));
+const AIDashboard = lazy(() => import('@/pages/analytics/AIDashboard'));
+const SocialMedia = lazy(() => import('@/pages/SocialMedia'));
+const Advertisement = lazy(() => import('@/pages/Advertisement'));
+const Distribution = lazy(() => import('@/pages/Distribution'));
+const Royalties = lazy(() => import('@/pages/Royalties'));
+const Settings = lazy(() => import('@/pages/Settings'));
+const Admin = lazy(() => import('@/pages/Admin'));
+const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
+const SecurityDashboard = lazy(() => import('@/pages/admin/SecurityDashboard'));
+const SupportDashboard = lazy(() => import('@/pages/admin/SupportDashboard'));
+const Projects = lazy(() => import('@/pages/Projects'));
+const Pricing = lazy(() => import('@/pages/Pricing'));
+const Subscribe = lazy(() => import('@/pages/Subscribe'));
+const DeveloperApi = lazy(() => import('@/pages/DeveloperApi'));
+const SimplifiedDashboard = lazy(() => import('@/pages/SimplifiedDashboard'));
 
+/**
+ * TODO: Add function documentation
+ */
 function Router() {
   return (
     <Switch>
@@ -97,10 +100,13 @@ function Router() {
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function AppWithKeyboardShortcuts() {
   const [showShortcutsDialog, setShowShortcutsDialog] = useState(false);
   const [location, setLocation] = useLocation();
-  
+
   // Global keyboard shortcuts
   const shortcuts = [
     {
@@ -108,19 +114,21 @@ function AppWithKeyboardShortcuts() {
       shift: true,
       handler: () => setShowShortcutsDialog(true),
       description: 'Open keyboard shortcuts help',
-      category: 'Global'
+      category: 'Global',
     },
     {
       key: '/',
       handler: () => {
-        const searchInput = document.querySelector('[data-testid="search-input"]') as HTMLInputElement;
+        const searchInput = document.querySelector(
+          '[data-testid="search-input"]'
+        ) as HTMLInputElement;
         if (searchInput) {
           searchInput.focus();
           announce('Search focused');
         }
       },
       description: 'Focus search',
-      category: 'Global'
+      category: 'Global',
     },
     {
       key: 'h',
@@ -130,7 +138,7 @@ function AppWithKeyboardShortcuts() {
         announce('Navigating to Dashboard');
       },
       description: 'Go to Dashboard',
-      category: 'Navigation'
+      category: 'Navigation',
     },
     {
       key: 's',
@@ -140,7 +148,7 @@ function AppWithKeyboardShortcuts() {
         announce('Navigating to Studio');
       },
       description: 'Go to Studio',
-      category: 'Navigation'
+      category: 'Navigation',
     },
     {
       key: 'p',
@@ -150,20 +158,20 @@ function AppWithKeyboardShortcuts() {
         announce('Navigating to Projects');
       },
       description: 'Go to Projects',
-      category: 'Navigation'
+      category: 'Navigation',
     },
   ];
-  
+
   // Use keyboard shortcuts hook
   useKeyboardShortcuts(shortcuts, true);
-  
+
   // Announce page changes for screen readers
   useEffect(() => {
     const path = location.split('/')[1] || 'home';
     const pageName = path.charAt(0).toUpperCase() + path.slice(1);
     announce(`Navigated to ${pageName} page`);
   }, [location]);
-  
+
   // Add keyboard navigation class to body
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -171,32 +179,32 @@ function AppWithKeyboardShortcuts() {
         document.body.classList.add('keyboard-navigating');
       }
     };
-    
+
     const handleMouseDown = () => {
       document.body.classList.remove('keyboard-navigating');
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousedown', handleMouseDown);
-    
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handleMouseDown);
     };
   }, []);
-  
+
   return (
     <>
       <SkipLinks />
-      <KeyboardShortcutsDialog
-        open={showShortcutsDialog}
-        onOpenChange={setShowShortcutsDialog}
-      />
+      <KeyboardShortcutsDialog open={showShortcutsDialog} onOpenChange={setShowShortcutsDialog} />
       <Router />
     </>
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function App() {
   return (
     <ErrorBoundary>
@@ -206,11 +214,17 @@ function App() {
             <Toaster />
             <LiveChatWidget />
             <div id="main-content" role="main" tabIndex={-1}>
-              <Suspense fallback={
-                <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading application">
-                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-                </div>
-              }>
+              <Suspense
+                fallback={
+                  <div
+                    className="min-h-screen flex items-center justify-center"
+                    role="status"
+                    aria-label="Loading application"
+                  >
+                    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+                  </div>
+                }
+              >
                 <AppWithKeyboardShortcuts />
               </Suspense>
             </div>

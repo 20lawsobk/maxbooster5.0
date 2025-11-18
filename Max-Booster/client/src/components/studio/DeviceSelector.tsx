@@ -1,4 +1,10 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +22,9 @@ interface DeviceSelectorProps {
   compact?: boolean;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function DeviceSelector({
   onAudioInputChange,
   onAudioOutputChange,
@@ -47,7 +56,10 @@ export function DeviceSelector({
         {/* Audio Input */}
         <div className="flex items-center gap-1">
           <Mic className="h-3 w-3 text-gray-400" />
-          <Select value={audioDevices.selectedInput || undefined} onValueChange={handleAudioInputChange}>
+          <Select
+            value={audioDevices.selectedInput || undefined}
+            onValueChange={handleAudioInputChange}
+          >
             <SelectTrigger className="h-7 w-[140px] text-xs">
               <SelectValue placeholder="Select input" />
             </SelectTrigger>
@@ -67,7 +79,10 @@ export function DeviceSelector({
             <Separator orientation="vertical" className="h-4" />
             <div className="flex items-center gap-1">
               <Music className="h-3 w-3 text-gray-400" />
-              <Select value={midiDevices.selectedInput || undefined} onValueChange={handleMIDIInputChange}>
+              <Select
+                value={midiDevices.selectedInput || undefined}
+                onValueChange={handleMIDIInputChange}
+              >
                 <SelectTrigger className="h-7 w-[140px] text-xs">
                   <SelectValue placeholder="Select MIDI" />
                 </SelectTrigger>
@@ -117,14 +132,17 @@ export function DeviceSelector({
             </Badge>
           )}
         </div>
-        
+
         {audioDevices.error ? (
           <div className="flex items-center gap-2 text-xs text-red-500">
             <AlertCircle className="h-3 w-3" />
             {audioDevices.error}
           </div>
         ) : (
-          <Select value={audioDevices.selectedInput || undefined} onValueChange={handleAudioInputChange}>
+          <Select
+            value={audioDevices.selectedInput || undefined}
+            onValueChange={handleAudioInputChange}
+          >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select audio input device" />
             </SelectTrigger>
@@ -134,7 +152,9 @@ export function DeviceSelector({
                   <div className="flex flex-col">
                     <span>{device.label}</span>
                     {showDetails && (
-                      <span className="text-xs text-gray-500">ID: {device.deviceId.slice(0, 20)}...</span>
+                      <span className="text-xs text-gray-500">
+                        ID: {device.deviceId.slice(0, 20)}...
+                      </span>
                     )}
                   </div>
                 </SelectItem>
@@ -155,8 +175,11 @@ export function DeviceSelector({
             </Badge>
           )}
         </div>
-        
-        <Select value={audioDevices.selectedOutput || undefined} onValueChange={handleAudioOutputChange}>
+
+        <Select
+          value={audioDevices.selectedOutput || undefined}
+          onValueChange={handleAudioOutputChange}
+        >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select audio output device" />
           </SelectTrigger>
@@ -166,7 +189,9 @@ export function DeviceSelector({
                 <div className="flex flex-col">
                   <span>{device.label}</span>
                   {showDetails && (
-                    <span className="text-xs text-gray-500">ID: {device.deviceId.slice(0, 20)}...</span>
+                    <span className="text-xs text-gray-500">
+                      ID: {device.deviceId.slice(0, 20)}...
+                    </span>
                   )}
                 </div>
               </SelectItem>
@@ -196,7 +221,8 @@ export function DeviceSelector({
 
         {!midiDevices.isSupported ? (
           <div className="text-xs text-gray-500 p-2 bg-gray-900/50 rounded border border-gray-800">
-            Web MIDI API is not supported in this browser. Try Chrome, Edge, or Opera for MIDI controller support.
+            Web MIDI API is not supported in this browser. Try Chrome, Edge, or Opera for MIDI
+            controller support.
           </div>
         ) : midiDevices.error ? (
           <div className="flex items-center gap-2 text-xs text-red-500">
@@ -208,7 +234,10 @@ export function DeviceSelector({
             No MIDI devices connected. Connect a MIDI controller and click Refresh.
           </div>
         ) : (
-          <Select value={midiDevices.selectedInput || undefined} onValueChange={handleMIDIInputChange}>
+          <Select
+            value={midiDevices.selectedInput || undefined}
+            onValueChange={handleMIDIInputChange}
+          >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select MIDI input device" />
             </SelectTrigger>

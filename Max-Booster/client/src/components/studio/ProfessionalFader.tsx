@@ -24,19 +24,28 @@ const DB_MARKS = [
   { db: '-∞', position: 0 },
 ];
 
+/**
+ * TODO: Add function documentation
+ */
 function valueToDb(value: number): number {
   if (value === 0) return -Infinity;
   // Map 0-1 to -60 to +6 dB
-  const db = (value * 66) - 60;
+  const db = value * 66 - 60;
   return Math.max(-60, Math.min(6, db));
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function dbToValue(db: number): number {
   if (db === -Infinity) return 0;
   // Map -60 to +6 dB to 0-1
   return Math.max(0, Math.min(1, (db + 60) / 66));
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function ProfessionalFader({
   value,
   onChange,
@@ -55,7 +64,7 @@ export function ProfessionalFader({
   const [isHovered, setIsHovered] = useState(false);
   const [peakHold, setPeakHold] = useState(peakLevel);
   const peakHoldTimeRef = useRef<number>(Date.now());
-  
+
   const faderPosition = useMotionValue(value);
   const springPosition = useSpring(faderPosition, {
     stiffness: 400,
@@ -74,41 +83,45 @@ export function ProfessionalFader({
       setPeakHold(peakLevel);
       peakHoldTimeRef.current = Date.now();
     } else if (Date.now() - peakHoldTimeRef.current > 2000) {
-      setPeakHold(prev => Math.max(prev - 0.5, peakLevel));
+      setPeakHold((prev) => Math.max(prev - 0.5, peakLevel));
     }
   }, [peakLevel, peakHold]);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-    
-    const startY = e.clientY;
-    const startValue = value;
-    
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!faderRef.current) return;
-      
-      const deltaY = orientation === 'vertical' ? 
-        (startY - e.clientY) / height : 
-        (e.clientX - startY) / height;
-      
-      const multiplier = e.shiftKey ? 0.1 : 1; // Fine-tuning with shift
-      let newValue = startValue + (deltaY * multiplier);
-      newValue = Math.max(0, Math.min(1, newValue));
-      
-      faderPosition.set(newValue);
-      onChange(newValue);
-    };
-    
-    const handleMouseUp = () => {
-      setIsDragging(false);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [value, onChange, height, orientation, faderPosition]);
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      setIsDragging(true);
+
+      const startY = e.clientY;
+      const startValue = value;
+
+      const handleMouseMove = (e: MouseEvent) => {
+        if (!faderRef.current) return;
+
+        const deltaY =
+          orientation === 'vertical'
+            ? (startY - e.clientY) / height
+            : (e.clientX - startY) / height;
+
+        const multiplier = e.shiftKey ? 0.1 : 1; // Fine-tuning with shift
+        let newValue = startValue + deltaY * multiplier;
+        newValue = Math.max(0, Math.min(1, newValue));
+
+        faderPosition.set(newValue);
+        onChange(newValue);
+      };
+
+      const handleMouseUp = () => {
+        setIsDragging(false);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    },
+    [value, onChange, height, orientation, faderPosition]
+  );
 
   const handleDoubleClick = useCallback(() => {
     const defaultValue = 0.75; // 0dB position
@@ -125,9 +138,9 @@ export function ProfessionalFader({
     const peakHeight = Math.max(0, ((peakHold + 60) / 66) * meterHeight);
 
     return (
-      <div 
+      <div
         className="absolute left-0 w-2 rounded-sm overflow-hidden"
-        style={{ 
+        style={{
           height: `${meterHeight}px`,
           background: 'var(--meter-background)',
         }}
@@ -138,14 +151,14 @@ export function ProfessionalFader({
           const segmentY = meterHeight - (i + 1) * segmentHeight;
           const segmentDb = ((i + 1) / 20) * 66 - 60;
           const isActive = levelHeight > i * segmentHeight;
-          
+
           let color = '#2a2a2a';
           if (isActive) {
             if (segmentDb < -18) color = 'var(--meter-green)';
             else if (segmentDb < -6) color = 'var(--meter-yellow)';
             else color = 'var(--meter-red)';
           }
-          
+
           return (
             <div
               key={i}
@@ -160,7 +173,7 @@ export function ProfessionalFader({
             />
           );
         })}
-        
+
         {/* Peak hold indicator */}
         <motion.div
           className="absolute w-full h-0.5 bg-white"
@@ -176,7 +189,7 @@ export function ProfessionalFader({
   };
 
   return (
-    <div 
+    <div
       ref={faderRef}
       className={`relative flex items-center gap-2 ${className}`}
       onMouseEnter={() => setIsHovered(true)}
@@ -185,17 +198,17 @@ export function ProfessionalFader({
     >
       {/* Meter */}
       {showMeter && renderMeter()}
-      
+
       {/* Fader Track */}
-      <div 
+      <div
         className="relative ml-3"
-        style={{ 
+        style={{
           width: orientation === 'vertical' ? '40px' : `${height}px`,
           height: orientation === 'vertical' ? `${height}px` : '40px',
         }}
       >
         {/* Track Background */}
-        <div 
+        <div
           className="absolute rounded"
           style={{
             left: orientation === 'vertical' ? '18px' : '0',
@@ -206,34 +219,32 @@ export function ProfessionalFader({
             boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)',
           }}
         />
-        
+
         {/* dB Markings */}
-        {orientation === 'vertical' && DB_MARKS.map(mark => (
-          <div
-            key={mark.db}
-            className="absolute flex items-center"
-            style={{
-              top: `${(1 - mark.position) * height}px`,
-              left: '26px',
-              transform: 'translateY(-50%)',
-            }}
-          >
-            <div 
-              className="w-2 h-px bg-gray-500"
-              style={{ marginRight: '4px' }}
-            />
-            <span 
-              className="text-[8px] font-mono"
-              style={{ 
-                color: 'var(--studio-text-muted)',
-                minWidth: '20px',
+        {orientation === 'vertical' &&
+          DB_MARKS.map((mark) => (
+            <div
+              key={mark.db}
+              className="absolute flex items-center"
+              style={{
+                top: `${(1 - mark.position) * height}px`,
+                left: '26px',
+                transform: 'translateY(-50%)',
               }}
             >
-              {mark.db}
-            </span>
-          </div>
-        ))}
-        
+              <div className="w-2 h-px bg-gray-500" style={{ marginRight: '4px' }} />
+              <span
+                className="text-[8px] font-mono"
+                style={{
+                  color: 'var(--studio-text-muted)',
+                  minWidth: '20px',
+                }}
+              >
+                {mark.db}
+              </span>
+            </div>
+          ))}
+
         {/* Fader Cap */}
         <motion.div
           className="absolute cursor-grab active:cursor-grabbing"
@@ -245,11 +256,11 @@ export function ProfessionalFader({
             background: 'var(--fader-cap-bg)',
             borderRadius: '2px',
             border: '1px solid #5a5a5f',
-            boxShadow: isDragging 
+            boxShadow: isDragging
               ? 'var(--knob-hover-glow), var(--knob-shadow)'
               : isHovered
-              ? '0 0 8px rgba(0, 204, 255, 0.2), var(--knob-shadow)'
-              : 'var(--knob-shadow)',
+                ? '0 0 8px rgba(0, 204, 255, 0.2), var(--knob-shadow)'
+                : 'var(--knob-shadow)',
             transition: 'box-shadow 0.2s ease',
           }}
           onMouseDown={handleMouseDown}
@@ -258,15 +269,15 @@ export function ProfessionalFader({
           whileTap={{ scale: 0.98 }}
         >
           {/* Fader cap indicator line */}
-          <div 
+          <div
             className="absolute w-full h-px top-1/2 -translate-y-1/2"
-            style={{ 
+            style={{
               background: 'var(--knob-indicator)',
               boxShadow: '0 0 3px var(--knob-indicator)',
             }}
           />
         </motion.div>
-        
+
         {/* Current Value Display */}
         {isDragging && (
           <motion.div
@@ -284,12 +295,12 @@ export function ProfessionalFader({
           </motion.div>
         )}
       </div>
-      
+
       {/* Label */}
       {label && (
-        <div 
+        <div
           className="text-xs font-medium writing-mode-vertical"
-          style={{ 
+          style={{
             color: 'var(--studio-text-muted)',
             writingMode: orientation === 'vertical' ? 'vertical-rl' : 'horizontal-tb',
             transform: orientation === 'vertical' ? 'rotate(180deg)' : 'none',

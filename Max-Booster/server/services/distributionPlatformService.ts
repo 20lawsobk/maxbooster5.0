@@ -10,6 +10,9 @@ const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60000;
 const RATE_LIMIT_MAX = 10;
 
+/**
+ * TODO: Add function documentation
+ */
 function checkRateLimit(userId: string): boolean {
   const now = Date.now();
   const userLimit = rateLimitMap.get(userId);
@@ -27,6 +30,9 @@ function checkRateLimit(userId: string): boolean {
   return true;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function submitToProvider(
   releaseId: string,
   providerSlug: string,
@@ -45,23 +51,26 @@ export async function submitToProvider(
     releaseId,
     providerId: provider.id,
     status: 'queued',
-    logs: `Queued for ${provider.name} submission at ${new Date().toISOString()}`
+    logs: `Queued for ${provider.name} submission at ${new Date().toISOString()}`,
   });
 
   setTimeout(async () => {
     await storage.updateDistroDispatch(dispatch.id, {
       status: 'processing',
-      logs: `${dispatch.logs}\nProcessing started at ${new Date().toISOString()}`
+      logs: `${dispatch.logs}\nProcessing started at ${new Date().toISOString()}`,
     });
   }, 1000);
 
   return {
     dispatchId: dispatch.id,
     status: 'queued',
-    message: `Successfully queued for ${provider.name} distribution`
+    message: `Successfully queued for ${provider.name} distribution`,
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function spotifySubmit(
   releaseId: string,
   credentials: { clientId?: string; clientSecret?: string },
@@ -73,6 +82,9 @@ export async function spotifySubmit(
   return submitToProvider(releaseId, 'spotify', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function appleMusicSubmit(
   releaseId: string,
   credentials: { teamId?: string; keyId?: string; privateKey?: string },
@@ -84,6 +96,9 @@ export async function appleMusicSubmit(
   return submitToProvider(releaseId, 'apple-music', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function youtubeSubmit(
   releaseId: string,
   credentials: { channelId?: string; accessToken?: string },
@@ -95,6 +110,9 @@ export async function youtubeSubmit(
   return submitToProvider(releaseId, 'youtube-music', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function amazonMusicSubmit(
   releaseId: string,
   credentials: { accessKeyId?: string; secretAccessKey?: string },
@@ -106,6 +124,9 @@ export async function amazonMusicSubmit(
   return submitToProvider(releaseId, 'amazon-music', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function deezerSubmit(
   releaseId: string,
   credentials: { appId?: string; secretKey?: string },
@@ -117,6 +138,9 @@ export async function deezerSubmit(
   return submitToProvider(releaseId, 'deezer', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function tidalSubmit(
   releaseId: string,
   credentials: { clientId?: string; clientSecret?: string },
@@ -128,6 +152,9 @@ export async function tidalSubmit(
   return submitToProvider(releaseId, 'tidal', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function pandoraSubmit(
   releaseId: string,
   credentials: { partnerId?: string; apiKey?: string },
@@ -139,6 +166,9 @@ export async function pandoraSubmit(
   return submitToProvider(releaseId, 'pandora', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function iheartradioSubmit(
   releaseId: string,
   credentials: { apiKey?: string; partnerId?: string },
@@ -150,6 +180,9 @@ export async function iheartradioSubmit(
   return submitToProvider(releaseId, 'iheartradio', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function soundcloudSubmit(
   releaseId: string,
   credentials: { clientId?: string; clientSecret?: string },
@@ -161,6 +194,9 @@ export async function soundcloudSubmit(
   return submitToProvider(releaseId, 'soundcloud', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function tiktokSubmit(
   releaseId: string,
   credentials: { clientKey?: string; clientSecret?: string },
@@ -172,6 +208,9 @@ export async function tiktokSubmit(
   return submitToProvider(releaseId, 'tiktok', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function instagramSubmit(
   releaseId: string,
   credentials: { appId?: string; appSecret?: string },
@@ -183,6 +222,9 @@ export async function instagramSubmit(
   return submitToProvider(releaseId, 'instagram', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function facebookSubmit(
   releaseId: string,
   credentials: { appId?: string; appSecret?: string },
@@ -194,6 +236,9 @@ export async function facebookSubmit(
   return submitToProvider(releaseId, 'facebook', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function tencentMusicSubmit(
   releaseId: string,
   credentials: { appId?: string; appKey?: string },
@@ -205,6 +250,9 @@ export async function tencentMusicSubmit(
   return submitToProvider(releaseId, 'tencent-music', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function neteaseSubmit(
   releaseId: string,
   credentials: { appId?: string; appSecret?: string },
@@ -216,6 +264,9 @@ export async function neteaseSubmit(
   return submitToProvider(releaseId, 'netease-cloud-music', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function jiosaavnSubmit(
   releaseId: string,
   credentials: { apiKey?: string; partnerId?: string },
@@ -227,6 +278,9 @@ export async function jiosaavnSubmit(
   return submitToProvider(releaseId, 'jiosaavn', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function gaanaSubmit(
   releaseId: string,
   credentials: { apiKey?: string },
@@ -238,6 +292,9 @@ export async function gaanaSubmit(
   return submitToProvider(releaseId, 'gaana', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function anghamiSubmit(
   releaseId: string,
   credentials: { clientId?: string; clientSecret?: string },
@@ -249,6 +306,9 @@ export async function anghamiSubmit(
   return submitToProvider(releaseId, 'anghami', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function boomplaySubmit(
   releaseId: string,
   credentials: { apiKey?: string; partnerId?: string },
@@ -260,6 +320,9 @@ export async function boomplaySubmit(
   return submitToProvider(releaseId, 'boomplay', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function yandexMusicSubmit(
   releaseId: string,
   credentials: { clientId?: string; clientSecret?: string },
@@ -271,6 +334,9 @@ export async function yandexMusicSubmit(
   return submitToProvider(releaseId, 'yandex-music', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function melonSubmit(
   releaseId: string,
   credentials: { apiKey?: string; cpCode?: string },
@@ -282,6 +348,9 @@ export async function melonSubmit(
   return submitToProvider(releaseId, 'melon', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function kkboxSubmit(
   releaseId: string,
   credentials: { clientId?: string; clientSecret?: string },
@@ -293,6 +362,9 @@ export async function kkboxSubmit(
   return submitToProvider(releaseId, 'kkbox', userId);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function getDispatchStatus(dispatchId: string): Promise<any> {
   const dispatch = await storage.getDistroDispatch(dispatchId);
   if (!dispatch) {

@@ -2,14 +2,14 @@ import { toast } from '@/hooks/use-toast';
 
 export type ErrorSeverity = 'critical' | 'error' | 'warning' | 'info';
 
-export type ErrorCategory = 
-  | 'network' 
-  | 'auth' 
-  | 'validation' 
-  | 'system' 
-  | 'timeout' 
-  | 'permission' 
-  | 'storage' 
+export type ErrorCategory =
+  | 'network'
+  | 'auth'
+  | 'validation'
+  | 'system'
+  | 'timeout'
+  | 'permission'
+  | 'storage'
   | 'media'
   | 'unknown';
 
@@ -112,13 +112,13 @@ class ErrorService {
     }, 5000);
   }
 
-  addBreadcrumb(action: string, data?: any) {
+  addBreadcrumb(action: string, data?: unknown) {
     this.breadcrumbs.push({
       timestamp: new Date(),
       action,
       data,
     });
-    
+
     // Keep only the last N breadcrumbs
     if (this.breadcrumbs.length > this.maxBreadcrumbs) {
       this.breadcrumbs = this.breadcrumbs.slice(-this.maxBreadcrumbs);
@@ -128,7 +128,7 @@ class ErrorService {
   private categorizeError(error: Error | unknown): ErrorCategory {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorName = error instanceof Error ? error.name : '';
-    
+
     // Network errors
     if (
       errorMessage.includes('fetch') ||
@@ -140,7 +140,7 @@ class ErrorService {
     ) {
       return 'network';
     }
-    
+
     // Auth errors
     if (
       errorMessage.includes('401') ||
@@ -152,7 +152,7 @@ class ErrorService {
     ) {
       return 'auth';
     }
-    
+
     // Validation errors
     if (
       errorMessage.includes('validation') ||
@@ -163,7 +163,7 @@ class ErrorService {
     ) {
       return 'validation';
     }
-    
+
     // Timeout errors
     if (
       errorMessage.includes('timeout') ||
@@ -172,7 +172,7 @@ class ErrorService {
     ) {
       return 'timeout';
     }
-    
+
     // Permission errors
     if (
       errorMessage.includes('permission') ||
@@ -181,7 +181,7 @@ class ErrorService {
     ) {
       return 'permission';
     }
-    
+
     // Storage errors
     if (
       errorMessage.includes('quota') ||
@@ -191,7 +191,7 @@ class ErrorService {
     ) {
       return 'storage';
     }
-    
+
     // Media errors
     if (
       errorMessage.includes('audio') ||
@@ -202,7 +202,7 @@ class ErrorService {
     ) {
       return 'media';
     }
-    
+
     // System errors
     if (
       errorMessage.includes('memory') ||
@@ -211,13 +211,13 @@ class ErrorService {
     ) {
       return 'system';
     }
-    
+
     return 'unknown';
   }
 
   private determineSeverity(error: Error | unknown, category: ErrorCategory): ErrorSeverity {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     // Critical errors that break core functionality
     if (
       category === 'auth' ||
@@ -227,16 +227,12 @@ class ErrorService {
     ) {
       return 'critical';
     }
-    
+
     // Standard errors that affect features
-    if (
-      category === 'network' ||
-      category === 'timeout' ||
-      category === 'validation'
-    ) {
+    if (category === 'network' || category === 'timeout' || category === 'validation') {
       return 'error';
     }
-    
+
     // Warnings that don't break functionality
     if (
       category === 'permission' ||
@@ -246,7 +242,7 @@ class ErrorService {
     ) {
       return 'warning';
     }
-    
+
     return 'info';
   }
 
@@ -261,12 +257,12 @@ class ErrorService {
       validation: 'Please check your input and try again.',
       system: 'System resources are limited. Please try again in a moment.',
       timeout: 'The operation took too long. Please try again.',
-      permission: 'You don\'t have permission to perform this action.',
+      permission: "You don't have permission to perform this action.",
       storage: 'Storage space is running low. Please free up some space.',
       media: 'There was an issue with audio/video processing. Please try a different format.',
       unknown: 'An unexpected error occurred. Please try again.',
     };
-    
+
     return messages[category];
   }
 
@@ -275,7 +271,7 @@ class ErrorService {
     context?: Partial<ErrorContext>
   ): ErrorRecoveryAction[] {
     const actions: ErrorRecoveryAction[] = [];
-    
+
     switch (category) {
       case 'network':
       case 'timeout':
@@ -285,7 +281,7 @@ class ErrorService {
           action: () => window.location.reload(),
         });
         break;
-      
+
       case 'auth':
         actions.push({
           label: 'Log In',
@@ -296,7 +292,7 @@ class ErrorService {
           },
         });
         break;
-      
+
       case 'validation':
         actions.push({
           label: 'Review Form',
@@ -310,7 +306,7 @@ class ErrorService {
           },
         });
         break;
-      
+
       case 'storage':
         actions.push({
           label: 'Clear Cache',
@@ -318,13 +314,13 @@ class ErrorService {
           action: async () => {
             if ('caches' in window) {
               const cacheNames = await caches.keys();
-              await Promise.all(cacheNames.map(name => caches.delete(name)));
+              await Promise.all(cacheNames.map((name) => caches.delete(name)));
               window.location.reload();
             }
           },
         });
         break;
-      
+
       case 'system':
       case 'media':
         actions.push({
@@ -334,14 +330,14 @@ class ErrorService {
         });
         break;
     }
-    
+
     // Always add report issue action
     actions.push({
       label: 'Report Issue',
       type: 'secondary',
       action: () => this.showReportDialog(),
     });
-    
+
     return actions;
   }
 
@@ -351,7 +347,7 @@ class ErrorService {
       this.errorCount = 0;
       this.lastErrorResetTime = now;
     }
-    
+
     this.errorCount++;
     return this.errorCount <= this.errorRateLimit.max;
   }
@@ -369,14 +365,14 @@ class ErrorService {
   ): Promise<void> {
     // Check rate limit
     if (!this.checkRateLimit()) {
-      console.warn('Error rate limit exceeded, suppressing error reporting');
+      logger.warn('Error rate limit exceeded, suppressing error reporting');
       return;
     }
 
     const category = this.categorizeError(error);
     const severity = options?.severity || this.determineSeverity(error, category);
     const isTransient = this.isTransientError(category);
-    
+
     const context: ErrorContext = {
       route: window.location.pathname,
       timestamp: new Date(),
@@ -385,7 +381,7 @@ class ErrorService {
       stackTrace: error instanceof Error ? error.stack : undefined,
       ...contextOverrides,
     };
-    
+
     const errorReport: ErrorReport = {
       id: `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       severity,
@@ -399,23 +395,23 @@ class ErrorService {
       retryCount: 0,
       maxRetries: options?.maxRetries || (isTransient ? 3 : 0),
     };
-    
+
     // Log to console for debugging
-    console.error('[ErrorService]', errorReport);
-    
+    logger.error('[ErrorService]', errorReport);
+
     // Add to error queue for batch reporting
     this.errorQueue.push(errorReport);
-    
+
     // Show user feedback if not silent
     if (!options?.silent && options?.showToast !== false) {
       this.showUserFeedback(errorReport);
     }
-    
+
     // Handle transient errors with retry
     if (isTransient && options?.retryable !== false && errorReport.maxRetries > 0) {
       this.scheduleRetry(errorReport);
     }
-    
+
     // Trigger immediate reporting for critical errors
     if (severity === 'critical') {
       this.reportErrorsBatch();
@@ -425,7 +421,7 @@ class ErrorService {
   private async scheduleRetry(errorReport: ErrorReport) {
     const retryCount = errorReport.retryCount || 0;
     const delay = this.retryDelays[Math.min(retryCount, this.retryDelays.length - 1)];
-    
+
     setTimeout(() => {
       if (errorReport.recoveryActions && errorReport.recoveryActions[0]) {
         const retryAction = errorReport.recoveryActions[0];
@@ -436,7 +432,7 @@ class ErrorService {
 
   private showUserFeedback(errorReport: ErrorReport) {
     const { severity, userMessage, recoveryActions } = errorReport;
-    
+
     // Use toast for non-critical errors
     if (severity === 'warning' || severity === 'info') {
       toast({
@@ -446,7 +442,7 @@ class ErrorService {
       });
       return;
     }
-    
+
     // For errors and critical issues, show toast without actions
     // (actions are better handled in the error boundary or custom UI)
     toast({
@@ -458,18 +454,18 @@ class ErrorService {
 
   private async reportErrorsBatch() {
     if (this.isReporting || this.errorQueue.length === 0) return;
-    
+
     this.isReporting = true;
     const errors = [...this.errorQueue];
     this.errorQueue = [];
-    
+
     try {
       const response = await fetch('/api/errors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          errors: errors.map(e => ({
+          errors: errors.map((e) => ({
             severity: e.severity,
             category: e.category,
             message: e.message,
@@ -481,15 +477,15 @@ class ErrorService {
           })),
         }),
       });
-      
+
       if (!response.ok) {
         // Re-queue errors if reporting fails
         this.errorQueue.push(...errors);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Re-queue errors if reporting fails
       this.errorQueue.push(...errors);
-      console.error('Failed to report errors to backend:', error);
+      logger.error('Failed to report errors to backend:', error);
     } finally {
       this.isReporting = false;
     }
@@ -505,10 +501,11 @@ class ErrorService {
       windowSize: `${window.innerWidth}x${window.innerHeight}`,
       breadcrumbs: this.breadcrumbs.slice(-10),
     };
-    
+
     // Create mailto link with error context
     const subject = encodeURIComponent('Error Report - MAX Booster');
-    const body = encodeURIComponent(`
+    const body = encodeURIComponent(
+      `
 Error Report
 ============
 
@@ -519,12 +516,13 @@ Screen: ${errorContext.screenResolution}
 Window: ${errorContext.windowSize}
 
 Recent Actions:
-${errorContext.breadcrumbs.map(b => `- ${b.action} at ${b.timestamp}`).join('\n')}
+${errorContext.breadcrumbs.map((b) => `- ${b.action} at ${b.timestamp}`).join('\n')}
 
 Please describe what you were doing when the error occurred:
 [Your description here]
-    `.trim());
-    
+    `.trim()
+    );
+
     window.open(`mailto:support@maxbooster.com?subject=${subject}&body=${body}`);
   }
 
@@ -534,7 +532,11 @@ Please describe what you were doing when the error occurred:
   }
 
   // Utility method for capturing messages
-  captureMessage(message: string, severity: ErrorSeverity = 'info', context?: Partial<ErrorContext>) {
+  captureMessage(
+    message: string,
+    severity: ErrorSeverity = 'info',
+    context?: Partial<ErrorContext>
+  ) {
     const error = new Error(message);
     this.handleError(error, context, { severity, showToast: true });
   }
@@ -559,11 +561,14 @@ Please describe what you were doing when the error occurred:
 export const errorService = ErrorService.getInstance();
 
 // Export helper functions for convenience
-export const captureException = (error: Error | unknown, context?: Partial<ErrorContext>) => 
+export const captureException = (error: Error | unknown, context?: Partial<ErrorContext>) =>
   errorService.captureException(error, context);
 
-export const captureMessage = (message: string, severity: ErrorSeverity = 'info', context?: Partial<ErrorContext>) => 
-  errorService.captureMessage(message, severity, context);
+export const captureMessage = (
+  message: string,
+  severity: ErrorSeverity = 'info',
+  context?: Partial<ErrorContext>
+) => errorService.captureMessage(message, severity, context);
 
-export const addBreadcrumb = (action: string, data?: any) => 
+export const addBreadcrumb = (action: string, data?: unknown) =>
   errorService.addBreadcrumb(action, data);

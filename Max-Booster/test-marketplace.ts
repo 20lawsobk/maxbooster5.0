@@ -15,18 +15,18 @@ async function testMarketplace() {
     console.log('Step 1: Logging in as buyer...');
     const buyerLoginRes = await axios.post(`${API_BASE}/auth/login`, {
       username: 'test.monthly@maxbooster.com',
-      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#'
+      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#',
     });
-    
+
     const buyerCookie = buyerLoginRes.headers['set-cookie']?.[0];
     if (!buyerCookie) throw new Error('Failed to get buyer session cookie');
-    
+
     console.log('✅ Buyer logged in successfully\n');
 
     // Step 2: Browse marketplace listings
     console.log('Step 2: Browsing marketplace listings...');
     const listingsRes = await axios.get(`${API_BASE}/marketplace/listings?category=beats`, {
-      headers: { Cookie: buyerCookie }
+      headers: { Cookie: buyerCookie },
     });
     console.log('✅ Marketplace Listings:', listingsRes.data);
 
@@ -34,12 +34,12 @@ async function testMarketplace() {
     console.log('\nStep 3: Logging in as seller...');
     const sellerLoginRes = await axios.post(`${API_BASE}/auth/login`, {
       username: 'test.yearly@maxbooster.com',
-      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#'
+      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#',
     });
-    
+
     const sellerCookie = sellerLoginRes.headers['set-cookie']?.[0];
     if (!sellerCookie) throw new Error('Failed to get seller session cookie');
-    
+
     console.log('✅ Seller logged in successfully\n');
 
     // Step 4: Create a marketplace listing
@@ -60,23 +60,23 @@ async function testMarketplace() {
           {
             type: 'basic',
             price: 29.99,
-            features: ['MP3 Download', 'Non-Exclusive Rights']
+            features: ['MP3 Download', 'Non-Exclusive Rights'],
           },
           {
             type: 'premium',
             price: 99.99,
-            features: ['WAV Download', 'Trackouts', 'Exclusive Rights']
-          }
-        ]
+            features: ['WAV Download', 'Trackouts', 'Exclusive Rights'],
+          },
+        ],
       },
       { headers: { Cookie: sellerCookie } }
     );
     console.log('✅ Listing Created:', createListingRes.data);
 
     // Step 5: Get seller's listings
-    console.log('\nStep 5: Fetching seller\'s listings...');
+    console.log("\nStep 5: Fetching seller's listings...");
     const sellerListingsRes = await axios.get(`${API_BASE}/marketplace/my-listings`, {
-      headers: { Cookie: sellerCookie }
+      headers: { Cookie: sellerCookie },
     });
     console.log('✅ Seller Listings:', sellerListingsRes.data);
 
@@ -94,23 +94,23 @@ async function testMarketplace() {
       `${API_BASE}/marketplace/orders`,
       {
         beatId: createListingRes.data.id,
-        licenseType: 'basic' // Purchase basic license
+        licenseType: 'basic', // Purchase basic license
       },
       { headers: { Cookie: buyerCookie } }
     );
     console.log('✅ Order Created:', orderRes.data);
 
     // Step 8: Check buyer's orders
-    console.log('\nStep 8: Fetching buyer\'s orders...');
+    console.log("\nStep 8: Fetching buyer's orders...");
     const buyerOrdersRes = await axios.get(`${API_BASE}/marketplace/my-orders`, {
-      headers: { Cookie: buyerCookie }
+      headers: { Cookie: buyerCookie },
     });
     console.log('✅ Buyer Orders:', buyerOrdersRes.data);
 
     // Step 9: Check seller's sales
-    console.log('\nStep 9: Fetching seller\'s sales...');
+    console.log("\nStep 9: Fetching seller's sales...");
     const sellerSalesRes = await axios.get(`${API_BASE}/marketplace/my-sales`, {
-      headers: { Cookie: sellerCookie }
+      headers: { Cookie: sellerCookie },
     });
     console.log('✅ Seller Sales:', sellerSalesRes.data);
 
@@ -119,7 +119,7 @@ async function testMarketplace() {
     const payoutRes = await axios.post(
       `${API_BASE}/marketplace/instant-payout`,
       {
-        orderId: orderRes.data.id
+        orderId: orderRes.data.id,
       },
       { headers: { Cookie: sellerCookie } }
     );
@@ -128,32 +128,31 @@ async function testMarketplace() {
     // Step 11: Get marketplace analytics
     console.log('\nStep 11: Fetching marketplace analytics...');
     const analyticsRes = await axios.get(`${API_BASE}/marketplace/analytics`, {
-      headers: { Cookie: sellerCookie }
+      headers: { Cookie: sellerCookie },
     });
     console.log('✅ Marketplace Analytics:', analyticsRes.data);
 
     console.log('\n🎉 Marketplace test completed successfully!');
     console.log('P2P marketplace with instant payouts is working correctly.');
-    
+
     return {
       success: true,
       listing: createListingRes.data,
       order: orderRes.data,
-      payout: payoutRes.data
+      payout: payoutRes.data,
     };
-
   } catch (error: any) {
     console.error('\n❌ Marketplace test failed:', error.response?.data || error.message);
     console.error('Details:', error.response?.status, error.response?.statusText);
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 }
 
 // Run the test
-testMarketplace().then(result => {
+testMarketplace().then((result) => {
   console.log('\n📊 Test Summary:', result);
   process.exit(result.success ? 0 : 1);
 });

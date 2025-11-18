@@ -11,6 +11,9 @@ export interface RecordingState {
   audioUrl: string | null;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function useAudioRecorder() {
   const { context, isSupported } = useAudioContext();
   const [state, setState] = useState<RecordingState>({
@@ -61,8 +64,8 @@ export function useAudioRecorder() {
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'audio/webm' });
         const audioUrl = URL.createObjectURL(blob);
-        
-        setState(prev => ({
+
+        setState((prev) => ({
           ...prev,
           recordedBlobs: [...prev.recordedBlobs, blob],
           audioUrl,
@@ -74,20 +77,19 @@ export function useAudioRecorder() {
       startTimeRef.current = Date.now();
       mediaRecorder.start(100); // Collect data every 100ms
 
-      setState(prev => ({ ...prev, isRecording: true, duration: 0 }));
+      setState((prev) => ({ ...prev, isRecording: true, duration: 0 }));
 
       // Update recording duration
       const updateDuration = () => {
         if (mediaRecorderRef.current?.state === 'recording') {
           const duration = (Date.now() - startTimeRef.current) / 1000;
-          setState(prev => ({ ...prev, duration }));
+          setState((prev) => ({ ...prev, duration }));
           animationFrameRef.current = requestAnimationFrame(updateDuration);
         }
       };
       updateDuration();
-
-    } catch (error) {
-      console.error('Error starting recording:', error);
+    } catch (error: unknown) {
+      logger.error('Error starting recording:', error);
       throw error;
     }
   }, [isSupported]);
@@ -95,10 +97,10 @@ export function useAudioRecorder() {
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && state.isRecording) {
       mediaRecorderRef.current.stop();
-      
+
       // Stop all tracks to release the microphone
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
       }
 
@@ -111,14 +113,14 @@ export function useAudioRecorder() {
   const pauseRecording = useCallback(() => {
     if (mediaRecorderRef.current && state.isRecording) {
       mediaRecorderRef.current.pause();
-      setState(prev => ({ ...prev, isPaused: true }));
+      setState((prev) => ({ ...prev, isPaused: true }));
     }
   }, [state.isRecording]);
 
   const resumeRecording = useCallback(() => {
     if (mediaRecorderRef.current && state.isPaused) {
       mediaRecorderRef.current.resume();
-      setState(prev => ({ ...prev, isPaused: false }));
+      setState((prev) => ({ ...prev, isPaused: false }));
     }
   }, [state.isPaused]);
 
@@ -133,22 +135,22 @@ export function useAudioRecorder() {
       audio.currentTime = state.currentTime;
 
       audio.addEventListener('timeupdate', () => {
-        setState(prev => ({ ...prev, currentTime: audio.currentTime }));
+        setState((prev) => ({ ...prev, currentTime: audio.currentTime }));
       });
 
       audio.addEventListener('ended', () => {
-        setState(prev => ({ ...prev, isPlaying: false, currentTime: 0 }));
+        setState((prev) => ({ ...prev, isPlaying: false, currentTime: 0 }));
       });
 
       audio.play();
-      setState(prev => ({ ...prev, isPlaying: true }));
+      setState((prev) => ({ ...prev, isPlaying: true }));
     }
   }, [state.audioUrl, state.isPlaying, state.currentTime]);
 
   const pausePlayback = useCallback(() => {
     if (audioElementRef.current && state.isPlaying) {
       audioElementRef.current.pause();
-      setState(prev => ({ ...prev, isPlaying: false }));
+      setState((prev) => ({ ...prev, isPlaying: false }));
     }
   }, [state.isPlaying]);
 
@@ -156,14 +158,14 @@ export function useAudioRecorder() {
     if (audioElementRef.current) {
       audioElementRef.current.pause();
       audioElementRef.current.currentTime = 0;
-      setState(prev => ({ ...prev, isPlaying: false, currentTime: 0 }));
+      setState((prev) => ({ ...prev, isPlaying: false, currentTime: 0 }));
     }
   }, []);
 
   const seekTo = useCallback((time: number) => {
     if (audioElementRef.current) {
       audioElementRef.current.currentTime = time;
-      setState(prev => ({ ...prev, currentTime: time }));
+      setState((prev) => ({ ...prev, currentTime: time }));
     }
   }, []);
 
@@ -188,47 +190,53 @@ export function useAudioRecorder() {
     }
   }, [state.audioUrl]);
 
-  const exportRecording = useCallback(async (format: 'wav' | 'mp3' = 'wav') => {
-    if (!state.audioUrl) return null;
+  const exportRecording = useCallback(
+    async (format: 'wav' | 'mp3' = 'wav') => {
+      if (!state.audioUrl) return null;
 
-    try {
-      // Convert the recorded blob to the desired format
-      const response = await fetch(state.audioUrl);
-      const blob = await response.blob();
-      
-      // For now, return the blob as-is (WebM format)
-      // In a real implementation, you'd convert to the target format
-      return blob;
-    } catch (error) {
-      console.error('Error exporting recording:', error);
-      return null;
-    }
-  }, [state.audioUrl]);
+      try {
+        // Convert the recorded blob to the desired format
+        const response = await fetch(state.audioUrl);
+        const blob = await response.blob();
 
-  const uploadRecording = useCallback(async (trackId: string) => {
-    const blob = await exportRecording();
-    if (!blob) return null;
-
-    try {
-      const formData = new FormData();
-      formData.append('audio', blob, `recording_${Date.now()}.webm`);
-      formData.append('trackId', trackId);
-
-      const response = await fetch('/api/audio/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload recording');
+        // For now, return the blob as-is (WebM format)
+        // In a real implementation, you'd convert to the target format
+        return blob;
+      } catch (error: unknown) {
+        logger.error('Error exporting recording:', error);
+        return null;
       }
+    },
+    [state.audioUrl]
+  );
 
-      return await response.json();
-    } catch (error) {
-      console.error('Error uploading recording:', error);
-      throw error;
-    }
-  }, [exportRecording]);
+  const uploadRecording = useCallback(
+    async (trackId: string) => {
+      const blob = await exportRecording();
+      if (!blob) return null;
+
+      try {
+        const formData = new FormData();
+        formData.append('audio', blob, `recording_${Date.now()}.webm`);
+        formData.append('trackId', trackId);
+
+        const response = await fetch('/api/audio/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to upload recording');
+        }
+
+        return await response.json();
+      } catch (error: unknown) {
+        logger.error('Error uploading recording:', error);
+        throw error;
+      }
+    },
+    [exportRecording]
+  );
 
   return {
     ...state,

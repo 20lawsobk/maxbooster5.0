@@ -1,13 +1,13 @@
 #!/usr/bin/env tsx
 /**
  * Automated Refactoring Script - Bring Max Booster to 100% FAANG Standards
- * 
+ *
  * This script performs the following transformations:
  * 1. Replace all console.log with structured logger
  * 2. Add JSDoc comments to all functions
  * 3. Fix common TypeScript `any` types
  * 4. Standardize error handling
- * 
+ *
  * Usage:
  *   tsx scripts/refactor-to-excellence.ts           # Dry-run mode (preview only)
  *   tsx scripts/refactor-to-excellence.ts --apply   # Apply changes
@@ -53,13 +53,13 @@ const stats: RefactorStats = {
  */
 async function getAllTsFiles(dir: string): Promise<string[]> {
   const files: string[] = [];
-  
+
   async function walk(currentDir: string) {
     const entries = await fs.readdir(currentDir, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const fullPath = path.join(currentDir, entry.name);
-      
+
       if (entry.isDirectory()) {
         // Skip node_modules, dist, .git
         if (!['node_modules', 'dist', '.git', '.husky'].includes(entry.name)) {
@@ -73,7 +73,7 @@ async function getAllTsFiles(dir: string): Promise<string[]> {
       }
     }
   }
-  
+
   await walk(dir);
   return files;
 }
@@ -84,55 +84,55 @@ async function getAllTsFiles(dir: string): Promise<string[]> {
 function replaceConsoleLogs(content: string, filePath: string): string {
   let modified = content;
   let replacements = 0;
-  
+
   // Check if logger is already imported
   const hasLoggerImport = /import.*logger.*from.*['"].*logger/i.test(content);
-  
+
   // Replace console.log with logger.info
   const consoleLogRegex = /console\.log\(/g;
   if (consoleLogRegex.test(content)) {
     modified = modified.replace(consoleLogRegex, 'logger.info(');
     replacements++;
   }
-  
+
   // Replace console.error with logger.error
   const consoleErrorRegex = /console\.error\(/g;
   if (consoleErrorRegex.test(content)) {
     modified = modified.replace(consoleErrorRegex, 'logger.error(');
     replacements++;
   }
-  
+
   // Replace console.warn with logger.warn
   const consoleWarnRegex = /console\.warn\(/g;
   if (consoleWarnRegex.test(content)) {
     modified = modified.replace(consoleWarnRegex, 'logger.warn(');
     replacements++;
   }
-  
+
   // Replace console.debug with logger.debug
   const consoleDebugRegex = /console\.debug\(/g;
   if (consoleDebugRegex.test(content)) {
     modified = modified.replace(consoleDebugRegex, 'logger.debug(');
     replacements++;
   }
-  
+
   // Add logger import if we made replacements and it's not already imported
   if (replacements > 0 && !hasLoggerImport) {
     // Determine correct logger import path based on file location
     const isServerFile = filePath.includes('/server/');
     const isClientFile = filePath.includes('/client/');
-    
+
     if (isServerFile) {
       // Find the last import statement
       const lines = modified.split('\n');
       let lastImportIndex = -1;
-      
+
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].trim().startsWith('import ')) {
           lastImportIndex = i;
         }
       }
-      
+
       // Add logger import after last import
       if (lastImportIndex >= 0) {
         lines.splice(lastImportIndex + 1, 0, "import { logger } from './logger.js';");
@@ -144,7 +144,7 @@ function replaceConsoleLogs(content: string, filePath: string): string {
       // For now, keep console in client files but format better
     }
   }
-  
+
   stats.consoleLogsReplaced += replacements;
   return modified;
 }
@@ -155,21 +155,21 @@ function replaceConsoleLogs(content: string, filePath: string): string {
 function fixAnyTypes(content: string): string {
   let modified = content;
   let fixes = 0;
-  
+
   // Replace `data: any` with `data: unknown` (safer)
   const anyParamRegex = /:\s*any(?=\s*[,\)])/g;
   if (anyParamRegex.test(content)) {
     modified = modified.replace(anyParamRegex, ': unknown');
     fixes++;
   }
-  
+
   // Replace `any[]` with `unknown[]`
   const anyArrayRegex = /:\s*any\[\]/g;
   if (anyArrayRegex.test(content)) {
     modified = modified.replace(anyArrayRegex, ': unknown[]');
     fixes++;
   }
-  
+
   stats.anyTypesFixed += fixes;
   return modified;
 }
@@ -180,16 +180,16 @@ function fixAnyTypes(content: string): string {
 function addJsDocComments(content: string): string {
   let modified = content;
   let added = 0;
-  
+
   // Simple pattern: look for functions without JSDoc
   const functionRegex = /(^|\n)(\s*)(export\s+)?(async\s+)?function\s+(\w+)/g;
-  
+
   const lines = modified.split('\n');
   const newLines: string[] = [];
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    
+
     // Check if this line has a function declaration
     if (/^\s*(export\s+)?(async\s+)?function\s+\w+/.test(line)) {
       // Check if previous line is a comment
@@ -202,10 +202,10 @@ function addJsDocComments(content: string): string {
         added++;
       }
     }
-    
+
     newLines.push(line);
   }
-  
+
   stats.jsdocsAdded += added;
   return newLines.join('\n');
 }
@@ -216,14 +216,14 @@ function addJsDocComments(content: string): string {
 function standardizeErrorHandling(content: string): string {
   let modified = content;
   let standardized = 0;
-  
+
   // Look for try-catch blocks without proper error typing
   const tryCatchRegex = /catch\s*\(\s*(\w+)\s*\)/g;
   modified = modified.replace(tryCatchRegex, (match, errorVar) => {
     standardized++;
     return `catch (${errorVar}: unknown)`;
   });
-  
+
   stats.errorsStandardized += standardized;
   return modified;
 }
@@ -235,13 +235,13 @@ async function processFile(filePath: string): Promise<void> {
   try {
     let content = await fs.readFile(filePath, 'utf-8');
     const original = content;
-    
+
     // Apply transformations
     content = replaceConsoleLogs(content, filePath);
     content = fixAnyTypes(content);
     content = addJsDocComments(content);
     content = standardizeErrorHandling(content);
-    
+
     // Only write if content changed AND not in dry-run mode
     if (content !== original) {
       if (!DRY_RUN) {
@@ -259,23 +259,23 @@ async function processFile(filePath: string): Promise<void> {
  */
 async function main() {
   console.log('🚀 Starting Max Booster Excellence Refactoring...\n');
-  
+
   // Get all TypeScript files
   const serverFiles = await getAllTsFiles(path.join(PROJECT_ROOT, 'server'));
   const clientFiles = await getAllTsFiles(path.join(PROJECT_ROOT, 'client/src'));
   const allFiles = [...serverFiles, ...clientFiles];
-  
+
   console.log(`📁 Found ${allFiles.length} TypeScript files to process\n`);
-  
+
   // Process files
   for (const file of allFiles) {
     await processFile(file);
-    
+
     if (stats.filesProcessed % 10 === 0) {
       console.log(`⏳ Processed ${stats.filesProcessed} files...`);
     }
   }
-  
+
   // Print final stats
   console.log('\n✨ Refactoring Complete!\n');
   console.log('📊 Statistics:');
@@ -284,7 +284,7 @@ async function main() {
   console.log(`   'any' Types to Fix: ${stats.anyTypesFixed}`);
   console.log(`   JSDoc Comments to Add: ${stats.jsdocsAdded}`);
   console.log(`   Error Handlers to Standardize: ${stats.errorsStandardized}`);
-  
+
   if (DRY_RUN) {
     console.log('\n🔍 This was a DRY RUN - no files were modified');
     console.log('   Run with --apply flag to actually make changes:\n');

@@ -76,67 +76,72 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
     }
   }, [context, state.masterVolume]);
 
-  const loadTrack = useCallback(async (track: Track): Promise<void> => {
-    if (!context || !isSupported) {
-      throw new Error('Audio context not available');
-    }
-
-    setState(prev => ({ ...prev, isLoading: true }));
-
-    try {
-      const response = await fetch(track.url);
-      const arrayBuffer = await response.arrayBuffer();
-      const audioBuffer = await context.decodeAudioData(arrayBuffer);
-
-      audioBuffersRef.current.set(track.id, audioBuffer);
-      
-      // Create gain and pan nodes for this track
-      const gainNode = context.createGain();
-      const panNode = context.createStereoPanner();
-      
-      gainNode.gain.setValueAtTime(track.gain, context.currentTime);
-      panNode.pan.setValueAtTime(track.pan, context.currentTime);
-      
-      gainNodesRef.current.set(track.id, gainNode);
-      panNodesRef.current.set(track.id, panNode);
-
-      // Set up effects chain
-      if (track.effects && track.effects.length > 0) {
-        const effectChain = await createEffectsChain(track.effects, context);
-        effectNodesRef.current.set(track.id, effectChain);
-        
-        // Connect the chain: gain -> effects -> pan -> master
-        gainNode.connect(effectChain[0]);
-        effectChain[effectChain.length - 1].connect(panNode);
-      } else {
-        // Direct connection: gain -> pan -> master
-        gainNode.connect(panNode);
-      }
-      
-      if (masterGainRef.current) {
-        panNode.connect(masterGainRef.current);
+  const loadTrack = useCallback(
+    async (track: Track): Promise<void> => {
+      if (!context || !isSupported) {
+        throw new Error('Audio context not available');
       }
 
-      setState(prev => ({
-        ...prev,
-        tracks: prev.tracks.map(t => 
-          t.id === track.id ? { ...t, duration: audioBuffer.duration } : t
-        ),
-        duration: Math.max(prev.duration, audioBuffer.duration),
-        isLoading: false,
-      }));
+      setState((prev) => ({ ...prev, isLoading: true }));
 
-    } catch (error) {
-      console.error('Error loading track:', error);
-      setState(prev => ({ ...prev, isLoading: false }));
-      throw error;
-    }
-  }, [context, isSupported]);
+      try {
+        const response = await fetch(track.url);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await context.decodeAudioData(arrayBuffer);
 
-  const addTrack = useCallback(async (track: Track) => {
-    setState(prev => ({ ...prev, tracks: [...prev.tracks, track] }));
-    await loadTrack(track);
-  }, [loadTrack]);
+        audioBuffersRef.current.set(track.id, audioBuffer);
+
+        // Create gain and pan nodes for this track
+        const gainNode = context.createGain();
+        const panNode = context.createStereoPanner();
+
+        gainNode.gain.setValueAtTime(track.gain, context.currentTime);
+        panNode.pan.setValueAtTime(track.pan, context.currentTime);
+
+        gainNodesRef.current.set(track.id, gainNode);
+        panNodesRef.current.set(track.id, panNode);
+
+        // Set up effects chain
+        if (track.effects && track.effects.length > 0) {
+          const effectChain = await createEffectsChain(track.effects, context);
+          effectNodesRef.current.set(track.id, effectChain);
+
+          // Connect the chain: gain -> effects -> pan -> master
+          gainNode.connect(effectChain[0]);
+          effectChain[effectChain.length - 1].connect(panNode);
+        } else {
+          // Direct connection: gain -> pan -> master
+          gainNode.connect(panNode);
+        }
+
+        if (masterGainRef.current) {
+          panNode.connect(masterGainRef.current);
+        }
+
+        setState((prev) => ({
+          ...prev,
+          tracks: prev.tracks.map((t) =>
+            t.id === track.id ? { ...t, duration: audioBuffer.duration } : t
+          ),
+          duration: Math.max(prev.duration, audioBuffer.duration),
+          isLoading: false,
+        }));
+      } catch (error) {
+        console.error('Error loading track:', error);
+        setState((prev) => ({ ...prev, isLoading: false }));
+        throw error;
+      }
+    },
+    [context, isSupported]
+  );
+
+  const addTrack = useCallback(
+    async (track: Track) => {
+      setState((prev) => ({ ...prev, tracks: [...prev.tracks, track] }));
+      await loadTrack(track);
+    },
+    [loadTrack]
+  );
 
   const removeTrack = useCallback((trackId: string) => {
     // Stop and clean up audio nodes
@@ -153,61 +158,63 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
     panNodesRef.current.delete(trackId);
     effectNodesRef.current.delete(trackId);
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      tracks: prev.tracks.filter(t => t.id !== trackId),
+      tracks: prev.tracks.filter((t) => t.id !== trackId),
     }));
   }, []);
 
-  const play = useCallback(async (startTime: number = 0) => {
-    if (!context || !masterGainRef.current) {
-      throw new Error('Audio context not available');
-    }
+  const play = useCallback(
+    async (startTime: number = 0) => {
+      if (!context || !masterGainRef.current) {
+        throw new Error('Audio context not available');
+      }
 
-    if (context.state === 'suspended') {
-      await context.resume();
-    }
+      if (context.state === 'suspended') {
+        await context.resume();
+      }
 
-    // Create new sources for all tracks
-    audioSourcesRef.current.clear();
-    
-    for (const track of state.tracks) {
-      const buffer = audioBuffersRef.current.get(track.id);
-      const gainNode = gainNodesRef.current.get(track.id);
-      
-      if (buffer && gainNode) {
-        const source = context.createBufferSource();
-        source.buffer = buffer;
-        source.playbackRate.setValueAtTime(state.playbackRate, context.currentTime);
-        source.connect(gainNode);
-        
-        audioSourcesRef.current.set(track.id, source);
-        
-        // Apply mute/solo logic
-        const shouldPlay = !track.isMuted && (!hasSoloTracks() || track.isSolo);
-        if (shouldPlay) {
-          source.start(context.currentTime, startTime);
+      // Create new sources for all tracks
+      audioSourcesRef.current.clear();
+
+      for (const track of state.tracks) {
+        const buffer = audioBuffersRef.current.get(track.id);
+        const gainNode = gainNodesRef.current.get(track.id);
+
+        if (buffer && gainNode) {
+          const source = context.createBufferSource();
+          source.buffer = buffer;
+          source.playbackRate.setValueAtTime(state.playbackRate, context.currentTime);
+          source.connect(gainNode);
+
+          audioSourcesRef.current.set(track.id, source);
+
+          // Apply mute/solo logic
+          const shouldPlay = !track.isMuted && (!hasSoloTracks() || track.isSolo);
+          if (shouldPlay) {
+            source.start(context.currentTime, startTime);
+          }
         }
       }
-    }
 
-    startTimeRef.current = context.currentTime - startTime;
-    pauseTimeRef.current = 0;
-    
-    setState(prev => ({ ...prev, isPlaying: true, isPaused: false, currentTime: startTime }));
-    
-    // Start time updates
-    updateCurrentTime();
+      startTimeRef.current = context.currentTime - startTime;
+      pauseTimeRef.current = 0;
 
-  }, [context, state.tracks, state.playbackRate]);
+      setState((prev) => ({ ...prev, isPlaying: true, isPaused: false, currentTime: startTime }));
+
+      // Start time updates
+      updateCurrentTime();
+    },
+    [context, state.tracks, state.playbackRate]
+  );
 
   const pause = useCallback(() => {
     if (!context) return;
 
     pauseTimeRef.current = context.currentTime - startTimeRef.current;
-    
+
     // Stop all sources
-    audioSourcesRef.current.forEach(source => {
+    audioSourcesRef.current.forEach((source) => {
       source.stop();
       source.disconnect();
     });
@@ -217,14 +224,14 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
       cancelAnimationFrame(animationFrameRef.current);
     }
 
-    setState(prev => ({ ...prev, isPlaying: false, isPaused: true }));
+    setState((prev) => ({ ...prev, isPlaying: false, isPaused: true }));
   }, [context]);
 
   const stop = useCallback(() => {
     if (!context) return;
 
     // Stop all sources
-    audioSourcesRef.current.forEach(source => {
+    audioSourcesRef.current.forEach((source) => {
       source.stop();
       source.disconnect();
     });
@@ -234,7 +241,7 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
       cancelAnimationFrame(animationFrameRef.current);
     }
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isPlaying: false,
       isPaused: false,
@@ -245,92 +252,99 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
     pauseTimeRef.current = 0;
   }, [context]);
 
-  const seek = useCallback((time: number) => {
-    const wasPlaying = state.isPlaying;
-    
-    if (wasPlaying) {
-      pause();
-    }
-    
-    setState(prev => ({ ...prev, currentTime: time }));
-    
-    if (wasPlaying) {
-      play(time);
-    }
-  }, [state.isPlaying, pause, play]);
+  const seek = useCallback(
+    (time: number) => {
+      const wasPlaying = state.isPlaying;
 
-  const updateTrackGain = useCallback((trackId: string, gain: number) => {
-    const gainNode = gainNodesRef.current.get(trackId);
-    if (gainNode && context) {
-      gainNode.gain.setTargetAtTime(gain, context.currentTime, 0.1);
-    }
-    
-    setState(prev => ({
-      ...prev,
-      tracks: prev.tracks.map(t =>
-        t.id === trackId ? { ...t, gain } : t
-      ),
-    }));
-  }, [context]);
+      if (wasPlaying) {
+        pause();
+      }
 
-  const updateTrackPan = useCallback((trackId: string, pan: number) => {
-    const panNode = panNodesRef.current.get(trackId);
-    if (panNode && context) {
-      panNode.pan.setTargetAtTime(pan, context.currentTime, 0.1);
-    }
-    
-    setState(prev => ({
-      ...prev,
-      tracks: prev.tracks.map(t =>
-        t.id === trackId ? { ...t, pan } : t
-      ),
-    }));
-  }, [context]);
+      setState((prev) => ({ ...prev, currentTime: time }));
+
+      if (wasPlaying) {
+        play(time);
+      }
+    },
+    [state.isPlaying, pause, play]
+  );
+
+  const updateTrackGain = useCallback(
+    (trackId: string, gain: number) => {
+      const gainNode = gainNodesRef.current.get(trackId);
+      if (gainNode && context) {
+        gainNode.gain.setTargetAtTime(gain, context.currentTime, 0.1);
+      }
+
+      setState((prev) => ({
+        ...prev,
+        tracks: prev.tracks.map((t) => (t.id === trackId ? { ...t, gain } : t)),
+      }));
+    },
+    [context]
+  );
+
+  const updateTrackPan = useCallback(
+    (trackId: string, pan: number) => {
+      const panNode = panNodesRef.current.get(trackId);
+      if (panNode && context) {
+        panNode.pan.setTargetAtTime(pan, context.currentTime, 0.1);
+      }
+
+      setState((prev) => ({
+        ...prev,
+        tracks: prev.tracks.map((t) => (t.id === trackId ? { ...t, pan } : t)),
+      }));
+    },
+    [context]
+  );
 
   const muteTrack = useCallback((trackId: string) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      tracks: prev.tracks.map(t =>
-        t.id === trackId ? { ...t, isMuted: !t.isMuted } : t
-      ),
+      tracks: prev.tracks.map((t) => (t.id === trackId ? { ...t, isMuted: !t.isMuted } : t)),
     }));
   }, []);
 
   const soloTrack = useCallback((trackId: string) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      tracks: prev.tracks.map(t =>
-        t.id === trackId ? { ...t, isSolo: !t.isSolo } : t
-      ),
+      tracks: prev.tracks.map((t) => (t.id === trackId ? { ...t, isSolo: !t.isSolo } : t)),
     }));
   }, []);
 
-  const setMasterVolume = useCallback((volume: number) => {
-    if (masterGainRef.current && context) {
-      masterGainRef.current.gain.setTargetAtTime(volume, context.currentTime, 0.1);
-    }
-    setState(prev => ({ ...prev, masterVolume: volume }));
-  }, [context]);
-
-  const setPlaybackRate = useCallback((rate: number) => {
-    audioSourcesRef.current.forEach(source => {
-      if (context) {
-        source.playbackRate.setTargetAtTime(rate, context.currentTime, 0.1);
+  const setMasterVolume = useCallback(
+    (volume: number) => {
+      if (masterGainRef.current && context) {
+        masterGainRef.current.gain.setTargetAtTime(volume, context.currentTime, 0.1);
       }
-    });
-    setState(prev => ({ ...prev, playbackRate: rate }));
-  }, [context]);
+      setState((prev) => ({ ...prev, masterVolume: volume }));
+    },
+    [context]
+  );
+
+  const setPlaybackRate = useCallback(
+    (rate: number) => {
+      audioSourcesRef.current.forEach((source) => {
+        if (context) {
+          source.playbackRate.setTargetAtTime(rate, context.currentTime, 0.1);
+        }
+      });
+      setState((prev) => ({ ...prev, playbackRate: rate }));
+    },
+    [context]
+  );
 
   // Helper functions
   const hasSoloTracks = useCallback(() => {
-    return state.tracks.some(t => t.isSolo);
+    return state.tracks.some((t) => t.isSolo);
   }, [state.tracks]);
 
   const updateCurrentTime = useCallback(() => {
     if (state.isPlaying && context) {
       const currentTime = context.currentTime - startTimeRef.current;
-      setState(prev => ({ ...prev, currentTime }));
-      
+      setState((prev) => ({ ...prev, currentTime }));
+
       if (currentTime >= state.duration) {
         stop();
       } else {
@@ -345,7 +359,7 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      audioSourcesRef.current.forEach(source => {
+      audioSourcesRef.current.forEach((source) => {
         source.stop();
         source.disconnect();
       });
@@ -372,14 +386,17 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
 }
 
 // Helper function to create effects chain
-async function createEffectsChain(effects: AudioEffect[], context: AudioContext): Promise<AudioNode[]> {
+async function createEffectsChain(
+  effects: AudioEffect[],
+  context: AudioContext
+): Promise<AudioNode[]> {
   const nodes: AudioNode[] = [];
-  
+
   for (const effect of effects) {
     if (!effect.enabled) continue;
-    
+
     let node: AudioNode;
-    
+
     switch (effect.type) {
       case 'eq':
         // Create a 3-band EQ
@@ -387,52 +404,55 @@ async function createEffectsChain(effects: AudioEffect[], context: AudioContext)
         lowShelf.type = 'lowshelf';
         lowShelf.frequency.setValueAtTime(320, context.currentTime);
         lowShelf.gain.setValueAtTime(effect.parameters.lowGain || 0, context.currentTime);
-        
+
         const midPeak = context.createBiquadFilter();
         midPeak.type = 'peaking';
         midPeak.frequency.setValueAtTime(1000, context.currentTime);
         midPeak.gain.setValueAtTime(effect.parameters.midGain || 0, context.currentTime);
         midPeak.Q.setValueAtTime(1, context.currentTime);
-        
+
         const highShelf = context.createBiquadFilter();
         highShelf.type = 'highshelf';
         highShelf.frequency.setValueAtTime(3200, context.currentTime);
         highShelf.gain.setValueAtTime(effect.parameters.highGain || 0, context.currentTime);
-        
+
         lowShelf.connect(midPeak);
         midPeak.connect(highShelf);
-        
+
         nodes.push(lowShelf, midPeak, highShelf);
         node = lowShelf;
         break;
-        
+
       case 'compressor':
         const compressor = context.createDynamicsCompressor();
-        compressor.threshold.setValueAtTime(effect.parameters.threshold || -24, context.currentTime);
+        compressor.threshold.setValueAtTime(
+          effect.parameters.threshold || -24,
+          context.currentTime
+        );
         compressor.knee.setValueAtTime(effect.parameters.knee || 30, context.currentTime);
         compressor.ratio.setValueAtTime(effect.parameters.ratio || 12, context.currentTime);
         compressor.attack.setValueAtTime(effect.parameters.attack || 0.003, context.currentTime);
         compressor.release.setValueAtTime(effect.parameters.release || 0.25, context.currentTime);
         node = compressor;
         break;
-        
+
       case 'delay':
         const delay = context.createDelay();
         const delayGain = context.createGain();
         const feedback = context.createGain();
-        
+
         delay.delayTime.setValueAtTime(effect.parameters.time || 0.25, context.currentTime);
         delayGain.gain.setValueAtTime(effect.parameters.wet || 0.2, context.currentTime);
         feedback.gain.setValueAtTime(effect.parameters.feedback || 0.3, context.currentTime);
-        
+
         delay.connect(delayGain);
         delay.connect(feedback);
         feedback.connect(delay);
-        
+
         nodes.push(delay, delayGain, feedback);
         node = delay;
         break;
-        
+
       case 'filter':
         const filter = context.createBiquadFilter();
         filter.type = (effect.parameters.type as BiquadFilterType) || 'lowpass';
@@ -440,20 +460,20 @@ async function createEffectsChain(effects: AudioEffect[], context: AudioContext)
         filter.Q.setValueAtTime(effect.parameters.q || 1, context.currentTime);
         node = filter;
         break;
-        
+
       default:
         // Create a gain node as fallback
         node = context.createGain();
         break;
     }
-    
+
     nodes.push(node);
   }
-  
+
   // Connect the chain
   for (let i = 0; i < nodes.length - 1; i++) {
     nodes[i].connect(nodes[i + 1]);
   }
-  
+
   return nodes;
 }

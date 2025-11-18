@@ -1,17 +1,17 @@
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { Bell, Settings, LogOut, User, Crown } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { Link } from "wouter";
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { Bell, Settings, LogOut, User, Crown } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Link } from 'wouter';
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -27,7 +27,7 @@ export default function Navbar() {
               </h1>
             </Link>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             {/* Notifications */}
             <div className="relative">
@@ -42,11 +42,16 @@ export default function Navbar() {
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2 p-2" data-testid="button-user-menu">
+                <Button
+                  variant="ghost"
+                  className="flex items-center space-x-2 p-2"
+                  data-testid="button-user-menu"
+                >
                   <Avatar className="w-8 h-8">
                     <AvatarImage src={user?.profileImageUrl} />
                     <AvatarFallback>
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      {user?.firstName?.[0]}
+                      {user?.lastName?.[0]}
                     </AvatarFallback>
                   </Avatar>
                   <div className="hidden md:block text-left">
@@ -76,7 +81,7 @@ export default function Navbar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => window.location.href = '/api/logout'}>
+                <DropdownMenuItem onClick={() => (window.location.href = '/api/logout')}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Log out
                 </DropdownMenuItem>

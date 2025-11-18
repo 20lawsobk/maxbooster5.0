@@ -1,11 +1,11 @@
 /**
  * Shared Redis Connection Factory
- * 
+ *
  * Eliminates per-service Redis instance creation which causes:
  * - Connection thrashing and repeated handshake overhead
  * - Startup failures from simultaneous connection attempts
  * - Unnecessary memory overhead from duplicate clients
- * 
+ *
  * Features:
  * - Singleton pattern with lazy initialization
  * - Exponential backoff retry logic
@@ -15,6 +15,7 @@
 
 import { createClient, type RedisClientType } from 'redis';
 import { config } from '../config/defaults.js';
+import { logger } from '../logger.js';
 
 interface RedisConnectionOptions {
   maxRetries?: number;
@@ -51,7 +52,7 @@ class RedisConnectionFactory {
 
     this.initializationPromise = this.initializePrimaryClient(options);
     await this.initializationPromise;
-    
+
     if (!this.primaryClient) {
       throw new Error('Failed to initialize Redis primary client');
     }
@@ -61,7 +62,7 @@ class RedisConnectionFactory {
 
   private async initializePrimaryClient(options: RedisConnectionOptions = {}): Promise<void> {
     if (!config.redis.url) {
-      console.warn('⚠️ REDIS_URL not configured - Redis features disabled');
+      logger.warn('⚠️ REDIS_URL not configured - Redis features disabled');
       return;
     }
 
@@ -71,47 +72,46 @@ class RedisConnectionFactory {
         socket: {
           reconnectStrategy: (retries: number) => {
             if (retries > 10) {
-              console.error('❌ Redis connection failed after 10 retries');
+              logger.error('❌ Redis connection failed after 10 retries');
               return new Error('Too many retries');
             }
             // Exponential backoff: 50ms, 100ms, 200ms, 400ms, ...
             const delay = Math.min(retries * 50, 2000);
-            console.log(`🔄 Redis reconnecting in ${delay}ms (attempt ${retries})`);
+            logger.info(`🔄 Redis reconnecting in ${delay}ms (attempt ${retries})`);
             return delay;
-          }
-        }
+          },
+        },
       });
 
       // Connection event handlers
       this.primaryClient.on('connect', () => {
-        console.log('✅ Redis primary client connected');
+        logger.info('✅ Redis primary client connected');
       });
 
       this.primaryClient.on('ready', () => {
-        console.log('✅ Redis primary client ready');
+        logger.info('✅ Redis primary client ready');
         this.isInitialized = true;
       });
 
       this.primaryClient.on('error', (error) => {
         // Only log if we haven't gracefully degraded
         if (!error.message.includes('ECONNREFUSED') && !error.message.includes('ECONNRESET')) {
-          console.error('❌ Redis primary client error:', error.message);
+          logger.error('❌ Redis primary client error:', error.message);
         }
       });
 
       this.primaryClient.on('end', () => {
-        console.log('🔌 Redis primary client connection closed');
+        logger.info('🔌 Redis primary client connection closed');
       });
 
       this.primaryClient.on('reconnecting', () => {
-        console.log('🔄 Redis primary client reconnecting...');
+        logger.info('🔄 Redis primary client reconnecting...');
       });
 
       // Connect to Redis
       await this.primaryClient.connect();
-
-    } catch (error: any) {
-      console.error('❌ Failed to initialize Redis primary client:', error.message);
+    } catch (error: unknown) {
+      logger.error('❌ Failed to initialize Redis primary client:', error.message);
       this.primaryClient = null;
       this.isInitialized = false;
       throw error;
@@ -135,11 +135,11 @@ class RedisConnectionFactory {
     }
 
     const subscriber = createClient({
-      url: config.redis.url
+      url: config.redis.url,
     });
 
     subscriber.on('error', (error) => {
-      console.error(`❌ Redis subscriber [${channelName}] error:`, error.message);
+      logger.error(`❌ Redis subscriber [${channelName}] error:`, error.message);
     });
 
     await subscriber.connect();
@@ -158,7 +158,7 @@ class RedisConnectionFactory {
 
       const pong = await this.primaryClient.ping();
       return pong === 'PONG';
-    } catch (error) {
+    } catch (error: unknown) {
       return false;
     }
   }
@@ -167,14 +167,14 @@ class RedisConnectionFactory {
    * Graceful shutdown: close all connections
    */
   async shutdown(): Promise<void> {
-    console.log('🔌 Shutting down Redis connections...');
+    logger.info('🔌 Shutting down Redis connections...');
 
     const closePromises: Promise<void>[] = [];
 
     if (this.primaryClient) {
       closePromises.push(
         this.primaryClient.quit().catch((err: unknown) => {
-          console.error('Error closing primary client:', err);
+          logger.error('Error closing primary client:', err);
         })
       );
     }
@@ -182,18 +182,18 @@ class RedisConnectionFactory {
     for (const [channel, client] of Array.from(this.subscribers.entries())) {
       closePromises.push(
         client.quit().catch((err: unknown) => {
-          console.error(`Error closing subscriber [${channel}]:`, err);
+          logger.error(`Error closing subscriber [${channel}]:`, err);
         })
       );
     }
 
     await Promise.all(closePromises);
-    
+
     this.primaryClient = null;
     this.subscribers.clear();
     this.isInitialized = false;
-    
-    console.log('✅ All Redis connections closed');
+
+    logger.info('✅ All Redis connections closed');
   }
 
   /**
@@ -211,20 +211,29 @@ export const redisFactory = RedisConnectionFactory.getInstance();
 export async function getRedisClient(): Promise<RedisClientType | null> {
   try {
     return await redisFactory.getPrimaryClient();
-  } catch (error) {
-    console.warn('⚠️ Redis not available, falling back to in-memory operation');
+  } catch (error: unknown) {
+    logger.warn('⚠️ Redis not available, falling back to in-memory operation');
     return null;
   }
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function getRedisSubscriber(channel: string): Promise<RedisClientType> {
   return await redisFactory.getSubscriberClient(channel);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function isRedisHealthy(): Promise<boolean> {
   return await redisFactory.healthCheck();
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function shutdownRedis(): Promise<void> {
   return await redisFactory.shutdown();
 }

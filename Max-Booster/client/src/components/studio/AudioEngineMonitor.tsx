@@ -1,7 +1,13 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -19,6 +25,9 @@ interface AudioEngineMonitorProps {
 
 const BUFFER_SIZES = [64, 128, 256, 512, 1024, 2048, 4096];
 
+/**
+ * TODO: Add function documentation
+ */
 export function AudioEngineMonitor({
   latencyMs = 0,
   cpuUsage = 0,
@@ -70,9 +79,7 @@ export function AudioEngineMonitor({
         {/* CPU */}
         <div className="flex items-center gap-1">
           <Cpu className="h-3 w-3 text-gray-500" />
-          <span className={cpuStatus.color}>
-            {cpuUsage.toFixed(0)}%
-          </span>
+          <span className={cpuStatus.color}>{cpuUsage.toFixed(0)}%</span>
         </div>
 
         {/* Sample Rate */}
@@ -113,8 +120,8 @@ export function AudioEngineMonitor({
             </span>
             <span className="text-xs text-gray-500">ms</span>
           </div>
-          <Progress 
-            value={Math.min(((latencyMs || calculatedLatency) / 50) * 100, 100)} 
+          <Progress
+            value={Math.min(((latencyMs || calculatedLatency) / 50) * 100, 100)}
             className="h-1"
           />
         </div>
@@ -129,9 +136,7 @@ export function AudioEngineMonitor({
           </div>
           <div className="flex items-center gap-2">
             <Cpu className="h-4 w-4 text-gray-500" />
-            <span className={`text-2xl font-mono ${cpuStatus.color}`}>
-              {cpuUsage.toFixed(0)}
-            </span>
+            <span className={`text-2xl font-mono ${cpuStatus.color}`}>{cpuUsage.toFixed(0)}</span>
             <span className="text-xs text-gray-500">%</span>
           </div>
           <Progress value={cpuUsage} className="h-1" />
@@ -177,7 +182,7 @@ export function AudioEngineMonitor({
             {bufferSize} samples
           </Badge>
         </div>
-        
+
         <Select
           value={bufferSize.toString()}
           onValueChange={(value) => onBufferSizeChange?.(parseInt(value))}
@@ -188,11 +193,13 @@ export function AudioEngineMonitor({
           <SelectContent>
             {BUFFER_SIZES.map((size) => {
               const latency = (size / sampleRate) * 1000;
-              const recommendation = 
-                size <= 128 ? '(Low latency, high CPU)' :
-                size <= 512 ? '(Balanced)' :
-                '(High latency, low CPU)';
-              
+              const recommendation =
+                size <= 128
+                  ? '(Low latency, high CPU)'
+                  : size <= 512
+                    ? '(Balanced)'
+                    : '(High latency, low CPU)';
+
               return (
                 <SelectItem key={size} value={size.toString()}>
                   <div className="flex flex-col">
@@ -210,8 +217,8 @@ export function AudioEngineMonitor({
         <div className="text-xs text-gray-500 flex items-start gap-2">
           <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
           <div>
-            Smaller buffer = lower latency but higher CPU usage. 
-            Use 64-256 for recording, 512-1024 for mixing.
+            Smaller buffer = lower latency but higher CPU usage. Use 64-256 for recording, 512-1024
+            for mixing.
           </div>
         </div>
       </div>

@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
-import { 
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
+import {
   Zap,
   Sparkles,
   Brain,
@@ -14,8 +14,8 @@ import {
   Settings,
   CheckCircle,
   Clock,
-  AlertCircle
-} from "lucide-react";
+  AlertCircle,
+} from 'lucide-react';
 
 interface Project {
   id: string;
@@ -32,13 +32,13 @@ interface AIAssistantProps {
   isProcessing: boolean;
 }
 
-export default function AIAssistant({ 
-  project, 
-  onAIMix, 
-  onAIMaster, 
-  isProcessing 
+export default function AIAssistant({
+  project,
+  onAIMix,
+  onAIMaster,
+  isProcessing,
 }: AIAssistantProps) {
-  const [customPrompt, setCustomPrompt] = useState("");
+  const [customPrompt, setCustomPrompt] = useState('');
   const [analysisComplete, setAnalysisComplete] = useState(true);
   const [suggestions, setSuggestions] = useState([
     {
@@ -47,7 +47,7 @@ export default function AIAssistant({
       title: 'Boost Mid Frequencies',
       description: 'Your vocals could benefit from a 2dB boost around 2kHz for better presence',
       confidence: 0.92,
-      status: 'pending'
+      status: 'pending',
     },
     {
       id: 'compression-suggestion',
@@ -55,7 +55,7 @@ export default function AIAssistant({
       title: 'Add Gentle Compression',
       description: 'Apply 3:1 ratio compression with -18dB threshold to even out dynamics',
       confidence: 0.87,
-      status: 'pending'
+      status: 'pending',
     },
     {
       id: 'arrangement-suggestion',
@@ -63,8 +63,8 @@ export default function AIAssistant({
       title: 'Extend Bridge Section',
       description: 'Consider adding 8 more bars to the bridge for better song structure',
       confidence: 0.78,
-      status: 'pending'
-    }
+      status: 'pending',
+    },
   ]);
 
   const aiFeatures = [
@@ -74,7 +74,7 @@ export default function AIAssistant({
       description: 'AI analyzes your tracks and applies optimal mixing settings',
       icon: <Volume2 className="w-5 h-5" />,
       action: onAIMix,
-      color: 'text-primary'
+      color: 'text-primary',
     },
     {
       id: 'auto-master',
@@ -82,7 +82,7 @@ export default function AIAssistant({
       description: 'Professional mastering with AI-optimized loudness and dynamics',
       icon: <Sparkles className="w-5 h-5" />,
       action: onAIMaster,
-      color: 'text-secondary'
+      color: 'text-secondary',
     },
     {
       id: 'generate-harmony',
@@ -90,7 +90,7 @@ export default function AIAssistant({
       description: 'Create harmonic layers that complement your lead vocals',
       icon: <Music className="w-5 h-5" />,
       action: () => console.log('Generate harmonies'),
-      color: 'text-accent'
+      color: 'text-accent',
     },
     {
       id: 'suggest-arrangement',
@@ -98,22 +98,18 @@ export default function AIAssistant({
       description: 'Get suggestions for song structure and arrangement improvements',
       icon: <Brain className="w-5 h-5" />,
       action: () => console.log('Suggest arrangement'),
-      color: 'text-primary'
-    }
+      color: 'text-primary',
+    },
   ];
 
   const applySuggestion = (suggestionId: string) => {
-    setSuggestions(prev => 
-      prev.map(s => 
-        s.id === suggestionId 
-          ? { ...s, status: 'applied' }
-          : s
-      )
+    setSuggestions((prev) =>
+      prev.map((s) => (s.id === suggestionId ? { ...s, status: 'applied' } : s))
     );
   };
 
   const dismissSuggestion = (suggestionId: string) => {
-    setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
+    setSuggestions((prev) => prev.filter((s) => s.id !== suggestionId));
   };
 
   const getStatusIcon = (status: string) => {
@@ -159,7 +155,7 @@ export default function AIAssistant({
                 </Badge>
               )}
             </div>
-            
+
             {analysisComplete ? (
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -195,8 +191,8 @@ export default function AIAssistant({
           <h3 className="font-medium mb-4">AI Tools</h3>
           <div className="grid grid-cols-1 gap-3">
             {aiFeatures.map((feature) => (
-              <Card 
-                key={feature.id} 
+              <Card
+                key={feature.id}
                 className="cursor-pointer hover:bg-muted/30 transition-colors"
                 data-testid={`ai-feature-${feature.id}`}
               >
@@ -208,14 +204,12 @@ export default function AIAssistant({
                       </div>
                       <div>
                         <h4 className="font-medium text-sm">{feature.title}</h4>
-                        <p className="text-xs text-muted-foreground">
-                          {feature.description}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{feature.description}</p>
                       </div>
                     </div>
-                    
-                    <Button 
-                      size="sm" 
+
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={feature.action}
                       disabled={isProcessing}
@@ -239,7 +233,7 @@ export default function AIAssistant({
           <h3 className="font-medium mb-4">AI Suggestions</h3>
           <div className="space-y-3">
             {suggestions.map((suggestion) => (
-              <Card 
+              <Card
                 key={suggestion.id}
                 className={`${suggestion.status === 'applied' ? 'bg-accent/5 border-accent/20' : ''}`}
                 data-testid={`suggestion-${suggestion.id}`}
@@ -252,27 +246,27 @@ export default function AIAssistant({
                         {suggestion.type}
                       </Badge>
                     </div>
-                    <div className={`text-xs font-medium ${getConfidenceColor(suggestion.confidence)}`}>
+                    <div
+                      className={`text-xs font-medium ${getConfidenceColor(suggestion.confidence)}`}
+                    >
                       {Math.round(suggestion.confidence * 100)}% confidence
                     </div>
                   </div>
-                  
+
                   <h4 className="font-medium text-sm mb-1">{suggestion.title}</h4>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    {suggestion.description}
-                  </p>
-                  
+                  <p className="text-xs text-muted-foreground mb-3">{suggestion.description}</p>
+
                   {suggestion.status === 'pending' && (
                     <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={() => applySuggestion(suggestion.id)}
                         data-testid={`button-apply-${suggestion.id}`}
                       >
                         Apply
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="ghost"
                         onClick={() => dismissSuggestion(suggestion.id)}
                         data-testid={`button-dismiss-${suggestion.id}`}
@@ -303,7 +297,7 @@ export default function AIAssistant({
                 <p className="text-xs text-muted-foreground">
                   AI will analyze your project and provide personalized suggestions
                 </p>
-                <Button 
+                <Button
                   size="sm"
                   disabled={!customPrompt.trim() || isProcessing}
                   data-testid="button-ask-ai"

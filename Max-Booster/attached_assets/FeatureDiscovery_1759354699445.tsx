@@ -3,14 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Sparkles, 
-  Zap, 
-  Target, 
-  Music, 
-  TrendingUp, 
-  Share2, 
-  BarChart3, 
+import {
+  Sparkles,
+  Zap,
+  Target,
+  Music,
+  TrendingUp,
+  Share2,
+  BarChart3,
   Crown,
   Play,
   Pause,
@@ -37,14 +37,21 @@ import {
   ArrowLeft,
   X,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react';
 
 interface Feature {
   id: string;
   title: string;
   description: string;
-  category: 'ai' | 'studio' | 'distribution' | 'social' | 'analytics' | 'marketplace' | 'advertising';
+  category:
+    | 'ai'
+    | 'studio'
+    | 'distribution'
+    | 'social'
+    | 'analytics'
+    | 'marketplace'
+    | 'advertising';
   icon: React.ReactNode;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   impact: 'low' | 'medium' | 'high' | 'revolutionary';
@@ -72,7 +79,7 @@ const features: Feature[] = [
     useCases: ['Promote new releases', 'Build fanbase', 'Increase streams'],
     isNew: true,
     isPopular: true,
-    isPro: true
+    isPro: true,
   },
   {
     id: 'ai-mixing',
@@ -85,7 +92,7 @@ const features: Feature[] = [
     timeToLearn: '5 minutes',
     benefits: ['Studio-quality results', 'Save $1000s', 'Learn from AI'],
     useCases: ['Mix tracks', 'Master songs', 'Learn mixing'],
-    isPopular: true
+    isPopular: true,
   },
   {
     id: 'ai-mastering',
@@ -98,7 +105,7 @@ const features: Feature[] = [
     timeToLearn: '2 minutes',
     benefits: ['Professional mastering', 'Instant results', 'Cost savings'],
     useCases: ['Master tracks', 'Prepare for distribution', 'Optimize sound'],
-    isPopular: true
+    isPopular: true,
   },
   {
     id: 'social-automation',
@@ -111,7 +118,7 @@ const features: Feature[] = [
     timeToLearn: '3 minutes',
     benefits: ['10x engagement', 'Save 5+ hours weekly', 'Professional presence'],
     useCases: ['Promote music', 'Build audience', 'Increase engagement'],
-    isPopular: true
+    isPopular: true,
   },
   {
     id: 'advanced-analytics',
@@ -124,7 +131,7 @@ const features: Feature[] = [
     timeToLearn: '5 minutes',
     benefits: ['Data-driven decisions', 'Predict trends', 'Maximize performance'],
     useCases: ['Track performance', 'Optimize strategy', 'Predict growth'],
-    isPopular: true
+    isPopular: true,
   },
   {
     id: 'beat-marketplace',
@@ -137,7 +144,7 @@ const features: Feature[] = [
     timeToLearn: '3 minutes',
     benefits: ['Monetize beats', 'Find collaborators', 'Build network'],
     useCases: ['Sell beats', 'Buy beats', 'Collaborate'],
-    isPopular: true
+    isPopular: true,
   },
   {
     id: 'hyperfollow',
@@ -150,7 +157,7 @@ const features: Feature[] = [
     timeToLearn: '2 minutes',
     benefits: ['Maximize streams', 'Build anticipation', 'Increase reach'],
     useCases: ['Promote releases', 'Build fanbase', 'Increase streams'],
-    isPopular: true
+    isPopular: true,
   },
   {
     id: 'ai-content-generation',
@@ -164,7 +171,7 @@ const features: Feature[] = [
     benefits: ['Professional content', 'Save time', 'Increase engagement'],
     useCases: ['Create posts', 'Generate visuals', 'Produce content'],
     isNew: true,
-    isPopular: true
+    isPopular: true,
   },
   {
     id: 'url-content-extraction',
@@ -177,7 +184,7 @@ const features: Feature[] = [
     timeToLearn: '1 minute',
     benefits: ['Quick content creation', 'Optimize existing content', 'Save time'],
     useCases: ['Share music', 'Promote content', 'Create posts'],
-    isNew: true
+    isNew: true,
   },
   {
     id: 'collaboration-tools',
@@ -190,8 +197,8 @@ const features: Feature[] = [
     timeToLearn: '5 minutes',
     benefits: ['Remote collaboration', 'Real-time feedback', 'Creative synergy'],
     useCases: ['Work with producers', 'Get feedback', 'Create together'],
-    isPro: true
-  }
+    isPro: true,
+  },
 ];
 
 interface FeatureDiscoveryProps {
@@ -215,14 +222,14 @@ export default function FeatureDiscovery({ onClose, userLevel }: FeatureDiscover
     { id: 'social', name: 'Social Media', icon: <Share2 className="w-4 h-4" /> },
     { id: 'analytics', name: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'marketplace', name: 'Marketplace', icon: <Music className="w-4 h-4" /> },
-    { id: 'advertising', name: 'Advertising', icon: <Target className="w-4 h-4" /> }
+    { id: 'advertising', name: 'Advertising', icon: <Target className="w-4 h-4" /> },
   ];
 
   const difficulties = [
     { id: 'all', name: 'All Levels', color: 'bg-gray-100 text-gray-800' },
     { id: 'beginner', name: 'Beginner', color: 'bg-green-100 text-green-800' },
     { id: 'intermediate', name: 'Intermediate', color: 'bg-yellow-100 text-yellow-800' },
-    { id: 'advanced', name: 'Advanced', color: 'bg-red-100 text-red-800' }
+    { id: 'advanced', name: 'Advanced', color: 'bg-red-100 text-red-800' },
   ];
 
   const impacts = [
@@ -230,44 +237,55 @@ export default function FeatureDiscovery({ onClose, userLevel }: FeatureDiscover
     { id: 'low', name: 'Low Impact', color: 'bg-blue-100 text-blue-800' },
     { id: 'medium', name: 'Medium Impact', color: 'bg-yellow-100 text-yellow-800' },
     { id: 'high', name: 'High Impact', color: 'bg-orange-100 text-orange-800' },
-    { id: 'revolutionary', name: 'Revolutionary', color: 'bg-red-100 text-red-800' }
+    { id: 'revolutionary', name: 'Revolutionary', color: 'bg-red-100 text-red-800' },
   ];
 
   // Filter features based on selected criteria
-  const filteredFeatures = features.filter(feature => {
+  const filteredFeatures = features.filter((feature) => {
     const matchesCategory = selectedCategory === 'all' || feature.category === selectedCategory;
-    const matchesDifficulty = selectedDifficulty === 'all' || feature.difficulty === selectedDifficulty;
+    const matchesDifficulty =
+      selectedDifficulty === 'all' || feature.difficulty === selectedDifficulty;
     const matchesImpact = selectedImpact === 'all' || feature.impact === selectedImpact;
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch =
+      searchQuery === '' ||
       feature.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       feature.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      feature.benefits.some(benefit => benefit.toLowerCase().includes(searchQuery.toLowerCase()));
+      feature.benefits.some((benefit) => benefit.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return matchesCategory && matchesDifficulty && matchesImpact && matchesSearch;
   });
 
   const handleFeatureDiscovery = (featureId: string) => {
     if (!discoveredFeatures.includes(featureId)) {
-      setDiscoveredFeatures(prev => [...prev, featureId]);
+      setDiscoveredFeatures((prev) => [...prev, featureId]);
     }
   };
 
   const getImpactColor = (impact: string) => {
     switch (impact) {
-      case 'low': return 'bg-blue-100 text-blue-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'revolutionary': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'low':
+        return 'bg-blue-100 text-blue-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'high':
+        return 'bg-orange-100 text-orange-800';
+      case 'revolutionary':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner': return 'bg-green-100 text-green-800';
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800';
-      case 'advanced': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'beginner':
+        return 'bg-green-100 text-green-800';
+      case 'intermediate':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'advanced':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -280,7 +298,9 @@ export default function FeatureDiscovery({ onClose, userLevel }: FeatureDiscover
         <div className="flex items-center justify-between p-6 border-b">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Feature Discovery</h2>
-            <p className="text-gray-600">Explore all the powerful features Max Booster has to offer</p>
+            <p className="text-gray-600">
+              Explore all the powerful features Max Booster has to offer
+            </p>
           </div>
           <Button variant="ghost" onClick={onClose}>
             <X className="w-5 h-5" />
@@ -381,8 +401,8 @@ export default function FeatureDiscovery({ onClose, userLevel }: FeatureDiscover
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredFeatures.map((feature) => (
-                <Card 
-                  key={feature.id} 
+                <Card
+                  key={feature.id}
                   className={`hover:shadow-lg transition-all duration-300 cursor-pointer ${
                     discoveredFeatures.includes(feature.id) ? 'ring-2 ring-green-500' : ''
                   }`}
@@ -391,22 +411,26 @@ export default function FeatureDiscovery({ onClose, userLevel }: FeatureDiscover
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                          {feature.icon}
-                        </div>
+                        <div className="p-2 bg-blue-100 rounded-lg">{feature.icon}</div>
                         <div>
                           <CardTitle className="text-lg">{feature.title}</CardTitle>
                           <p className="text-sm text-gray-600 mt-1">{feature.description}</p>
                         </div>
                       </div>
                       <div className="flex flex-col space-y-1">
-                        {feature.isNew && <Badge className="bg-green-100 text-green-800">New</Badge>}
-                        {feature.isPopular && <Badge className="bg-blue-100 text-blue-800">Popular</Badge>}
-                        {feature.isPro && <Badge className="bg-purple-100 text-purple-800">Pro</Badge>}
+                        {feature.isNew && (
+                          <Badge className="bg-green-100 text-green-800">New</Badge>
+                        )}
+                        {feature.isPopular && (
+                          <Badge className="bg-blue-100 text-blue-800">Popular</Badge>
+                        )}
+                        {feature.isPro && (
+                          <Badge className="bg-purple-100 text-purple-800">Pro</Badge>
+                        )}
                       </div>
                     </div>
                   </CardHeader>
-                  
+
                   <CardContent>
                     <div className="space-y-4">
                       {/* Badges */}
@@ -417,9 +441,7 @@ export default function FeatureDiscovery({ onClose, userLevel }: FeatureDiscover
                         <Badge className={getImpactColor(feature.impact)}>
                           {feature.impact} impact
                         </Badge>
-                        <Badge variant="secondary">
-                          {feature.timeToLearn}
-                        </Badge>
+                        <Badge variant="secondary">{feature.timeToLearn}</Badge>
                       </div>
 
                       {/* Benefits */}

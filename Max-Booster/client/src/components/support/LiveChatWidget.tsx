@@ -15,6 +15,9 @@ interface Message {
   createdAt: Date;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function LiveChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -29,7 +32,8 @@ export function LiveChatWidget() {
     if (isOpen && messages.length === 0) {
       const welcomeMessage: Message = {
         id: 'welcome',
-        message: 'Hi! I\'m your AI assistant. How can I help you today? Ask me anything about Max Booster!',
+        message:
+          "Hi! I'm your AI assistant. How can I help you today? Ask me anything about Max Booster!",
         isAI: true,
         isStaff: false,
         createdAt: new Date(),
@@ -87,7 +91,8 @@ export function LiveChatWidget() {
         setTimeout(() => {
           const escalationMessage: Message = {
             id: `escalate-${Date.now()}`,
-            message: 'Would you like to create a support ticket for human assistance? Click below to get started.',
+            message:
+              'Would you like to create a support ticket for human assistance? Click below to get started.',
             isAI: true,
             isStaff: false,
             createdAt: new Date(),
@@ -101,7 +106,7 @@ export function LiveChatWidget() {
           id: `articles-${Date.now()}`,
           message: `Here are some helpful articles:\n\n${data.suggestedArticles
             .slice(0, 3)
-            .map((a: any) => `• ${a.title}`)
+            .map((a: unknown) => `• ${a.title}`)
             .join('\n')}`,
           isAI: true,
           isStaff: false,
@@ -111,8 +116,8 @@ export function LiveChatWidget() {
           setMessages((prev) => [...prev, articlesMessage]);
         }, 500);
       }
-    } catch (error) {
-      console.error('Error sending message:', error);
+    } catch (error: unknown) {
+      logger.error('Error sending message:', error);
       toast({
         title: 'Error',
         description: 'Failed to send message. Please try again.',
@@ -141,7 +146,9 @@ export function LiveChatWidget() {
   }
 
   return (
-    <Card className={`fixed ${isMinimized ? 'bottom-6' : 'bottom-6'} right-6 w-96 shadow-2xl z-50 transition-all ${isMinimized ? 'h-14' : 'h-[600px]'}`}>
+    <Card
+      className={`fixed ${isMinimized ? 'bottom-6' : 'bottom-6'} right-6 w-96 shadow-2xl z-50 transition-all ${isMinimized ? 'h-14' : 'h-[600px]'}`}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 border-b">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <MessageCircle className="h-5 w-5" />
@@ -156,12 +163,7 @@ export function LiveChatWidget() {
           >
             <Minimize2 className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={() => setIsOpen(false)}
-          >
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsOpen(false)}>
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -183,9 +185,7 @@ export function LiveChatWidget() {
                   )}
                   <div
                     className={`max-w-[70%] rounded-lg px-3 py-2 ${
-                      msg.isAI
-                        ? 'bg-muted text-foreground'
-                        : 'bg-primary text-primary-foreground'
+                      msg.isAI ? 'bg-muted text-foreground' : 'bg-primary text-primary-foreground'
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
@@ -210,9 +210,18 @@ export function LiveChatWidget() {
                   </Avatar>
                   <div className="bg-muted rounded-lg px-3 py-2">
                     <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                      <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      <div
+                        className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce"
+                        style={{ animationDelay: '0ms' }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce"
+                        style={{ animationDelay: '150ms' }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce"
+                        style={{ animationDelay: '300ms' }}
+                      ></div>
                     </div>
                   </div>
                 </div>
@@ -223,12 +232,7 @@ export function LiveChatWidget() {
 
           <div className="p-4 border-t">
             <div className="flex items-center gap-2 mb-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs"
-                onClick={handleCreateTicket}
-              >
+              <Button variant="outline" size="sm" className="text-xs" onClick={handleCreateTicket}>
                 <AlertCircle className="h-3 w-3 mr-1" />
                 Create Ticket
               </Button>

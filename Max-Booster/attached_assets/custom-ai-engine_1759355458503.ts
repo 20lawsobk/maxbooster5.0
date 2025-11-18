@@ -23,13 +23,18 @@ export const customAI = {
     const res = await fetch(`${base}/ai/generate-content`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params)
+      body: JSON.stringify(params),
     });
     if (!res.ok) throw new Error(`AI HTTP ${res.status}`);
     return res.json();
   },
 
-  updatePerformanceData(contentType: string, platform: string, templateIndex: number, analytics: any) {
+  updatePerformanceData(
+    contentType: string,
+    platform: string,
+    templateIndex: number,
+    analytics: any
+  ) {
     // No-op locally; in Replit you can forward this to your learning endpoint
     // Fire-and-forget
     const base = aiBase();
@@ -37,10 +42,7 @@ export const customAI = {
     fetch(`${base}/ai/performance`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contentType, platform, templateIndex, analytics })
+      body: JSON.stringify({ contentType, platform, templateIndex, analytics }),
     }).catch(() => void 0);
-  }
+  },
 };
-
-
-

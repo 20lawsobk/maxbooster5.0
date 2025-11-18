@@ -29,7 +29,7 @@ class Logger {
     if (this.isDevelopment) {
       return true;
     }
-    
+
     return level === 'error' || level === 'warn';
   }
 
@@ -43,15 +43,15 @@ class Logger {
     if (this.isDevelopment) {
       const prefix = `[${level.toUpperCase()}]${context ? ` [${context}]` : ''}`;
       const style = this.getConsoleStyle(level);
-      
+
       if (data !== undefined) {
-        console.log(`%c${prefix} ${message}`, style, data);
+        logger.info(`%c${prefix} ${message}`, style, data);
       } else {
-        console.log(`%c${prefix} ${message}`, style);
+        logger.info(`%c${prefix} ${message}`, style);
       }
     } else {
       if (level === 'error') {
-        console.error(logEntry.message, logEntry.data);
+        logger.error(logEntry.message, logEntry.data);
       }
     }
   }

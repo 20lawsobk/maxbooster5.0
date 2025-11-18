@@ -5,7 +5,7 @@ export async function initializeAdmin() {
   try {
     // Check if admin user already exists
     const existingAdmin = await storage.getUserByEmail('brandonlawson720@gmail.com');
-    
+
     if (existingAdmin) {
       console.log('Admin user already exists');
       return existingAdmin;
@@ -13,7 +13,7 @@ export async function initializeAdmin() {
 
     // Create admin user
     const hashedPassword = await bcrypt.hash('admin123!', 10);
-    
+
     const adminUser = await storage.createUser({
       username: 'admin',
       email: 'brandonlawson720@gmail.com',

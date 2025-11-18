@@ -1,6 +1,7 @@
+import { logger } from '../logger.js';
 /**
  * Centralized Configuration System
- * 
+ *
  * All configuration values are loaded from environment variables with sensible defaults.
  * This enables easy scaling without code changes - just adjust env vars for each environment.
  */
@@ -89,6 +90,9 @@ export interface AppConfig {
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function parseEnvInt(key: string, defaultValue: number): number {
   const value = process.env[key];
   if (!value) return defaultValue;
@@ -96,16 +100,25 @@ function parseEnvInt(key: string, defaultValue: number): number {
   return isNaN(parsed) ? defaultValue : parsed;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function parseEnvBool(key: string, defaultValue: boolean): boolean {
   const value = process.env[key];
   if (!value) return defaultValue;
   return value.toLowerCase() === 'true' || value === '1';
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function parseEnvArray(key: string, defaultValue: string[]): string[] {
   const value = process.env[key];
   if (!value) return defaultValue;
-  return value.split(',').map(s => s.trim()).filter(Boolean);
+  return value
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 export const config: AppConfig = {
@@ -147,8 +160,9 @@ export const config: AppConfig = {
 
   storage: {
     // Auto-detect Replit storage if REPLIT_BUCKET_ID is available
-    provider: (process.env.STORAGE_PROVIDER as 'local' | 's3' | 'replit') || 
-              (process.env.REPLIT_BUCKET_ID ? 'replit' : 'local'),
+    provider:
+      (process.env.STORAGE_PROVIDER as 'local' | 's3' | 'replit') ||
+      (process.env.REPLIT_BUCKET_ID ? 'replit' : 'local'),
     bucket: process.env.S3_BUCKET,
     region: process.env.AWS_REGION || 'us-east-1',
     endpoint: process.env.S3_ENDPOINT, // For MinIO/custom S3
@@ -199,11 +213,14 @@ export function validateConfig(): void {
     }
     if (!config.storage.accessKeyId || !config.storage.secretAccessKey) {
       // AWS SDK will try to use IAM role if not provided, so this is just a warning
-      console.warn('⚠️  AWS credentials not found in environment. Attempting to use IAM role...');
+      logger.warn('⚠️  AWS credentials not found in environment. Attempting to use IAM role...');
     }
   }
 
-  if (config.nodeEnv === 'production' && config.session.secret === 'dev-secret-change-in-production') {
+  if (
+    config.nodeEnv === 'production' &&
+    config.session.secret === 'dev-secret-change-in-production'
+  ) {
     errors.push('SESSION_SECRET must be set in production');
   }
 
@@ -214,17 +231,17 @@ export function validateConfig(): void {
 
 // Log configuration on startup (sanitized)
 export function logConfig(): void {
-  console.log('📋 Configuration loaded:');
-  console.log(`   Environment: ${config.nodeEnv}`);
-  console.log(`   Port: ${config.port}`);
-  console.log(`   Database Pool: ${config.database.poolSize} connections`);
-  console.log(`   Max Sessions: ${config.session.maxSessions.toLocaleString()}`);
-  console.log(`   Rate Limit: ${config.rateLimiting.maxRequests} req/min`);
-  console.log(`   Storage: ${config.storage.provider}`);
+  logger.info('📋 Configuration loaded:');
+  logger.info(`   Environment: ${config.nodeEnv}`);
+  logger.info(`   Port: ${config.port}`);
+  logger.info(`   Database Pool: ${config.database.poolSize} connections`);
+  logger.info(`   Max Sessions: ${config.session.maxSessions.toLocaleString()}`);
+  logger.info(`   Rate Limit: ${config.rateLimiting.maxRequests} req/min`);
+  logger.info(`   Storage: ${config.storage.provider}`);
   if (config.storage.provider === 's3') {
-    console.log(`   S3 Bucket: ${config.storage.bucket}`);
+    logger.info(`   S3 Bucket: ${config.storage.bucket}`);
   } else if (config.storage.provider === 'replit') {
-    console.log(`   📦 Replit App Storage Bucket: ${config.storage.replitBucketId}`);
+    logger.info(`   📦 Replit App Storage Bucket: ${config.storage.replitBucketId}`);
   }
-  console.log(`   Max File Size: ${(config.upload.maxFileSize / 1024 / 1024).toFixed(0)}MB`);
+  logger.info(`   Max File Size: ${(config.upload.maxFileSize / 1024 / 1024).toFixed(0)}MB`);
 }

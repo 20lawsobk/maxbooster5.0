@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,15 +31,18 @@ export default function TwoFactorSetupDialog({ open, onOpenChange }: TwoFactorSe
     try {
       const response = await apiRequest('POST', '/api/auth/2fa/setup');
       const data = await response.json();
-      
-      setQrCode(data.qrCode || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
+
+      setQrCode(
+        data.qrCode ||
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+      );
       setSecret(data.secret || 'MOCK2FASECRETKEY');
       setStep('verify');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Error",
-        description: "Failed to setup 2FA. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to setup 2FA. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -43,9 +52,9 @@ export default function TwoFactorSetupDialog({ open, onOpenChange }: TwoFactorSe
   const handleVerify = async () => {
     if (verificationCode.length !== 6) {
       toast({
-        title: "Error",
-        description: "Please enter a 6-digit verification code",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please enter a 6-digit verification code',
+        variant: 'destructive',
       });
       return;
     }
@@ -53,22 +62,22 @@ export default function TwoFactorSetupDialog({ open, onOpenChange }: TwoFactorSe
     setLoading(true);
     try {
       await apiRequest('POST', '/api/auth/2fa/verify', {
-        code: verificationCode
+        code: verificationCode,
       });
-      
+
       toast({
-        title: "Success",
-        description: "Two-factor authentication has been enabled successfully",
+        title: 'Success',
+        description: 'Two-factor authentication has been enabled successfully',
       });
-      
+
       onOpenChange(false);
       setStep('setup');
       setVerificationCode('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Error",
-        description: "Invalid verification code. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Invalid verification code. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -78,8 +87,8 @@ export default function TwoFactorSetupDialog({ open, onOpenChange }: TwoFactorSe
   const copySecret = () => {
     navigator.clipboard.writeText(secret);
     toast({
-      title: "Copied",
-      description: "Secret key copied to clipboard",
+      title: 'Copied',
+      description: 'Secret key copied to clipboard',
     });
   };
 
@@ -94,10 +103,9 @@ export default function TwoFactorSetupDialog({ open, onOpenChange }: TwoFactorSe
             </div>
           </DialogTitle>
           <DialogDescription>
-            {step === 'setup' ? 
-              'Enhance your account security by enabling two-factor authentication' : 
-              'Scan the QR code with your authenticator app or enter the secret key manually'
-            }
+            {step === 'setup'
+              ? 'Enhance your account security by enabling two-factor authentication'
+              : 'Scan the QR code with your authenticator app or enter the secret key manually'}
           </DialogDescription>
         </DialogHeader>
 
@@ -112,7 +120,7 @@ export default function TwoFactorSetupDialog({ open, onOpenChange }: TwoFactorSe
                 <li>Use the app to generate codes when logging in</li>
               </ol>
             </div>
-            
+
             <div className="flex justify-end space-x-2">
               <Button
                 variant="outline"
@@ -121,11 +129,7 @@ export default function TwoFactorSetupDialog({ open, onOpenChange }: TwoFactorSe
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleSetup}
-                disabled={loading}
-                data-testid="button-start-2fa-setup"
-              >
+              <Button onClick={handleSetup} disabled={loading} data-testid="button-start-2fa-setup">
                 {loading ? 'Setting up...' : 'Start Setup'}
               </Button>
             </div>
@@ -134,9 +138,9 @@ export default function TwoFactorSetupDialog({ open, onOpenChange }: TwoFactorSe
           <div className="space-y-4">
             <div className="flex justify-center">
               <div className="p-4 bg-white rounded-lg">
-                <img 
-                  src={qrCode} 
-                  alt="2FA QR Code" 
+                <img
+                  src={qrCode}
+                  alt="2FA QR Code"
                   className="w-48 h-48"
                   data-testid="img-2fa-qr-code"
                 />

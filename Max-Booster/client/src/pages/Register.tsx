@@ -5,23 +5,30 @@ import { useRedirectIfAuthenticated } from '@/hooks/useRequireAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Logo } from '@/components/ui/Logo';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
-import { 
-  Sparkles, 
-  Music, 
-  TrendingUp, 
-  Users, 
-  DollarSign, 
+import {
+  Sparkles,
+  Music,
+  TrendingUp,
+  Users,
+  DollarSign,
   CheckCircle,
   ArrowRight,
   Shield,
-  Clock
+  Clock,
 } from 'lucide-react';
 import { FaGoogle } from 'react-icons/fa';
 
@@ -35,7 +42,7 @@ export default function Register() {
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -55,10 +62,10 @@ export default function Register() {
       await register(formData);
       toast({
         title: 'Account created successfully!',
-        description: 'Welcome to Max Booster! Let\'s get started.',
+        description: "Welcome to Max Booster! Let's get started.",
       });
       navigate('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
       setError(error.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
@@ -83,13 +90,11 @@ export default function Register() {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-cyan-600 p-12 text-white">
         <div className="flex flex-col justify-center">
           <Logo size="lg" className="mb-8" />
-          <h1 className="text-4xl font-bold mb-6">
-            Start Your Music Empire Today
-          </h1>
+          <h1 className="text-4xl font-bold mb-6">Start Your Music Empire Today</h1>
           <p className="text-xl mb-8 opacity-90">
             Join thousands of artists using AI to 10x their career growth
           </p>
-          
+
           <div className="space-y-4 mb-8">
             {benefits.map((benefit, index) => (
               <div key={index} className="flex items-center space-x-3">
@@ -107,7 +112,8 @@ export default function Register() {
               <span className="font-semibold">90-Day Money Back Guarantee</span>
             </div>
             <p className="text-sm opacity-80">
-              Purchase Max Booster with confidence. If you're not completely satisfied within 90 days, get a full refund - no questions asked!
+              Purchase Max Booster with confidence. If you're not completely satisfied within 90
+              days, get a full refund - no questions asked!
             </p>
           </div>
         </div>
@@ -129,7 +135,7 @@ export default function Register() {
               </Badge>
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             {/* Guarantee Info Box */}
             <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
@@ -137,7 +143,10 @@ export default function Register() {
                 <Shield className="w-5 h-5 text-green-600 mt-0.5" />
                 <div className="text-sm">
                   <p className="font-semibold text-green-800 dark:text-green-300">100% Risk-Free</p>
-                  <p className="text-green-700 dark:text-green-400">Your purchase is protected for 90 days. If you're not satisfied, get a full refund - no questions asked.</p>
+                  <p className="text-green-700 dark:text-green-400">
+                    Your purchase is protected for 90 days. If you're not satisfied, get a full
+                    refund - no questions asked.
+                  </p>
                 </div>
               </div>
             </div>
@@ -205,9 +214,9 @@ export default function Register() {
                 />
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700" 
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
                 disabled={isLoading}
                 data-testid="button-create-account"
               >
@@ -243,8 +252,13 @@ export default function Register() {
             </div>
             <div className="text-center text-xs text-muted-foreground">
               By creating an account, you agree to our{' '}
-              <Link href="/terms" className="hover:underline">Terms</Link> and{' '}
-              <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
+              <Link href="/terms" className="hover:underline">
+                Terms
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" className="hover:underline">
+                Privacy Policy
+              </Link>
             </div>
           </CardFooter>
         </Card>

@@ -8,7 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
@@ -246,9 +252,17 @@ import {
   Volume97,
   Volume98,
   Volume99,
-  Volume100
+  Volume100,
 } from 'lucide-react';
-import { SiFacebook, SiInstagram, SiYoutube, SiTiktok, SiLinkedin, SiThreads, SiGoogle } from 'react-icons/si';
+import {
+  SiFacebook,
+  SiInstagram,
+  SiYoutube,
+  SiTiktok,
+  SiLinkedin,
+  SiThreads,
+  SiGoogle,
+} from 'react-icons/si';
 
 // Social Media Platform Interfaces
 interface SocialPlatform {
@@ -309,7 +323,7 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
     followers: 0,
     engagement: 0,
     lastSync: '',
-    status: 'inactive'
+    status: 'inactive',
   },
   {
     id: 'instagram',
@@ -320,7 +334,7 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
     followers: 0,
     engagement: 0,
     lastSync: '',
-    status: 'inactive'
+    status: 'inactive',
   },
   {
     id: 'twitter',
@@ -331,7 +345,7 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
     followers: 0,
     engagement: 0,
     lastSync: '',
-    status: 'inactive'
+    status: 'inactive',
   },
   {
     id: 'youtube',
@@ -342,7 +356,7 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
     followers: 0,
     engagement: 0,
     lastSync: '',
-    status: 'inactive'
+    status: 'inactive',
   },
   {
     id: 'tiktok',
@@ -353,7 +367,7 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
     followers: 0,
     engagement: 0,
     lastSync: '',
-    status: 'inactive'
+    status: 'inactive',
   },
   {
     id: 'linkedin',
@@ -364,7 +378,7 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
     followers: 0,
     engagement: 0,
     lastSync: '',
-    status: 'inactive'
+    status: 'inactive',
   },
   {
     id: 'threads',
@@ -375,7 +389,7 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
     followers: 0,
     engagement: 0,
     lastSync: '',
-    status: 'inactive'
+    status: 'inactive',
   },
   {
     id: 'google-business',
@@ -386,8 +400,8 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
     followers: 0,
     engagement: 0,
     lastSync: '',
-    status: 'inactive'
-  }
+    status: 'inactive',
+  },
 ];
 
 export default function SocialMedia() {
@@ -442,7 +456,7 @@ export default function SocialMedia() {
   });
 
   const generateContentMutation = useMutation({
-    mutationFn: async (data: { platforms: string[], tone: string, topic?: string }) => {
+    mutationFn: async (data: { platforms: string[]; tone: string; topic?: string }) => {
       const response = await apiRequest('POST', '/api/social/generate-content', data);
       return response.json();
     },
@@ -524,13 +538,13 @@ export default function SocialMedia() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       <TopBar title="Social Media Management" />
       <div className="flex">
-      <Sidebar />
+        <Sidebar />
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto space-y-8">
             {/* Header Section */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200/60 dark:border-gray-700">
               <div className="flex items-center justify-between">
-              <div>
+                <div>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     Social Media Management
                   </h1>
@@ -542,17 +556,23 @@ export default function SocialMedia() {
                       <Brain className="w-3 h-3 mr-1" />
                       AI Content Generation
                     </Badge>
-                    <Badge variant="outline" className="border-purple-200 text-purple-700 bg-purple-50">
+                    <Badge
+                      variant="outline"
+                      className="border-purple-200 text-purple-700 bg-purple-50"
+                    >
                       <Zap className="w-3 h-3 mr-1" />
                       Multi-Platform Publishing
                     </Badge>
-                    <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50">
+                    <Badge
+                      variant="outline"
+                      className="border-green-200 text-green-700 bg-green-50"
+                    >
                       <BarChart3 className="w-3 h-3 mr-1" />
                       Advanced Analytics
                     </Badge>
                   </div>
                 </div>
-                <Button 
+                <Button
                   onClick={handleGenerateContent}
                   disabled={isGeneratingContent}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
@@ -569,8 +589,8 @@ export default function SocialMedia() {
                     </>
                   )}
                 </Button>
-                      </div>
-                    </div>
+              </div>
+            </div>
 
             {/* Platform Connection Status */}
             <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
@@ -595,46 +615,67 @@ export default function SocialMedia() {
                         onClick={() => !platform.isConnected && handleConnectPlatform(platform.id)}
                       >
                         <div className="text-center">
-                          <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ backgroundColor: platform.color + '20' }}>
+                          <div
+                            className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center"
+                            style={{ backgroundColor: platform.color + '20' }}
+                          >
                             <IconComponent className="w-6 h-6" style={{ color: platform.color }} />
                           </div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{platform.name}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {platform.name}
+                          </p>
                           <div className="mt-2">
                             {platform.isConnected ? (
-                              <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                              <Badge
+                                variant="default"
+                                className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              >
                                 <CheckCircle className="w-3 h-3 mr-1" />
                                 Connected
                               </Badge>
                             ) : (
-                              <Badge variant="outline">
-                                Connect
-                              </Badge>
+                              <Badge variant="outline">Connect</Badge>
                             )}
-                      </div>
-                    </div>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
-                      </div>
+                </div>
               </CardContent>
             </Card>
 
             {/* Main Interface */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList className="grid w-full grid-cols-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="overview"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   Overview
                 </TabsTrigger>
-                <TabsTrigger value="create" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="create"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   Create
                 </TabsTrigger>
-                <TabsTrigger value="schedule" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="schedule"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   Schedule
                 </TabsTrigger>
-                <TabsTrigger value="analytics" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="analytics"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   Analytics
                 </TabsTrigger>
-                <TabsTrigger value="ai-insights" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="ai-insights"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   AI Insights
                 </TabsTrigger>
               </TabsList>
@@ -654,9 +695,9 @@ export default function SocialMedia() {
                       <div>
                         <Label>Select Platforms</Label>
                         <div className="grid grid-cols-2 gap-2 mt-2">
-                          {SOCIAL_PLATFORMS.filter(p => p.isConnected).map((platform) => {
+                          {SOCIAL_PLATFORMS.filter((p) => p.isConnected).map((platform) => {
                             const IconComponent = platform.icon;
-                          return (
+                            return (
                               <div
                                 key={platform.id}
                                 className={`p-3 rounded-lg border cursor-pointer transition-all ${
@@ -666,22 +707,27 @@ export default function SocialMedia() {
                                 }`}
                                 onClick={() => {
                                   if (selectedPlatforms.includes(platform.id)) {
-                                    setSelectedPlatforms(selectedPlatforms.filter(id => id !== platform.id));
+                                    setSelectedPlatforms(
+                                      selectedPlatforms.filter((id) => id !== platform.id)
+                                    );
                                   } else {
                                     setSelectedPlatforms([...selectedPlatforms, platform.id]);
                                   }
                                 }}
                               >
                                 <div className="flex items-center space-x-2">
-                                  <IconComponent className="w-4 h-4" style={{ color: platform.color }} />
+                                  <IconComponent
+                                    className="w-4 h-4"
+                                    style={{ color: platform.color }}
+                                  />
                                   <span className="text-sm font-medium">{platform.name}</span>
                                 </div>
-                            </div>
-                          );
-                        })}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                            </div>
-                            
+
                       <div>
                         <Label>Content Tone</Label>
                         <Select value={selectedTone} onValueChange={setSelectedTone}>
@@ -696,8 +742,8 @@ export default function SocialMedia() {
                             <SelectItem value="promotional">Promotional</SelectItem>
                           </SelectContent>
                         </Select>
-                            </div>
-                            
+                      </div>
+
                       <div>
                         <Label>Post Content</Label>
                         <Textarea
@@ -737,7 +783,7 @@ export default function SocialMedia() {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   {/* AI Content Suggestions */}
                   <Card>
                     <CardHeader>
@@ -749,18 +795,32 @@ export default function SocialMedia() {
                     <CardContent>
                       <div className="space-y-4">
                         <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Trending Topics</h4>
+                          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                            Trending Topics
+                          </h4>
                           <div className="flex flex-wrap gap-2">
-                            {['#NewMusic', '#MusicProduction', '#ArtistLife', '#StudioSession', '#BehindTheScenes'].map((tag) => (
-                              <Badge key={tag} variant="outline" className="cursor-pointer hover:bg-blue-100">
+                            {[
+                              '#NewMusic',
+                              '#MusicProduction',
+                              '#ArtistLife',
+                              '#StudioSession',
+                              '#BehindTheScenes',
+                            ].map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="outline"
+                                className="cursor-pointer hover:bg-blue-100"
+                              >
                                 {tag}
                               </Badge>
                             ))}
-                      </div>
+                          </div>
                         </div>
 
                         <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                          <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">Optimal Posting Times</h4>
+                          <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+                            Optimal Posting Times
+                          </h4>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span>Instagram:</span>
@@ -777,12 +837,14 @@ export default function SocialMedia() {
                             <div className="flex justify-between">
                               <span>TikTok:</span>
                               <span className="font-medium">6-10 PM</span>
-                      </div>
-                      </div>
+                            </div>
+                          </div>
                         </div>
 
                         <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                          <h4 className="font-medium text-purple-900 dark:text-purple-100 mb-2">Engagement Tips</h4>
+                          <h4 className="font-medium text-purple-900 dark:text-purple-100 mb-2">
+                            Engagement Tips
+                          </h4>
                           <ul className="text-sm space-y-1">
                             <li>• Use 1-2 hashtags for maximum reach</li>
                             <li>• Post videos for 3x more engagement</li>

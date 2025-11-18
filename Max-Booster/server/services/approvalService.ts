@@ -3,6 +3,7 @@ import { posts, approvalHistory, users, notifications } from '@shared/schema';
 import { eq, and, or, desc } from 'drizzle-orm';
 import { notificationService } from './notificationService';
 import type { Request, Response, NextFunction } from 'express';
+import { logger } from '../logger.js';
 
 export type ApprovalStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'published';
 export type UserRole = 'content_creator' | 'reviewer' | 'manager' | 'admin';
@@ -55,9 +56,9 @@ export class ApprovalService {
 
       const hasPermission = await this.checkPermission(req.user.id, requiredAction);
       if (!hasPermission) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: 'Forbidden',
-          message: 'You do not have permission to perform this action'
+          message: 'You do not have permission to perform this action',
         });
       }
 
@@ -75,11 +76,7 @@ export class ApprovalService {
     newStatus: ApprovalStatus,
     userId: string
   ): Promise<{ valid: boolean; error?: string }> {
-    const [post] = await db
-      .select()
-      .from(posts)
-      .where(eq(posts.id, postId))
-      .limit(1);
+    const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
 
     if (!post) {
       return { valid: false, error: 'Post not found' };
@@ -98,18 +95,17 @@ export class ApprovalService {
     return { valid: true };
   }
 
-  async submitForReview(postId: string, userId: string): Promise<{ success: boolean; error?: string }> {
+  async submitForReview(
+    postId: string,
+    userId: string
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       const validation = await this.validateStateTransition(postId, 'pending_review', userId);
       if (!validation.valid) {
         return { success: false, error: validation.error };
       }
 
-      const [post] = await db
-        .select()
-        .from(posts)
-        .where(eq(posts.id, postId))
-        .limit(1);
+      const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
 
       await db
         .update(posts)
@@ -130,8 +126,8 @@ export class ApprovalService {
       await this.notifyReviewers(postId, userId);
 
       return { success: true };
-    } catch (error) {
-      console.error('Submit for review error:', error);
+    } catch (error: unknown) {
+      logger.error('Submit for review error:', error);
       return { success: false, error: 'Failed to submit for review' };
     }
   }
@@ -147,11 +143,7 @@ export class ApprovalService {
         return { success: false, error: validation.error };
       }
 
-      const [post] = await db
-        .select()
-        .from(posts)
-        .where(eq(posts.id, postId))
-        .limit(1);
+      const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
 
       await db
         .update(posts)
@@ -175,8 +167,8 @@ export class ApprovalService {
       await this.notifyPostCreator(postId, userId, 'approved', comment);
 
       return { success: true };
-    } catch (error) {
-      console.error('Approve post error:', error);
+    } catch (error: unknown) {
+      logger.error('Approve post error:', error);
       return { success: false, error: 'Failed to approve post' };
     }
   }
@@ -193,11 +185,7 @@ export class ApprovalService {
         return { success: false, error: validation.error };
       }
 
-      const [post] = await db
-        .select()
-        .from(posts)
-        .where(eq(posts.id, postId))
-        .limit(1);
+      const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
 
       await db
         .update(posts)
@@ -221,8 +209,8 @@ export class ApprovalService {
       await this.notifyPostCreator(postId, userId, 'rejected', reason);
 
       return { success: true };
-    } catch (error) {
-      console.error('Reject post error:', error);
+    } catch (error: unknown) {
+      logger.error('Reject post error:', error);
       return { success: false, error: 'Failed to reject post' };
     }
   }
@@ -246,8 +234,8 @@ export class ApprovalService {
         comment: params.comment,
         metadata: params.metadata || {},
       });
-    } catch (error) {
-      console.error('Log approval action error:', error);
+    } catch (error: unknown) {
+      logger.error('Log approval action error:', error);
     }
   }
 
@@ -271,8 +259,8 @@ export class ApprovalService {
         .orderBy(desc(approvalHistory.createdAt));
 
       return history;
-    } catch (error) {
-      console.error('Get approval history error:', error);
+    } catch (error: unknown) {
+      logger.error('Get approval history error:', error);
       return [];
     }
   }
@@ -280,7 +268,7 @@ export class ApprovalService {
   async getPendingApprovals(userId: string): Promise<any[]> {
     try {
       const userRole = await this.getUserRole(userId);
-      
+
       if (!['reviewer', 'manager', 'admin'].includes(userRole)) {
         return [];
       }
@@ -305,8 +293,8 @@ export class ApprovalService {
         .orderBy(desc(posts.createdAt));
 
       return pendingPosts;
-    } catch (error) {
-      console.error('Get pending approvals error:', error);
+    } catch (error: unknown) {
+      logger.error('Get pending approvals error:', error);
       return [];
     }
   }
@@ -324,11 +312,7 @@ export class ApprovalService {
           )
         );
 
-      const [post] = await db
-        .select()
-        .from(posts)
-        .where(eq(posts.id, postId))
-        .limit(1);
+      const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
 
       for (const reviewer of reviewers) {
         if (reviewer.id !== submitterId) {
@@ -342,8 +326,8 @@ export class ApprovalService {
           });
         }
       }
-    } catch (error) {
-      console.error('Notify reviewers error:', error);
+    } catch (error: unknown) {
+      logger.error('Notify reviewers error:', error);
     }
   }
 
@@ -354,18 +338,15 @@ export class ApprovalService {
     comment?: string
   ): Promise<void> {
     try {
-      const [post] = await db
-        .select()
-        .from(posts)
-        .where(eq(posts.id, postId))
-        .limit(1);
+      const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
 
       if (!post.submittedBy) return;
 
       const title = status === 'approved' ? 'Post Approved' : 'Post Rejected';
-      const message = status === 'approved'
-        ? `Your ${post.platform} post has been approved and is ready to publish`
-        : `Your ${post.platform} post has been rejected. Reason: ${comment}`;
+      const message =
+        status === 'approved'
+          ? `Your ${post.platform} post has been approved and is ready to publish`
+          : `Your ${post.platform} post has been rejected. Reason: ${comment}`;
 
       await notificationService.createNotification({
         userId: post.submittedBy,
@@ -375,8 +356,8 @@ export class ApprovalService {
         link: `/social/posts/${postId}`,
         metadata: { postId, status, reviewerId },
       });
-    } catch (error) {
-      console.error('Notify post creator error:', error);
+    } catch (error: unknown) {
+      logger.error('Notify post creator error:', error);
     }
   }
 
@@ -408,14 +389,14 @@ export class ApprovalService {
       if (status) {
         const existingCondition = (query as any)._config?.where;
         query = existingCondition
-          ? query.where(and(existingCondition, eq(posts.approvalStatus, status))) as any
-          : query.where(eq(posts.approvalStatus, status)) as any;
+          ? (query.where(and(existingCondition, eq(posts.approvalStatus, status))) as any)
+          : (query.where(eq(posts.approvalStatus, status)) as any);
       }
 
       const results = await (query as any).orderBy(desc(posts.createdAt));
       return results;
-    } catch (error) {
-      console.error('Get user posts error:', error);
+    } catch (error: unknown) {
+      logger.error('Get user posts error:', error);
       return [];
     }
   }

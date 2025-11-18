@@ -1,10 +1,11 @@
-import { db } from "../db";
+import { db } from '../db';
 import {
   knowledgeBaseArticles,
   type InsertKnowledgeBaseArticle,
   type UpdateKnowledgeBaseArticle,
-} from "@shared/schema";
-import { eq, and, desc, or, sql, ilike } from "drizzle-orm";
+} from '@shared/schema';
+import { eq, and, desc, or, sql, ilike } from 'drizzle-orm';
+import { logger } from '../logger.js';
 
 export class KnowledgeBaseService {
   async createArticle(articleData: InsertKnowledgeBaseArticle) {
@@ -32,7 +33,10 @@ export class KnowledgeBaseService {
   }
 
   async searchArticles(query?: string, category?: string, limit: number = 20) {
-    let dbQuery = db.select().from(knowledgeBaseArticles).where(eq(knowledgeBaseArticles.isPublished, true));
+    let dbQuery = db
+      .select()
+      .from(knowledgeBaseArticles)
+      .where(eq(knowledgeBaseArticles.isPublished, true));
 
     const conditions = [];
 
@@ -53,9 +57,7 @@ export class KnowledgeBaseService {
       dbQuery = dbQuery.where(and(...conditions));
     }
 
-    const articles = await dbQuery
-      .orderBy(desc(knowledgeBaseArticles.views))
-      .limit(limit);
+    const articles = await dbQuery.orderBy(desc(knowledgeBaseArticles.views)).limit(limit);
 
     return articles;
   }
@@ -115,8 +117,10 @@ export class KnowledgeBaseService {
   }
 
   async markHelpful(articleId: string, isHelpful: boolean) {
-    const field = isHelpful ? knowledgeBaseArticles.helpfulCount : knowledgeBaseArticles.notHelpfulCount;
-    
+    const field = isHelpful
+      ? knowledgeBaseArticles.helpfulCount
+      : knowledgeBaseArticles.notHelpfulCount;
+
     await db
       .update(knowledgeBaseArticles)
       .set({ [isHelpful ? 'helpfulCount' : 'notHelpfulCount']: sql`${field} + 1` })
@@ -179,7 +183,7 @@ export class KnowledgeBaseService {
 
     const defaultArticles: InsertKnowledgeBaseArticle[] = [
       {
-        title: "Getting Started with Max Booster",
+        title: 'Getting Started with Max Booster',
         content: `# Getting Started with Max Booster
 
 Welcome to Max Booster! This guide will help you get started with our platform.
@@ -199,12 +203,12 @@ Welcome to Max Booster! This guide will help you get started with our platform.
 
 ## Managing Royalties
 Track your earnings in real-time on the Royalties page. We process payouts monthly once you reach the $10 minimum threshold.`,
-        category: "Getting Started",
-        tags: ["beginner", "setup", "basics"],
+        category: 'Getting Started',
+        tags: ['beginner', 'setup', 'basics'],
         isPublished: true,
       },
       {
-        title: "How to Distribute Music to Streaming Platforms",
+        title: 'How to Distribute Music to Streaming Platforms',
         content: `# How to Distribute Music to Streaming Platforms
 
 Max Booster makes music distribution simple and straightforward.
@@ -229,12 +233,12 @@ Max Booster makes music distribution simple and straightforward.
 
 ## Timeline
 Most releases go live within 1-3 business days. Submit at least 2 weeks before your desired release date for best results.`,
-        category: "Distribution",
-        tags: ["distribution", "spotify", "apple music", "streaming"],
+        category: 'Distribution',
+        tags: ['distribution', 'spotify', 'apple music', 'streaming'],
         isPublished: true,
       },
       {
-        title: "Understanding Royalties and Payments",
+        title: 'Understanding Royalties and Payments',
         content: `# Understanding Royalties and Payments
 
 Learn how royalties work and when you'll get paid.
@@ -258,12 +262,12 @@ View real-time earnings on the Royalties page:
 - Earnings per song
 - Earnings per territory
 - Historical data and trends`,
-        category: "Royalties",
-        tags: ["royalties", "payments", "earnings", "money"],
+        category: 'Royalties',
+        tags: ['royalties', 'payments', 'earnings', 'money'],
         isPublished: true,
       },
       {
-        title: "Using AI Music Tools",
+        title: 'Using AI Music Tools',
         content: `# Using AI Music Tools
 
 Max Booster provides powerful AI tools to enhance your music production.
@@ -288,12 +292,12 @@ Create social media content:
 - Hashtag suggestions
 - Release announcements
 - Engagement-optimized content`,
-        category: "AI Tools",
-        tags: ["ai", "mixing", "mastering", "content generation"],
+        category: 'AI Tools',
+        tags: ['ai', 'mixing', 'mastering', 'content generation'],
         isPublished: true,
       },
       {
-        title: "Troubleshooting Common Issues",
+        title: 'Troubleshooting Common Issues',
         content: `# Troubleshooting Common Issues
 
 Solutions to frequently encountered problems.
@@ -329,14 +333,14 @@ Solutions to frequently encountered problems.
 - Check email for verification link
 - Clear browser cache and cookies
 - Contact support if issue persists`,
-        category: "Troubleshooting",
-        tags: ["troubleshooting", "help", "issues", "problems"],
+        category: 'Troubleshooting',
+        tags: ['troubleshooting', 'help', 'issues', 'problems'],
         isPublished: true,
       },
     ];
 
     await db.insert(knowledgeBaseArticles).values(defaultArticles);
-    console.log("✅ Seeded default knowledge base articles");
+    logger.info('✅ Seeded default knowledge base articles');
   }
 }
 

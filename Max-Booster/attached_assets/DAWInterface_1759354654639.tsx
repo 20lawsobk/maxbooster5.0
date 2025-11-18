@@ -1,17 +1,8 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { 
-  Play, 
-  Pause, 
-  Square, 
-  RotateCcw, 
-  Circle,
-  Volume2,
-  Mic,
-  Headphones
-} from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Play, Pause, Square, RotateCcw, Circle, Volume2, Mic, Headphones } from 'lucide-react';
 
 interface DAWInterfaceProps {
   project: any;
@@ -34,7 +25,7 @@ export default function DAWInterface({
   isRecording,
   currentTime,
   masterVolume,
-  onMasterVolumeChange
+  onMasterVolumeChange,
 }: DAWInterfaceProps) {
   const [playbackPosition, setPlaybackPosition] = useState(0);
 
@@ -42,7 +33,7 @@ export default function DAWInterface({
     // Update playback position when playing
     if (isPlaying) {
       const interval = setInterval(() => {
-        setPlaybackPosition(prev => prev + 0.1);
+        setPlaybackPosition((prev) => prev + 0.1);
       }, 100);
       return () => clearInterval(interval);
     }
@@ -54,33 +45,33 @@ export default function DAWInterface({
         <div className="flex items-center justify-between">
           {/* Transport Controls */}
           <div className="flex items-center space-x-4">
-            <Button 
+            <Button
               onClick={onPlayPause}
               className={`w-12 h-12 rounded-full ${isPlaying ? 'bg-secondary' : 'bg-primary'}`}
               data-testid="button-play-pause"
             >
               {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={onStop}
-              variant="outline" 
+              variant="outline"
               className="w-10 h-10 rounded-full"
               data-testid="button-stop"
             >
               <Square className="w-5 h-5" />
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={() => setPlaybackPosition(0)}
-              variant="outline" 
+              variant="outline"
               className="w-10 h-10 rounded-full"
               data-testid="button-rewind"
             >
               <RotateCcw className="w-5 h-5" />
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={onRecord}
               className={`w-10 h-10 rounded-full ${isRecording ? 'bg-destructive' : 'bg-muted'}`}
               data-testid="button-record"
@@ -98,23 +89,23 @@ export default function DAWInterface({
               </Button>
             </div>
           </div>
-          
+
           {/* Timeline Position */}
           <div className="flex items-center space-x-4">
             <span className="font-mono text-lg" data-testid="text-current-time">
               {currentTime}
             </span>
             <div className="w-64 h-2 bg-muted rounded-full">
-              <div 
-                className="h-full bg-primary rounded-full transition-all duration-100" 
+              <div
+                className="h-full bg-primary rounded-full transition-all duration-100"
                 style={{ width: `${Math.min(playbackPosition * 10, 100)}%` }}
               />
             </div>
             <span className="font-mono text-sm text-muted-foreground">
-              {project?.duration || "03:45:00"}
+              {project?.duration || '03:45:00'}
             </span>
           </div>
-          
+
           {/* Master Volume */}
           <div className="flex items-center space-x-2">
             <Volume2 className="w-5 h-5 text-muted-foreground" />
@@ -138,10 +129,10 @@ export default function DAWInterface({
         <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center space-x-4">
             <span>BPM: {project?.bpm || 120}</span>
-            <span>Key: {project?.keySignature || "C Major"}</span>
-            <span>Time: {project?.timeSignature || "4/4"}</span>
+            <span>Key: {project?.keySignature || 'C Major'}</span>
+            <span>Time: {project?.timeSignature || '4/4'}</span>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <span>CPU: 15%</span>
             <span>RAM: 2.1GB</span>

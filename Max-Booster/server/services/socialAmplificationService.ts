@@ -3,13 +3,14 @@ import { AutonomousAutopilot } from '../autonomous-autopilot.js';
 import { customAI } from '../custom-ai-engine.js';
 import { storage } from '../storage.js';
 import { config } from '../config/defaults.js';
+import { logger } from '../logger.js';
 
 /**
  * REVOLUTIONARY ZERO-COST SOCIAL AMPLIFICATION SYSTEM
- * 
+ *
  * This service eliminates ad spend by leveraging users' connected social media profiles
  * with AI-optimized organic content that outperforms native ads by 100%+
- * 
+ *
  * Key Innovation:
  * - Uses user's OWN social accounts (no ad spend)
  * - AI generates organic content (not ads) that performs better
@@ -118,7 +119,7 @@ export class SocialAmplificationService {
             organicContent[platform],
             campaign.musicData
           );
-          
+
           if (performance) {
             organicPosts.push(performance);
           }
@@ -131,8 +132,8 @@ export class SocialAmplificationService {
       // Save to database for persistence
       try {
         await storage.saveOrganicMetrics(parseInt(campaign.adCampaignId), organicPosts);
-      } catch (error) {
-        console.error('Failed to save organic metrics to database:', error);
+      } catch (error: unknown) {
+        logger.error('Failed to save organic metrics to database:', error);
       }
 
       // Calculate projected boost vs paid ads
@@ -145,15 +146,15 @@ export class SocialAmplificationService {
         success: true,
         organicPosts,
         projectedBoost: `${projectedMetrics.boostPercentage}% higher reach than paid ads`,
-        costSavings: `$${projectedMetrics.costSavings.toFixed(2)} saved vs paid advertising`
+        costSavings: `$${projectedMetrics.costSavings.toFixed(2)} saved vs paid advertising`,
       };
-    } catch (error) {
-      console.error('Organic amplification failed:', error);
+    } catch (error: unknown) {
+      logger.error('Organic amplification failed:', error);
       return {
         success: false,
         organicPosts: [],
         projectedBoost: '0%',
-        costSavings: '$0'
+        costSavings: '$0',
       };
     }
   }
@@ -164,15 +165,12 @@ export class SocialAmplificationService {
    * vs paid ads which focus on conversion, clicks, sales
    */
   private async generateOrganicOptimizedContent(
-    musicData: any,
-    targetAudience: any,
+    musicData: unknown,
+    targetAudience: unknown,
     objective: string
   ): Promise<Record<string, any>> {
     // Use AI to generate platform-specific organic content
-    const organicStrategy = await this.aiEngine.bypassNativeAdPlatforms(
-      musicData,
-      targetAudience
-    );
+    const organicStrategy = await this.aiEngine.bypassNativeAdPlatforms(musicData, targetAudience);
 
     // Generate organic-focused content for each platform
     const content: Record<string, any> = {};
@@ -186,7 +184,7 @@ export class SocialAmplificationService {
         timing: 'peak engagement hours',
         format: 'carousel or reel for max reach',
         cta: 'soft ask (tag a friend who needs this)',
-      }
+      },
     };
 
     // TikTok: Trend-focused, authentic, viral potential
@@ -198,7 +196,7 @@ export class SocialAmplificationService {
         timing: 'FYP algorithm boost hours',
         format: 'trending sound + authentic reaction',
         cta: 'duet this / use this sound',
-      }
+      },
     };
 
     // Twitter: Conversational, thread-worthy, community-building
@@ -210,7 +208,7 @@ export class SocialAmplificationService {
         timing: 'peak tweet hours',
         format: 'thread with hook + value',
         cta: 'RT if you agree',
-      }
+      },
     };
 
     // Facebook: Community-focused, longer-form, shareable
@@ -222,7 +220,7 @@ export class SocialAmplificationService {
         timing: 'evening engagement hours',
         format: 'story-based with emotional hook',
         cta: 'share with someone who needs this',
-      }
+      },
     };
 
     // YouTube: Long-form, educational, value-driven
@@ -234,7 +232,7 @@ export class SocialAmplificationService {
         timing: 'subscriber notification hours',
         format: 'preview + value proposition',
         cta: 'new video dropping soon',
-      }
+      },
     };
 
     // LinkedIn: Professional, thought-leadership, industry insights
@@ -246,7 +244,7 @@ export class SocialAmplificationService {
         timing: 'professional hours',
         format: 'insight + story + lesson',
         cta: 'thoughts in comments?',
-      }
+      },
     };
 
     return content;
@@ -256,7 +254,7 @@ export class SocialAmplificationService {
    * Generate organic captions that DON'T sound like ads
    * Focus on authenticity, storytelling, community
    */
-  private async generateOrganicCaption(musicData: any, platform: string): Promise<string> {
+  private async generateOrganicCaption(musicData: unknown, platform: string): Promise<string> {
     const genre = musicData?.genre || 'music';
     const mood = musicData?.mood || 'energetic';
     const title = musicData?.title || 'this track';
@@ -304,7 +302,7 @@ export class SocialAmplificationService {
   /**
    * Generate viral hashtags optimized for organic reach (not paid ads)
    */
-  private generateViralHashtags(musicData: any, platform: string): string[] {
+  private generateViralHashtags(musicData: unknown, platform: string): string[] {
     const genre = musicData?.genre?.toLowerCase() || 'music';
     const mood = musicData?.mood?.toLowerCase() || 'vibes';
 
@@ -337,8 +335,8 @@ export class SocialAmplificationService {
   private async postOrganicContent(
     platform: string,
     accountId: string,
-    content: any,
-    musicData: any
+    content: unknown,
+    musicData: unknown
   ): Promise<OrganicPerformance | null> {
     try {
       // Use autonomous autopilot for content generation
@@ -348,12 +346,12 @@ export class SocialAmplificationService {
         brandPersonality: 'friendly',
         targetAudience: 'music lovers',
         businessVertical: 'music',
-        objectives: ['engagement', 'brand-awareness']
+        objectives: ['engagement', 'brand-awareness'],
       });
 
       // Generate realistic metrics based on industry benchmarks and platform characteristics
       const platformMetrics = this.calculateRealisticPlatformMetrics(platform, musicData);
-      
+
       // Calculate time-based variations (organic posts grow over time)
       const timeBasedVariation = this.applyTimeBasedGrowth(platformMetrics);
 
@@ -374,16 +372,18 @@ export class SocialAmplificationService {
       };
 
       // Log organic posting with realistic preview
-      console.log(`[ORGANIC POST - ${platform.toUpperCase()}] 🚀`);
-      console.log(`  Caption: "${content?.caption?.substring(0, 60) || autonomousContent.text.substring(0, 60)}..."`);
-      console.log(`  Projected Reach: ${postResult.metrics.reach.toLocaleString()}`);
-      console.log(`  Engagement Rate: ${(postResult.metrics.engagementRate * 100).toFixed(2)}%`);
-      console.log(`  Cost Savings: $${postResult.costSavings.toFixed(2)}`);
-      console.log(`  Organic Boost: +${postResult.organicBoost}% vs paid ads`);
+      logger.info(`[ORGANIC POST - ${platform.toUpperCase()}] 🚀`);
+      logger.info(
+        `  Caption: "${content?.caption?.substring(0, 60) || autonomousContent.text.substring(0, 60)}..."`
+      );
+      logger.info(`  Projected Reach: ${postResult.metrics.reach.toLocaleString()}`);
+      logger.info(`  Engagement Rate: ${(postResult.metrics.engagementRate * 100).toFixed(2)}%`);
+      logger.info(`  Cost Savings: $${postResult.costSavings.toFixed(2)}`);
+      logger.info(`  Organic Boost: +${postResult.organicBoost}% vs paid ads`);
 
       return postResult;
-    } catch (error) {
-      console.error(`Failed to post organically to ${platform}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Failed to post organically to ${platform}:`, error);
       return null;
     }
   }
@@ -391,7 +391,10 @@ export class SocialAmplificationService {
   /**
    * Calculate realistic platform-specific metrics based on industry benchmarks
    */
-  private calculateRealisticPlatformMetrics(platform: string, musicData: any): {
+  private calculateRealisticPlatformMetrics(
+    platform: string,
+    musicData: unknown
+  ): {
     impressions: number;
     engagements: number;
     shares: number;
@@ -400,7 +403,10 @@ export class SocialAmplificationService {
     engagementRate: number;
   } {
     // Platform-specific baseline metrics (based on industry data)
-    const platformBaselines: Record<string, { baseReach: number; engagementRate: number; shareRate: number }> = {
+    const platformBaselines: Record<
+      string,
+      { baseReach: number; engagementRate: number; shareRate: number }
+    > = {
       instagram: { baseReach: 15000, engagementRate: 0.042, shareRate: 0.008 },
       tiktok: { baseReach: 35000, engagementRate: 0.059, shareRate: 0.015 },
       twitter: { baseReach: 12000, engagementRate: 0.035, shareRate: 0.012 },
@@ -421,7 +427,7 @@ export class SocialAmplificationService {
     const shares = Math.round(reach * baseline.shareRate * varianceMultiplier);
     const clickRate = 0.015 + Math.random() * 0.01; // 1.5-2.5% CTR for organic
     const clicks = Math.round(reach * clickRate);
-    
+
     // Impressions are typically 1.5-2.5x reach (multiple views per person)
     const impressionMultiplier = 1.5 + Math.random() * 1.0;
     const impressions = Math.round(reach * impressionMultiplier);
@@ -439,18 +445,21 @@ export class SocialAmplificationService {
   /**
    * Apply time-based growth patterns (organic content grows over time)
    */
-  private applyTimeBasedGrowth(baseMetrics: any): any {
+  private applyTimeBasedGrowth(baseMetrics: unknown): any {
     // Simulate 24-48 hour growth curve (organic posts gain traction over time)
     const growthPhases = [
-      { hours: 0, multiplier: 0.3 },    // Initial 30% of final reach
-      { hours: 6, multiplier: 0.6 },    // 60% by 6 hours
-      { hours: 12, multiplier: 0.85 },  // 85% by 12 hours
-      { hours: 24, multiplier: 1.0 },   // 100% by 24 hours
-      { hours: 48, multiplier: 1.15 },  // 115% by 48 hours (viral effect)
+      { hours: 0, multiplier: 0.3 }, // Initial 30% of final reach
+      { hours: 6, multiplier: 0.6 }, // 60% by 6 hours
+      { hours: 12, multiplier: 0.85 }, // 85% by 12 hours
+      { hours: 24, multiplier: 1.0 }, // 100% by 24 hours
+      { hours: 48, multiplier: 1.15 }, // 115% by 48 hours (viral effect)
     ];
 
     // For simulation, use current time to determine growth phase
-    const currentPhase = growthPhases[Math.min(Math.floor(Math.random() * growthPhases.length), growthPhases.length - 1)];
+    const currentPhase =
+      growthPhases[
+        Math.min(Math.floor(Math.random() * growthPhases.length), growthPhases.length - 1)
+      ];
 
     return {
       impressions: Math.round(baseMetrics.impressions * currentPhase.multiplier),
@@ -467,7 +476,9 @@ export class SocialAmplificationService {
    */
   private calculateOrganicBoost(organicEngagementRate: number): number {
     const paidAdEngagementRate = 0.0009; // 0.09% typical for paid ads
-    const boost = Math.round(((organicEngagementRate - paidAdEngagementRate) / paidAdEngagementRate) * 100);
+    const boost = Math.round(
+      ((organicEngagementRate - paidAdEngagementRate) / paidAdEngagementRate) * 100
+    );
     return Math.max(boost, 200); // Minimum 200% boost
   }
 
@@ -481,14 +492,14 @@ export class SocialAmplificationService {
       tiktok: 9.99,
       twitter: 6.46,
       facebook: 7.19,
-      youtube: 10.50,
+      youtube: 10.5,
       linkedin: 6.75,
-      threads: 7.00,
+      threads: 7.0,
     };
 
     const cpm = platformCPM[platform.toLowerCase()] || 7.19;
     const costSavings = (reach / 1000) * cpm;
-    
+
     return costSavings;
   }
 
@@ -498,7 +509,7 @@ export class SocialAmplificationService {
    */
   private async calculateProjectedBoost(
     organicPosts: OrganicPerformance[],
-    targetAudience: any
+    targetAudience: unknown
   ): Promise<{ boostPercentage: number; costSavings: number }> {
     // Industry benchmarks for paid ads
     const paidAdBenchmarks = {
@@ -541,7 +552,7 @@ export class SocialAmplificationService {
   async getPerformanceComparison(campaignId: string): Promise<ComparisonMetrics> {
     // Try cache first (fastest)
     let organicPosts = await this.getPerformanceCache(campaignId);
-    
+
     // If not in cache, load from database (persistent storage)
     if (!organicPosts || organicPosts.length === 0) {
       try {
@@ -552,12 +563,12 @@ export class SocialAmplificationService {
           // Repopulate cache with unwrapped data
           await this.setPerformanceCache(campaignId, organicPosts);
         }
-      } catch (error) {
-        console.error('Failed to load organic metrics from database:', error);
+      } catch (error: unknown) {
+        logger.error('Failed to load organic metrics from database:', error);
         organicPosts = [];
       }
     }
-    
+
     // Ensure we have an array to work with
     if (!organicPosts) {
       organicPosts = [];
@@ -569,28 +580,26 @@ export class SocialAmplificationService {
     const organicTotalShares = organicPosts.reduce((sum, p) => sum + p.metrics.shares, 0);
     const organicTotalImpressions = organicPosts.reduce((sum, p) => sum + p.metrics.impressions, 0);
     const organicTotalClicks = organicPosts.reduce((sum, p) => sum + p.metrics.clicks, 0);
-    
+
     // Calculate average engagement rate weighted by reach
-    const organicAvgEngagement = organicTotalReach > 0 
-      ? organicTotalEngagement / organicTotalReach 
-      : 0.035; // Default to 3.5% if no data
+    const organicAvgEngagement =
+      organicTotalReach > 0 ? organicTotalEngagement / organicTotalReach : 0.035; // Default to 3.5% if no data
 
     // Calculate total cost savings across all platforms
     const totalCostSavings = organicPosts.reduce((sum, p) => sum + p.costSavings, 0);
 
     // Calculate what paid ads would cost for same reach
     const paidCPM = 7.19;
-    const paidCost = organicTotalReach > 0 
-      ? (organicTotalReach / 1000) * paidCPM 
-      : 359.50; // Default estimate
-    
+    const paidCost = organicTotalReach > 0 ? (organicTotalReach / 1000) * paidCPM : 359.5; // Default estimate
+
     const paidEstimatedEngagement = organicTotalReach * 0.0009; // 0.09% typical for paid ads
 
     // Calculate boost percentage
     const paidEngagementRate = 0.0009;
-    const performanceBoost = organicAvgEngagement > 0
-      ? Math.round(((organicAvgEngagement - paidEngagementRate) / paidEngagementRate) * 100)
-      : 250; // Minimum 250% boost
+    const performanceBoost =
+      organicAvgEngagement > 0
+        ? Math.round(((organicAvgEngagement - paidEngagementRate) / paidEngagementRate) * 100)
+        : 250; // Minimum 250% boost
 
     return {
       organicPerformance: {
@@ -607,7 +616,7 @@ export class SocialAmplificationService {
         avgEngagementRate: paidEngagementRate,
       },
       performanceBoost: Math.max(performanceBoost, 250), // Minimum 250% boost
-      costSavings: totalCostSavings || paidCost || 359.50,
+      costSavings: totalCostSavings || paidCost || 359.5,
       roi: 'INFINITE (no ad spend)',
     };
   }
@@ -622,7 +631,7 @@ export class SocialAmplificationService {
   ): Promise<OrganicPerformance | null> {
     // Try cache first
     let posts = await this.getPerformanceCache(campaignId);
-    
+
     // If not in cache, load from database
     if (!posts || posts.length === 0) {
       try {
@@ -633,34 +642,37 @@ export class SocialAmplificationService {
           // Repopulate cache with unwrapped data
           await this.setPerformanceCache(campaignId, posts);
         }
-      } catch (error) {
-        console.error('Failed to load organic metrics from database:', error);
+      } catch (error: unknown) {
+        logger.error('Failed to load organic metrics from database:', error);
         posts = [];
       }
     }
-    
-    return posts?.find(p => p.platform === platform) || null;
+
+    return posts?.find((p) => p.platform === platform) || null;
   }
 
   private async getPerformanceCache(campaignId: string): Promise<OrganicPerformance[] | null> {
     try {
       const val = await redisClient.get(`${this.PERFORMANCE_CACHE_PREFIX}${campaignId}`);
       return val ? JSON.parse(val) : null;
-    } catch (error) {
-      console.error(`Failed to get performance cache for campaign ${campaignId}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Failed to get performance cache for campaign ${campaignId}:`, error);
       return null;
     }
   }
 
-  private async setPerformanceCache(campaignId: string, posts: OrganicPerformance[]): Promise<void> {
+  private async setPerformanceCache(
+    campaignId: string,
+    posts: OrganicPerformance[]
+  ): Promise<void> {
     try {
       await redisClient.setex(
         `${this.PERFORMANCE_CACHE_PREFIX}${campaignId}`,
         this.PERFORMANCE_CACHE_TTL,
         JSON.stringify(posts)
       );
-    } catch (error) {
-      console.error(`Failed to set performance cache for campaign ${campaignId}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Failed to set performance cache for campaign ${campaignId}:`, error);
     }
   }
 
@@ -668,7 +680,10 @@ export class SocialAmplificationService {
    * PHASE 2B FEATURE 1: Professional Influencer Scoring System
    * Analyzes user's social media presence across metrics with fake follower detection
    */
-  async scoreInfluencer(userId: string, platform: string): Promise<{
+  async scoreInfluencer(
+    userId: string,
+    platform: string
+  ): Promise<{
     influencerScore: number;
     breakdown: {
       followerCount: number;
@@ -683,7 +698,11 @@ export class SocialAmplificationService {
   }> {
     try {
       // Register/get AI model
-      await this.ensureAIModel('influencer_scorer_v1', 'social_amplification', 'Influencer scoring with fake follower detection');
+      await this.ensureAIModel(
+        'influencer_scorer_v1',
+        'social_amplification',
+        'Influencer scoring with fake follower detection'
+      );
 
       // Get user's social account data
       const userToken = await storage.getUserSocialToken(userId, platform);
@@ -698,7 +717,8 @@ export class SocialAmplificationService {
       const followerScore = this.calculateFollowerScore(platformMetrics.followerCount);
 
       // Calculate engagement rate (0-100)
-      const engagementRate = platformMetrics.totalEngagement / Math.max(platformMetrics.totalReach, 1);
+      const engagementRate =
+        platformMetrics.totalEngagement / Math.max(platformMetrics.totalReach, 1);
       const engagementScore = Math.min(engagementRate * 2000, 100); // 5% = 100 points
 
       // Calculate content quality based on consistency and performance
@@ -708,16 +728,16 @@ export class SocialAmplificationService {
       const nicheAuthorityScore = this.calculateNicheAuthority(platformMetrics);
 
       // FAKE FOLLOWER DETECTION - Anomaly pattern analysis
-      const { authenticityScore, fakeFollowerPercentage, anomalyPatterns } = 
+      const { authenticityScore, fakeFollowerPercentage, anomalyPatterns } =
         this.detectFakeFollowers(platformMetrics);
 
       // Calculate overall influencer score (weighted average)
       const influencerScore = Math.round(
-        followerScore * 0.20 +
-        engagementScore * 0.30 +
-        contentQualityScore * 0.20 +
-        nicheAuthorityScore * 0.15 +
-        authenticityScore * 0.15
+        followerScore * 0.2 +
+          engagementScore * 0.3 +
+          contentQualityScore * 0.2 +
+          nicheAuthorityScore * 0.15 +
+          authenticityScore * 0.15
       );
 
       // Generate collaboration suggestions
@@ -748,9 +768,14 @@ export class SocialAmplificationService {
           nicheAuthority: nicheAuthorityScore,
           authenticity: authenticityScore,
         },
-        collaborationPotential: influencerScore >= 75 ? 'very_high' : 
-                                influencerScore >= 60 ? 'high' :
-                                influencerScore >= 40 ? 'medium' : 'low',
+        collaborationPotential:
+          influencerScore >= 75
+            ? 'very_high'
+            : influencerScore >= 60
+              ? 'high'
+              : influencerScore >= 40
+                ? 'medium'
+                : 'low',
         suggestedCollaborationTypes: collaborationSuggestions,
         lastAnalyzedAt: new Date(),
       };
@@ -762,14 +787,18 @@ export class SocialAmplificationService {
       }
 
       // Log inference for AI governance
-      await this.logInference('influencer_scorer_v1', {
-        userId,
-        platform,
-        metrics: platformMetrics,
-      }, {
-        score: influencerScore,
-        fakeFollowerPercentage,
-      });
+      await this.logInference(
+        'influencer_scorer_v1',
+        {
+          userId,
+          platform,
+          metrics: platformMetrics,
+        },
+        {
+          score: influencerScore,
+          fakeFollowerPercentage,
+        }
+      );
 
       return {
         influencerScore,
@@ -784,8 +813,8 @@ export class SocialAmplificationService {
         anomalyPatterns,
         collaborationSuggestions,
       };
-    } catch (error) {
-      console.error('Influencer scoring failed:', error);
+    } catch (error: unknown) {
+      logger.error('Influencer scoring failed:', error);
       throw error;
     }
   }
@@ -803,11 +832,15 @@ export class SocialAmplificationService {
   }> {
     try {
       // Register/get AI model
-      await this.ensureAIModel('viral_tracker_v1', 'social_amplification', 'Viral coefficient and cascade tracking');
+      await this.ensureAIModel(
+        'viral_tracker_v1',
+        'social_amplification',
+        'Viral coefficient and cascade tracking'
+      );
 
       // Get or create viral tracking record
       let tracking = await storage.getViralTracking(postId);
-      
+
       // Simulate real-time metrics (in production, fetch from platform APIs)
       const currentMetrics = await this.fetchPostMetrics(postId);
 
@@ -840,7 +873,10 @@ export class SocialAmplificationService {
         totalShares: currentMetrics.shares,
         totalImpressions: currentMetrics.impressions,
         conversionRate,
-        superSpreaders: superSpreaders.map(s => ({ userId: s.userId, amplification: s.amplification })),
+        superSpreaders: superSpreaders.map((s) => ({
+          userId: s.userId,
+          amplification: s.amplification,
+        })),
         cascadeLevels,
         viralityTrend: this.calculateViralityTrend(tracking, viralCoefficient),
         peakViralityAt: currentPhase === 'viral' ? new Date() : tracking?.peakViralityAt,
@@ -861,8 +897,8 @@ export class SocialAmplificationService {
         projectedFinalReach,
         currentPhase,
       };
-    } catch (error) {
-      console.error('Viral coefficient calculation failed:', error);
+    } catch (error: unknown) {
+      logger.error('Viral coefficient calculation failed:', error);
       throw error;
     }
   }
@@ -871,7 +907,10 @@ export class SocialAmplificationService {
    * PHASE 2B FEATURE 3: Cascade Prediction Model
    * Predicts viral cascade with confidence scores
    */
-  async predictCascade(content: any, initialAudience: number): Promise<{
+  async predictCascade(
+    content: unknown,
+    initialAudience: number
+  ): Promise<{
     predictions: {
       totalReach: number;
       cascadeDepth: number;
@@ -894,7 +933,11 @@ export class SocialAmplificationService {
   }> {
     try {
       // Register/get AI model
-      await this.ensureAIModel('cascade_predictor_v1', 'social_amplification', 'Cascade prediction with confidence scoring');
+      await this.ensureAIModel(
+        'cascade_predictor_v1',
+        'social_amplification',
+        'Cascade prediction with confidence scoring'
+      );
 
       // Analyze content quality
       const contentQuality = await this.analyzeContentForVirality(content);
@@ -929,13 +972,17 @@ export class SocialAmplificationService {
       const visualizationData = this.generateCascadeVisualization(basePrediction);
 
       // Log inference
-      await this.logInference('cascade_predictor_v1', {
-        content,
-        initialAudience,
-      }, {
-        predictions: basePrediction,
-        confidence: confidenceScores.overall,
-      });
+      await this.logInference(
+        'cascade_predictor_v1',
+        {
+          content,
+          initialAudience,
+        },
+        {
+          predictions: basePrediction,
+          confidence: confidenceScores.overall,
+        }
+      );
 
       return {
         predictions: basePrediction,
@@ -948,8 +995,8 @@ export class SocialAmplificationService {
         },
         visualizationData,
       };
-    } catch (error) {
-      console.error('Cascade prediction failed:', error);
+    } catch (error: unknown) {
+      logger.error('Cascade prediction failed:', error);
       throw error;
     }
   }
@@ -958,7 +1005,10 @@ export class SocialAmplificationService {
    * PHASE 2B FEATURE 4: Network Effect Modeling
    * Models network value using Metcalfe's/Reed's Law
    */
-  async modelNetworkEffect(userId: string, connections: number): Promise<{
+  async modelNetworkEffect(
+    userId: string,
+    connections: number
+  ): Promise<{
     networkValue: number;
     valueModel: string;
     keyNodes: Array<{ userId: string; centrality: number }>;
@@ -977,13 +1027,18 @@ export class SocialAmplificationService {
   }> {
     try {
       // Register/get AI model
-      await this.ensureAIModel('network_modeler_v1', 'social_amplification', 'Network effect modeling with centrality analysis');
+      await this.ensureAIModel(
+        'network_modeler_v1',
+        'social_amplification',
+        'Network effect modeling with centrality analysis'
+      );
 
       // Fetch user's network data
       const networkData = await this.fetchNetworkData(userId);
 
       // Choose value model based on network size and structure
-      const valueModel = connections < 500 ? 'metcalfe' : connections < 5000 ? 'reeds_law' : 'reeds_law';
+      const valueModel =
+        connections < 500 ? 'metcalfe' : connections < 5000 ? 'reeds_law' : 'reeds_law';
 
       // Calculate network value
       const networkValue = this.calculateNetworkValue(connections, valueModel);
@@ -1015,14 +1070,16 @@ export class SocialAmplificationService {
       // Store in database
       const platform = networkData.primaryPlatform || 'instagram';
       const existingAnalysis = await storage.getNetworkAnalysis(userId, platform);
-      
+
       const analysisData = {
         userId,
         platform,
         connectionCount: connections,
         networkValue: networkValue.toString(),
         networkValueModel: valueModel,
-        keyNodes: keyNodes.slice(0, 20).map(n => ({ userId: n.userId, centrality: n.centrality })),
+        keyNodes: keyNodes
+          .slice(0, 20)
+          .map((n) => ({ userId: n.userId, centrality: n.centrality })),
         clusteringCoefficient,
         betweennessCentrality,
         eigenvectorCentrality: this.calculateEigenvectorCentrality(networkData),
@@ -1030,7 +1087,10 @@ export class SocialAmplificationService {
         optimalConnectionStrategies: optimalStrategies,
         reachMultiplier,
         communityBridges: this.identifyCommunityBridges(networkData),
-        networkHealthScore: this.calculateNetworkHealthScore(clusteringCoefficient, reachMultiplier),
+        networkHealthScore: this.calculateNetworkHealthScore(
+          clusteringCoefficient,
+          reachMultiplier
+        ),
         predictedGrowth: growthImpact,
         lastAnalyzedAt: new Date(),
       };
@@ -1053,8 +1113,8 @@ export class SocialAmplificationService {
           reachMultiplier,
         },
       };
-    } catch (error) {
-      console.error('Network effect modeling failed:', error);
+    } catch (error: unknown) {
+      logger.error('Network effect modeling failed:', error);
       throw error;
     }
   }
@@ -1063,7 +1123,10 @@ export class SocialAmplificationService {
    * PHASE 2B FEATURE 6: Automated Outreach Suggestions
    * Identifies collaboration prospects with personalized templates
    */
-  async suggestOutreach(userId: string, goal: string): Promise<{
+  async suggestOutreach(
+    userId: string,
+    goal: string
+  ): Promise<{
     prospects: Array<{
       userId: string;
       username: string;
@@ -1111,8 +1174,8 @@ export class SocialAmplificationService {
         templates,
         successMetrics,
       };
-    } catch (error) {
-      console.error('Outreach suggestion failed:', error);
+    } catch (error: unknown) {
+      logger.error('Outreach suggestion failed:', error);
       throw error;
     }
   }
@@ -1121,7 +1184,11 @@ export class SocialAmplificationService {
   // HELPER METHODS
   // ============================================================================
 
-  private async ensureAIModel(modelName: string, modelType: string, description: string): Promise<void> {
+  private async ensureAIModel(
+    modelName: string,
+    modelType: string,
+    description: string
+  ): Promise<void> {
     try {
       const existing = await storage.getAIModelByName(modelName);
       if (!existing) {
@@ -1134,12 +1201,16 @@ export class SocialAmplificationService {
           isBeta: false,
         });
       }
-    } catch (error) {
-      console.error(`Failed to ensure AI model ${modelName}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Failed to ensure AI model ${modelName}:`, error);
     }
   }
 
-  private async logInference(modelName: string, inputData: any, outputData: any): Promise<void> {
+  private async logInference(
+    modelName: string,
+    inputData: unknown,
+    outputData: unknown
+  ): Promise<void> {
     try {
       const model = await storage.getAIModelByName(modelName);
       if (!model || !model.currentVersionId) return;
@@ -1155,8 +1226,8 @@ export class SocialAmplificationService {
         executionTimeMs: 150,
         success: true,
       });
-    } catch (error) {
-      console.error('Failed to log inference:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to log inference:', error);
     }
   }
 
@@ -1180,19 +1251,24 @@ export class SocialAmplificationService {
     return Math.min((Math.log10(followerCount) / Math.log10(1000000)) * 100, 100);
   }
 
-  private analyzeContentQuality(metrics: any): number {
+  private analyzeContentQuality(metrics: unknown): number {
     // Analyze consistency and performance
-    const avgEngagement = metrics.engagementByPost.reduce((a: number, b: number) => a + b, 0) / metrics.engagementByPost.length;
-    const consistency = 1 - (Math.max(...metrics.engagementByPost) - Math.min(...metrics.engagementByPost)) / (avgEngagement || 1);
+    const avgEngagement =
+      metrics.engagementByPost.reduce((a: number, b: number) => a + b, 0) /
+      metrics.engagementByPost.length;
+    const consistency =
+      1 -
+      (Math.max(...metrics.engagementByPost) - Math.min(...metrics.engagementByPost)) /
+        (avgEngagement || 1);
     return Math.min(consistency * 100 + 20, 100);
   }
 
-  private calculateNicheAuthority(metrics: any): number {
+  private calculateNicheAuthority(metrics: unknown): number {
     // Simulate niche analysis (in production, analyze content topics)
     return 60 + Math.random() * 35;
   }
 
-  private detectFakeFollowers(metrics: any): {
+  private detectFakeFollowers(metrics: unknown): {
     authenticityScore: number;
     fakeFollowerPercentage: number;
     anomalyPatterns: string[];
@@ -1202,7 +1278,9 @@ export class SocialAmplificationService {
 
     // Check for sudden follower spikes
     const maxGrowth = Math.max(...metrics.followerGrowth);
-    const avgGrowth = metrics.followerGrowth.reduce((a: number, b: number) => a + b, 0) / metrics.followerGrowth.length;
+    const avgGrowth =
+      metrics.followerGrowth.reduce((a: number, b: number) => a + b, 0) /
+      metrics.followerGrowth.length;
     if (maxGrowth > avgGrowth * 10) {
       anomalyPatterns.push('Sudden follower spike detected');
       suspicionScore += 20;
@@ -1267,7 +1345,7 @@ export class SocialAmplificationService {
     };
   }
 
-  private analyzeCascadeLevels(metrics: any): any[] {
+  private analyzeCascadeLevels(metrics: unknown): unknown[] {
     // Simulate cascade level analysis
     const depth = Math.floor(1 + Math.random() * 5);
     return Array.from({ length: depth }, (_, i) => ({
@@ -1277,7 +1355,9 @@ export class SocialAmplificationService {
     }));
   }
 
-  private identifySuperSpreaders(metrics: any): Array<{ userId: string; amplification: number }> {
+  private identifySuperSpreaders(
+    metrics: unknown
+  ): Array<{ userId: string; amplification: number }> {
     // Simulate super-spreader identification
     return Array.from({ length: 5 }, (_, i) => ({
       userId: 'super_' + Math.random().toString(36).substr(2, 9),
@@ -1285,9 +1365,11 @@ export class SocialAmplificationService {
     }));
   }
 
-  private determineViralityPhase(currentMetrics: any, tracking: any): string {
-    const growthRate = tracking ? (currentMetrics.shares - (tracking.totalShares || 0)) / Math.max(tracking.totalShares, 1) : 0;
-    
+  private determineViralityPhase(currentMetrics: unknown, tracking: unknown): string {
+    const growthRate = tracking
+      ? (currentMetrics.shares - (tracking.totalShares || 0)) / Math.max(tracking.totalShares, 1)
+      : 0;
+
     if (growthRate > 0.5) return 'viral';
     if (growthRate > 0.2) return 'growth';
     if (growthRate > 0) return 'initial';
@@ -1295,12 +1377,12 @@ export class SocialAmplificationService {
     return 'decline';
   }
 
-  private projectFinalReach(metrics: any, viralCoefficient: number): number {
+  private projectFinalReach(metrics: unknown, viralCoefficient: number): number {
     // Project based on viral coefficient
     return Math.round(metrics.impressions * (1 + viralCoefficient * 10));
   }
 
-  private calculateViralityTrend(tracking: any, currentCoefficient: number): string {
+  private calculateViralityTrend(tracking: unknown, currentCoefficient: number): string {
     if (!tracking) return 'rising';
     const prevCoefficient = tracking.viralCoefficient || 0;
     if (currentCoefficient > prevCoefficient * 1.2) return 'rising';
@@ -1308,12 +1390,12 @@ export class SocialAmplificationService {
     return 'plateauing';
   }
 
-  private async analyzeContentForVirality(content: any): Promise<any> {
+  private async analyzeContentForVirality(content: unknown): Promise<any> {
     // Analyze content characteristics
     const hasVisuals = !!content.media;
     const hasHashtags = !!content.hashtags && content.hashtags.length > 0;
     const captionLength = content.caption?.length || 0;
-    
+
     let score = 50; // Base score
     if (hasVisuals) score += 20;
     if (hasHashtags) score += 15;
@@ -1355,14 +1437,14 @@ export class SocialAmplificationService {
 
   private calculateBasePrediction(
     initialAudience: number,
-    contentQuality: any,
+    contentQuality: unknown,
     networkStructure: number,
     timing: number,
     platform: number
   ): any {
     const multiplier = (contentQuality.score / 100) * networkStructure * timing * platform;
     const totalReach = Math.round(initialAudience * (1 + multiplier * 5));
-    
+
     return {
       totalReach,
       cascadeDepth: Math.floor(2 + multiplier * 4),
@@ -1371,28 +1453,28 @@ export class SocialAmplificationService {
     };
   }
 
-  private calculateOverallConfidence(contentQuality: any, networkStructure: number): number {
+  private calculateOverallConfidence(contentQuality: unknown, networkStructure: number): number {
     return Math.min((contentQuality.score / 100) * 0.6 + networkStructure * 0.4, 0.95);
   }
 
-  private generateCascadeVisualization(prediction: any): any {
+  private generateCascadeVisualization(prediction: unknown): any {
     // Generate visualization data points for cascade graph
     const hours = prediction.timeToPeak * 2;
     const dataPoints = [];
-    
+
     for (let h = 0; h <= hours; h++) {
       const progress = h / prediction.timeToPeak;
       let reach;
-      
+
       if (progress < 1) {
         // Growth phase
-        reach = prediction.totalReach * (progress ** 1.5);
+        reach = prediction.totalReach * progress ** 1.5;
       } else {
         // Plateau/decline phase
-        const declineProgress = (progress - 1);
+        const declineProgress = progress - 1;
         reach = prediction.totalReach * Math.max(0.5, 1 - declineProgress * 0.1);
       }
-      
+
       dataPoints.push({
         hour: h,
         reach: Math.round(reach),
@@ -1426,39 +1508,39 @@ export class SocialAmplificationService {
     }
   }
 
-  private identifyKeyNodes(networkData: any): Array<{ userId: string; centrality: number }> {
+  private identifyKeyNodes(networkData: unknown): Array<{ userId: string; centrality: number }> {
     return networkData.nodes
-      .map((node: any) => ({
+      .map((node: unknown) => ({
         userId: node.id,
         centrality: node.connections / networkData.connections,
       }))
-      .sort((a: any, b: any) => b.centrality - a.centrality);
+      .sort((a: unknown, b: unknown) => b.centrality - a.centrality);
   }
 
-  private calculateClusteringCoefficient(networkData: any): number {
+  private calculateClusteringCoefficient(networkData: unknown): number {
     // Simulate clustering coefficient calculation
     return 0.3 + Math.random() * 0.4; // 0.3-0.7
   }
 
-  private calculateBetweennessCentrality(userId: string, networkData: any): number {
+  private calculateBetweennessCentrality(userId: string, networkData: unknown): number {
     // Simulate betweenness centrality for user
     return 0.2 + Math.random() * 0.6; // 0.2-0.8
   }
 
-  private calculateReachMultiplier(networkData: any): number {
+  private calculateReachMultiplier(networkData: unknown): number {
     // Calculate how much the network amplifies reach
     return 1.5 + Math.random() * 2.5; // 1.5x - 4x amplification
   }
 
-  private calculateEigenvectorCentrality(networkData: any): number {
+  private calculateEigenvectorCentrality(networkData: unknown): number {
     // Simulate eigenvector centrality (connection quality)
     return 0.4 + Math.random() * 0.5; // 0.4-0.9
   }
 
   private generateConnectionStrategies(
     connections: number,
-    networkData: any,
-    keyNodes: any[]
+    networkData: unknown,
+    keyNodes: unknown[]
   ): string[] {
     const strategies = [];
 
@@ -1474,17 +1556,19 @@ export class SocialAmplificationService {
     }
 
     strategies.push('Connect with users who bridge different communities');
-    strategies.push(`Target ${keyNodes.length > 5 ? 'top ' + Math.min(keyNodes.length, 20) : 'all'} high-centrality nodes for maximum reach`);
+    strategies.push(
+      `Target ${keyNodes.length > 5 ? 'top ' + Math.min(keyNodes.length, 20) : 'all'} high-centrality nodes for maximum reach`
+    );
 
     return strategies;
   }
 
-  private identifyCommunityBridges(networkData: any): any[] {
+  private identifyCommunityBridges(networkData: unknown): unknown[] {
     // Identify users who connect different communities
     return networkData.nodes
-      .filter((node: any) => node.connections > networkData.connections * 0.1)
+      .filter((node: unknown) => node.connections > networkData.connections * 0.1)
       .slice(0, 10)
-      .map((node: any) => ({
+      .map((node: unknown) => ({
         userId: node.id,
         bridgeScore: Math.random(),
       }));
@@ -1492,7 +1576,7 @@ export class SocialAmplificationService {
 
   private calculateNetworkHealthScore(clustering: number, reachMultiplier: number): number {
     // Combine metrics for overall health score
-    return Math.min((clustering * 40 + (reachMultiplier / 4) * 60), 100);
+    return Math.min(clustering * 40 + (reachMultiplier / 4) * 60, 100);
   }
 
   private async calculateGrowthRate(userId: string): Promise<number> {
@@ -1524,18 +1608,18 @@ export class SocialAmplificationService {
 
   private async findCollaborationProspects(
     userId: string,
-    userProfile: any,
-    userNetwork: any,
+    userProfile: unknown,
+    userNetwork: unknown,
     goal: string
   ): Promise<any[]> {
     // Simulate finding prospects
     const numProspects = Math.floor(10 + Math.random() * 30);
-    
+
     return Array.from({ length: numProspects }, (_, i) => {
       const audienceOverlap = Math.random();
       const engagementCompatibility = 0.7 + Math.random() * 0.3;
       const nicheAlignment = 0.6 + Math.random() * 0.4;
-      
+
       const matchScore = Math.round(
         (audienceOverlap * 0.4 + engagementCompatibility * 0.3 + nicheAlignment * 0.3) * 100
       );
@@ -1557,7 +1641,7 @@ export class SocialAmplificationService {
     }).sort((a, b) => b.matchScore - a.matchScore);
   }
 
-  private generateOutreachTemplates(goal: string, userProfile: any): any[] {
+  private generateOutreachTemplates(goal: string, userProfile: unknown): unknown[] {
     const templates = [];
 
     if (goal.includes('collaboration')) {

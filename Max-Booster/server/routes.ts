@@ -1,42 +1,42 @@
-import type { Express } from "express";
-import express from "express";
-import { createServer, type Server } from "http";
-import session from "express-session";
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import bcrypt from "bcrypt";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
-import crypto from "crypto";
-import { WebSocketServer, WebSocket } from "ws";
+import type { Express } from 'express';
+import express from 'express';
+import { createServer, type Server } from 'http';
+import session from 'express-session';
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import bcrypt from 'bcrypt';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
+import { WebSocketServer, WebSocket } from 'ws';
 import { config } from './config/defaults.js';
-import { storage } from "./storage";
-import { auditLogger } from "./middleware/auditLogger";
-import { trackRequest, trackError } from "./services/securityMonitoringService";
-import { getRedisClient } from "./lib/redisConnectionFactory";
-import { setupReliabilityEndpoints } from "./routes/reliability-endpoints";
-import studioMarkersRouter from "./routes/studioMarkers";
-import distributionRoutes from "./routes/distribution";
-import distributionApiRoutes from "./api/distribution";
-import autonomousApiRoutes from "./api/autonomous";
-import oauthRoutes from "./api/oauth";
-import socialBulkRoutes from "./routes/socialBulk";
-import socialApprovalsRoutes from "./routes/socialApprovals";
-import storefrontRoutes from "./routes/storefront";
-import payoutRoutes from "./routes/payouts";
-import developerApiRoutes from "./routes/developerApi";
-import analyticsApiRoutes from "./routes/api/v1/analytics";
-import adminMetricsRoutes from "./routes/admin/metrics";
-import { metricsService } from "./services/metricsService";
-import { createSessionStore, getSessionConfig } from "./middleware/sessionConfig";
+import { storage } from './storage';
+import { auditLogger } from './middleware/auditLogger';
+import { trackRequest, trackError } from './services/securityMonitoringService';
+import { getRedisClient } from './lib/redisConnectionFactory';
+import { setupReliabilityEndpoints } from './routes/reliability-endpoints';
+import studioMarkersRouter from './routes/studioMarkers';
+import distributionRoutes from './routes/distribution';
+import distributionApiRoutes from './api/distribution';
+import autonomousApiRoutes from './api/autonomous';
+import oauthRoutes from './api/oauth';
+import socialBulkRoutes from './routes/socialBulk';
+import socialApprovalsRoutes from './routes/socialApprovals';
+import storefrontRoutes from './routes/storefront';
+import payoutRoutes from './routes/payouts';
+import developerApiRoutes from './routes/developerApi';
+import analyticsApiRoutes from './routes/api/v1/analytics';
+import adminMetricsRoutes from './routes/admin/metrics';
+import { metricsService } from './services/metricsService';
+import { createSessionStore, getSessionConfig } from './middleware/sessionConfig';
 import { ConnectionGuard } from './middleware/connectionGuard';
 import { globalRateLimiter, criticalEndpointLimiter } from './middleware/globalRateLimiter';
 import { SessionGuard } from './middleware/sessionGuard';
-import { jwtAuthService } from "./services/jwtAuthService.js";
-import { webhookReliabilityService } from "./services/webhookReliabilityService.js";
-import { loggingService } from "./services/loggingService.js";
+import { jwtAuthService } from './services/jwtAuthService.js';
+import { webhookReliabilityService } from './services/webhookReliabilityService.js';
+import { loggingService } from './services/loggingService.js';
 import { royaltiesCSVImportService } from './services/royaltiesCSVImportService.js';
 import { royaltiesTaxComplianceService } from './services/royaltiesTaxComplianceService.js';
 import { royaltiesForecastingService } from './services/royaltiesForecastingService.js';
@@ -46,18 +46,18 @@ import { queueService } from './services/queueService.js';
 import { labelGridService } from './services/labelgrid-service.js';
 import * as aiAnalyticsService from './services/aiAnalyticsService.js';
 import * as securityMonitoringService from './services/securityMonitoringService.js';
-import { 
-  insertUserSchema, 
-  insertProjectSchema, 
-  insertStudioProjectSchema, 
-  insertStudioTrackSchema, 
-  insertAudioClipSchema, 
-  insertMidiClipSchema, 
-  insertVirtualInstrumentSchema, 
-  insertAudioEffectSchema, 
-  insertMixBusSchema, 
-  insertAutomationDataSchema, 
-  insertMarkerSchema, 
+import {
+  insertUserSchema,
+  insertProjectSchema,
+  insertStudioProjectSchema,
+  insertStudioTrackSchema,
+  insertAudioClipSchema,
+  insertMidiClipSchema,
+  insertVirtualInstrumentSchema,
+  insertAudioEffectSchema,
+  insertMixBusSchema,
+  insertAutomationDataSchema,
+  insertMarkerSchema,
   insertLyricsSchema,
   insertTrackAnalysisSchema,
   insertProjectRoyaltySplitSchema,
@@ -109,12 +109,32 @@ import {
   exportAnalyticsSchema,
   dspWebhookSchema,
   updateProfileSchema,
-  updateUserPreferencesSchema
-} from "@shared/schema";
-import { z } from "zod";
-import { db } from "./db";
-import { listings, orders, royaltySplits, posts, socialCampaigns, socialMetrics, releases, analytics, payoutEvents, hyperFollowPages, earnings, stemExports, listingStems, stemOrders, users, contentCalendar, insertContentCalendarSchema, projects, tracks } from "@shared/schema";
-import { eq, and, desc, or, gte, lte, sql, sum, count, between } from "drizzle-orm";
+  updateUserPreferencesSchema,
+} from '@shared/schema';
+import { z } from 'zod';
+import { db } from './db';
+import {
+  listings,
+  orders,
+  royaltySplits,
+  posts,
+  socialCampaigns,
+  socialMetrics,
+  releases,
+  analytics,
+  payoutEvents,
+  hyperFollowPages,
+  earnings,
+  stemExports,
+  listingStems,
+  stemOrders,
+  users,
+  contentCalendar,
+  insertContentCalendarSchema,
+  projects,
+  tracks,
+} from '@shared/schema';
+import { eq, and, desc, or, gte, lte, sql, sum, count, between } from 'drizzle-orm';
 
 // Extend Express types for req.user
 declare global {
@@ -131,16 +151,21 @@ declare global {
     }
   }
 }
-import Stripe from "stripe";
-import { socialMediaService } from "./social";
-import { generateSocialMediaImage, generateSocialMediaContent, generateContentFromURL } from "./image-generation";
-import axios from "axios";
-import { customAIEngine } from "./services/aiInsightsEngine";
-import * as chunkedUploadService from "./services/distributionChunkedUploadService";
-import * as codeGenerationService from "./services/distributionCodeGenerationService";
-import * as platformService from "./services/distributionPlatformService";
-import { AutopilotEngine } from "./autopilot-engine";
-import { AutonomousAutopilot } from "./autonomous-autopilot";
+import Stripe from 'stripe';
+import { socialMediaService } from './social';
+import {
+  generateSocialMediaImage,
+  generateSocialMediaContent,
+  generateContentFromURL,
+} from './image-generation';
+import axios from 'axios';
+import { customAIEngine } from './services/aiInsightsEngine';
+import * as chunkedUploadService from './services/distributionChunkedUploadService';
+import * as codeGenerationService from './services/distributionCodeGenerationService';
+import * as platformService from './services/distributionPlatformService';
+import { AutopilotEngine } from './autopilot-engine';
+import { AutonomousAutopilot } from './autonomous-autopilot';
+import { logger } from './logger.js';
 
 // Initialize Stripe - Prefer valid secret keys (sk_*)
 let actualStripeKey: string | undefined;
@@ -149,42 +174,58 @@ let actualStripeKey: string | undefined;
 if (process.env.NODE_ENV === 'development') {
   if (process.env.TESTING_STRIPE_SECRET_KEY?.startsWith('sk_')) {
     actualStripeKey = process.env.TESTING_STRIPE_SECRET_KEY;
-    console.log('Using TESTING_STRIPE_SECRET_KEY:', actualStripeKey?.substring(0, 7));
+    logger.info('Using TESTING_STRIPE_SECRET_KEY:', actualStripeKey?.substring(0, 7));
   } else if (process.env.STRIPE_SECRET_KEY?.startsWith('sk_')) {
     actualStripeKey = process.env.STRIPE_SECRET_KEY;
-    console.log('Using STRIPE_SECRET_KEY:', actualStripeKey?.substring(0, 7));
+    logger.info('Using STRIPE_SECRET_KEY:', actualStripeKey?.substring(0, 7));
   }
 } else {
   // In production, use STRIPE_SECRET_KEY
   if (process.env.STRIPE_SECRET_KEY?.startsWith('sk_')) {
     actualStripeKey = process.env.STRIPE_SECRET_KEY;
-    console.log('Using STRIPE_SECRET_KEY:', actualStripeKey?.substring(0, 7));
+    logger.info('Using STRIPE_SECRET_KEY:', actualStripeKey?.substring(0, 7));
   }
 }
 
 // Defensive check: Validate Stripe key before initialization
 if (!actualStripeKey || !actualStripeKey.startsWith('sk_')) {
-  console.error('❌ STRIPE CONFIGURATION ERROR:');
-  console.error('   Missing or invalid STRIPE_SECRET_KEY.');
-  console.error('   Expected format: sk_test_... or sk_live_...');
-  console.error('   Current value prefix:', actualStripeKey?.substring(0, 7) || 'undefined');
-  console.error('   ⚠️  Payment features will be DISABLED until valid key is provided.');
-  console.error('   Please update STRIPE_SECRET_KEY in your environment secrets.');
+  logger.error('❌ STRIPE CONFIGURATION ERROR:');
+  logger.error('   Missing or invalid STRIPE_SECRET_KEY.');
+  logger.error('   Expected format: sk_test_... or sk_live_...');
+  logger.error('   Current value prefix:', actualStripeKey?.substring(0, 7) || 'undefined');
+  logger.error('   ⚠️  Payment features will be DISABLED until valid key is provided.');
+  logger.error('   Please update STRIPE_SECRET_KEY in your environment secrets.');
 }
 
-const stripe = actualStripeKey && actualStripeKey.startsWith('sk_')
-  ? new Stripe(actualStripeKey, { apiVersion: "2025-08-27.basil" })
-  : ({
-      // Graceful degradation: Return a proxy that throws descriptive errors
-      paymentIntents: { create: () => Promise.reject(new Error('Stripe not configured - invalid API key')) },
-      customers: { create: () => Promise.reject(new Error('Stripe not configured - invalid API key')) },
-      subscriptions: { create: () => Promise.reject(new Error('Stripe not configured - invalid API key')), retrieve: () => Promise.reject(new Error('Stripe not configured - invalid API key')) },
-      checkout: { sessions: { create: () => Promise.reject(new Error('Stripe not configured - invalid API key')) } },
-      webhooks: { constructEvent: () => { throw new Error('Stripe not configured - invalid API key'); } }
-    } as any);
+const stripe =
+  actualStripeKey && actualStripeKey.startsWith('sk_')
+    ? new Stripe(actualStripeKey, { apiVersion: '2025-08-27.basil' })
+    : ({
+        // Graceful degradation: Return a proxy that throws descriptive errors
+        paymentIntents: {
+          create: () => Promise.reject(new Error('Stripe not configured - invalid API key')),
+        },
+        customers: {
+          create: () => Promise.reject(new Error('Stripe not configured - invalid API key')),
+        },
+        subscriptions: {
+          create: () => Promise.reject(new Error('Stripe not configured - invalid API key')),
+          retrieve: () => Promise.reject(new Error('Stripe not configured - invalid API key')),
+        },
+        checkout: {
+          sessions: {
+            create: () => Promise.reject(new Error('Stripe not configured - invalid API key')),
+          },
+        },
+        webhooks: {
+          constructEvent: () => {
+            throw new Error('Stripe not configured - invalid API key');
+          },
+        },
+      } as any);
 
 // Configure multer for file uploads
-const uploadDir = path.join(process.cwd(), "uploads");
+const uploadDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -206,7 +247,7 @@ const upload = multer({
       const sanitizedName = sanitizeFilename(file.originalname);
       const ext = path.extname(sanitizedName).toLowerCase();
       cb(null, `${uniqueSuffix}${ext}`);
-    }
+    },
   }),
   limits: {
     fileSize: 100 * 1024 * 1024,
@@ -221,18 +262,18 @@ const upload = multer({
       'audio/ogg',
       'audio/aac',
       'audio/flac',
-      'audio/x-flac'
+      'audio/x-flac',
     ];
-    
+
     const allowedAudioExts = ['.mp3', '.wav', '.ogg', '.aac', '.flac'];
     const ext = path.extname(file.originalname).toLowerCase();
-    
+
     if (allowedAudioMimes.includes(file.mimetype) && allowedAudioExts.includes(ext)) {
       cb(null, true);
     } else {
       cb(new Error(`Invalid audio file. Allowed types: ${allowedAudioExts.join(', ')}`));
     }
-  }
+  },
 });
 
 // Marketplace upload configuration with strict security (audio + images)
@@ -244,7 +285,7 @@ const marketplaceUpload = multer({
       const sanitizedName = sanitizeFilename(file.originalname);
       const ext = path.extname(sanitizedName).toLowerCase();
       cb(null, `${uniqueSuffix}${ext}`);
-    }
+    },
   }),
   limits: {
     fileSize: 100 * 1024 * 1024,
@@ -259,22 +300,16 @@ const marketplaceUpload = multer({
       'audio/ogg',
       'audio/aac',
       'audio/flac',
-      'audio/x-flac'
+      'audio/x-flac',
     ];
-    
-    const allowedImageMimes = [
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'image/webp',
-      'image/gif'
-    ];
-    
+
+    const allowedImageMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+
     const allowedAudioExts = ['.mp3', '.wav', '.ogg', '.aac', '.flac'];
     const allowedImageExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
-    
+
     const ext = path.extname(file.originalname).toLowerCase();
-    
+
     if (file.fieldname === 'audioFile') {
       if (allowedAudioMimes.includes(file.mimetype) && allowedAudioExts.includes(ext)) {
         cb(null, true);
@@ -290,7 +325,7 @@ const marketplaceUpload = multer({
     } else {
       cb(new Error('Unexpected file field'));
     }
-  }
+  },
 });
 
 // Authentication schemas
@@ -299,12 +334,14 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-const registerSchema = insertUserSchema.extend({
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const registerSchema = insertUserSchema
+  .extend({
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 // Payment schemas for Zod validation
 const createCheckoutSessionSchema = z.object({
@@ -324,7 +361,10 @@ interface PaginationParams {
   limit?: number;
 }
 
-function getPaginationParams(req: any): { offset: number; limit: number; page: number } {
+/**
+ * TODO: Add function documentation
+ */
+function getPaginationParams(req: unknown): { offset: number; limit: number; page: number } {
   const page = parseInt(req.query.page as string) || 1;
   const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
   const offset = (page - 1) * limit;
@@ -341,23 +381,33 @@ async function getAnalyticsCache(key: string): Promise<string | null> {
     if (redis) {
       return await redis.get(`${ANALYTICS_CACHE_PREFIX}${key}`);
     }
-  } catch (error) {
+  } catch (error: unknown) {
     // Redis unavailable, skip cache
   }
   return null;
 }
 
-async function setAnalyticsCache(key: string, value: string, ttl: number = ANALYTICS_CACHE_TTL): Promise<void> {
+/**
+ * TODO: Add function documentation
+ */
+async function setAnalyticsCache(
+  key: string,
+  value: string,
+  ttl: number = ANALYTICS_CACHE_TTL
+): Promise<void> {
   try {
     const redis = await getRedisClient();
     if (redis) {
       await redis.setEx(`${ANALYTICS_CACHE_PREFIX}${key}`, ttl, value);
     }
-  } catch (error) {
+  } catch (error: unknown) {
     // Redis unavailable, skip cache
   }
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function registerRoutes(app: Express): Promise<Server> {
   // Production-ready session configuration with Redis fallback
   const sessionStore = await createSessionStore();
@@ -369,67 +419,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.session());
 
   // Passport configuration
-  passport.use(new LocalStrategy(
-    {
-      usernameField: 'username',
-      passwordField: 'password',
-    },
-    async (username, password, done) => {
-      try {
-        // Try to find user by username first, then by email
-        let user = await storage.getUserByUsername(username);
-        if (!user) {
-          user = await storage.getUserByEmail(username);
-        }
-        
-        if (!user || !user.password) {
-          return done(null, false, { message: 'Invalid credentials' });
-        }
-
-        const isValid = await bcrypt.compare(password, user.password);
-        if (!isValid) {
-          return done(null, false, { message: 'Invalid credentials' });
-        }
-
-        return done(null, user as any);
-      } catch (error) {
-        return done(error);
-      }
-    }
-  ));
-
-  // Google OAuth strategy - Modified for payment-before-account-creation
-  if (process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET) {
-    passport.use(new GoogleStrategy(
+  passport.use(
+    new LocalStrategy(
       {
-        clientID: process.env.GOOGLE_OAUTH_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-        callbackURL: "/api/auth/google/callback",
+        usernameField: 'username',
+        passwordField: 'password',
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (username, password, done) => {
         try {
-          let user = await storage.getUserByGoogleId(profile.id);
-          
+          // Try to find user by username first, then by email
+          let user = await storage.getUserByUsername(username);
           if (!user) {
-            const email = profile.emails?.[0]?.value || '';
-            const existingUser = await storage.getUserByEmail(email);
-            
-            if (existingUser) {
-              // Link Google ID to existing paid account
-              user = await storage.updateUserGoogleId(existingUser.id, profile.id);
-            } else {
-              // For payment-before-account-creation: reject new Google signups
-              // Return null to indicate failed authentication
-              return done(null, false, { message: 'New registrations require payment. Please visit our pricing page.' });
-            }
+            user = await storage.getUserByEmail(username);
           }
-          
+
+          if (!user || !user.password) {
+            return done(null, false, { message: 'Invalid credentials' });
+          }
+
+          const isValid = await bcrypt.compare(password, user.password);
+          if (!isValid) {
+            return done(null, false, { message: 'Invalid credentials' });
+          }
+
           return done(null, user as any);
-        } catch (error) {
+        } catch (error: unknown) {
           return done(error);
         }
       }
-    ));
+    )
+  );
+
+  // Google OAuth strategy - Modified for payment-before-account-creation
+  if (process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET) {
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: process.env.GOOGLE_OAUTH_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+          callbackURL: '/api/auth/google/callback',
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            let user = await storage.getUserByGoogleId(profile.id);
+
+            if (!user) {
+              const email = profile.emails?.[0]?.value || '';
+              const existingUser = await storage.getUserByEmail(email);
+
+              if (existingUser) {
+                // Link Google ID to existing paid account
+                user = await storage.updateUserGoogleId(existingUser.id, profile.id);
+              } else {
+                // For payment-before-account-creation: reject new Google signups
+                // Return null to indicate failed authentication
+                return done(null, false, {
+                  message: 'New registrations require payment. Please visit our pricing page.',
+                });
+              }
+            }
+
+            return done(null, user as any);
+          } catch (error: unknown) {
+            return done(error);
+          }
+        }
+      )
+    );
   }
 
   passport.serializeUser((user: Express.User, done) => {
@@ -440,61 +496,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = await storage.getUser(id);
       done(null, user as any);
-    } catch (error) {
+    } catch (error: unknown) {
       done(error);
     }
   });
 
   // Auth middleware
-  const requireAuth = (req: any, res: any, next: any) => {
+  const requireAuth = (req: unknown, res: unknown, next: unknown) => {
     if (req.isAuthenticated()) {
       const now = new Date();
-      
+
       // Check if user has an expired trial
       if (req.user.trialEndsAt) {
         const trialEnd = new Date(req.user.trialEndsAt);
-        
+
         if (now > trialEnd) {
           // Trial has expired - block access
-          return res.status(403).json({ 
-            message: 'Your 30-day trial has expired. Please contact support to continue using Max Booster.',
-            trialExpired: true 
+          return res.status(403).json({
+            message:
+              'Your 30-day trial has expired. Please contact support to continue using Max Booster.',
+            trialExpired: true,
           });
         }
       }
-      
+
       // Check if subscription has expired (monthly/yearly plans only, lifetime never expires)
       if (req.user.subscriptionEndsAt && req.user.subscriptionPlan !== 'lifetime') {
         const subscriptionEnd = new Date(req.user.subscriptionEndsAt);
-        
+
         if (now > subscriptionEnd) {
           // Subscription has expired - block access
           const planName = req.user.subscriptionPlan === 'monthly' ? 'monthly' : 'yearly';
-          return res.status(403).json({ 
+          return res.status(403).json({
             message: `Your ${planName} subscription has expired. Please renew your subscription to continue using Max Booster.`,
             subscriptionExpired: true,
-            plan: req.user.subscriptionPlan
+            plan: req.user.subscriptionPlan,
           });
         }
       }
-      
+
       return next();
     }
     res.status(401).json({ message: 'Authentication required' });
   };
 
-  const requireAdmin = (req: any, res: any, next: any) => {
+  const requireAdmin = (req: unknown, res: unknown, next: unknown) => {
     if (req.isAuthenticated() && req.user.role === 'admin') {
       return next();
     }
     res.status(403).json({ message: 'Admin access required' });
   };
 
-  const requirePremium = async (req: any, res: any, next: any) => {
+  const requirePremium = async (req: unknown, res: unknown, next: unknown) => {
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Authentication required',
-        message: 'Please log in to access this feature'
+        message: 'Please log in to access this feature',
       });
     }
 
@@ -506,7 +563,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return next();
     }
 
-    const hasLifetimeAccess = user.subscriptionPlan === 'lifetime' || user.subscriptionTier === 'lifetime';
+    const hasLifetimeAccess =
+      user.subscriptionPlan === 'lifetime' || user.subscriptionTier === 'lifetime';
     if (hasLifetimeAccess) {
       return next();
     }
@@ -526,33 +584,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (subscriptionEndDate) {
       const gracePeriodEnd = new Date(subscriptionEndDate);
       gracePeriodEnd.setDate(gracePeriodEnd.getDate() + GRACE_PERIOD_DAYS);
-      
+
       const inGracePeriod = now <= gracePeriodEnd;
       if (inGracePeriod) {
-        const daysRemaining = Math.ceil((gracePeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.ceil(
+          (gracePeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+        );
         res.setHeader('X-Grace-Period-Days-Remaining', daysRemaining.toString());
         return next();
       }
     }
 
-    return res.status(403).json({ 
+    return res.status(403).json({
       error: 'Premium subscription required',
       message: 'This feature requires an active premium subscription',
       upgradeUrl: '/pricing',
       subscriptionStatus: user.subscriptionStatus || 'none',
-      trialExpired: trialEndDate ? trialEndDate < now : false
+      trialExpired: trialEndDate ? trialEndDate < now : false,
     });
   };
 
   // Initialize Autopilot Engines
   const socialMediaAutopilot = AutopilotEngine.createForSocialAndAds();
   const autonomousAdvertisingAutopilot = AutonomousAutopilot.createForSocialAndAds();
-  
+
   // Store autopilot instances per user (in production, use database)
-  const userAutopilotInstances = new Map<string, { 
-    autopilot: AutopilotEngine; 
-    autonomous: AutonomousAutopilot 
-  }>();
+  const userAutopilotInstances = new Map<
+    string,
+    {
+      autopilot: AutopilotEngine;
+      autonomous: AutonomousAutopilot;
+    }
+  >();
 
   // Apply graceful degradation middleware
   // Apply global rate limiting
@@ -581,200 +644,206 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/social/approvals', socialApprovalsRoutes);
   app.use('/api/storefront', storefrontRoutes);
   app.use('/api/payouts', payoutRoutes);
-  
+
   // Developer API routes (API key management and analytics endpoints)
   app.use('/api/developer', developerApiRoutes);
   app.use('/api/v1/analytics', analyticsApiRoutes);
-  
+
   // Admin monitoring routes (metrics, alerts, email stats) - Admin only
   app.use('/api/admin', adminMetricsRoutes);
-  
+
   // Distribution and Autonomous API routes
   app.use('/api/distribution/labelgrid', distributionApiRoutes); // LabelGrid distribution routes
   app.use('/api/autonomous', autonomousApiRoutes); // Autonomous service routes
-  
+
   // OAuth routes for social media connections
   app.use('/api/oauth', oauthRoutes); // OAuth for social media connections
 
   // ===========================
   // LABELGRID WEBHOOK HANDLER
   // ===========================
-  
-  app.post('/api/webhooks/labelgrid', express.raw({ type: 'application/json' }), async (req, res) => {
-    try {
-      const signature = req.headers['x-labelgrid-signature'] as string;
-      const rawBody = req.body.toString('utf8');
 
-      // Verify webhook signature
-      if (!labelGridService.verifyWebhookSignature(rawBody, signature)) {
-        console.error('❌ LabelGrid webhook signature verification failed');
-        return res.status(401).json({ error: 'Invalid signature' });
+  app.post(
+    '/api/webhooks/labelgrid',
+    express.raw({ type: 'application/json' }),
+    async (req, res) => {
+      try {
+        const signature = req.headers['x-labelgrid-signature'] as string;
+        const rawBody = req.body.toString('utf8');
+
+        // Verify webhook signature
+        if (!labelGridService.verifyWebhookSignature(rawBody, signature)) {
+          logger.error('❌ LabelGrid webhook signature verification failed');
+          return res.status(401).json({ error: 'Invalid signature' });
+        }
+
+        const payload = JSON.parse(rawBody);
+        logger.info('📥 LabelGrid webhook received:', payload.event);
+
+        // Handle different webhook events
+        switch (payload.event) {
+          case 'release.status.changed':
+            // Update release status in database
+            if (payload.releaseId && payload.status) {
+              try {
+                const release = await storage.getDistroReleaseByLabelGridId(payload.releaseId);
+                if (release) {
+                  await storage.updateDistroRelease(release.id, {
+                    status: payload.status,
+                    metadata: {
+                      ...(release.metadata as any),
+                      lastStatusUpdate: new Date().toISOString(),
+                    },
+                  });
+                  logger.info(`✅ Updated release ${release.id} status to ${payload.status}`);
+                }
+              } catch (error: unknown) {
+                logger.error('Error updating release status from webhook:', error);
+              }
+            }
+            break;
+
+          case 'release.live':
+            // Mark release as live on DSPs
+            if (payload.releaseId && payload.platform) {
+              try {
+                const release = await storage.getDistroReleaseByLabelGridId(payload.releaseId);
+                if (release) {
+                  await storage.updateDistroDispatchStatus(release.id, {
+                    providerId: payload.platform,
+                    status: 'live',
+                    liveAt: new Date(),
+                  });
+
+                  // Create notification for user
+                  await storage.createNotification({
+                    userId: release.artistId,
+                    type: 'release_live',
+                    title: '🎉 Your release is live!',
+                    message: `"${release.title}" is now live on ${payload.platform}`,
+                    link: `/distribution/releases/${release.id}`,
+                    metadata: {
+                      releaseId: release.id,
+                      platform: payload.platform,
+                    },
+                  });
+
+                  logger.info(`✅ Release ${release.id} is now live on ${payload.platform}`);
+                }
+              } catch (error: unknown) {
+                logger.error('Error marking release as live from webhook:', error);
+              }
+            }
+            break;
+
+          case 'release.failed':
+            // Mark release as failed, store error message
+            if (payload.releaseId && payload.errorMessage) {
+              try {
+                const release = await storage.getDistroReleaseByLabelGridId(payload.releaseId);
+                if (release) {
+                  await storage.updateDistroRelease(release.id, {
+                    status: 'failed',
+                    metadata: {
+                      ...(release.metadata as any),
+                      errorMessage: payload.errorMessage,
+                      failedAt: new Date().toISOString(),
+                    },
+                  });
+
+                  // Create notification for user
+                  await storage.createNotification({
+                    userId: release.artistId,
+                    type: 'release_failed',
+                    title: '❌ Release distribution failed',
+                    message: `There was an error distributing "${release.title}": ${payload.errorMessage}`,
+                    link: `/distribution/releases/${release.id}`,
+                    metadata: {
+                      releaseId: release.id,
+                      errorMessage: payload.errorMessage,
+                    },
+                  });
+
+                  logger.info(
+                    `❌ Release ${release.id} distribution failed: ${payload.errorMessage}`
+                  );
+                }
+              } catch (error: unknown) {
+                logger.error('Error marking release as failed from webhook:', error);
+              }
+            }
+            break;
+
+          case 'analytics.updated':
+            // Update streaming/download counts
+            if (payload.releaseId && payload.data) {
+              try {
+                const release = await storage.getDistroReleaseByLabelGridId(payload.releaseId);
+                if (release) {
+                  // Save analytics to database
+                  await storage.createAnalytics({
+                    userId: release.artistId,
+                    projectId: release.projectId || undefined,
+                    date: new Date(),
+                    totalStreams: payload.data.totalStreams || 0,
+                    totalRevenue: (payload.data.totalRevenue || 0).toString(),
+                    platformData: payload.data.platforms || {},
+                  });
+
+                  logger.info(`✅ Updated analytics for release ${release.id}`);
+                }
+              } catch (error: unknown) {
+                logger.error('Error updating analytics from webhook:', error);
+              }
+            }
+            break;
+
+          default:
+            logger.info(`ℹ️  Unhandled LabelGrid webhook event: ${payload.event}`);
+        }
+
+        // Always return 200 OK to acknowledge receipt
+        res.status(200).json({ received: true });
+      } catch (error: unknown) {
+        logger.error('Error processing LabelGrid webhook:', error);
+        // Still return 200 to prevent retries for invalid payloads
+        res.status(200).json({ received: true, error: 'Processing failed' });
       }
-
-      const payload = JSON.parse(rawBody);
-      console.log('📥 LabelGrid webhook received:', payload.event);
-
-      // Handle different webhook events
-      switch (payload.event) {
-        case 'release.status.changed':
-          // Update release status in database
-          if (payload.releaseId && payload.status) {
-            try {
-              const release = await storage.getDistroReleaseByLabelGridId(payload.releaseId);
-              if (release) {
-                await storage.updateDistroRelease(release.id, {
-                  status: payload.status,
-                  metadata: {
-                    ...(release.metadata as any),
-                    lastStatusUpdate: new Date().toISOString(),
-                  },
-                });
-                console.log(`✅ Updated release ${release.id} status to ${payload.status}`);
-              }
-            } catch (error) {
-              console.error('Error updating release status from webhook:', error);
-            }
-          }
-          break;
-
-        case 'release.live':
-          // Mark release as live on DSPs
-          if (payload.releaseId && payload.platform) {
-            try {
-              const release = await storage.getDistroReleaseByLabelGridId(payload.releaseId);
-              if (release) {
-                await storage.updateDistroDispatchStatus(release.id, {
-                  providerId: payload.platform,
-                  status: 'live',
-                  liveAt: new Date(),
-                });
-                
-                // Create notification for user
-                await storage.createNotification({
-                  userId: release.artistId,
-                  type: 'release_live',
-                  title: '🎉 Your release is live!',
-                  message: `"${release.title}" is now live on ${payload.platform}`,
-                  link: `/distribution/releases/${release.id}`,
-                  metadata: {
-                    releaseId: release.id,
-                    platform: payload.platform,
-                  },
-                });
-                
-                console.log(`✅ Release ${release.id} is now live on ${payload.platform}`);
-              }
-            } catch (error) {
-              console.error('Error marking release as live from webhook:', error);
-            }
-          }
-          break;
-
-        case 'release.failed':
-          // Mark release as failed, store error message
-          if (payload.releaseId && payload.errorMessage) {
-            try {
-              const release = await storage.getDistroReleaseByLabelGridId(payload.releaseId);
-              if (release) {
-                await storage.updateDistroRelease(release.id, {
-                  status: 'failed',
-                  metadata: {
-                    ...(release.metadata as any),
-                    errorMessage: payload.errorMessage,
-                    failedAt: new Date().toISOString(),
-                  },
-                });
-                
-                // Create notification for user
-                await storage.createNotification({
-                  userId: release.artistId,
-                  type: 'release_failed',
-                  title: '❌ Release distribution failed',
-                  message: `There was an error distributing "${release.title}": ${payload.errorMessage}`,
-                  link: `/distribution/releases/${release.id}`,
-                  metadata: {
-                    releaseId: release.id,
-                    errorMessage: payload.errorMessage,
-                  },
-                });
-                
-                console.log(`❌ Release ${release.id} distribution failed: ${payload.errorMessage}`);
-              }
-            } catch (error) {
-              console.error('Error marking release as failed from webhook:', error);
-            }
-          }
-          break;
-
-        case 'analytics.updated':
-          // Update streaming/download counts
-          if (payload.releaseId && payload.data) {
-            try {
-              const release = await storage.getDistroReleaseByLabelGridId(payload.releaseId);
-              if (release) {
-                // Save analytics to database
-                await storage.createAnalytics({
-                  userId: release.artistId,
-                  projectId: release.projectId || undefined,
-                  date: new Date(),
-                  totalStreams: payload.data.totalStreams || 0,
-                  totalRevenue: (payload.data.totalRevenue || 0).toString(),
-                  platformData: payload.data.platforms || {},
-                });
-                
-                console.log(`✅ Updated analytics for release ${release.id}`);
-              }
-            } catch (error) {
-              console.error('Error updating analytics from webhook:', error);
-            }
-          }
-          break;
-
-        default:
-          console.log(`ℹ️  Unhandled LabelGrid webhook event: ${payload.event}`);
-      }
-
-      // Always return 200 OK to acknowledge receipt
-      res.status(200).json({ received: true });
-    } catch (error) {
-      console.error('Error processing LabelGrid webhook:', error);
-      // Still return 200 to prevent retries for invalid payloads
-      res.status(200).json({ received: true, error: 'Processing failed' });
     }
-  });
+  );
 
   // Authentication routes - Legacy registration blocked for payment-first workflow
   app.post('/api/auth/register', async (req, res) => {
-    res.status(403).json({ 
+    res.status(403).json({
       message: 'Direct registration is no longer available. Please complete payment first.',
-      redirectTo: '/pricing'
+      redirectTo: '/pricing',
     });
   });
 
   app.post('/api/auth/login', (req, res, next) => {
-    passport.authenticate('local', (err: any, user: any, info: any) => {
+    passport.authenticate('local', (err: unknown, user: unknown, info: unknown) => {
       if (err) {
         return next(err);
       }
-      
+
       const username = req.body.username;
-      
+
       if (!user) {
         // Log failed login attempt
         auditLogger.logLogin(req, '', username, false);
         return res.status(401).json({ message: info?.message || 'Authentication failed' });
       }
-      
+
       req.logIn(user, async (err) => {
         if (err) {
           return next(err);
         }
-        
-        // Log successful login  
+
+        // Log successful login
         auditLogger.logLogin(req, user.id, user.email, true);
-        
+
         // Session tracking is handled by Redis - no need for PostgreSQL tracking
-        
+
         // Send response - express-session will auto-save
         res.json({ user: { ...user, password: undefined } });
       });
@@ -783,15 +852,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/auth/logout', (req, res) => {
     const user = req.user as any;
-    
+
     req.logout((err) => {
       if (err) throw err;
-      
+
       // Log logout
       if (user) {
         auditLogger.logLogout(req, user.id, user.email);
       }
-      
+
       res.json({ success: true });
     });
   });
@@ -801,40 +870,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = forgotPasswordSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { email } = validation.data;
 
       // Check if user exists
       const user = await storage.getUserByEmail(email);
-      
+
       // Don't reveal whether the email exists (security best practice)
       // Always return success to prevent user enumeration
-      
+
       if (user) {
         // Generate secure reset token
         const resetToken = crypto.randomBytes(32).toString('hex');
-        
+
         // Set expiration to 1 hour from now
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 1);
-        
+
         // Store token in database
         await storage.createPasswordResetToken(email, resetToken, expiresAt);
-        
+
         // Send reset email via SendGrid (if configured)
         if (process.env.SENDGRID_API_KEY) {
           try {
             const sgMail = await import('@sendgrid/mail');
             sgMail.default.setApiKey(process.env.SENDGRID_API_KEY);
-            
+
             const resetUrl = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
             const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'notifications@maxbooster.ai';
-            
+
             await sgMail.default.send({
               to: email,
               from: fromEmail,
@@ -847,35 +916,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 <p>If you didn't request this, please ignore this email.</p>
               `,
             });
-          } catch (emailError) {
-            console.error('Error sending password reset email:', emailError);
+          } catch (emailError: unknown) {
+            logger.error('Error sending password reset email:', emailError);
             // Don't fail the request if email fails, just log it
           }
         } else {
-          console.log(`Password reset token for ${email}: ${resetToken}`);
-          console.log(`Reset URL would be: /reset-password?token=${resetToken}`);
+          logger.info(`Password reset token for ${email}: ${resetToken}`);
+          logger.info(`Reset URL would be: /reset-password?token=${resetToken}`);
         }
       }
-      
+
       // Always return success (security best practice)
-      res.json({ 
+      res.json({
         message: 'If an account exists with that email, a password reset link has been sent.',
-        success: true 
+        success: true,
       });
-    } catch (error) {
-      console.error('Forgot password error:', error);
+    } catch (error: unknown) {
+      logger.error('Forgot password error:', error);
       res.status(500).json({ message: 'An error occurred processing your request' });
     }
   });
 
-  app.get('/api/auth/google', passport.authenticate('google', {
-    scope: ['profile', 'email']
-  }));
+  app.get(
+    '/api/auth/google',
+    passport.authenticate('google', {
+      scope: ['profile', 'email'],
+    })
+  );
 
-  app.get('/api/auth/google/callback', 
-    passport.authenticate('google', { 
+  app.get(
+    '/api/auth/google/callback',
+    passport.authenticate('google', {
       failureRedirect: '/pricing?error=payment-required',
-      failureMessage: true 
+      failureMessage: true,
     }),
     (req, res) => {
       res.redirect('/dashboard');
@@ -902,7 +975,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getUserProjectsWithStudio(userId, { page: 1, limit: 1000, studioOnly: false }),
         storage.getUserAssets(userId, undefined, undefined, undefined, 1000, 0),
         storage.getUserEarnings(userId),
-        storage.getNotifications(userId, 1000, 0)
+        storage.getNotifications(userId, 1000, 0),
       ]);
 
       const exportData = {
@@ -915,19 +988,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: user.role,
           subscriptionPlan: user.subscriptionPlan,
           createdAt: user.createdAt,
-          updatedAt: user.updatedAt
+          updatedAt: user.updatedAt,
         },
         projects: projects.data,
         assets: assets,
         royalties: royalties,
-        notifications: notifications
+        notifications: notifications,
       };
 
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', `attachment; filename="maxbooster-data-${userId}-${Date.now()}.json"`);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="maxbooster-data-${userId}-${Date.now()}.json"`
+      );
       res.json(exportData);
-    } catch (error: any) {
-      console.error('Error exporting user data:', error);
+    } catch (error: unknown) {
+      logger.error('Error exporting user data:', error);
       res.status(500).json({ error: 'Failed to export data' });
     }
   });
@@ -937,14 +1013,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const tokens = await jwtAuthService.issueTokens(user.id, user.role || 'user');
-      
+
       res.json({
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
         expiresAt: tokens.expiresAt,
       });
-    } catch (error: any) {
-      console.error('Token issuance error:', error);
+    } catch (error: unknown) {
+      logger.error('Token issuance error:', error);
       res.status(500).json({ message: 'Failed to issue tokens' });
     }
   });
@@ -952,23 +1028,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/token/refresh', async (req, res) => {
     try {
       const { refreshToken } = req.body;
-      
+
       if (!refreshToken) {
         return res.status(400).json({ message: 'Refresh token required' });
       }
-      
+
       const result = await jwtAuthService.refreshAccessToken(refreshToken);
-      
+
       if (!result) {
         return res.status(401).json({ message: 'Invalid or expired refresh token' });
       }
-      
+
       res.json({
         accessToken: result.accessToken,
         expiresAt: result.expiresAt,
       });
-    } catch (error: any) {
-      console.error('Token refresh error:', error);
+    } catch (error: unknown) {
+      logger.error('Token refresh error:', error);
       res.status(500).json({ message: 'Failed to refresh token' });
     }
   });
@@ -976,16 +1052,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/token/revoke', requireAuth, async (req, res) => {
     try {
       const { tokenId, reason } = req.body;
-      
+
       if (!tokenId) {
         return res.status(400).json({ message: 'Token ID required' });
       }
-      
+
       await jwtAuthService.revokeToken(tokenId, reason || 'Manual revocation');
-      
+
       res.json({ message: 'Token revoked successfully' });
-    } catch (error: any) {
-      console.error('Token revocation error:', error);
+    } catch (error: unknown) {
+      logger.error('Token revocation error:', error);
       res.status(500).json({ message: 'Failed to revoke token' });
     }
   });
@@ -994,10 +1070,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const permissions = await storage.getUserPermissions(user.id);
-      
+
       res.json({ permissions });
-    } catch (error: any) {
-      console.error('Permissions fetch error:', error);
+    } catch (error: unknown) {
+      logger.error('Permissions fetch error:', error);
       res.status(500).json({ message: 'Failed to fetch permissions' });
     }
   });
@@ -1006,20 +1082,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/webhooks/dispatch', requireAdmin, async (req, res) => {
     try {
       const { eventId, url, payload } = req.body;
-      
+
       if (!eventId || !url || !payload) {
         return res.status(400).json({ message: 'eventId, url, and payload required' });
       }
-      
+
       const result = await webhookReliabilityService.dispatchWebhook(
         parseInt(eventId),
         url,
         payload
       );
-      
+
       res.json(result);
-    } catch (error: any) {
-      console.error('Webhook dispatch error:', error);
+    } catch (error: unknown) {
+      logger.error('Webhook dispatch error:', error);
       res.status(500).json({ message: 'Failed to dispatch webhook' });
     }
   });
@@ -1028,10 +1104,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const result = await webhookReliabilityService.retryWebhook(id);
-      
+
       res.json(result);
-    } catch (error: any) {
-      console.error('Webhook retry error:', error);
+    } catch (error: unknown) {
+      logger.error('Webhook retry error:', error);
       res.status(500).json({ message: 'Failed to retry webhook' });
     }
   });
@@ -1040,10 +1116,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { eventId } = req.params;
       const attempts = await storage.getWebhookAttempts(parseInt(eventId));
-      
+
       res.json({ attempts });
-    } catch (error: any) {
-      console.error('Webhook attempts fetch error:', error);
+    } catch (error: unknown) {
+      logger.error('Webhook attempts fetch error:', error);
       res.status(500).json({ message: 'Failed to fetch webhook attempts' });
     }
   });
@@ -1052,10 +1128,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { status } = req.query;
       const queue = await storage.getDeadLetterQueue(status as string);
-      
+
       res.json({ queue });
-    } catch (error: any) {
-      console.error('Dead letter queue fetch error:', error);
+    } catch (error: unknown) {
+      logger.error('Dead letter queue fetch error:', error);
       res.status(500).json({ message: 'Failed to fetch dead letter queue' });
     }
   });
@@ -1064,10 +1140,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       await webhookReliabilityService.reprocessDeadLetter(id);
-      
+
       res.json({ message: 'Dead letter reprocessing initiated' });
-    } catch (error: any) {
-      console.error('Dead letter reprocess error:', error);
+    } catch (error: unknown) {
+      logger.error('Dead letter reprocess error:', error);
       res.status(500).json({ message: 'Failed to reprocess dead letter' });
     }
   });
@@ -1076,23 +1152,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/logs', async (req, res) => {
     try {
       const { level, service, message, context, userId, stackTrace } = req.body;
-      
+
       if (!level || !service || !message) {
         return res.status(400).json({ message: 'level, service, and message required' });
       }
-      
-      const log = await loggingService.log(
-        level,
-        service,
-        message,
-        context,
-        userId,
-        stackTrace
-      );
-      
+
+      const log = await loggingService.log(level, service, message, context, userId, stackTrace);
+
       res.json({ log });
-    } catch (error: any) {
-      console.error('Log creation error:', error);
+    } catch (error: unknown) {
+      logger.error('Log creation error:', error);
       res.status(500).json({ message: 'Failed to create log event' });
     }
   });
@@ -1100,22 +1169,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/logs/query', requireAdmin, async (req, res) => {
     try {
       const { level, service, userId, startTime, endTime, limit } = req.query;
-      
+
       const filters: any = {};
       if (level) filters.level = level as string;
       if (service) filters.service = service as string;
       if (userId) filters.userId = userId as string;
       if (startTime) filters.startTime = new Date(startTime as string);
       if (endTime) filters.endTime = new Date(endTime as string);
-      
-      const logs = await loggingService.queryLogs(
-        filters,
-        limit ? parseInt(limit as string) : 100
-      );
-      
+
+      const logs = await loggingService.queryLogs(filters, limit ? parseInt(limit as string) : 100);
+
       res.json({ logs });
-    } catch (error: any) {
-      console.error('Log query error:', error);
+    } catch (error: unknown) {
+      logger.error('Log query error:', error);
       res.status(500).json({ message: 'Failed to query logs' });
     }
   });
@@ -1125,11 +1191,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { errors } = req.body;
       const user = req.user as any;
-      
+
       if (!Array.isArray(errors)) {
         return res.status(400).json({ message: 'Invalid error format' });
       }
-      
+
       // Log each error with context
       for (const error of errors) {
         const errorLog = {
@@ -1147,16 +1213,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sessionId: req.sessionID,
           },
         };
-        
+
         // Log to console for debugging (in production, this would go to a logging service)
-        console.error('[Error Report]', JSON.stringify(errorLog, null, 2));
-        
+        logger.error('[Error Report]', JSON.stringify(errorLog, null, 2));
+
         // Store critical errors in database if needed
         if (error.severity === 'critical') {
           try {
             // You could store critical errors in a database table for analysis
             // await storage.logCriticalError(errorLog);
-            
+
             // Audit log for security-related errors
             if (error.category === 'auth' || error.category === 'permission') {
               auditLogger.logSecurityEvent(req, 'error_report', {
@@ -1165,19 +1231,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 message: error.message,
               });
             }
-          } catch (dbError) {
-            console.error('Failed to store critical error:', dbError);
+          } catch (dbError: unknown) {
+            logger.error('Failed to store critical error:', dbError);
           }
         }
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: 'Errors reported successfully',
-        count: errors.length 
+        count: errors.length,
       });
-    } catch (error) {
-      console.error('Error reporting endpoint failed:', error);
+    } catch (error: unknown) {
+      logger.error('Error reporting endpoint failed:', error);
       res.status(500).json({ message: 'Failed to process error report' });
     }
   });
@@ -1187,13 +1253,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.params.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
 
       res.json({ ...user, password: undefined });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1215,19 +1281,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const { page, limit } = getPaginationParams(req);
-      const result = await storage.getUserProjectsWithStudio(user.id, { page, limit, studioOnly: false });
-      
+      const result = await storage.getUserProjectsWithStudio(user.id, {
+        page,
+        limit,
+        studioOnly: false,
+      });
+
       // Transform filePath to audioUrl for frontend playback
       const transformedData = {
         ...result,
-        data: result.data.map((project: any) => ({
+        data: result.data.map((project: unknown) => ({
           ...project,
-          audioUrl: filePathToUrl(project.filePath)
-        }))
+          audioUrl: filePathToUrl(project.filePath),
+        })),
       };
-      
+
       res.json(transformedData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1244,12 +1314,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const project = await storage.createProject(data);
-      
+
       // Log file upload
       if (req.file) {
-        auditLogger.logFileUpload(req, user.id, user.email, req.file.originalname, req.file.size, true);
+        auditLogger.logFileUpload(
+          req,
+          user.id,
+          user.email,
+          req.file.originalname,
+          req.file.size,
+          true
+        );
       }
-      
+
       // Auto-create a default track for projects with audio files
       if (req.file?.path && project.id) {
         try {
@@ -1268,10 +1345,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             color: '#3b82f6',
             height: 100,
             collapsed: false,
-            outputBus: 'master'
+            outputBus: 'master',
           };
           const createdTrack = await storage.createStudioTrack(trackData);
-          
+
           // Create the audio clip for this track
           const clipDuration = 60; // Default duration until we implement audio analysis
           await storage.createAudioClip({
@@ -1286,21 +1363,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             offset: 0,
             fadeIn: 0,
             fadeOut: 0,
-            gain: 0
+            gain: 0,
           });
-        } catch (trackError) {
-          console.error('Failed to create default track:', trackError);
+        } catch (trackError: unknown) {
+          logger.error('Failed to create default track:', trackError);
         }
       }
-      
+
       // Add audioUrl for frontend playback
       const projectWithAudioUrl = {
         ...project,
-        audioUrl: filePathToUrl(project.filePath)
+        audioUrl: filePathToUrl(project.filePath),
       };
-      
+
       res.json(projectWithAudioUrl);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -1309,15 +1386,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = req.params.id;
       const user = req.user as any;
-      
+
       const project = await storage.getProject(projectId);
-      
+
       if (!project || project.userId !== user.id) {
         return res.status(404).json({ message: 'Project not found' });
       }
 
       res.json(project);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1326,16 +1403,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = req.params.id;
       const user = req.user as any;
-      
+
       const project = await storage.getProject(projectId);
-      
+
       if (!project || project.userId !== user.id) {
         return res.status(404).json({ message: 'Project not found' });
       }
 
       const updatedProject = await storage.updateProject(projectId, req.body);
       res.json(updatedProject);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -1344,16 +1421,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = req.params.id;
       const user = req.user as any;
-      
+
       const project = await storage.getProject(projectId);
-      
+
       if (!project || project.userId !== user.id) {
         return res.status(404).json({ message: 'Project not found' });
       }
 
       const updatedProject = await storage.updateProject(projectId, req.body);
       res.json(updatedProject);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -1362,9 +1439,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = req.params.id;
       const user = req.user as any;
-      
+
       const project = await storage.getProject(projectId);
-      
+
       if (!project || project.userId !== user.id) {
         return res.status(404).json({ message: 'Project not found' });
       }
@@ -1376,7 +1453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.deleteProject(projectId);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1390,12 +1467,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const project = await storage.getProject(projectId);
     if (!project) return false;
     if (project.userId === userId) return true;
-    
+
     // Check if user is a collaborator with royalty split
     const splits = await storage.getProjectRoyaltySplits(projectId);
-    return splits.some(split => split.collaboratorId === userId);
+    return splits.some((split) => split.collaboratorId === userId);
   }
 
+  /**
+   * TODO: Add function documentation
+   */
   async function verifyProjectOwnership(projectId: string, userId: string): Promise<boolean> {
     const project = await storage.getProject(projectId);
     return project?.userId === userId;
@@ -1406,15 +1486,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = req.params.id;
       const user = req.user as any;
-      
+
       // SECURITY: Verify user has access to project
-      if (!await verifyProjectAccess(projectId, user.id)) {
+      if (!(await verifyProjectAccess(projectId, user.id))) {
         return res.status(403).json({ message: 'Access denied' });
       }
-      
+
       const splits = await storage.getProjectRoyaltySplits(projectId);
       res.json(splits);
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ message: 'Failed to fetch royalty splits' });
     }
   });
@@ -1423,33 +1503,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = req.params.id;
       const user = req.user as any;
-      
+
       // SECURITY: Only project owner can modify splits
-      if (!await verifyProjectOwnership(projectId, user.id)) {
+      if (!(await verifyProjectOwnership(projectId, user.id))) {
         return res.status(403).json({ message: 'Only project owner can manage royalty splits' });
       }
-      
+
       // VALIDATION: Validate request body with Zod
       const validation = insertProjectRoyaltySplitSchema.safeParse({
         ...req.body,
-        projectId
+        projectId,
       });
-      
+
       if (!validation.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid request data',
-          errors: validation.error.errors
+          errors: validation.error.errors,
         });
       }
-      
+
       // Create split
       const split = await storage.createProjectRoyaltySplit(validation.data);
-      
+
       // VALIDATION: Verify splits sum to 100% after creation
       const isValid = await storage.validateSplitPercentages(projectId);
-      
+
       res.json({ split, isValid });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ message: 'Failed to create royalty split' });
     }
   });
@@ -1459,30 +1539,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projectId = req.params.id;
       const splitId = req.params.splitId;
       const user = req.user as any;
-      
+
       // SECURITY: Only project owner can modify splits
-      if (!await verifyProjectOwnership(projectId, user.id)) {
+      if (!(await verifyProjectOwnership(projectId, user.id))) {
         return res.status(403).json({ message: 'Only project owner can manage royalty splits' });
       }
-      
+
       // VALIDATION: Validate partial update with Zod
       const validation = insertProjectRoyaltySplitSchema.partial().safeParse(req.body);
-      
+
       if (!validation.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid request data',
-          errors: validation.error.errors
+          errors: validation.error.errors,
         });
       }
-      
+
       // Update split
       const split = await storage.updateProjectRoyaltySplit(splitId, validation.data);
-      
+
       // VALIDATION: Verify splits sum to 100% after update
       const isValid = await storage.validateSplitPercentages(projectId);
-      
+
       res.json({ split, isValid });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ message: 'Failed to update royalty split' });
     }
   });
@@ -1492,15 +1572,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projectId = req.params.id;
       const splitId = req.params.splitId;
       const user = req.user as any;
-      
+
       // SECURITY: Only project owner can modify splits
-      if (!await verifyProjectOwnership(projectId, user.id)) {
+      if (!(await verifyProjectOwnership(projectId, user.id))) {
         return res.status(403).json({ message: 'Only project owner can manage royalty splits' });
       }
-      
+
       await storage.deleteProjectRoyaltySplit(splitId);
       res.json({ success: true });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ message: 'Failed to delete royalty split' });
     }
   });
@@ -1510,38 +1590,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = req.params.id;
       const user = req.user as any;
-      
+
       // SECURITY: Only project owner can add revenue
-      if (!await verifyProjectOwnership(projectId, user.id)) {
+      if (!(await verifyProjectOwnership(projectId, user.id))) {
         return res.status(403).json({ message: 'Only project owner can add revenue events' });
       }
-      
+
       // VALIDATION: Ensure splits sum to 100% BEFORE creating revenue event
       const isValid = await storage.validateSplitPercentages(projectId);
       if (!isValid) {
-        return res.status(400).json({ 
-          message: 'Cannot add revenue: royalty splits must sum to exactly 100%' 
+        return res.status(400).json({
+          message: 'Cannot add revenue: royalty splits must sum to exactly 100%',
         });
       }
-      
+
       // VALIDATION: Validate request body with Zod
       const validation = insertRevenueEventSchema.safeParse({
         ...req.body,
-        projectId
+        projectId,
       });
-      
+
       if (!validation.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid request data',
-          errors: validation.error.errors
+          errors: validation.error.errors,
         });
       }
-      
+
       // Create revenue event (auto-creates ledger entries)
       const event = await storage.createProjectRevenueEvent(validation.data);
-      
+
       res.json(event);
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ message: 'Failed to create revenue event' });
     }
   });
@@ -1550,15 +1630,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = req.params.id;
       const user = req.user as any;
-      
+
       // SECURITY: Verify user has access to project
-      if (!await verifyProjectAccess(projectId, user.id)) {
+      if (!(await verifyProjectAccess(projectId, user.id))) {
         return res.status(403).json({ message: 'Access denied' });
       }
-      
+
       const events = await storage.getProjectRevenueEvents(projectId);
       res.json(events);
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ message: 'Failed to fetch revenue events' });
     }
   });
@@ -1568,15 +1648,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = req.params.id;
       const user = req.user as any;
-      
+
       // SECURITY: Verify user has access to project
-      if (!await verifyProjectAccess(projectId, user.id)) {
+      if (!(await verifyProjectAccess(projectId, user.id))) {
         return res.status(403).json({ message: 'Access denied' });
       }
-      
+
       const summary = await storage.getProjectRoyaltySummary(projectId);
       res.json(summary);
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ message: 'Failed to fetch royalty summary' });
     }
   });
@@ -1587,71 +1667,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.file) {
         return res.status(400).json({ message: 'No file uploaded' });
       }
-      
+
       const user = req.user as any;
       const mapping = JSON.parse(req.body.mapping || '{}');
-      
+
       const result = await royaltiesCSVImportService.dryRunImport(
         req.file.buffer,
         mapping,
         user.id
       );
-      
+
       res.json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.post('/api/royalties/import/preview', requireAuth, upload.single('file'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
-      }
-      
-      const user = req.user as any;
-      const mapping = JSON.parse(req.body.mapping || '{}');
-      
-      const result = await royaltiesCSVImportService.dryRunImport(
-        req.file.buffer,
-        mapping,
-        user.id
-      );
-      
-      res.json(result);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
+  app.post(
+    '/api/royalties/import/preview',
+    requireAuth,
+    upload.single('file'),
+    async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ message: 'No file uploaded' });
+        }
 
-  app.post('/api/royalties/import/execute', requireAuth, upload.single('file'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
+        const user = req.user as any;
+        const mapping = JSON.parse(req.body.mapping || '{}');
+
+        const result = await royaltiesCSVImportService.dryRunImport(
+          req.file.buffer,
+          mapping,
+          user.id
+        );
+
+        res.json(result);
+      } catch (error: unknown) {
+        res.status(500).json({ message: error.message });
       }
-      
-      const user = req.user as any;
-      const mapping = JSON.parse(req.body.mapping || '{}');
-      
-      const result = await royaltiesCSVImportService.executeImport(
-        req.file.buffer,
-        mapping,
-        user.id,
-        req.file.originalname
-      );
-      
-      res.json(result);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
     }
-  });
+  );
+
+  app.post(
+    '/api/royalties/import/execute',
+    requireAuth,
+    upload.single('file'),
+    async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        const user = req.user as any;
+        const mapping = JSON.parse(req.body.mapping || '{}');
+
+        const result = await royaltiesCSVImportService.executeImport(
+          req.file.buffer,
+          mapping,
+          user.id,
+          req.file.originalname
+        );
+
+        res.json(result);
+      } catch (error: unknown) {
+        res.status(500).json({ message: error.message });
+      }
+    }
+  );
 
   app.get('/api/royalties/import/history', requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
       const history = await storage.getImportHistory(user.id);
       res.json(history);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1661,7 +1751,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const existing = await storage.getTaxProfile(user.id);
-      
+
       if (existing) {
         const updated = await storage.updateTaxProfile(existing.id, {
           ...req.body,
@@ -1669,13 +1759,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         return res.json(updated);
       }
-      
+
       const profile = await storage.createTaxProfile({
         ...req.body,
         userId: user.id,
       });
       res.json(profile);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1684,13 +1774,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const profile = await storage.getTaxProfile(user.id);
-      
+
       if (!profile) {
         return res.status(404).json({ message: 'Tax profile not found' });
       }
-      
+
       res.json(profile);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1699,10 +1789,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const year = parseInt(req.params.year);
-      
+
       const document = await royaltiesTaxComplianceService.exportTaxDocument(user.id, year);
       res.json(document);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1711,10 +1801,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const year = parseInt(req.params.year);
-      
+
       const doc = await royaltiesTaxComplianceService.generate1099MISC(user.id, year);
       res.json(doc);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1724,7 +1814,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const splits = await storage.getSplitsForProject(req.params.projectId);
       res.json(splits);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1733,7 +1823,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = await storage.validateSplitTotal(req.params.projectId);
       res.json(validation);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1742,7 +1832,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.lockRoyaltySplit(req.params.splitId);
       res.json({ message: 'Split locked successfully' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1752,15 +1842,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const { projectId, granularity } = req.body;
-      
+
       const forecast = await royaltiesForecastingService.calculateForecast(
         user.id,
         projectId,
         granularity
       );
-      
+
       res.json(forecast);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1769,22 +1859,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const forecasts = await storage.getForecastsByProject(req.params.projectId);
       res.json(forecasts);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
 
   app.get('/api/royalties/forecast/:projectId/latest', requireAuth, async (req, res) => {
     try {
-      const granularity = req.query.granularity as string || 'monthly';
+      const granularity = (req.query.granularity as string) || 'monthly';
       const forecast = await storage.getLatestForecast(req.params.projectId, granularity);
-      
+
       if (!forecast) {
         return res.status(404).json({ message: 'No forecast found' });
       }
-      
+
       res.json(forecast);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1792,20 +1882,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/royalties/my-earnings', requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      
+
       // Get total earnings for current user
       const totals = await storage.getTotalEarningsForCollaborator(user.id);
-      
+
       // Get breakdown by project
       const pending = await storage.getPendingEarningsForCollaborator(user.id);
-      
+
       res.json({
         total: totals.total,
         paid: totals.paid,
         pending: totals.pending,
         byProject: pending.byProject,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1814,18 +1904,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/royalties/request-payment', requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      
+
       // Get pending earnings
       const pending = await storage.getPendingEarningsForCollaborator(user.id);
-      
+
       if (parseFloat(pending.total) === 0) {
         return res.status(400).json({ message: 'No pending earnings to request payment for' });
       }
 
       // Get all unpaid ledger entries for this user
       const ledgerEntries = await storage.getLedgerEntriesByCollaborator(user.id);
-      const unpaidEntries = ledgerEntries.filter(e => !e.isPaid);
-      const ledgerEntryIds = unpaidEntries.map(e => e.id);
+      const unpaidEntries = ledgerEntries.filter((e) => !e.isPaid);
+      const ledgerEntryIds = unpaidEntries.map((e) => e.id);
 
       // Validate input with Zod (partial validation since most fields are computed)
       const validationResult = insertRoyaltyPaymentSchema.partial().safeParse({
@@ -1838,9 +1928,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!validationResult.success) {
-        return res.status(400).json({ 
-          message: 'Validation failed', 
-          errors: validationResult.error.errors 
+        return res.status(400).json({
+          message: 'Validation failed',
+          errors: validationResult.error.errors,
         });
       }
 
@@ -1848,7 +1938,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const payment = await storage.createProjectRoyaltyPayment(paymentData);
       res.json(payment);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -1857,9 +1947,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const { page, limit, offset } = getPaginationParams(req);
-      
+
       const { data, total } = await storage.getProjectRoyaltyPayments(user.id, limit, offset);
-      
+
       res.json({
         data,
         pagination: {
@@ -1867,10 +1957,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           limit,
           total,
           totalPages: Math.ceil(total / limit),
-          hasMore: offset + limit < total
-        }
+          hasMore: offset + limit < total,
+        },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -1884,13 +1974,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = req.params.id;
       const user = req.user as any;
-      
+
       // SECURITY: Verify user is owner or collaborator
       const project = await storage.getProject(projectId);
       if (!project) {
         return res.status(404).json({ message: 'Project not found' });
       }
-      
+
       // Check if user is owner
       if (project.userId !== user.id) {
         // Check if user is a collaborator
@@ -1899,12 +1989,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: 'Access denied' });
         }
       }
-      
+
       // Fetch all collaborators
       const collaborators = await storage.getProjectCollaborators(projectId);
-      
+
       res.json(collaborators);
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ message: 'Failed to fetch collaborators' });
     }
   });
@@ -1914,48 +2004,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = req.params.id;
       const user = req.user as any;
-      
+
       // SECURITY: Only project owner can invite
-      if (!await verifyProjectOwnership(projectId, user.id)) {
+      if (!(await verifyProjectOwnership(projectId, user.id))) {
         return res.status(403).json({ message: 'Only project owner can invite collaborators' });
       }
-      
+
       // VALIDATION: Validate request body with Zod
       const bodySchema = z.object({
         email: z.string().email(),
-        role: z.enum(['owner', 'editor', 'viewer']).default('viewer')
+        role: z.enum(['owner', 'editor', 'viewer']).default('viewer'),
       });
-      
+
       const validation = bodySchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid request data',
-          errors: validation.error.errors
+          errors: validation.error.errors,
         });
       }
-      
+
       const { email, role } = validation.data;
-      
+
       // Find user by email
       const invitedUser = await storage.getUserByEmail(email);
       if (!invitedUser) {
         return res.status(404).json({ message: 'User not found' });
       }
-      
+
       // Check if already a collaborator
       const existing = await storage.getProjectCollaborator(projectId, invitedUser.id);
       if (existing) {
         return res.status(400).json({ message: 'User is already a collaborator' });
       }
-      
+
       // Create collaborator
       const collaborator = await storage.createProjectCollaborator({
         projectId,
         userId: invitedUser.id,
         role,
-        invitedBy: user.id
+        invitedBy: user.id,
       });
-      
+
       // Send invitation email via SendGrid
       try {
         const project = await storage.getProject(projectId);
@@ -1968,12 +2058,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             role
           );
         }
-      } catch (emailError) {
-        console.error('Failed to send collaboration invitation email:', emailError);
+      } catch (emailError: unknown) {
+        logger.error('Failed to send collaboration invitation email:', emailError);
       }
-      
+
       res.json(collaborator);
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ message: 'Failed to invite collaborator' });
     }
   });
@@ -1984,34 +2074,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projectId = req.params.id;
       const collaboratorUserId = req.params.userId;
       const user = req.user as any;
-      
+
       // SECURITY: Only project owner can update roles
-      if (!await verifyProjectOwnership(projectId, user.id)) {
-        return res.status(403).json({ message: 'Only project owner can update collaborator roles' });
+      if (!(await verifyProjectOwnership(projectId, user.id))) {
+        return res
+          .status(403)
+          .json({ message: 'Only project owner can update collaborator roles' });
       }
-      
+
       // VALIDATION: Validate request body
       const bodySchema = z.object({
-        role: z.enum(['owner', 'editor', 'viewer'])
+        role: z.enum(['owner', 'editor', 'viewer']),
       });
-      
+
       const validation = bodySchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid request data',
-          errors: validation.error.errors
+          errors: validation.error.errors,
         });
       }
-      
+
       // Update role
       const collaborator = await storage.updateProjectCollaboratorRole(
-        projectId, 
-        collaboratorUserId, 
+        projectId,
+        collaboratorUserId,
         validation.data.role
       );
-      
+
       res.json(collaborator);
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ message: 'Failed to update collaborator' });
     }
   });
@@ -2022,20 +2114,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projectId = req.params.id;
       const collaboratorUserId = req.params.userId;
       const user = req.user as any;
-      
+
       // SECURITY: Owner can remove anyone, OR user can remove themselves
       const isOwner = await verifyProjectOwnership(projectId, user.id);
       const isSelf = collaboratorUserId === user.id;
-      
+
       if (!isOwner && !isSelf) {
         return res.status(403).json({ message: 'Access denied' });
       }
-      
+
       // Remove collaborator
       await storage.deleteProjectCollaboratorByProjectAndUser(projectId, collaboratorUserId);
-      
+
       res.json({ success: true });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ message: 'Failed to remove collaborator' });
     }
   });
@@ -2045,25 +2137,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const projectId = req.params.id;
       const user = req.user as any;
-      
+
       // SECURITY: Verify user has access to project
-      if (!await verifyProjectAccess(projectId, user.id)) {
+      if (!(await verifyProjectAccess(projectId, user.id))) {
         return res.status(403).json({ message: 'Access denied' });
       }
-      
+
       const entries = await storage.getLedgerEntriesByProject(projectId);
-      
+
       // Generate CSV
-      const csv = 'Date,Collaborator,Source,Amount,Split %,Earnings,Paid\n' +
-        entries.map(entry => {
-          // Format CSV row with entry data
-          return `${entry.createdAt},${entry.collaboratorId},${entry.amount},${entry.splitPercentage},${entry.isPaid}`;
-        }).join('\n');
-      
+      const csv =
+        'Date,Collaborator,Source,Amount,Split %,Earnings,Paid\n' +
+        entries
+          .map((entry) => {
+            // Format CSV row with entry data
+            return `${entry.createdAt},${entry.collaboratorId},${entry.amount},${entry.splitPercentage},${entry.isPaid}`;
+          })
+          .join('\n');
+
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', `attachment; filename="royalties-${projectId}.csv"`);
       res.send(csv);
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ message: 'Failed to export royalties' });
     }
   });
@@ -2073,14 +2168,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any).id;
       const dashboardStats = await storage.getDashboardStats(userId);
-      
+
       res.json({
         totalStreams: dashboardStats.totalStreams || 0,
         totalRevenue: parseFloat(dashboardStats.totalRevenue) || 0,
         totalListeners: dashboardStats.totalFollowers || 0,
-        growthRate: dashboardStats.monthlyGrowth?.streams || 0
+        growthRate: dashboardStats.monthlyGrowth?.streams || 0,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2089,7 +2184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any).id;
       const dashboardStats = await storage.getDashboardStats(userId);
-      
+
       res.json({
         totalStreams: dashboardStats.totalStreams,
         totalRevenue: dashboardStats.totalRevenue,
@@ -2098,9 +2193,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         growthRate: dashboardStats.monthlyGrowth.streams,
         avgListenTime: 0,
         completionRate: 0,
-        skipRate: 0
+        skipRate: 0,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2110,38 +2205,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).id;
       const { page, limit, offset } = getPaginationParams(req);
       const days = parseInt(req.query.days as string) || 30;
-      
-      const { data: paginatedData, total: totalRecords } = await storage.getAnalytics(userId, days, limit, offset);
-      
+
+      const { data: paginatedData, total: totalRecords } = await storage.getAnalytics(
+        userId,
+        days,
+        limit,
+        offset
+      );
+
       // Aggregate data by period for the paginated results
-      const daily = paginatedData.filter((d: any) => {
-        const daysDiff = Math.floor((Date.now() - new Date(d.date).getTime()) / (1000 * 60 * 60 * 24));
+      const daily = paginatedData.filter((d: unknown) => {
+        const daysDiff = Math.floor(
+          (Date.now() - new Date(d.date).getTime()) / (1000 * 60 * 60 * 24)
+        );
         return daysDiff <= 7;
       });
-      
-      const weekly = paginatedData.filter((d: any) => {
-        const daysDiff = Math.floor((Date.now() - new Date(d.date).getTime()) / (1000 * 60 * 60 * 24));
+
+      const weekly = paginatedData.filter((d: unknown) => {
+        const daysDiff = Math.floor(
+          (Date.now() - new Date(d.date).getTime()) / (1000 * 60 * 60 * 24)
+        );
         return daysDiff <= 30;
       });
-      
-      const totalStreams = paginatedData.reduce((sum: number, d: any) => sum + (d.streams || 0), 0);
-      
+
+      const totalStreams = paginatedData.reduce(
+        (sum: number, d: unknown) => sum + (d.streams || 0),
+        0
+      );
+
       res.json({
         data: {
           daily,
           weekly,
           monthly: paginatedData,
-          total: totalStreams
+          total: totalStreams,
         },
         pagination: {
           page,
           limit,
           total: totalRecords,
           totalPages: Math.ceil(totalRecords / limit),
-          hasMore: offset + limit < totalRecords
-        }
+          hasMore: offset + limit < totalRecords,
+        },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2158,12 +2265,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metricType: metricType as string | undefined,
         severity: severity as string | undefined,
         startDate: startDate ? new Date(startDate as string) : undefined,
-        endDate: endDate ? new Date(endDate as string) : undefined
+        endDate: endDate ? new Date(endDate as string) : undefined,
       };
 
       const anomalies = await storage.getUserAnomalies(userId, options);
       res.json(anomalies);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2173,7 +2280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).id;
       const summary = await storage.getAnomalySummary(userId);
       res.json(summary);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2182,19 +2289,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any).id;
       const anomalyId = req.params.id;
-      
+
       const anomaly = await storage.getAnomaly(anomalyId);
-      
+
       if (!anomaly) {
         return res.status(404).json({ message: 'Anomaly not found' });
       }
-      
+
       if (anomaly.userId !== userId) {
         return res.status(403).json({ message: 'Access denied' });
       }
-      
+
       res.json(anomaly);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2203,10 +2310,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any).id;
       const anomalyId = req.params.id;
-      
+
       const anomaly = await storage.acknowledgeAnomaly(anomalyId, userId);
       res.json(anomaly);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2214,148 +2321,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/analytics/anomalies/detect', requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      
+
       if (!user.isAdmin) {
         return res.status(403).json({ message: 'Admin access required' });
       }
-      
+
       const { analyticsAnomalyService } = await import('./services/analyticsAnomalyService.js');
       await analyticsAnomalyService.detectAnomaliesForAllUsers();
-      
+
       res.json({ message: 'Anomaly detection completed successfully' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
 
   // AI Analytics - Premium Feature for All Paid Users
-  app.post("/api/analytics/ai/predict-metric", requireAuth, requirePremium, async (req, res) => {
+  app.post('/api/analytics/ai/predict-metric', requireAuth, requirePremium, async (req, res) => {
     try {
       const { metric, timeframe } = req.body;
-      
+
       // Validate input
       if (!metric || !timeframe) {
-        return res.status(400).json({ error: "Missing required fields: metric, timeframe" });
+        return res.status(400).json({ error: 'Missing required fields: metric, timeframe' });
       }
-      
+
       if (!['streams', 'engagement', 'revenue'].includes(metric)) {
-        return res.status(400).json({ error: "Invalid metric. Must be: streams, engagement, or revenue" });
+        return res
+          .status(400)
+          .json({ error: 'Invalid metric. Must be: streams, engagement, or revenue' });
       }
-      
+
       if (!['7d', '30d', '90d'].includes(timeframe)) {
-        return res.status(400).json({ error: "Invalid timeframe. Must be: 7d, 30d, or 90d" });
+        return res.status(400).json({ error: 'Invalid timeframe. Must be: 7d, 30d, or 90d' });
       }
-      
+
       const predictions = await aiAnalyticsService.predictMetric(metric as any, timeframe as any);
       res.json(predictions);
-    } catch (error) {
-      console.error("Error predicting metric:", error);
-      res.status(500).json({ error: "Failed to predict metric" });
+    } catch (error: unknown) {
+      logger.error('Error predicting metric:', error);
+      res.status(500).json({ error: 'Failed to predict metric' });
     }
   });
 
-  app.get("/api/analytics/ai/predict-churn", requireAuth, requirePremium, async (req, res) => {
+  app.get('/api/analytics/ai/predict-churn', requireAuth, requirePremium, async (req, res) => {
     try {
       const churnData = await aiAnalyticsService.predictChurn();
       res.json(churnData);
-    } catch (error) {
-      console.error("Error predicting churn:", error);
-      res.status(500).json({ error: "Failed to predict churn" });
+    } catch (error: unknown) {
+      logger.error('Error predicting churn:', error);
+      res.status(500).json({ error: 'Failed to predict churn' });
     }
   });
 
-  app.get("/api/analytics/ai/forecast-revenue", requireAuth, requirePremium, async (req, res) => {
+  app.get('/api/analytics/ai/forecast-revenue', requireAuth, requirePremium, async (req, res) => {
     try {
       const timeframe = (req.query.timeframe as string) || '30d';
-      
+
       if (!['30d', '90d', '180d'].includes(timeframe)) {
-        return res.status(400).json({ error: "Invalid timeframe. Must be: 30d, 90d, or 180d" });
+        return res.status(400).json({ error: 'Invalid timeframe. Must be: 30d, 90d, or 180d' });
       }
-      
+
       const forecast = await aiAnalyticsService.forecastRevenue(timeframe as any);
       res.json(forecast);
-    } catch (error) {
-      console.error("Error forecasting revenue:", error);
-      res.status(500).json({ error: "Failed to forecast revenue" });
+    } catch (error: unknown) {
+      logger.error('Error forecasting revenue:', error);
+      res.status(500).json({ error: 'Failed to forecast revenue' });
     }
   });
 
-  app.get("/api/analytics/ai/detect-anomalies", requireAuth, requirePremium, async (req, res) => {
+  app.get('/api/analytics/ai/detect-anomalies', requireAuth, requirePremium, async (req, res) => {
     try {
       const anomalies = await aiAnalyticsService.detectAnomalies();
       res.json(anomalies);
-    } catch (error) {
-      console.error("Error detecting anomalies:", error);
-      res.status(500).json({ error: "Failed to detect anomalies" });
+    } catch (error: unknown) {
+      logger.error('Error detecting anomalies:', error);
+      res.status(500).json({ error: 'Failed to detect anomalies' });
     }
   });
 
-  app.get("/api/analytics/ai/insights", requireAuth, requirePremium, async (req, res) => {
+  app.get('/api/analytics/ai/insights', requireAuth, requirePremium, async (req, res) => {
     try {
       const insights = await aiAnalyticsService.generateInsights();
       res.json(insights);
-    } catch (error) {
-      console.error("Error generating insights:", error);
-      res.status(500).json({ error: "Failed to generate insights" });
+    } catch (error: unknown) {
+      logger.error('Error generating insights:', error);
+      res.status(500).json({ error: 'Failed to generate insights' });
     }
   });
 
   // Music Career AI Analytics - Premium Feature for Artists
-  app.post("/api/analytics/music/career-growth", requireAuth, requirePremium, async (req, res) => {
+  app.post('/api/analytics/music/career-growth', requireAuth, requirePremium, async (req, res) => {
     try {
       const user = req.user as any;
       const { metric, timeline } = req.body;
-      
+
       if (!metric || !['streams', 'followers', 'engagement'].includes(metric)) {
-        return res.status(400).json({ error: "Invalid metric. Must be: streams, followers, or engagement" });
+        return res
+          .status(400)
+          .json({ error: 'Invalid metric. Must be: streams, followers, or engagement' });
       }
-      
+
       if (timeline && !['30d', '90d', '180d'].includes(timeline)) {
-        return res.status(400).json({ error: "Invalid timeline. Must be: 30d, 90d, or 180d" });
+        return res.status(400).json({ error: 'Invalid timeline. Must be: 30d, 90d, or 180d' });
       }
-      
+
       const prediction = await aiAnalyticsService.predictCareerGrowth({
         userId: user.id,
         metric: metric as 'streams' | 'followers' | 'engagement',
-        timeline: (timeline || '30d') as '30d' | '90d' | '180d'
+        timeline: (timeline || '30d') as '30d' | '90d' | '180d',
       });
       res.json(prediction);
-    } catch (error) {
-      console.error("Error predicting career growth:", error);
-      res.status(500).json({ error: "Failed to predict career growth" });
+    } catch (error: unknown) {
+      logger.error('Error predicting career growth:', error);
+      res.status(500).json({ error: 'Failed to predict career growth' });
     }
   });
 
-  app.get("/api/analytics/music/release-strategy", requireAuth, requirePremium, async (req, res) => {
-    try {
-      const user = req.user as any;
-      const strategy = await aiAnalyticsService.getReleaseStrategy(user.id);
-      res.json(strategy);
-    } catch (error) {
-      console.error("Error generating release strategy:", error);
-      res.status(500).json({ error: "Failed to generate release strategy" });
+  app.get(
+    '/api/analytics/music/release-strategy',
+    requireAuth,
+    requirePremium,
+    async (req, res) => {
+      try {
+        const user = req.user as any;
+        const strategy = await aiAnalyticsService.getReleaseStrategy(user.id);
+        res.json(strategy);
+      } catch (error: unknown) {
+        logger.error('Error generating release strategy:', error);
+        res.status(500).json({ error: 'Failed to generate release strategy' });
+      }
     }
-  });
+  );
 
-  app.get("/api/analytics/music/fanbase", requireAuth, requirePremium, async (req, res) => {
+  app.get('/api/analytics/music/fanbase', requireAuth, requirePremium, async (req, res) => {
     try {
       const user = req.user as any;
       const fanbaseData = await aiAnalyticsService.getFanbaseInsights(user.id);
       res.json(fanbaseData);
-    } catch (error) {
-      console.error("Error analyzing fanbase:", error);
-      res.status(500).json({ error: "Failed to analyze fanbase" });
+    } catch (error: unknown) {
+      logger.error('Error analyzing fanbase:', error);
+      res.status(500).json({ error: 'Failed to analyze fanbase' });
     }
   });
 
-  app.get("/api/analytics/music/milestones", requireAuth, requirePremium, async (req, res) => {
+  app.get('/api/analytics/music/milestones', requireAuth, requirePremium, async (req, res) => {
     try {
       const user = req.user as any;
       const milestones = await aiAnalyticsService.getCareerMilestones(user.id);
       res.json(milestones);
-    } catch (error) {
-      console.error("Error getting career milestones:", error);
-      res.status(500).json({ error: "Failed to get career milestones" });
+    } catch (error: unknown) {
+      logger.error('Error getting career milestones:', error);
+      res.status(500).json({ error: 'Failed to get career milestones' });
     }
   });
 
@@ -2365,7 +2481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       const notifications = await storage.getUserNotifications(user.id);
       res.json(notifications);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2374,10 +2490,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const notificationId = parseInt(req.params.id);
       const user = req.user as any;
-      
+
       await storage.markNotificationAsRead(notificationId, user.id);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2387,7 +2503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       await storage.markAllNotificationsAsRead(user.id);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2406,7 +2522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         system: true,
       };
       res.json(preferences);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2415,17 +2531,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = updateNotificationPreferencesSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const user = req.user as any;
       const preferences = validation.data;
       await storage.updateNotificationPreferences(user.id, preferences);
       res.json({ success: true, preferences });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2434,17 +2550,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = subscribePushSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const user = req.user as any;
       const subscription = validation.data;
       await storage.updatePushSubscription(user.id, subscription);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2452,20 +2568,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/notifications/test', requireAuth, requireAdmin, async (req, res) => {
     try {
       const user = req.user as any;
-      
+
       // Create a test notification in the database (ADMIN ONLY)
       await storage.createNotification({
         userId: user.id,
         type: 'system',
         title: 'Test Notification',
-        message: 'This is a test notification from Max Booster. Your notification system is working correctly!',
+        message:
+          'This is a test notification from Max Booster. Your notification system is working correctly!',
         read: false,
         link: '/dashboard',
-        metadata: { test: true }
+        metadata: { test: true },
       });
-      
+
       res.json({ success: true, message: 'Test notification sent' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2475,13 +2592,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const notificationId = parseInt(req.params.id);
       const user = req.user as any;
-      
+
       // In production, verify the notification belongs to the user before deleting
-      await db.delete(notifications)
+      await db
+        .delete(notifications)
         .where(and(eq(notifications.id, notificationId), eq(notifications.userId, user.id)));
-      
+
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2491,11 +2609,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const userData = await storage.getUser(user.id);
-      res.json({ 
+      res.json({
         hasCompletedOnboarding: userData?.hasCompletedOnboarding || false,
-        onboardingData: userData?.onboardingData || null
+        onboardingData: userData?.onboardingData || null,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2504,19 +2622,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = updateOnboardingSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const user = req.user as any;
       const data = validation.data;
       await storage.updateUser(user.id, {
-        onboardingData: data.onboardingData
+        onboardingData: data.onboardingData,
       });
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2525,16 +2643,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = completeOnboardingSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const user = req.user as any;
       const data = validation.data;
       await storage.updateUser(user.id, {
-        hasCompletedOnboarding: data.hasCompletedOnboarding
+        hasCompletedOnboarding: data.hasCompletedOnboarding,
       });
 
       // Create a welcome notification
@@ -2542,14 +2660,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user.id,
         type: 'system',
         title: '🎉 Welcome to Max Booster!',
-        message: 'Your account setup is complete. Explore all the features to boost your music career!',
+        message:
+          'Your account setup is complete. Explore all the features to boost your music career!',
         read: false,
         link: '/dashboard',
-        metadata: { welcome: true }
+        metadata: { welcome: true },
       });
-      
+
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2558,18 +2677,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = updateOnboardingCompleteSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const user = req.user as any;
       const data = validation.data;
-      
+
       await storage.updateUser(user.id, {
         hasCompletedOnboarding: data.hasCompletedOnboarding,
-        onboardingData: data.onboardingData
+        onboardingData: data.onboardingData,
       });
 
       if (data.hasCompletedOnboarding) {
@@ -2577,15 +2696,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id,
           type: 'system',
           title: '🎉 Welcome to Max Booster!',
-          message: 'Your account setup is complete. Explore all the features to boost your music career!',
+          message:
+            'Your account setup is complete. Explore all the features to boost your music career!',
           read: false,
           link: '/dashboard',
-          metadata: { welcome: true }
+          metadata: { welcome: true },
         });
       }
-      
+
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2596,22 +2716,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Zod validation for input security
       const validationResult = createCheckoutSessionSchema.safeParse(req.body);
       if (!validationResult.success) {
-        return res.status(400).json({ 
-          error: 'Invalid input', 
-          details: validationResult.error.errors 
+        return res.status(400).json({
+          error: 'Invalid input',
+          details: validationResult.error.errors,
         });
       }
-      
-      const { tier, userEmail, username} = validationResult.data;
+
+      const { tier, userEmail, username } = validationResult.data;
 
       // Use programmatically generated price IDs
       const { getStripePriceIds } = await import('./services/stripeSetup');
       const priceIds = getStripePriceIds();
-      
+
       const priceMapping = {
         monthly: priceIds.monthly,
         yearly: priceIds.yearly,
-        lifetime: priceIds.lifetime
+        lifetime: priceIds.lifetime,
       };
 
       const priceId = priceMapping[tier as keyof typeof priceMapping];
@@ -2625,7 +2745,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tier,
           userEmail,
           username,
-          payment_before_account: 'true'
+          payment_before_account: 'true',
         },
         success_url: `${process.env.CLIENT_URL || 'http://localhost:5000'}/register/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.CLIENT_URL || 'http://localhost:5000'}/pricing`,
@@ -2634,33 +2754,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (tier === 'lifetime') {
         // One-time payment for lifetime
         sessionData.mode = 'payment';
-        sessionData.line_items = [{
-          price: priceId,
-          quantity: 1,
-        }];
+        sessionData.line_items = [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ];
       } else {
         // Recurring subscription
         sessionData.mode = 'subscription';
-        sessionData.line_items = [{
-          price: priceId,
-          quantity: 1,
-        }];
+        sessionData.line_items = [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ];
       }
 
       const session = await stripe.checkout.sessions.create(sessionData, {
-        idempotencyKey: `checkout_${userEmail}_${tier}_${Date.now()}`
+        idempotencyKey: `checkout_${userEmail}_${tier}_${Date.now()}`,
       });
-      
+
       // Log payment session creation
       auditLogger.logSecurityEvent(req, 'PAYMENT_SESSION_CREATED', 'medium', {
         tier,
         userEmail,
         username,
-        sessionId: session.id
+        sessionId: session.id,
       });
-      
+
       res.json({ url: session.url });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ error: { message: error.message } });
     }
   });
@@ -2671,23 +2795,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Zod validation for input security
       const validationResult = registerAfterPaymentSchema.safeParse(req.body);
       if (!validationResult.success) {
-        return res.status(400).json({ 
-          error: 'Invalid input', 
-          details: validationResult.error.errors 
+        return res.status(400).json({
+          error: 'Invalid input',
+          details: validationResult.error.errors,
         });
       }
-      
+
       const { sessionId, password } = validationResult.data;
 
       // Retrieve checkout session to verify payment
       const session = await stripe.checkout.sessions.retrieve(sessionId);
-      
+
       if (session.payment_status !== 'paid') {
         return res.status(400).json({ error: 'Payment not completed' });
       }
 
       const { userEmail, username, tier } = session.metadata || {};
-      
+
       if (!userEmail || !username || !tier) {
         return res.status(400).json({ error: 'Invalid session metadata' });
       }
@@ -2700,12 +2824,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
-      
+
       // Determine subscription plan based on tier and admin status
       let subscriptionPlan = tier;
       let subscriptionStatus = 'active';
       let subscriptionEndsAt = null;
-      
+
       // Special handling for admin account
       if (userEmail === 'brandonlawson720@gmail.com') {
         subscriptionPlan = 'lifetime';
@@ -2732,54 +2856,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subscriptionStatus,
         subscriptionEndsAt,
         stripeCustomerId: session.customer as string,
-        stripeSubscriptionId: tier !== 'lifetime' ? session.subscription as string : null,
+        stripeSubscriptionId: tier !== 'lifetime' ? (session.subscription as string) : null,
       });
 
       // Log successful registration and payment
       auditLogger.logRegistration(req, user.id, user.email, true);
-      auditLogger.logPayment(req, user.id, user.email, 
-        tier === 'monthly' ? 49 : tier === 'yearly' ? 468 : 699, 
-        true, sessionId);
+      auditLogger.logPayment(
+        req,
+        user.id,
+        user.email,
+        tier === 'monthly' ? 49 : tier === 'yearly' ? 468 : 699,
+        true,
+        sessionId
+      );
 
       // Log the user in (using Passport's logIn method)
       req.logIn(user, (err) => {
         if (err) {
-          console.error('Login error after registration:', err);
+          logger.error('Login error after registration:', err);
           return res.status(500).json({ error: 'Failed to establish session' });
         }
-        
+
         // Session tracking is handled by Redis - no need for PostgreSQL tracking
-        
-        res.json({ 
+
+        res.json({
           user: { ...user, password: undefined },
-          message: 'Account created successfully with active subscription'
+          message: 'Account created successfully with active subscription',
         });
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ error: error.message });
     }
   });
 
   // Stripe webhook endpoint with signature verification (CRITICAL FOR SECURITY)
-  app.post('/api/stripe/webhook', 
-    express.raw({ type: 'application/json' }), 
-    async (req, res) => {
+  app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     try {
       const sig = req.headers['stripe-signature'];
       const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-      
+
       // PRODUCTION SECURITY: Webhook secret is REQUIRED
       if (!webhookSecret) {
-        console.error('🚨 STRIPE_WEBHOOK_SECRET not configured - webhooks disabled for security');
-        console.error('🚨 To enable payment webhooks: Set STRIPE_WEBHOOK_SECRET in environment secrets');
-        console.error('🚨 Get it from: https://dashboard.stripe.com/webhooks');
-        return res.status(503).json({ 
-          error: 'Webhook endpoint not configured. Contact system administrator.' 
+        logger.error('🚨 STRIPE_WEBHOOK_SECRET not configured - webhooks disabled for security');
+        logger.error(
+          '🚨 To enable payment webhooks: Set STRIPE_WEBHOOK_SECRET in environment secrets'
+        );
+        logger.error('🚨 Get it from: https://dashboard.stripe.com/webhooks');
+        return res.status(503).json({
+          error: 'Webhook endpoint not configured. Contact system administrator.',
         });
       }
-      
+
       if (!sig) {
-        console.error('⚠️  Webhook request missing stripe-signature header');
+        logger.error('⚠️  Webhook request missing stripe-signature header');
         return res.status(400).json({ error: 'Missing stripe-signature header' });
       }
 
@@ -2787,15 +2916,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let event: Stripe.Event;
       try {
         event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-      } catch (err: any) {
-        console.error('🚨 Webhook signature verification FAILED:', err.message);
+      } catch (err: unknown) {
+        logger.error('🚨 Webhook signature verification FAILED:', err.message);
         auditLogger.logSecurityEvent(req, 'WEBHOOK_SIGNATURE_FAILED', 'critical', {
-          error: err.message
+          error: err.message,
         });
-        return res.status(400).json({ error: `Webhook signature verification failed: ${err.message}` });
+        return res
+          .status(400)
+          .json({ error: `Webhook signature verification failed: ${err.message}` });
       }
 
-      console.log(`✅ Stripe webhook received: ${event.type}`);
+      logger.info(`✅ Stripe webhook received: ${event.type}`);
 
       // Delegate to StripeService for business logic
       await stripeService.handleWebhook(event);
@@ -2803,14 +2934,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log security event for all webhooks
       auditLogger.logSecurityEvent(req, 'WEBHOOK_PROCESSED', 'low', {
         eventType: event.type,
-        eventId: event.id
+        eventId: event.id,
       });
 
       res.json({ received: true });
-    } catch (error: any) {
-      console.error('❌ Webhook processing error:', error);
+    } catch (error: unknown) {
+      logger.error('❌ Webhook processing error:', error);
       auditLogger.logSecurityEvent(req, 'WEBHOOK_PROCESSING_ERROR', 'high', {
-        error: error.message
+        error: error.message,
       });
       res.status(500).json({ error: error.message });
     }
@@ -2821,12 +2952,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = createSubscriptionSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const user = req.user as any;
       const { priceId } = validation.data;
 
@@ -2842,23 +2973,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error('No user email on file');
       }
 
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: user.username,
-      }, {
-        idempotencyKey: `customer_${user.id}_${Date.now()}`
-      });
+      const customer = await stripe.customers.create(
+        {
+          email: user.email,
+          name: user.username,
+        },
+        {
+          idempotencyKey: `customer_${user.id}_${Date.now()}`,
+        }
+      );
 
       await storage.updateUserStripeInfo(user.id, customer.id, null);
 
-      const subscription = await stripe.subscriptions.create({
-        customer: customer.id,
-        items: [{ price: priceId }],
-        payment_behavior: 'default_incomplete',
-        expand: ['latest_invoice.payment_intent'],
-      }, {
-        idempotencyKey: `subscription_${user.id}_${priceId}_${Date.now()}`
-      });
+      const subscription = await stripe.subscriptions.create(
+        {
+          customer: customer.id,
+          items: [{ price: priceId }],
+          payment_behavior: 'default_incomplete',
+          expand: ['latest_invoice.payment_intent'],
+        },
+        {
+          idempotencyKey: `subscription_${user.id}_${priceId}_${Date.now()}`,
+        }
+      );
 
       await storage.updateUserStripeInfo(user.id, customer.id, subscription.id);
 
@@ -2866,7 +3003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subscriptionId: subscription.id,
         clientSecret: (subscription.latest_invoice as any)?.payment_intent?.client_secret,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ error: { message: error.message } });
     }
   });
@@ -2877,10 +3014,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { page, limit } = getPaginationParams(req);
       const result = await storage.getAllUsers({ page, limit });
       res.json({
-        users: result.data.map(u => ({ ...u, password: undefined })),
-        pagination: result.pagination
+        users: result.data.map((u) => ({ ...u, password: undefined })),
+        pagination: result.pagination,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -2889,13 +3026,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const cacheKey = 'admin_analytics';
       const cached = await getAnalyticsCache(cacheKey);
-      
+
       if (cached) {
         return res.json(JSON.parse(cached));
       }
 
       const analytics = await storage.getAdminAnalytics();
-      
+
       const response = {
         totalUsers: analytics.totalUsers,
         totalProjects: analytics.totalProjects,
@@ -2904,7 +3041,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         recentSignups: analytics.recentSignups,
         revenueGrowth: 0,
         projectsGrowth: 0,
-        userGrowthRate: analytics.totalUsers > 0 ? (analytics.recentSignups / analytics.totalUsers) * 100 : 0,
+        userGrowthRate:
+          analytics.totalUsers > 0 ? (analytics.recentSignups / analytics.totalUsers) * 100 : 0,
         userGrowth: [],
         streamGrowth: [],
         topArtists: [],
@@ -2913,17 +3051,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         newUsers: analytics.recentSignups,
         activeUsers: analytics.totalUsers,
         monthlyGrowth: 0,
-        topCountries: []
+        topCountries: [],
       };
-      
+
       await setAnalyticsCache(cacheKey, JSON.stringify(response));
-      
+
       res.json(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
-
 
   // Admin metrics endpoint
   app.get('/api/admin/metrics', requireAdmin, async (req, res) => {
@@ -2931,7 +3068,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get real metrics from database
       const metrics = await storage.getAdminMetrics();
       res.json(metrics);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ error: error.message });
     }
   });
@@ -2942,7 +3079,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get recent activity from database (user logins, uploads, etc.)
       const activity = await storage.getRecentActivity();
       res.json(activity);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ error: error.message });
     }
   });
@@ -2952,49 +3089,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const stats = emailMonitor.getStats();
       res.json(stats);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ error: error.message });
     }
   });
 
   // Security Monitoring - Admin Only
-  app.get("/api/security/metrics", requireAuth, requireAdmin, async (req, res) => {
+  app.get('/api/security/metrics', requireAuth, requireAdmin, async (req, res) => {
     try {
       const metrics = await securityMonitoringService.getSecurityMetrics();
       res.json(metrics);
-    } catch (error: any) {
-      console.error("Error getting security metrics:", error);
-      res.status(500).json({ error: "Failed to get security metrics" });
+    } catch (error: unknown) {
+      logger.error('Error getting security metrics:', error);
+      res.status(500).json({ error: 'Failed to get security metrics' });
     }
   });
 
-  app.get("/api/security/behavioral-alerts", requireAuth, requireAdmin, async (req, res) => {
+  app.get('/api/security/behavioral-alerts', requireAuth, requireAdmin, async (req, res) => {
     try {
       const alerts = await securityMonitoringService.getBehavioralAlerts();
       res.json(alerts);
-    } catch (error: any) {
-      console.error("Error getting behavioral alerts:", error);
-      res.status(500).json({ error: "Failed to get behavioral alerts" });
+    } catch (error: unknown) {
+      logger.error('Error getting behavioral alerts:', error);
+      res.status(500).json({ error: 'Failed to get behavioral alerts' });
     }
   });
 
-  app.get("/api/security/anomaly-detection", requireAuth, requireAdmin, async (req, res) => {
+  app.get('/api/security/anomaly-detection', requireAuth, requireAdmin, async (req, res) => {
     try {
       const anomalies = await securityMonitoringService.detectSecurityAnomalies();
       res.json(anomalies);
-    } catch (error: any) {
-      console.error("Error detecting anomalies:", error);
-      res.status(500).json({ error: "Failed to detect anomalies" });
+    } catch (error: unknown) {
+      logger.error('Error detecting anomalies:', error);
+      res.status(500).json({ error: 'Failed to detect anomalies' });
     }
   });
 
-  app.get("/api/security/pentest-results", requireAuth, requireAdmin, async (req, res) => {
+  app.get('/api/security/pentest-results', requireAuth, requireAdmin, async (req, res) => {
     try {
       const results = await securityMonitoringService.getPentestResults();
       res.json(results);
-    } catch (error: any) {
-      console.error("Error getting pentest results:", error);
-      res.status(500).json({ error: "Failed to get pentest results" });
+    } catch (error: unknown) {
+      logger.error('Error getting pentest results:', error);
+      res.status(500).json({ error: 'Failed to get pentest results' });
     }
   });
 
@@ -3003,7 +3140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const settings = await storage.getAdminSettings();
       res.json(settings);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ error: error.message });
     }
   });
@@ -3012,20 +3149,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = updateAdminNotificationsSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { enabled } = validation.data;
       await storage.updateAdminSetting('emailNotifications', enabled);
       const settings = await storage.getAdminSettings();
-      
-      res.json({ 
-        enabled: settings.emailNotifications 
+
+      res.json({
+        enabled: settings.emailNotifications,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ error: error.message });
     }
   });
@@ -3034,20 +3171,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = updateAdminMaintenanceSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { enabled } = validation.data;
       await storage.updateAdminSetting('maintenanceMode', enabled);
       const settings = await storage.getAdminSettings();
-      
-      res.json({ 
-        enabled: settings.maintenanceMode 
+
+      res.json({
+        enabled: settings.maintenanceMode,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ error: error.message });
     }
   });
@@ -3056,20 +3193,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = updateAdminRegistrationSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { enabled } = validation.data;
       await storage.updateAdminSetting('userRegistrationEnabled', enabled);
       const settings = await storage.getAdminSettings();
-      
-      res.json({ 
-        enabled: settings.userRegistrationEnabled 
+
+      res.json({
+        enabled: settings.userRegistrationEnabled,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ error: error.message });
     }
   });
@@ -3082,43 +3219,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/distribution-providers', requireAdmin, async (req, res) => {
     try {
       const providerData = req.body;
-      
+
       // Validation - Required fields
       if (!providerData.providerName || !providerData.providerSlug || !providerData.baseUrl) {
-        return res.status(400).json({ 
-          error: 'Missing required fields: providerName, providerSlug, baseUrl' 
+        return res.status(400).json({
+          error: 'Missing required fields: providerName, providerSlug, baseUrl',
         });
       }
-      
+
       // Validate endpoints structure
       if (!providerData.endpoints || typeof providerData.endpoints !== 'object') {
         return res.status(400).json({ error: 'endpoints must be a valid JSON object' });
       }
-      
+
       // Validate authType
       if (!providerData.authType) {
         return res.status(400).json({ error: 'authType is required' });
       }
-      
+
       // Create or update provider
       const provider = await storage.upsertDistributionProvider(providerData);
-      
-      console.log(`✅ Distribution provider ${provider.providerName} configured successfully`);
-      
-      res.json({ 
-        success: true, 
+
+      logger.info(`✅ Distribution provider ${provider.providerName} configured successfully`);
+
+      res.json({
+        success: true,
         provider: {
           id: provider.id,
           name: provider.providerName,
           slug: provider.providerSlug,
           baseUrl: provider.baseUrl,
           isActive: provider.isActive,
-          isDefault: provider.isDefault
-        }
+          isDefault: provider.isDefault,
+        },
       });
-    } catch (error: any) {
-      console.error('Failed to configure distribution provider:', error);
-      res.status(500).json({ error: 'Failed to save provider configuration', details: error.message });
+    } catch (error: unknown) {
+      logger.error('Failed to configure distribution provider:', error);
+      res
+        .status(500)
+        .json({ error: 'Failed to save provider configuration', details: error.message });
     }
   });
 
@@ -3127,51 +3266,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const providers = await db.select().from(distributionProviders);
       res.json({ providers });
-    } catch (error: any) {
-      console.error('Failed to fetch distribution providers:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to fetch distribution providers:', error);
       res.status(500).json({ error: 'Failed to fetch providers', details: error.message });
     }
   });
 
   // ADMIN ONLY - Set default provider
-  app.post('/api/admin/distribution-providers/:slug/set-default', requireAdmin, async (req, res) => {
-    try {
-      const { slug } = req.params;
-      
-      // Unset all defaults
-      await db.update(distributionProviders).set({ isDefault: false });
-      
-      // Set new default
-      const [provider] = await db
-        .update(distributionProviders)
-        .set({ isDefault: true, updatedAt: new Date() })
-        .where(eq(distributionProviders.providerSlug, slug))
-        .returning();
-      
-      if (!provider) {
-        return res.status(404).json({ error: 'Provider not found' });
+  app.post(
+    '/api/admin/distribution-providers/:slug/set-default',
+    requireAdmin,
+    async (req, res) => {
+      try {
+        const { slug } = req.params;
+
+        // Unset all defaults
+        await db.update(distributionProviders).set({ isDefault: false });
+
+        // Set new default
+        const [provider] = await db
+          .update(distributionProviders)
+          .set({ isDefault: true, updatedAt: new Date() })
+          .where(eq(distributionProviders.providerSlug, slug))
+          .returning();
+
+        if (!provider) {
+          return res.status(404).json({ error: 'Provider not found' });
+        }
+
+        logger.info(`✅ Set ${provider.providerName} as default distribution provider`);
+
+        res.json({ success: true, provider });
+      } catch (error: unknown) {
+        logger.error('Failed to set default provider:', error);
+        res.status(500).json({ error: 'Failed to set default provider', details: error.message });
       }
-      
-      console.log(`✅ Set ${provider.providerName} as default distribution provider`);
-      
-      res.json({ success: true, provider });
-    } catch (error: any) {
-      console.error('Failed to set default provider:', error);
-      res.status(500).json({ error: 'Failed to set default provider', details: error.message });
     }
-  });
+  );
 
   // ============================================================================
   // DistroKid Clone - Distribution Routes
   // ============================================================================
-  
+
   // Get all releases for user
   app.get('/api/distribution/releases', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const releases = await storage.getUserReleases(userId);
       res.json(releases);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -3182,7 +3325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).id;
       const analytics = await storage.getDistributionAnalytics(userId);
       res.json(analytics);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -3190,18 +3333,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all distribution platforms
   app.get('/api/distribution/platforms', requireAuth, async (req, res) => {
     try {
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Query timeout')), 5000)
       );
-      
-      const platforms = await Promise.race([
+
+      const platforms = (await Promise.race([
         storage.getAllDistroProviders(),
-        timeoutPromise
-      ]) as any[];
-      
+        timeoutPromise,
+      ])) as any[];
+
       res.json(platforms);
-    } catch (error: any) {
-      console.error('Error fetching distribution platforms:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching distribution platforms:', error);
       res.json([]);
     }
   });
@@ -3214,104 +3357,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Platform not found' });
       }
       res.json(platform);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
 
   // Upload new release
-  app.post('/api/distribution/upload', requireAuth, upload.fields([
-    { name: 'albumArt', maxCount: 1 },
-    { name: 'audioFile_0', maxCount: 1 },
-    { name: 'audioFile_1', maxCount: 1 },
-    { name: 'audioFile_2', maxCount: 1 },
-    { name: 'audioFile_3', maxCount: 1 },
-    { name: 'audioFile_4', maxCount: 1 }
-  ]), async (req, res) => {
-    try {
-      const user = req.user as any;
-      const files = req.files as any;
-      
-      // Generate UPC code from timestamp and user ID
-      const upcCode = `UPC${Date.now()}${user.id.substring(0, 5)}`;
-      
-      // Process audio files
-      const audioFiles = [];
-      for (let i = 0; i < 5; i++) {
-        const audioFile = files[`audioFile_${i}`]?.[0];
-        if (audioFile) {
-          audioFiles.push({
-            path: audioFile.path,
-            filename: audioFile.originalname,
-            mimetype: audioFile.mimetype,
-            size: audioFile.size
-          });
+  app.post(
+    '/api/distribution/upload',
+    requireAuth,
+    upload.fields([
+      { name: 'albumArt', maxCount: 1 },
+      { name: 'audioFile_0', maxCount: 1 },
+      { name: 'audioFile_1', maxCount: 1 },
+      { name: 'audioFile_2', maxCount: 1 },
+      { name: 'audioFile_3', maxCount: 1 },
+      { name: 'audioFile_4', maxCount: 1 },
+    ]),
+    async (req, res) => {
+      try {
+        const user = req.user as any;
+        const files = req.files as any;
+
+        // Generate UPC code from timestamp and user ID
+        const upcCode = `UPC${Date.now()}${user.id.substring(0, 5)}`;
+
+        // Process audio files
+        const audioFiles = [];
+        for (let i = 0; i < 5; i++) {
+          const audioFile = files[`audioFile_${i}`]?.[0];
+          if (audioFile) {
+            audioFiles.push({
+              path: audioFile.path,
+              filename: audioFile.originalname,
+              mimetype: audioFile.mimetype,
+              size: audioFile.size,
+            });
+          }
         }
+
+        // Process album art
+        const albumArt = files['albumArt']?.[0];
+
+        const releaseData = {
+          title: req.body.title,
+          artist: req.body.artistName,
+          artistName: req.body.artistName,
+          releaseType: req.body.releaseType,
+          primaryGenre: req.body.primaryGenre,
+          secondaryGenre: req.body.secondaryGenre,
+          language: req.body.language,
+          releaseDate: req.body.releaseDate,
+          isScheduled: req.body.isScheduled === 'true',
+          scheduledDate: req.body.scheduledDate,
+          labelName: req.body.labelName || 'Independent',
+          copyrightYear: parseInt(req.body.copyrightYear),
+          copyrightOwner: req.body.copyrightOwner,
+          publishingRights: req.body.publishingRights,
+          selectedPlatforms: JSON.parse(req.body.selectedPlatforms || '[]'),
+          isExplicit: req.body.isExplicit === 'true',
+          iTunesPricing: req.body.iTunesPricing,
+          leaveALegacy: req.body.leaveALegacy === 'true',
+          legacyPrice: parseFloat(req.body.legacyPrice || '29'),
+          tracks: JSON.parse(req.body.tracks || '[]'),
+          collaborators: JSON.parse(req.body.collaborators || '[]'),
+          userId: user.id,
+          upcCode,
+          status: 'processing',
+          audioFiles,
+          albumArt: albumArt
+            ? {
+                path: albumArt.path,
+                filename: albumArt.originalname,
+                mimetype: albumArt.mimetype,
+              }
+            : null,
+        };
+
+        const release = await storage.createRelease(releaseData);
+
+        // Start distribution process (simulate)
+        setTimeout(async () => {
+          await storage.updateReleaseStatus(String(release.id), 'live');
+        }, 5000); // Simulate 5 second processing
+
+        res.json({ success: true, release });
+      } catch (error: unknown) {
+        res.status(500).json({ message: error.message });
       }
-
-      // Process album art
-      const albumArt = files['albumArt']?.[0];
-      
-      const releaseData = {
-        title: req.body.title,
-        artist: req.body.artistName,
-        artistName: req.body.artistName,
-        releaseType: req.body.releaseType,
-        primaryGenre: req.body.primaryGenre,
-        secondaryGenre: req.body.secondaryGenre,
-        language: req.body.language,
-        releaseDate: req.body.releaseDate,
-        isScheduled: req.body.isScheduled === 'true',
-        scheduledDate: req.body.scheduledDate,
-        labelName: req.body.labelName || 'Independent',
-        copyrightYear: parseInt(req.body.copyrightYear),
-        copyrightOwner: req.body.copyrightOwner,
-        publishingRights: req.body.publishingRights,
-        selectedPlatforms: JSON.parse(req.body.selectedPlatforms || '[]'),
-        isExplicit: req.body.isExplicit === 'true',
-        iTunesPricing: req.body.iTunesPricing,
-        leaveALegacy: req.body.leaveALegacy === 'true',
-        legacyPrice: parseFloat(req.body.legacyPrice || '29'),
-        tracks: JSON.parse(req.body.tracks || '[]'),
-        collaborators: JSON.parse(req.body.collaborators || '[]'),
-        userId: user.id,
-        upcCode,
-        status: 'processing',
-        audioFiles,
-        albumArt: albumArt ? {
-          path: albumArt.path,
-          filename: albumArt.originalname,
-          mimetype: albumArt.mimetype
-        } : null
-      };
-
-      const release = await storage.createRelease(releaseData);
-      
-      // Start distribution process (simulate)
-      setTimeout(async () => {
-        await storage.updateReleaseStatus(String(release.id), 'live');
-      }, 5000); // Simulate 5 second processing
-
-      res.json({ success: true, release });
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
     }
-  });
+  );
 
   // Create HyperFollow page
   app.post('/api/distribution/hyperfollow', requireAuth, async (req, res) => {
     try {
       const validation = createHyperFollowSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { releaseId } = validation.data;
       const user = req.user as any;
-      
+
       const hyperFollowData = {
         releaseId,
         userId: user.id,
@@ -3321,12 +3471,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         preSaves: 0,
         clicks: 0,
         collectEmails: true,
-        fanEmails: []
+        fanEmails: [],
       };
 
       const hyperFollowPage = await storage.createHyperFollowPage(hyperFollowData);
       res.json(hyperFollowPage);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -3337,8 +3487,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).id;
       const hyperFollowPages = await storage.getUserHyperFollowPages(userId);
       res.json(hyperFollowPages);
-    } catch (error: any) {
-      console.error('Error fetching HyperFollow pages:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching HyperFollow pages:', error);
       res.json([]);
     }
   });
@@ -3348,12 +3498,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any).id;
       const { period } = req.query;
-      
+
       // Get earnings breakdown from database by platform
       const platformEarnings = await storage.getPlatformEarnings(userId, period as string);
       res.json(platformEarnings);
-    } catch (error: any) {
-      console.error('Error fetching earnings breakdown:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching earnings breakdown:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });
@@ -3363,23 +3513,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { releaseId } = req.params;
       const userId = (req.user as any).id;
-      
+
       // Verify release ownership before fetching earnings
       const release = await db.query.releases.findFirst({
-        where: and(
-          eq(releases.id, releaseId),
-          eq(releases.userId, userId)
-        )
+        where: and(eq(releases.id, releaseId), eq(releases.userId, userId)),
       });
-      
+
       if (!release) {
         return res.status(404).json({ message: 'Release not found' });
       }
-      
+
       const earnings = await storage.getReleaseEarnings(releaseId, userId);
       res.json(earnings);
-    } catch (error: any) {
-      console.error('Error fetching release earnings:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching release earnings:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });
@@ -3389,18 +3536,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = updateReleaseSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { id } = req.params;
       const user = req.user as any;
-      
+
       const release = await storage.updateRelease(id, user.id, validation.data);
       res.json(release);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -3410,10 +3557,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const user = req.user as any;
-      
+
       await storage.deleteRelease(id, user.id);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -3423,18 +3570,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { format = 'csv', startDate, endDate } = req.body;
       const userId = (req.user as any).id;
-      
+
       // CRITICAL: Validate format against allowlist to prevent header injection
       const allowedFormats = ['csv'] as const;
       if (!allowedFormats.includes(format as any)) {
-        return res.status(400).json({ 
-          error: 'Invalid format. Only CSV is supported currently.' 
+        return res.status(400).json({
+          error: 'Invalid format. Only CSV is supported currently.',
         });
       }
-      
+
       // Build conditions array - ALWAYS include userId to prevent data exposure
       const conditions = [eq(releases.userId, userId)];
-      
+
       // Add date filters if provided
       if (startDate) {
         conditions.push(gte(releases.releaseDate, new Date(startDate)));
@@ -3442,30 +3589,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (endDate) {
         conditions.push(lte(releases.releaseDate, new Date(endDate)));
       }
-      
+
       // SINGLE .where() with and() to combine all conditions - prevents WHERE clause replacement
       const userReleases = await db
         .select()
         .from(releases)
         .where(and(...conditions))
         .execute();
-      
+
       // Generate CSV content
       let content = 'Release ID,Title,Artist,Status,Release Date,Streams,Revenue\n';
-      userReleases.forEach(release => {
-        const releaseDate = release.releaseDate 
+      userReleases.forEach((release) => {
+        const releaseDate = release.releaseDate
           ? new Date(release.releaseDate).toISOString().split('T')[0]
           : 'N/A';
         content += `${release.id},"${release.title}","${release.artist || 'Unknown'}",${release.status || 'draft'},"${releaseDate}",0,0.00\n`;
       });
-      
+
       // Safe headers with validated format
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename="distribution-report-${Date.now()}.csv"`);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="distribution-report-${Date.now()}.csv"`
+      );
       res.send(content);
-      
-    } catch (error) {
-      console.error('Error exporting report:', error);
+    } catch (error: unknown) {
+      logger.error('Error exporting report:', error);
       res.status(500).json({ error: 'Failed to export report' });
     }
   });
@@ -3474,65 +3623,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/distribution/analytics/growth', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
-      
+
       // Calculate date ranges for current and previous periods (30 days each)
       const now = new Date();
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
-      
+
       // Get current period analytics (last 30 days) - removed totalListeners (doesn't exist in DB)
       const currentPeriod = await db
         .select({
           totalStreams: sql<number>`COALESCE(SUM(${analytics.streams}), 0)`,
-          totalRevenue: sql<string>`COALESCE(SUM(${analytics.revenue}), 0)`
+          totalRevenue: sql<string>`COALESCE(SUM(${analytics.revenue}), 0)`,
         })
         .from(analytics)
-        .where(and(
-          eq(analytics.userId, userId),
-          gte(analytics.date, thirtyDaysAgo),
-          lte(analytics.date, now)
-        ));
-      
+        .where(
+          and(
+            eq(analytics.userId, userId),
+            gte(analytics.date, thirtyDaysAgo),
+            lte(analytics.date, now)
+          )
+        );
+
       // Get previous period analytics (30-60 days ago)
       const previousPeriod = await db
         .select({
           totalStreams: sql<number>`COALESCE(SUM(${analytics.streams}), 0)`,
-          totalRevenue: sql<string>`COALESCE(SUM(${analytics.revenue}), 0)`
+          totalRevenue: sql<string>`COALESCE(SUM(${analytics.revenue}), 0)`,
         })
         .from(analytics)
-        .where(and(
-          eq(analytics.userId, userId),
-          gte(analytics.date, sixtyDaysAgo),
-          lte(analytics.date, thirtyDaysAgo)
-        ));
-      
+        .where(
+          and(
+            eq(analytics.userId, userId),
+            gte(analytics.date, sixtyDaysAgo),
+            lte(analytics.date, thirtyDaysAgo)
+          )
+        );
+
       // Calculate growth percentages
       const currentStreams = currentPeriod[0]?.totalStreams || 0;
       const previousStreams = previousPeriod[0]?.totalStreams || 0;
-      const streamGrowth = previousStreams > 0 
-        ? ((currentStreams - previousStreams) / previousStreams) * 100 
-        : currentStreams > 0 ? 100 : 0;
-      
+      const streamGrowth =
+        previousStreams > 0
+          ? ((currentStreams - previousStreams) / previousStreams) * 100
+          : currentStreams > 0
+            ? 100
+            : 0;
+
       const currentRevenue = parseFloat(currentPeriod[0]?.totalRevenue || '0');
       const previousRevenue = parseFloat(previousPeriod[0]?.totalRevenue || '0');
-      const revenueGrowth = previousRevenue > 0 
-        ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 
-        : currentRevenue > 0 ? 100 : 0;
-      
+      const revenueGrowth =
+        previousRevenue > 0
+          ? ((currentRevenue - previousRevenue) / previousRevenue) * 100
+          : currentRevenue > 0
+            ? 100
+            : 0;
+
       res.json({
         streamGrowth: Math.round(streamGrowth * 100) / 100,
         revenueGrowth: Math.round(revenueGrowth * 100) / 100,
         followerGrowth: 0,
-        period: '30d'
+        period: '30d',
       });
-    } catch (error: any) {
-      console.error('Error fetching analytics growth:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching analytics growth:', error);
       // Return safe defaults instead of 500 error
       res.json({
         streamGrowth: 0,
         revenueGrowth: 0,
         followerGrowth: 0,
-        period: '30d'
+        period: '30d',
       });
     }
   });
@@ -3541,34 +3700,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/distribution/streaming-trends', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
-      
+
       // Get streaming data for last 30 days, grouped by platform and date
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      
+
       const trends = await db
         .select({
           date: analytics.date,
           platform: analytics.platform,
-          streams: sql<number>`COALESCE(SUM(${analytics.streams}), 0)`
+          streams: sql<number>`COALESCE(SUM(${analytics.streams}), 0)`,
         })
         .from(analytics)
-        .where(and(
-          eq(analytics.userId, userId),
-          gte(analytics.date, thirtyDaysAgo)
-        ))
+        .where(and(eq(analytics.userId, userId), gte(analytics.date, thirtyDaysAgo)))
         .groupBy(analytics.date, analytics.platform)
         .orderBy(desc(analytics.date));
-      
+
       // Format response to match expected interface
-      const formattedTrends = trends.map(trend => ({
+      const formattedTrends = trends.map((trend) => ({
         date: trend.date?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
         platform: trend.platform || 'unknown',
-        streams: trend.streams || 0
+        streams: trend.streams || 0,
       }));
-      
+
       res.json(formattedTrends);
-    } catch (error: any) {
-      console.error('Error fetching streaming trends:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching streaming trends:', error);
       // Return empty array instead of 500 error
       res.json([]);
     }
@@ -3578,36 +3734,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/distribution/geographic', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
-      
+
       // Get all analytics data - DB has: id, user_id, release_id, platform, streams, revenue, date, metadata, created_at
-      const analyticsData = await db
-        .select()
-        .from(analytics)
-        .where(eq(analytics.userId, userId));
-      
+      const analyticsData = await db.select().from(analytics).where(eq(analytics.userId, userId));
+
       // Aggregate geographic data from metadata JSONB field
       const geographicMap = new Map<string, { streams: number; earnings: number }>();
-      
-      analyticsData.forEach(record => {
+
+      analyticsData.forEach((record) => {
         const metadata = record.metadata as any;
         const streams = record.streams || 0;
         const revenue = parseFloat(record.revenue?.toString() || '0');
-        
+
         // Extract country data from metadata if available
         if (metadata && typeof metadata === 'object') {
           // Check for audience data in metadata
           const audienceData = metadata.audience || metadata.audienceData;
           if (audienceData && typeof audienceData === 'object') {
             if (audienceData.countries && Array.isArray(audienceData.countries)) {
-              audienceData.countries.forEach((countryData: any) => {
+              audienceData.countries.forEach((countryData: unknown) => {
                 const country = countryData.country || 'Unknown';
                 const countryStreams = countryData.streams || streams;
                 const countryEarnings = countryData.earnings || revenue;
-                
+
                 const existing = geographicMap.get(country) || { streams: 0, earnings: 0 };
                 geographicMap.set(country, {
                   streams: existing.streams + countryStreams,
-                  earnings: existing.earnings + countryEarnings
+                  earnings: existing.earnings + countryEarnings,
                 });
               });
               return;
@@ -3617,42 +3770,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const existing = geographicMap.get(country) || { streams: 0, earnings: 0 };
               geographicMap.set(country, {
                 streams: existing.streams + streams,
-                earnings: existing.earnings + revenue
+                earnings: existing.earnings + revenue,
               });
               return;
             }
           }
-          
+
           // Check for country directly in metadata
           if (metadata.country) {
             const country = metadata.country || 'Unknown';
             const existing = geographicMap.get(country) || { streams: 0, earnings: 0 };
             geographicMap.set(country, {
               streams: existing.streams + streams,
-              earnings: existing.earnings + revenue
+              earnings: existing.earnings + revenue,
             });
             return;
           }
         }
-        
+
         // If no geographic data, attribute to Unknown
         const existing = geographicMap.get('Unknown') || { streams: 0, earnings: 0 };
         geographicMap.set('Unknown', {
           streams: existing.streams + streams,
-          earnings: existing.earnings + revenue
+          earnings: existing.earnings + revenue,
         });
       });
-      
+
       // Convert map to array and format
       const geographicData = Array.from(geographicMap.entries()).map(([country, data]) => ({
         country,
         streams: data.streams,
-        earnings: Math.round(data.earnings * 100) / 100
+        earnings: Math.round(data.earnings * 100) / 100,
       }));
-      
+
       res.json(geographicData);
-    } catch (error: any) {
-      console.error('Error fetching geographic data:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching geographic data:', error);
       // Return empty array instead of 500 error
       res.json([]);
     }
@@ -3664,8 +3817,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).id;
       const platformEarnings = await storage.getPlatformEarnings(userId, 'all');
       res.json(platformEarnings);
-    } catch (error: any) {
-      console.error('Error fetching platform earnings:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching platform earnings:', error);
       // Return empty array instead of 500 error
       res.json([]);
     }
@@ -3675,7 +3828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/distribution/payout-history', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
-      
+
       // Query payout events from payoutEvents table
       const payouts = await db
         .select({
@@ -3685,24 +3838,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           currency: payoutEvents.currency,
           status: payoutEvents.status,
           type: payoutEvents.type,
-          stripeTransferId: payoutEvents.stripeTransferId
+          stripeTransferId: payoutEvents.stripeTransferId,
         })
         .from(payoutEvents)
         .where(eq(payoutEvents.userId, userId))
         .orderBy(desc(payoutEvents.createdAt));
-      
+
       // Format response to match expected interface (amount in dollars, not cents)
-      const formattedPayouts = payouts.map(payout => ({
+      const formattedPayouts = payouts.map((payout) => ({
         date: payout.date?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
         amount: (payout.amount || 0) / 100, // Convert cents to dollars
         status: payout.status || 'pending',
         platform: payout.type || 'stripe',
-        currency: payout.currency || 'usd'
+        currency: payout.currency || 'usd',
       }));
-      
+
       res.json(formattedPayouts);
-    } catch (error: any) {
-      console.error('Error fetching payout history:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching payout history:', error);
       // Return empty array instead of 500 error
       res.json([]);
     }
@@ -3712,9 +3865,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/distribution/hyperfollow/analytics', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
-      
+
       // Get all HyperFollow pages for the user
-      // DB schema: id, release_id, user_id (INTEGER), url, is_active, custom_artwork, 
+      // DB schema: id, release_id, user_id (INTEGER), url, is_active, custom_artwork,
       //            social_links, custom_text, page_views, pre_saves, clicks, collect_emails,
       //            fan_emails, fan_insights, created_at, updated_at
       // Note: user_id is INTEGER in DB, but req.user.id is string - try both
@@ -3722,60 +3875,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select()
         .from(hyperFollowPages)
         .where(sql`${hyperFollowPages.userId}::text = ${userId}`);
-      
+
       // Calculate date ranges for growth (last 30 days vs previous 30 days)
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
-      
+
       // Aggregate metrics from pages
       let currentTotalViews = 0;
       let currentTotalClicks = 0;
       let currentTotalPreSaves = 0;
       let previousTotalViews = 0;
       let previousTotalPreSaves = 0;
-      
-      pages.forEach(page => {
+
+      pages.forEach((page) => {
         const createdAt = page.createdAt ? new Date(page.createdAt) : new Date(0);
-        
+
         // Check if page was created in current or previous period
         const isInCurrentPeriod = createdAt >= thirtyDaysAgo;
         const isInPreviousPeriod = createdAt >= sixtyDaysAgo && createdAt < thirtyDaysAgo;
-        
+
         // Use actual DB columns: page_views, clicks, pre_saves
         const pageViews = (page as any).page_views || 0;
         const pageClicks = (page as any).clicks || 0;
         const pagePreSaves = (page as any).pre_saves || 0;
-        
+
         if (isInCurrentPeriod) {
           currentTotalViews += pageViews;
           currentTotalClicks += pageClicks;
           currentTotalPreSaves += pagePreSaves;
         }
-        
+
         if (isInPreviousPeriod) {
           previousTotalViews += pageViews;
           previousTotalPreSaves += pagePreSaves;
         }
       });
-      
+
       // Calculate conversion rate (preSaves / views)
-      const conversionRate = currentTotalViews > 0 
-        ? (currentTotalPreSaves / currentTotalViews) * 100 
-        : 0;
-      
+      const conversionRate =
+        currentTotalViews > 0 ? (currentTotalPreSaves / currentTotalViews) * 100 : 0;
+
       // Calculate growth percentages
-      const viewsGrowth = previousTotalViews > 0
-        ? ((currentTotalViews - previousTotalViews) / previousTotalViews) * 100
-        : currentTotalViews > 0 ? 100 : 0;
-      
-      const preSavesGrowth = previousTotalPreSaves > 0
-        ? ((currentTotalPreSaves - previousTotalPreSaves) / previousTotalPreSaves) * 100
-        : currentTotalPreSaves > 0 ? 100 : 0;
-      
-      const conversionGrowth = previousTotalViews > 0 && currentTotalViews > 0
-        ? ((currentTotalPreSaves / currentTotalViews) - (previousTotalPreSaves / previousTotalViews)) * 100
-        : 0;
-      
+      const viewsGrowth =
+        previousTotalViews > 0
+          ? ((currentTotalViews - previousTotalViews) / previousTotalViews) * 100
+          : currentTotalViews > 0
+            ? 100
+            : 0;
+
+      const preSavesGrowth =
+        previousTotalPreSaves > 0
+          ? ((currentTotalPreSaves - previousTotalPreSaves) / previousTotalPreSaves) * 100
+          : currentTotalPreSaves > 0
+            ? 100
+            : 0;
+
+      const conversionGrowth =
+        previousTotalViews > 0 && currentTotalViews > 0
+          ? (currentTotalPreSaves / currentTotalViews -
+              previousTotalPreSaves / previousTotalViews) *
+            100
+          : 0;
+
       res.json({
         preSavesGrowth: Math.round(preSavesGrowth * 100) / 100,
         viewsGrowth: Math.round(viewsGrowth * 100) / 100,
@@ -3783,10 +3944,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversionGrowth: Math.round(conversionGrowth * 100) / 100,
         totalClicks: currentTotalClicks,
         totalViews: currentTotalViews,
-        totalPreSaves: currentTotalPreSaves
+        totalPreSaves: currentTotalPreSaves,
       });
-    } catch (error: any) {
-      console.error('Error fetching hyperfollow analytics:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching hyperfollow analytics:', error);
       // Return default metrics instead of 500 error
       res.json({
         preSavesGrowth: 0,
@@ -3795,23 +3956,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversionGrowth: 0,
         totalClicks: 0,
         totalViews: 0,
-        totalPreSaves: 0
+        totalPreSaves: 0,
       });
     }
   });
 
   // ===== MAX BOOSTER STUDIO API ROUTES =====
   // Now uses unified projects table with isStudioProject flag
-  
+
   // Studio Project Management
   app.get('/api/studio/projects', requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
       const { page, limit } = getPaginationParams(req);
       // Show ALL projects in Studio, not just isStudioProject=true
-      const result = await storage.getUserProjectsWithStudio(user.id, { page, limit, studioOnly: false });
+      const result = await storage.getUserProjectsWithStudio(user.id, {
+        page,
+        limit,
+        studioOnly: false,
+      });
       res.json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -3821,14 +3986,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const user = req.user as any;
       const project = await storage.getProject(id);
-      
+
       // Allow ALL user projects in Studio, not just isStudioProject=true
       if (!project || project.userId !== user.id) {
         return res.status(404).json({ message: 'Project not found' });
       }
-      
+
       res.json(project);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -3839,12 +4004,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertProjectSchema.parse({
         ...req.body,
         userId: user.id,
-        isStudioProject: true
+        isStudioProject: true,
       });
-      
+
       const project = await storage.createProject(validatedData);
       res.status(201).json(project);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -3853,25 +4018,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = updateProjectSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { id } = req.params;
       const user = req.user as any;
-      
+
       const project = await storage.getProject(id);
-      
+
       // Allow ALL user projects in Studio, not just isStudioProject=true
       if (!project || project.userId !== user.id) {
         return res.status(404).json({ message: 'Project not found' });
       }
-      
+
       const updatedProject = await storage.updateProject(id, validation.data);
       res.json(updatedProject);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -3880,25 +4045,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = updateProjectSchema.partial().safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { id } = req.params;
       const user = req.user as any;
-      
+
       const project = await storage.getProject(id);
-      
+
       // Allow ALL user projects in Studio, not just isStudioProject=true
       if (!project || project.userId !== user.id) {
         return res.status(404).json({ message: 'Project not found' });
       }
-      
+
       const updatedProject = await storage.updateProject(id, validation.data);
       res.json(updatedProject);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -3907,17 +4072,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const user = req.user as any;
-      
+
       const project = await storage.getProject(id);
-      
+
       // Allow ALL user projects in Studio, not just isStudioProject=true
       if (!project || project.userId !== user.id) {
         return res.status(404).json({ message: 'Project not found' });
       }
-      
+
       await storage.deleteProject(id);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -3927,27 +4092,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { projectId } = req.params;
       const tracks = await storage.getProjectTracks(projectId);
-      
+
       // Fetch audio clips for each track to include filePath
       const tracksWithClips = await Promise.all(
         tracks.map(async (track) => {
           const clips = await storage.getTrackAudioClips(track.id);
           return {
             ...track,
-            clips: clips.map(clip => ({
+            clips: clips.map((clip) => ({
               id: clip.id,
               name: clip.name,
               startTime: clip.startTime || 0,
               duration: clip.duration || 0,
-              filePath: filePathToUrl(clip.filePath)
+              filePath: filePathToUrl(clip.filePath),
             })),
-            filePath: filePathToUrl(clips[0]?.filePath || null)
+            filePath: filePathToUrl(clips[0]?.filePath || null),
           };
         })
       );
-      
+
       res.json(tracksWithClips);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -3957,12 +4122,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { projectId } = req.params;
       const validatedData = insertStudioTrackSchema.parse({
         ...req.body,
-        projectId
+        projectId,
       });
-      
+
       const track = await storage.createStudioTrack(validatedData);
       res.status(201).json(track);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -3971,10 +4136,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { projectId } = req.body;
-      
+
       const track = await storage.updateStudioTrack(id, projectId, req.body);
       res.json(track);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -3983,15 +4148,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const user = req.user as any;
-      
+
       const track = await storage.getStudioTrack(id);
       if (!track) {
         return res.status(404).json({ message: 'Track not found' });
       }
-      
+
       const updatedTrack = await storage.updateStudioTrack(id, track.projectId, req.body);
       res.json(updatedTrack);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4000,10 +4165,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { projectId } = req.body;
-      
+
       await storage.deleteStudioTrack(id, projectId);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4012,14 +4177,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/studio/plugins', requireAuth, async (req, res) => {
     try {
       const { category } = req.query;
-      
+
       // Seed catalog if empty (first-time setup)
       await storage.seedPluginCatalog();
-      
+
       const plugins = await storage.getPluginCatalog(category as string | undefined);
-      
+
       // Map 'kind' to 'category' for frontend compatibility
-      const pluginsWithCategory = plugins.map(plugin => ({
+      const pluginsWithCategory = plugins.map((plugin) => ({
         id: plugin.id,
         name: plugin.name,
         category: plugin.kind,
@@ -4027,12 +4192,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         version: plugin.version,
         description: plugin.manifest?.description || '',
         manufacturer: plugin.manifest?.manufacturer || 'Max Booster',
-        tags: plugin.manifest?.tags || []
+        tags: plugin.manifest?.tags || [],
       }));
-      
+
       res.json(pluginsWithCategory);
-    } catch (error: any) {
-      console.error('Error fetching plugin catalog:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching plugin catalog:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -4042,17 +4207,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any).id;
       const samples = await storage.getUserAssets(userId, 'sample', undefined, undefined, 100, 0);
-      res.json(samples.map(sample => ({
-        id: sample.id,
-        name: sample.name,
-        fileUrl: sample.fileUrl,
-        fileType: sample.fileType,
-        fileSize: sample.fileSize,
-        duration: sample.duration,
-        createdAt: sample.createdAt
-      })));
-    } catch (error: any) {
-      console.error('Error fetching samples:', error);
+      res.json(
+        samples.map((sample) => ({
+          id: sample.id,
+          name: sample.name,
+          fileUrl: sample.fileUrl,
+          fileType: sample.fileType,
+          fileSize: sample.fileSize,
+          duration: sample.duration,
+          createdAt: sample.createdAt,
+        }))
+      );
+    } catch (error: unknown) {
+      logger.error('Error fetching samples:', error);
       res.status(500).json({ error: 'Failed to fetch samples' });
     }
   });
@@ -4062,23 +4229,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any).id;
       const limit = parseInt(req.query.limit as string) || 10;
-      
+
       // Get user's recent projects (last 10)
-      const recentProjects = await storage.getUserProjectsWithStudio(userId, { page: 1, limit, studioOnly: false });
-      
-      const recentFiles = recentProjects.data.map((project: any) => ({
+      const recentProjects = await storage.getUserProjectsWithStudio(userId, {
+        page: 1,
+        limit,
+        studioOnly: false,
+      });
+
+      const recentFiles = recentProjects.data.map((project: unknown) => ({
         id: project.id,
         name: project.title,
         type: 'project',
         filePath: project.filePath,
         audioUrl: filePathToUrl(project.filePath),
         updatedAt: project.updatedAt,
-        createdAt: project.createdAt
+        createdAt: project.createdAt,
       }));
-      
+
       res.json(recentFiles);
-    } catch (error: any) {
-      console.error('Error fetching recent files:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching recent files:', error);
       res.status(500).json({ error: 'Failed to fetch recent files' });
     }
   });
@@ -4089,7 +4260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { projectId } = req.params;
       const busses = await storage.getProjectBusses(projectId);
       res.json(busses);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4099,7 +4270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertMixBusSchema.parse(req.body);
       const bus = await storage.createMixBus(validatedData);
       res.status(201).json(bus);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -4110,7 +4281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { projectId, ...updates } = req.body;
       const bus = await storage.updateMixBus(id, projectId, updates);
       res.json(bus);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4121,7 +4292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { projectId } = req.body;
       await storage.deleteMixBus(id, projectId);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4131,52 +4302,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { trackId } = req.params;
       const clips = await storage.getTrackAudioClips(trackId);
-      const clipsWithUrls = clips.map(clip => ({
+      const clipsWithUrls = clips.map((clip) => ({
         ...clip,
-        filePath: filePathToUrl(clip.filePath)
+        filePath: filePathToUrl(clip.filePath),
       }));
       res.json(clipsWithUrls);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.post('/api/studio/tracks/:trackId/audio-clips', requireAuth, upload.single('audioFile'), async (req, res) => {
-    try {
-      const { trackId } = req.params;
-      const file = req.file;
-      
-      if (!file) {
-        return res.status(400).json({ message: 'Audio file is required' });
+  app.post(
+    '/api/studio/tracks/:trackId/audio-clips',
+    requireAuth,
+    upload.single('audioFile'),
+    async (req, res) => {
+      try {
+        const { trackId } = req.params;
+        const file = req.file;
+
+        if (!file) {
+          return res.status(400).json({ message: 'Audio file is required' });
+        }
+
+        const validatedData = insertAudioClipSchema.parse({
+          ...req.body,
+          trackId,
+          filePath: file.path,
+          originalFilename: file.originalname,
+          fileSize: file.size,
+          duration: parseFloat(req.body.duration) || 0,
+        });
+
+        const clip = await storage.createAudioClip(validatedData);
+        res.status(201).json({
+          ...clip,
+          filePath: filePathToUrl(clip.filePath),
+        });
+      } catch (error: unknown) {
+        res.status(400).json({ message: error.message });
       }
-      
-      const validatedData = insertAudioClipSchema.parse({
-        ...req.body,
-        trackId,
-        filePath: file.path,
-        originalFilename: file.originalname,
-        fileSize: file.size,
-        duration: parseFloat(req.body.duration) || 0
-      });
-      
-      const clip = await storage.createAudioClip(validatedData);
-      res.status(201).json({
-        ...clip,
-        filePath: filePathToUrl(clip.filePath)
-      });
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
     }
-  });
+  );
 
   app.put('/api/studio/audio-clips/:id', requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
       const { trackId } = req.body;
-      
+
       const clip = await storage.updateAudioClip(id, trackId, req.body);
       res.json(clip);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4184,11 +4360,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/studio/audio-clips/:id', requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      const { studioService } = await import("./services/studioService");
-      
+      const { studioService } = await import('./services/studioService');
+
       const clip = await studioService.updateAudioClip(id, req.body);
       res.json(clip);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4197,10 +4373,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { trackId } = req.body;
-      
+
       await storage.deleteAudioClip(id, trackId);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4208,11 +4384,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/studio/audio-clips/:id/normalize', requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      const { studioService } = await import("./services/studioService");
-      
+      const { studioService } = await import('./services/studioService');
+
       const clip = await studioService.normalizeClip(id);
       res.json(clip);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4221,26 +4397,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { splitTime } = req.body;
-      const { studioService } = await import("./services/studioService");
-      
+      const { studioService } = await import('./services/studioService');
+
       if (!splitTime) {
         return res.status(400).json({ message: 'splitTime is required' });
       }
-      
+
       const result = await studioService.splitClip(id, parseFloat(splitTime));
       res.json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  // MIDI Clip Management  
+  // MIDI Clip Management
   app.get('/api/studio/tracks/:trackId/midi-clips', requireAuth, async (req, res) => {
     try {
       const { trackId } = req.params;
       const clips = await storage.getTrackMidiClips(trackId);
       res.json(clips);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4250,12 +4426,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { trackId } = req.params;
       const validatedData = insertMidiClipSchema.parse({
         ...req.body,
-        trackId
+        trackId,
       });
-      
+
       const clip = await storage.createMidiClip(validatedData);
       res.status(201).json(clip);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -4264,10 +4440,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { trackId } = req.body;
-      
+
       const clip = await storage.updateMidiClip(id, trackId, req.body);
       res.json(clip);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4276,10 +4452,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { trackId } = req.body;
-      
+
       await storage.deleteMidiClip(id, trackId);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4290,7 +4466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { trackId } = req.params;
       const instruments = await storage.getTrackInstruments(trackId);
       res.json(instruments);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4300,12 +4476,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { trackId } = req.params;
       const validatedData = insertVirtualInstrumentSchema.parse({
         ...req.body,
-        trackId
+        trackId,
       });
-      
+
       const instrument = await storage.createVirtualInstrument(validatedData);
       res.status(201).json(instrument);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -4314,10 +4490,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { trackId } = req.body;
-      
+
       const instrument = await storage.updateVirtualInstrument(id, trackId, req.body);
       res.json(instrument);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4326,39 +4502,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { trackId } = req.body;
-      
+
       await storage.deleteVirtualInstrument(id, trackId);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
 
   // Phase 8: Track Freeze/Unfreeze Management
-  app.post('/api/studio/tracks/:id/freeze', requireAuth, upload.single('audio'), async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { studioService } = await import("./services/studioService");
-      
-      if (!req.file) {
-        return res.status(400).json({ message: 'Audio file is required' });
+  app.post(
+    '/api/studio/tracks/:id/freeze',
+    requireAuth,
+    upload.single('audio'),
+    async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { studioService } = await import('./services/studioService');
+
+        if (!req.file) {
+          return res.status(400).json({ message: 'Audio file is required' });
+        }
+
+        const result = await studioService.freezeTrack(id, req.file, req.body.projectId);
+        res.json(result);
+      } catch (error: unknown) {
+        res.status(500).json({ message: error.message });
       }
-      
-      const result = await studioService.freezeTrack(id, req.file, req.body.projectId);
-      res.json(result);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
     }
-  });
+  );
 
   app.post('/api/studio/tracks/:id/unfreeze', requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      const { studioService } = await import("./services/studioService");
-      
+      const { studioService } = await import('./services/studioService');
+
       const result = await studioService.unfreezeTrack(id, req.body.projectId);
       res.json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4369,7 +4550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { trackId } = req.params;
       const effects = await storage.getTrackEffects(trackId);
       res.json(effects);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4377,13 +4558,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/projects/:projectId/tracks/:trackId/effects', requireAuth, async (req, res) => {
     try {
       const { projectId, trackId } = req.params;
-      const { updateTrackEffectsSchema } = await import("@shared/schema");
-      
+      const { updateTrackEffectsSchema } = await import('@shared/schema');
+
       const validatedEffects = updateTrackEffectsSchema.parse(req.body);
-      const updatedTrack = await storage.updateStudioTrackEffects(trackId, projectId, validatedEffects);
-      
+      const updatedTrack = await storage.updateStudioTrackEffects(
+        trackId,
+        projectId,
+        validatedEffects
+      );
+
       res.json(updatedTrack);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error.name === 'ZodError') {
         return res.status(400).json({ message: 'Invalid effects data', errors: error.errors });
       }
@@ -4396,7 +4581,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { projectId } = req.params;
       const effects = await storage.getProjectEffects(projectId);
       res.json(effects);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4406,7 +4591,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertAudioEffectSchema.parse(req.body);
       const effect = await storage.createAudioEffect(validatedData);
       res.status(201).json(effect);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -4416,7 +4601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const effect = await storage.updateAudioEffect(id, req.body);
       res.json(effect);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4426,7 +4611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       await storage.deleteAudioEffect(id);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4437,7 +4622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { projectId } = req.params;
       const busses = await storage.getProjectBusses(projectId);
       res.json(busses);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4447,12 +4632,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { projectId } = req.params;
       const validatedData = insertMixBusSchema.parse({
         ...req.body,
-        projectId
+        projectId,
       });
-      
+
       const bus = await storage.createMixBus(validatedData);
       res.status(201).json(bus);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -4461,10 +4646,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { projectId } = req.body;
-      
+
       const bus = await storage.updateMixBus(id, projectId, req.body);
       res.json(bus);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4473,10 +4658,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { projectId } = req.body;
-      
+
       await storage.deleteMixBus(id, projectId);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4486,80 +4671,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { projectId } = req.params;
       const userId = (req.user as any).id;
-      
+
       const project = await storage.getProject(projectId);
       if (!project || project.userId !== userId) {
         return res.status(404).json({ error: 'Project not found' });
       }
-      
+
       const projectMarkers = await storage.getProjectMarkers(projectId);
       res.json({ markers: projectMarkers });
-    } catch (error: any) {
-      console.error('Error fetching markers:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching markers:', error);
       res.status(500).json({ error: 'Failed to fetch markers' });
     }
   });
-  
+
   app.post('/api/studio/projects/:projectId/markers', requireAuth, async (req, res) => {
     try {
       const { projectId } = req.params;
       const userId = (req.user as any).id;
       const { name, time, position, color, type } = req.body;
-      
+
       const project = await storage.getProject(projectId);
       if (!project || project.userId !== userId) {
         return res.status(404).json({ error: 'Project not found' });
       }
-      
+
       const newMarker = await storage.createMarker({
         projectId,
         name,
         time,
         position: position || time,
         color,
-        type: type || 'marker'
+        type: type || 'marker',
       });
-      
+
       res.status(201).json(newMarker);
-    } catch (error: any) {
-      console.error('Error creating marker:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating marker:', error);
       res.status(500).json({ error: 'Failed to create marker' });
     }
   });
-  
+
   app.patch('/api/studio/projects/:projectId/markers/:markerId', requireAuth, async (req, res) => {
     try {
       const { projectId, markerId } = req.params;
       const userId = (req.user as any).id;
       const updates = req.body;
-      
+
       const project = await storage.getProject(projectId);
       if (!project || project.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       const updatedMarker = await storage.updateMarker(markerId, projectId, updates);
       res.json(updatedMarker);
-    } catch (error: any) {
-      console.error('Error updating marker:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating marker:', error);
       res.status(500).json({ error: 'Failed to update marker' });
     }
   });
-  
+
   app.delete('/api/studio/projects/:projectId/markers/:markerId', requireAuth, async (req, res) => {
     try {
       const { projectId, markerId } = req.params;
       const userId = (req.user as any).id;
-      
+
       const project = await storage.getProject(projectId);
       if (!project || project.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       await storage.deleteMarker(markerId, projectId);
       res.status(204).send();
-    } catch (error: any) {
-      console.error('Error deleting marker:', error);
+    } catch (error: unknown) {
+      logger.error('Error deleting marker:', error);
       res.status(500).json({ error: 'Failed to delete marker' });
     }
   });
@@ -4570,7 +4755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { projectId } = req.params;
       const automation = await storage.getProjectAutomation(projectId);
       res.json(automation);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4580,7 +4765,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { trackId } = req.params;
       const automation = await storage.getTrackAutomation(trackId);
       res.json(automation);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4590,7 +4775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertAutomationDataSchema.parse(req.body);
       const automation = await storage.createAutomationData(validatedData);
       res.status(201).json(automation);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -4599,18 +4784,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = updateAutomationSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { id } = req.params;
       const { projectId } = validation.data;
-      
+
       const automation = await storage.updateAutomationData(id, projectId, validation.data);
       res.json(automation);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4619,10 +4804,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { projectId } = req.body;
-      
+
       await storage.deleteAutomationData(id, projectId);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4633,7 +4818,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { projectId } = req.params;
       const markers = await storage.getProjectMarkers(projectId);
       res.json(markers);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4643,12 +4828,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { projectId } = req.params;
       const validatedData = insertMarkerSchema.parse({
         ...req.body,
-        projectId
+        projectId,
       });
-      
+
       const marker = await storage.createMarker(validatedData);
       res.status(201).json(marker);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -4657,18 +4842,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = updateMarkerSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { id } = req.params;
       const { projectId } = validation.data;
-      
+
       const marker = await storage.updateMarker(id, projectId, validation.data);
       res.json(marker);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4677,10 +4862,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { projectId } = req.body;
-      
+
       await storage.deleteMarker(id, projectId);
       res.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4689,14 +4874,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/studio/lyrics', requireAuth, async (req, res) => {
     try {
       const { projectId } = req.query;
-      
+
       if (!projectId || typeof projectId !== 'string') {
         return res.status(400).json({ message: 'projectId is required' });
       }
-      
+
       const lyrics = await storage.getProjectLyrics(projectId);
       res.json(lyrics || null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4704,30 +4889,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/studio/lyrics', requireAuth, async (req, res) => {
     try {
       const { projectId, content, entries } = req.body;
-      
+
       if (!projectId) {
         return res.status(400).json({ message: 'projectId is required' });
       }
-      
+
       const existingLyrics = await storage.getProjectLyrics(projectId);
-      
+
       if (existingLyrics) {
         const updatedLyrics = await storage.updateLyrics(existingLyrics.id, projectId, {
           content,
-          entries
+          entries,
         });
         return res.json(updatedLyrics);
       }
-      
+
       const validatedData = insertLyricsSchema.parse({
         projectId,
         content,
-        entries: entries || []
+        entries: entries || [],
       });
-      
+
       const lyrics = await storage.createLyrics(validatedData);
       res.status(201).json(lyrics);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -4736,18 +4921,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = updateLyricsEntriesSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { id } = req.params;
       const { projectId, entries } = validation.data;
-      
+
       const lyrics = await storage.updateLyrics(id, projectId, { entries });
       res.json(lyrics);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4755,26 +4940,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Music Generation Routes
   app.post('/api/studio/generation/text', requireAuth, async (req, res) => {
     try {
-      const { parseTextToParameters, generateChordProgression, generateMelody, synthesizeToWAV } = await import('./services/musicGenerationService');
+      const { parseTextToParameters, generateChordProgression, generateMelody, synthesizeToWAV } =
+        await import('./services/musicGenerationService');
       const { projectId, text } = req.body;
       const userId = (req.user as any).id;
-      
+
       if (!text || typeof text !== 'string') {
         return res.status(400).json({ message: 'Text description is required' });
       }
-      
+
       // Parse text to music parameters
       const parameters = parseTextToParameters(text);
-      
+
       // Generate chord progression
       const chords = generateChordProgression(parameters);
-      
+
       // Generate melody based on chords
       const notes = generateMelody(parameters, chords);
-      
+
       // Synthesize to WAV file
       const audioFilePath = await synthesizeToWAV(notes, chords, parameters);
-      
+
       // Save to database
       const generation = await storage.createGeneratedMelody({
         projectId: projectId || null,
@@ -4787,62 +4973,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         parameters,
         audioFilePath,
       });
-      
+
       res.status(201).json(generation);
-    } catch (error: any) {
-      console.error('Text-to-music generation error:', error);
+    } catch (error: unknown) {
+      logger.error('Text-to-music generation error:', error);
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.post('/api/studio/generation/audio', requireAuth, upload.single('audio'), async (req, res) => {
-    try {
-      const { analyzeAudioForGeneration, generateComplementaryMelody, synthesizeToWAV } = await import('./services/musicGenerationService');
-      const { projectId } = req.body;
-      const userId = (req.user as any).id;
-      
-      if (!req.file) {
-        return res.status(400).json({ message: 'Audio file is required' });
+  app.post(
+    '/api/studio/generation/audio',
+    requireAuth,
+    upload.single('audio'),
+    async (req, res) => {
+      try {
+        const { analyzeAudioForGeneration, generateComplementaryMelody, synthesizeToWAV } =
+          await import('./services/musicGenerationService');
+        const { projectId } = req.body;
+        const userId = (req.user as any).id;
+
+        if (!req.file) {
+          return res.status(400).json({ message: 'Audio file is required' });
+        }
+
+        const audioPath = req.file.path;
+
+        // Analyze audio to extract parameters
+        const parameters = await analyzeAudioForGeneration(audioPath);
+
+        // Generate complementary melody/chords
+        const { notes, chords } = generateComplementaryMelody(parameters);
+
+        // Synthesize to WAV file
+        const audioFilePath = await synthesizeToWAV(notes, chords, parameters);
+
+        // Save to database
+        const generation = await storage.createGeneratedMelody({
+          projectId: projectId || null,
+          userId,
+          sourceType: 'audio',
+          sourceText: null,
+          sourceAudioPath: audioPath,
+          generatedNotes: notes,
+          generatedChords: chords,
+          parameters,
+          audioFilePath,
+        });
+
+        res.status(201).json(generation);
+      } catch (error: unknown) {
+        logger.error('Audio-to-music generation error:', error);
+        res.status(500).json({ message: error.message });
       }
-      
-      const audioPath = req.file.path;
-      
-      // Analyze audio to extract parameters
-      const parameters = await analyzeAudioForGeneration(audioPath);
-      
-      // Generate complementary melody/chords
-      const { notes, chords } = generateComplementaryMelody(parameters);
-      
-      // Synthesize to WAV file
-      const audioFilePath = await synthesizeToWAV(notes, chords, parameters);
-      
-      // Save to database
-      const generation = await storage.createGeneratedMelody({
-        projectId: projectId || null,
-        userId,
-        sourceType: 'audio',
-        sourceText: null,
-        sourceAudioPath: audioPath,
-        generatedNotes: notes,
-        generatedChords: chords,
-        parameters,
-        audioFilePath,
-      });
-      
-      res.status(201).json(generation);
-    } catch (error: any) {
-      console.error('Audio-to-music generation error:', error);
-      res.status(500).json({ message: error.message });
     }
-  });
+  );
 
   app.get('/api/studio/generation/:projectId', requireAuth, async (req, res) => {
     try {
       const { projectId } = req.params;
       const generations = await storage.getProjectGeneratedMelodies(projectId);
       res.json(generations);
-    } catch (error: any) {
-      console.error('Get generations error:', error);
+    } catch (error: unknown) {
+      logger.error('Get generations error:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -4850,22 +5042,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/studio/generation/:id', requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // Get the generation to delete the audio file
       const generation = await storage.getGeneratedMelody(id);
       if (generation?.audioFilePath) {
         const filePath = path.join(process.cwd(), 'public', generation.audioFilePath);
         try {
           await fs.unlink(filePath);
-        } catch (err) {
-          console.error('Failed to delete audio file:', err);
+        } catch (err: unknown) {
+          logger.error('Failed to delete audio file:', err);
         }
       }
-      
+
       await storage.deleteGeneratedMelody(id);
       res.json({ success: true });
-    } catch (error: any) {
-      console.error('Delete generation error:', error);
+    } catch (error: unknown) {
+      logger.error('Delete generation error:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -4876,14 +5068,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { label, state } = req.body;
       const userId = (req.user as any).id;
-      
+
       const autosave = await storage.createAutosave({
         projectId: id,
         authorId: userId,
         label: label || 'autosave',
-        state: state || {}
+        state: state || {},
       });
-      
+
       const autosaves = await storage.getProjectAutosaves(id);
       if (autosaves.length > 10) {
         const toDelete = autosaves.slice(10);
@@ -4891,9 +5083,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.deleteAutosave(old.id);
         }
       }
-      
+
       res.json(autosave);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4903,7 +5095,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const autosaves = await storage.getProjectAutosaves(id);
       res.json(autosaves);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4912,13 +5104,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { autosaveId } = req.params;
       const autosave = await storage.getAutosave(parseInt(autosaveId));
-      
+
       if (!autosave) {
         return res.status(404).json({ message: 'Autosave not found' });
       }
-      
+
       res.json(autosave);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4929,7 +5121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { studioService } = await import('./services/studioService');
       const templates = await studioService.getTemplates();
       res.json(templates);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4939,10 +5131,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { name } = req.params;
       const userId = (req.user as any).id;
       const { studioService } = await import('./services/studioService');
-      
+
       const project = await studioService.createProjectFromTemplate(name, userId);
       res.status(201).json(project);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -4953,36 +5145,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { name, description } = req.body;
       const userId = (req.user as any).id;
       const { studioService } = await import('./services/studioService');
-      
+
       const template = await studioService.saveProjectAsTemplate(id, name, description, userId);
       res.status(201).json(template);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
 
   // Phase 7: Export routes - Real audio export with OfflineAudioContext rendering
   const exportJobs = new Map<string, any>();
-  
+
   app.post('/api/studio/export', requireAuth, async (req, res) => {
     try {
-      const { 
-        projectId, 
-        exportType, 
-        trackIds, 
-        format, 
-        sampleRate, 
-        bitDepth, 
+      const {
+        projectId,
+        exportType,
+        trackIds,
+        format,
+        sampleRate,
+        bitDepth,
         bitrate,
         normalize,
         dither,
         startTime,
         endTime,
-        metadata
+        metadata,
       } = req.body;
-      
+
       const jobId = `export-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // Create job with 'awaiting_upload' status (client will render and upload)
       exportJobs.set(jobId, {
         id: jobId,
@@ -4997,170 +5189,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
         normalize,
         dither,
         startedAt: new Date(),
-        files: [] // Will store uploaded file paths
+        files: [], // Will store uploaded file paths
       });
-      
-      res.json({ 
-        jobId, 
+
+      res.json({
+        jobId,
         status: 'awaiting_upload',
-        message: 'Export job created. Client should render and upload audio.' 
+        message: 'Export job created. Client should render and upload audio.',
       });
-      
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
-  
+
   // Upload endpoint for client-rendered audio
-  app.post('/api/studio/export/:jobId/upload', requireAuth, upload.array('audio'), async (req, res) => {
-    try {
-      const { jobId } = req.params;
-      const job = exportJobs.get(jobId);
-      
-      if (!job) {
-        return res.status(404).json({ message: 'Export job not found' });
-      }
-      
-      const files = req.files as Express.Multer.File[];
-      if (!files || files.length === 0) {
-        return res.status(400).json({ message: 'No audio files uploaded' });
-      }
-      
-      // Update job status
-      job.status = 'processing';
-      job.progress = 50;
-      job.uploadedFiles = files.map(f => f.path);
-      
-      // Process files asynchronously
-      (async () => {
-        try {
-          const { audioService: AudioServiceClass } = await import('./services/audioService');
-          const audioService = new AudioServiceClass();
-          const processedFiles: string[] = [];
-          
-          // Convert each uploaded WAV to the requested format
-          for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const outputPath = await audioService.convertAudioFormat(
-              file.path,
-              job.format,
-              {
+  app.post(
+    '/api/studio/export/:jobId/upload',
+    requireAuth,
+    upload.array('audio'),
+    async (req, res) => {
+      try {
+        const { jobId } = req.params;
+        const job = exportJobs.get(jobId);
+
+        if (!job) {
+          return res.status(404).json({ message: 'Export job not found' });
+        }
+
+        const files = req.files as Express.Multer.File[];
+        if (!files || files.length === 0) {
+          return res.status(400).json({ message: 'No audio files uploaded' });
+        }
+
+        // Update job status
+        job.status = 'processing';
+        job.progress = 50;
+        job.uploadedFiles = files.map((f) => f.path);
+
+        // Process files asynchronously
+        (async () => {
+          try {
+            const { audioService: AudioServiceClass } = await import('./services/audioService');
+            const audioService = new AudioServiceClass();
+            const processedFiles: string[] = [];
+
+            // Convert each uploaded WAV to the requested format
+            for (let i = 0; i < files.length; i++) {
+              const file = files[i];
+              const outputPath = await audioService.convertAudioFormat(file.path, job.format, {
                 sampleRate: job.sampleRate,
                 bitDepth: job.bitDepth,
                 bitrate: job.bitrate ? `${job.bitrate}k` : undefined,
+              });
+
+              // Verify conversion succeeded and file exists
+              if (!fs.existsSync(outputPath)) {
+                throw new Error(`Conversion failed: output file not found at ${outputPath}`);
               }
-            );
-            
-            // Verify conversion succeeded and file exists
-            if (!fs.existsSync(outputPath)) {
-              throw new Error(`Conversion failed: output file not found at ${outputPath}`);
+
+              // Rename converted file with correct extension if needed
+              const correctExt = job.format === 'wav' ? '.wav' : `.${job.format}`;
+              const currentExt = path.extname(outputPath);
+
+              let finalPath = outputPath;
+              if (currentExt !== correctExt) {
+                const newPath = outputPath.replace(/\.[^.]+$/, correctExt);
+                fs.renameSync(outputPath, newPath);
+                finalPath = newPath;
+              }
+
+              processedFiles.push(finalPath);
             }
-            
-            // Rename converted file with correct extension if needed
-            const correctExt = job.format === 'wav' ? '.wav' : `.${job.format}`;
-            const currentExt = path.extname(outputPath);
-            
-            let finalPath = outputPath;
-            if (currentExt !== correctExt) {
-              const newPath = outputPath.replace(/\.[^.]+$/, correctExt);
-              fs.renameSync(outputPath, newPath);
-              finalPath = newPath;
-            }
-            
-            processedFiles.push(finalPath);
-          }
-          
-          // If stems export (multiple files), create ZIP
-          if (job.exportType === 'stems' && processedFiles.length > 1) {
-            const archiver = (await import('archiver')).default;
-            const zipPath = path.join(uploadDir, `${jobId}.zip`);
-            const output = fs.createWriteStream(zipPath);
-            const archive = archiver('zip', { zlib: { level: 9 } });
-            
-            archive.pipe(output);
-            
-            // Add files with proper sequential naming (stem1.mp3, stem2.mp3, etc.)
-            for (let i = 0; i < processedFiles.length; i++) {
-              const filePath = processedFiles[i];
+
+            // If stems export (multiple files), create ZIP
+            if (job.exportType === 'stems' && processedFiles.length > 1) {
+              const archiver = (await import('archiver')).default;
+              const zipPath = path.join(uploadDir, `${jobId}.zip`);
+              const output = fs.createWriteStream(zipPath);
+              const archive = archiver('zip', { zlib: { level: 9 } });
+
+              archive.pipe(output);
+
+              // Add files with proper sequential naming (stem1.mp3, stem2.mp3, etc.)
+              for (let i = 0; i < processedFiles.length; i++) {
+                const filePath = processedFiles[i];
+                const ext = job.format === 'wav' ? 'wav' : job.format;
+                const stemName = `stem${i + 1}.${ext}`;
+                archive.file(filePath, { name: stemName });
+              }
+
+              await archive.finalize();
+
+              // Wait for ZIP to finish writing
+              await new Promise((resolve, reject) => {
+                output.on('close', resolve);
+                output.on('error', reject);
+              });
+
+              job.filePath = zipPath;
+              job.fileName = `stems_${jobId}.zip`;
+
+              // Clean up individual converted files and original WAVs
+              for (const filePath of [...processedFiles, ...job.uploadedFiles]) {
+                try {
+                  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                } catch (e: unknown) {}
+              }
+            } else {
+              // Single file export - ensure correct extension
+              const convertedFile = processedFiles[0];
               const ext = job.format === 'wav' ? 'wav' : job.format;
-              const stemName = `stem${i + 1}.${ext}`;
-              archive.file(filePath, { name: stemName });
+
+              job.filePath = convertedFile;
+              job.fileName = `export_${jobId}.${ext}`;
+
+              // Clean up uploaded WAV (original)
+              for (const uploadedFile of job.uploadedFiles) {
+                try {
+                  if (fs.existsSync(uploadedFile) && uploadedFile !== convertedFile) {
+                    fs.unlinkSync(uploadedFile);
+                  }
+                } catch (e: unknown) {}
+              }
             }
-            
-            await archive.finalize();
-            
-            // Wait for ZIP to finish writing
-            await new Promise((resolve, reject) => {
-              output.on('close', resolve);
-              output.on('error', reject);
-            });
-            
-            job.filePath = zipPath;
-            job.fileName = `stems_${jobId}.zip`;
-            
-            // Clean up individual converted files and original WAVs
-            for (const filePath of [...processedFiles, ...job.uploadedFiles]) {
+
+            job.status = 'completed';
+            job.progress = 100;
+            job.completedAt = new Date();
+          } catch (error: unknown) {
+            logger.error('Export processing error:', error);
+            job.status = 'failed';
+            job.error = error.message;
+
+            // Clean up files on error
+            for (const file of job.uploadedFiles || []) {
               try {
-                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-              } catch (e) {}
-            }
-          } else {
-            // Single file export - ensure correct extension
-            const convertedFile = processedFiles[0];
-            const ext = job.format === 'wav' ? 'wav' : job.format;
-            
-            job.filePath = convertedFile;
-            job.fileName = `export_${jobId}.${ext}`;
-            
-            // Clean up uploaded WAV (original)
-            for (const uploadedFile of job.uploadedFiles) {
-              try {
-                if (fs.existsSync(uploadedFile) && uploadedFile !== convertedFile) {
-                  fs.unlinkSync(uploadedFile);
-                }
-              } catch (e) {}
+                if (fs.existsSync(file)) fs.unlinkSync(file);
+              } catch (e: unknown) {}
             }
           }
-          
-          job.status = 'completed';
-          job.progress = 100;
-          job.completedAt = new Date();
-          
-        } catch (error: any) {
-          console.error('Export processing error:', error);
-          job.status = 'failed';
-          job.error = error.message;
-          
-          // Clean up files on error
-          for (const file of job.uploadedFiles || []) {
-            try {
-              if (fs.existsSync(file)) fs.unlinkSync(file);
-            } catch (e) {}
-          }
-        }
-      })();
-      
-      res.json({ 
-        success: true, 
-        message: 'Audio uploaded successfully. Processing...' 
-      });
-      
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
+        })();
+
+        res.json({
+          success: true,
+          message: 'Audio uploaded successfully. Processing...',
+        });
+      } catch (error: unknown) {
+        res.status(500).json({ message: error.message });
+      }
     }
-  });
+  );
 
   app.get('/api/studio/export/:jobId/status', requireAuth, async (req, res) => {
     try {
       const { jobId } = req.params;
       const job = exportJobs.get(jobId);
-      
+
       if (!job) {
         return res.status(404).json({ message: 'Export job not found' });
       }
-      
+
       res.json(job);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -5169,34 +5359,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { jobId } = req.params;
       const job = exportJobs.get(jobId);
-      
+
       if (!job || job.status !== 'completed') {
         return res.status(404).json({ message: 'Export not ready or not found' });
       }
-      
+
       if (!fs.existsSync(job.filePath)) {
         return res.status(404).json({ message: 'Export file not found' });
       }
-      
+
       // Send file with proper filename
       res.download(job.filePath, job.fileName, (err) => {
         if (err) {
-          console.error('Download error:', err);
+          logger.error('Download error:', err);
         }
-        
+
         // Clean up file and job after successful download
         try {
           if (fs.existsSync(job.filePath)) {
             fs.unlinkSync(job.filePath);
           }
-        } catch (cleanupError) {
-          console.error('File cleanup error:', cleanupError);
+        } catch (cleanupError: unknown) {
+          logger.error('File cleanup error:', cleanupError);
         }
-        
+
         exportJobs.delete(jobId);
       });
-      
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -5206,30 +5395,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sourceFilePath, targetFormat, qualityPreset, projectId } = req.body;
       const userId = (req.user as any).id;
-      
+
       // Validate request body
       if (!sourceFilePath || !targetFormat || !qualityPreset) {
-        return res.status(400).json({ message: 'Missing required fields: sourceFilePath, targetFormat, qualityPreset' });
+        return res
+          .status(400)
+          .json({
+            message: 'Missing required fields: sourceFilePath, targetFormat, qualityPreset',
+          });
       }
-      
+
       // Validate format
       const validFormats = ['wav', 'mp3', 'flac', 'ogg', 'aac', 'm4a'];
       if (!validFormats.includes(targetFormat.toLowerCase())) {
-        return res.status(400).json({ message: `Invalid format. Supported: ${validFormats.join(', ')}` });
+        return res
+          .status(400)
+          .json({ message: `Invalid format. Supported: ${validFormats.join(', ')}` });
       }
-      
+
       // Validate quality preset
       const validPresets = ['low', 'medium', 'high', 'lossless'];
       if (!validPresets.includes(qualityPreset.toLowerCase())) {
-        return res.status(400).json({ message: `Invalid preset. Supported: ${validPresets.join(', ')}` });
+        return res
+          .status(400)
+          .json({ message: `Invalid preset. Supported: ${validPresets.join(', ')}` });
       }
-      
+
       // Verify source file exists and user has access
       const fullSourcePath = path.join(process.cwd(), sourceFilePath);
       if (!fs.existsSync(fullSourcePath)) {
         return res.status(404).json({ message: 'Source file not found' });
       }
-      
+
       // Create conversion record in database
       const conversion = await storage.createConversion({
         projectId: projectId || null,
@@ -5238,16 +5435,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         targetFormat: targetFormat.toLowerCase(),
         qualityPreset: qualityPreset.toLowerCase(),
         status: 'pending',
-        progress: 0
+        progress: 0,
       });
-      
+
       // Queue the conversion job
       const { enqueueConversion } = await import('./services/studioConversionService');
       await enqueueConversion(conversion.id, storage);
-      
+
       res.status(201).json(conversion);
-    } catch (error: any) {
-      console.error('Conversion creation error:', error);
+    } catch (error: unknown) {
+      logger.error('Conversion creation error:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -5256,21 +5453,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { projectId } = req.query;
       const userId = (req.user as any).id;
-      
+
       let conversions;
       if (projectId) {
         // Get conversions for specific project
         conversions = await storage.getProjectConversions(projectId as string);
         // Filter by user ownership
-        conversions = conversions.filter((c: any) => c.userId === userId);
+        conversions = conversions.filter((c: unknown) => c.userId === userId);
       } else {
         // Get all conversions for user
         conversions = await storage.getUserConversions(userId);
       }
-      
+
       res.json(conversions);
-    } catch (error: any) {
-      console.error('Get conversions error:', error);
+    } catch (error: unknown) {
+      logger.error('Get conversions error:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -5279,21 +5476,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userId = (req.user as any).id;
-      
+
       const conversion = await storage.getConversion(id);
-      
+
       if (!conversion) {
         return res.status(404).json({ message: 'Conversion not found' });
       }
-      
+
       // Verify user owns this conversion
       if (conversion.userId !== userId) {
         return res.status(403).json({ message: 'Access denied' });
       }
-      
+
       res.json(conversion);
-    } catch (error: any) {
-      console.error('Get conversion error:', error);
+    } catch (error: unknown) {
+      logger.error('Get conversion error:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -5302,31 +5499,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userId = (req.user as any).id;
-      
+
       const conversion = await storage.getConversion(id);
-      
+
       if (!conversion) {
         return res.status(404).json({ message: 'Conversion not found' });
       }
-      
+
       // Verify user owns this conversion
       if (conversion.userId !== userId) {
         return res.status(403).json({ message: 'Access denied' });
       }
-      
+
       // Only allow canceling pending or processing conversions
       if (!['pending', 'processing'].includes(conversion.status)) {
         return res.status(400).json({ message: 'Cannot cancel completed conversion' });
       }
-      
+
       // Cancel the conversion
       const { cancelConversion } = await import('./services/studioConversionService');
       await cancelConversion(id, storage);
-      
+
       const updatedConversion = await storage.getConversion(id);
       res.json(updatedConversion);
-    } catch (error: any) {
-      console.error('Cancel conversion error:', error);
+    } catch (error: unknown) {
+      logger.error('Cancel conversion error:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -5335,42 +5532,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userId = (req.user as any).id;
-      
+
       const conversion = await storage.getConversion(id);
-      
+
       if (!conversion) {
         return res.status(404).json({ message: 'Conversion not found' });
       }
-      
+
       // Verify user owns this conversion
       if (conversion.userId !== userId) {
         return res.status(403).json({ message: 'Access denied' });
       }
-      
+
       // Verify conversion is completed
       if (conversion.status !== 'completed') {
         return res.status(400).json({ message: 'Conversion not completed yet' });
       }
-      
+
       // Verify output file exists
       if (!conversion.outputFilePath) {
         return res.status(404).json({ message: 'Output file not found' });
       }
-      
+
       const fullPath = path.join(process.cwd(), conversion.outputFilePath);
       if (!fs.existsSync(fullPath)) {
         return res.status(404).json({ message: 'Output file missing from disk' });
       }
-      
+
       // Send file for download
       const filename = path.basename(conversion.outputFilePath);
       res.download(fullPath, filename, (err) => {
         if (err) {
-          console.error('Download error:', err);
+          logger.error('Download error:', err);
         }
       });
-    } catch (error: any) {
-      console.error('Download conversion error:', error);
+    } catch (error: unknown) {
+      logger.error('Download conversion error:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -5380,12 +5577,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = schedulePostSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { platforms, content, mediaUrl, scheduledTime } = validation.data;
       const result = await socialMediaService.schedulePost(
         platforms,
@@ -5394,7 +5591,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scheduledTime ? new Date(scheduledTime) : undefined
       );
       res.json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -5404,7 +5601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { channelId } = req.params;
       const stats = await socialMediaService.getYouTubeChannelStats(channelId);
       res.json(stats);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -5414,7 +5611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { platform } = req.params;
       const user = req.user as any;
-      
+
       let testResult;
       switch (platform.toLowerCase()) {
         case 'facebook':
@@ -5449,12 +5646,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: !!testResult,
         platform,
         data: testResult,
-        message: testResult ? 'Connection successful' : 'Connection failed - check API credentials'
+        message: testResult ? 'Connection successful' : 'Connection failed - check API credentials',
       });
-    } catch (error: any) {
-      res.status(500).json({ 
+    } catch (error: unknown) {
+      res.status(500).json({
         success: false,
-        message: `Connection test failed: ${error.message}` 
+        message: `Connection test failed: ${error.message}`,
       });
     }
   });
@@ -5472,12 +5669,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/social/callback/facebook', requireAuth, async (req, res) => {
     const { code, state } = req.query;
-    
+
     // Validate state parameter for CSRF protection
     if (!state || state !== (req.user as any).id) {
       return res.redirect('/social-media?error=csrf-validation-failed');
     }
-    
+
     try {
       const user = req.user as any;
       const tokenResponse = await axios.get(`https://graph.facebook.com/v18.0/oauth/access_token`, {
@@ -5485,13 +5682,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           client_id: process.env.FACEBOOK_APP_ID,
           client_secret: process.env.FACEBOOK_APP_SECRET,
           redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/facebook`,
-          code
-        }
+          code,
+        },
       });
-      
+
       await storage.updateUserSocialToken(user.id, 'facebook', tokenResponse.data.access_token);
       res.redirect('/social-media?connected=facebook');
-    } catch (error) {
+    } catch (error: unknown) {
       res.redirect('/social-media?error=facebook');
     }
   });
@@ -5506,29 +5703,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/social/callback/twitter', requireAuth, async (req, res) => {
     const { code, state } = req.query;
-    
+
     // Validate state parameter for CSRF protection
     if (!state || state !== (req.user as any).id) {
       return res.redirect('/social-media?error=csrf-validation-failed');
     }
-    
+
     try {
-      const tokenResponse = await axios.post('https://api.twitter.com/2/oauth2/token', {
-        code,
-        grant_type: 'authorization_code',
-        client_id: process.env.TWITTER_API_KEY,
-        redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/twitter`,
-        code_verifier: 'challenge'
-      }, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${Buffer.from(`${process.env.TWITTER_API_KEY}:${process.env.TWITTER_API_SECRET}`).toString('base64')}`
+      const tokenResponse = await axios.post(
+        'https://api.twitter.com/2/oauth2/token',
+        {
+          code,
+          grant_type: 'authorization_code',
+          client_id: process.env.TWITTER_API_KEY,
+          redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/twitter`,
+          code_verifier: 'challenge',
+        },
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Authorization: `Basic ${Buffer.from(`${process.env.TWITTER_API_KEY}:${process.env.TWITTER_API_SECRET}`).toString('base64')}`,
+          },
         }
-      });
-      
-      await storage.updateUserSocialToken((req.user as any).id, 'twitter', tokenResponse.data.access_token);
+      );
+
+      await storage.updateUserSocialToken(
+        (req.user as any).id,
+        'twitter',
+        tokenResponse.data.access_token
+      );
       res.redirect('/social-media?connected=twitter');
-    } catch (error) {
+    } catch (error: unknown) {
       res.redirect('/social-media?error=twitter');
     }
   });
@@ -5544,26 +5749,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/social/callback/linkedin', requireAuth, async (req, res) => {
     const { code, state } = req.query;
-    
+
     // Validate state parameter for CSRF protection
     if (!state || state !== (req.user as any).id) {
       return res.redirect('/social-media?error=csrf-validation-failed');
     }
-    
+
     try {
-      const tokenResponse = await axios.post('https://www.linkedin.com/oauth/v2/accessToken', {
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/linkedin`,
-        client_id: process.env.LINKEDIN_CLIENT_ID,
-        client_secret: process.env.LINKEDIN_CLIENT_SECRET
-      }, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-      });
-      
-      await storage.updateUserSocialToken((req.user as any).id, 'linkedin', tokenResponse.data.access_token);
+      const tokenResponse = await axios.post(
+        'https://www.linkedin.com/oauth/v2/accessToken',
+        {
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/linkedin`,
+          client_id: process.env.LINKEDIN_CLIENT_ID,
+          client_secret: process.env.LINKEDIN_CLIENT_SECRET,
+        },
+        {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        }
+      );
+
+      await storage.updateUserSocialToken(
+        (req.user as any).id,
+        'linkedin',
+        tokenResponse.data.access_token
+      );
       res.redirect('/social-media?connected=linkedin');
-    } catch (error) {
+    } catch (error: unknown) {
       res.redirect('/social-media?error=linkedin');
     }
   });
@@ -5579,25 +5792,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/social/callback/threads', requireAuth, async (req, res) => {
     const { code, state } = req.query;
-    
+
     // Validate state parameter for CSRF protection
     if (!state || state !== (req.user as any).id) {
       return res.redirect('/social-media?error=csrf-validation-failed');
     }
-    
+
     try {
       const tokenResponse = await axios.get(`https://graph.threads.net/oauth/access_token`, {
         params: {
           client_id: process.env.THREADS_APP_ID,
           client_secret: process.env.THREADS_APP_SECRET,
           redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/threads`,
-          code
-        }
+          code,
+        },
       });
-      
-      await storage.updateUserSocialToken((req.user as any).id, 'threads', tokenResponse.data.access_token);
+
+      await storage.updateUserSocialToken(
+        (req.user as any).id,
+        'threads',
+        tokenResponse.data.access_token
+      );
       res.redirect('/social-media?connected=threads');
-    } catch (error) {
+    } catch (error: unknown) {
       res.redirect('/social-media?error=threads');
     }
   });
@@ -5614,25 +5831,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/social/callback/instagram', requireAuth, async (req, res) => {
     const { code, state } = req.query;
-    
+
     // Validate state parameter for CSRF protection
     if (!state || state !== (req.user as any).id) {
       return res.redirect('/social-media?error=csrf-validation-failed');
     }
-    
+
     try {
       const tokenResponse = await axios.get(`https://graph.facebook.com/v18.0/oauth/access_token`, {
         params: {
           client_id: process.env.FACEBOOK_APP_ID,
           client_secret: process.env.FACEBOOK_APP_SECRET,
           redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/instagram`,
-          code
-        }
+          code,
+        },
       });
-      
-      await storage.updateUserSocialToken((req.user as any).id, 'instagram', tokenResponse.data.access_token);
+
+      await storage.updateUserSocialToken(
+        (req.user as any).id,
+        'instagram',
+        tokenResponse.data.access_token
+      );
       res.redirect('/social-media?connected=instagram');
-    } catch (error) {
+    } catch (error: unknown) {
       res.redirect('/social-media?error=instagram');
     }
   });
@@ -5648,24 +5869,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/social/callback/youtube', requireAuth, async (req, res) => {
     const { code, state } = req.query;
-    
+
     // Validate state parameter for CSRF protection
     if (!state || state !== (req.user as any).id) {
       return res.redirect('/social-media?error=csrf-validation-failed');
     }
-    
+
     try {
       const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
         code,
         client_id: process.env.YOUTUBE_CLIENT_ID,
         client_secret: process.env.YOUTUBE_CLIENT_SECRET,
         redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/youtube`,
-        grant_type: 'authorization_code'
+        grant_type: 'authorization_code',
       });
-      
-      await storage.updateUserSocialToken((req.user as any).id, 'youtube', tokenResponse.data.access_token);
+
+      await storage.updateUserSocialToken(
+        (req.user as any).id,
+        'youtube',
+        tokenResponse.data.access_token
+      );
       res.redirect('/social-media?connected=youtube');
-    } catch (error) {
+    } catch (error: unknown) {
       res.redirect('/social-media?error=youtube');
     }
   });
@@ -5681,24 +5906,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/social/callback/tiktok', requireAuth, async (req, res) => {
     const { code, state } = req.query;
-    
+
     // Validate state parameter for CSRF protection
     if (!state || state !== (req.user as any).id) {
       return res.redirect('/social-media?error=csrf-validation-failed');
     }
-    
+
     try {
       const tokenResponse = await axios.post('https://open-api.tiktok.com/oauth/access_token/', {
         client_key: process.env.TIKTOK_CLIENT_KEY,
         client_secret: process.env.TIKTOK_CLIENT_SECRET,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/tiktok`
+        redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/tiktok`,
       });
-      
-      await storage.updateUserSocialToken((req.user as any).id, 'tiktok', tokenResponse.data.data.access_token);
+
+      await storage.updateUserSocialToken(
+        (req.user as any).id,
+        'tiktok',
+        tokenResponse.data.data.access_token
+      );
       res.redirect('/social-media?connected=tiktok');
-    } catch (error) {
+    } catch (error: unknown) {
       res.redirect('/social-media?error=tiktok');
     }
   });
@@ -5714,24 +5943,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/social/callback/googlebusiness', requireAuth, async (req, res) => {
     const { code, state } = req.query;
-    
+
     // Validate state parameter for CSRF protection
     if (!state || state !== (req.user as any).id) {
       return res.redirect('/social-media?error=csrf-validation-failed');
     }
-    
+
     try {
       const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
         code,
         client_id: process.env.GOOGLE_BUSINESS_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
         redirect_uri: `${req.protocol}://${req.get('host')}/api/social/callback/googlebusiness`,
-        grant_type: 'authorization_code'
+        grant_type: 'authorization_code',
       });
-      
-      await storage.updateUserSocialToken((req.user as any).id, 'googleBusiness', tokenResponse.data.access_token);
+
+      await storage.updateUserSocialToken(
+        (req.user as any).id,
+        'googleBusiness',
+        tokenResponse.data.access_token
+      );
       res.redirect('/social-media?connected=googlebusiness');
-    } catch (error) {
+    } catch (error: unknown) {
       res.redirect('/social-media?error=googlebusiness');
     }
   });
@@ -5741,7 +5974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.updateUserSocialToken((req.user as any).id, 'facebook', '');
       res.json({ success: true, message: 'Facebook disconnected successfully' });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ success: false, message: 'Failed to disconnect Facebook' });
     }
   });
@@ -5750,7 +5983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.updateUserSocialToken((req.user as any).id, 'twitter', '');
       res.json({ success: true, message: 'Twitter disconnected successfully' });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ success: false, message: 'Failed to disconnect Twitter' });
     }
   });
@@ -5759,7 +5992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.updateUserSocialToken((req.user as any).id, 'linkedin', '');
       res.json({ success: true, message: 'LinkedIn disconnected successfully' });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ success: false, message: 'Failed to disconnect LinkedIn' });
     }
   });
@@ -5768,7 +6001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.updateUserSocialToken((req.user as any).id, 'threads', '');
       res.json({ success: true, message: 'Threads disconnected successfully' });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ success: false, message: 'Failed to disconnect Threads' });
     }
   });
@@ -5777,7 +6010,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.updateUserSocialToken((req.user as any).id, 'instagram', '');
       res.json({ success: true, message: 'Instagram disconnected successfully' });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ success: false, message: 'Failed to disconnect Instagram' });
     }
   });
@@ -5786,7 +6019,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.updateUserSocialToken((req.user as any).id, 'youtube', '');
       res.json({ success: true, message: 'YouTube disconnected successfully' });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ success: false, message: 'Failed to disconnect YouTube' });
     }
   });
@@ -5795,7 +6028,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.updateUserSocialToken((req.user as any).id, 'tiktok', '');
       res.json({ success: true, message: 'TikTok disconnected successfully' });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ success: false, message: 'Failed to disconnect TikTok' });
     }
   });
@@ -5804,7 +6037,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.updateUserSocialToken((req.user as any).id, 'googleBusiness', '');
       res.json({ success: true, message: 'Google Business disconnected successfully' });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ success: false, message: 'Failed to disconnect Google Business' });
     }
   });
@@ -5812,26 +6045,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/social/disconnect/:platform', requireAuth, async (req, res) => {
     try {
       const { platform } = req.params;
-      
+
       // Validate platform parameter with allowlist
-      const allowedPlatforms = ['facebook', 'instagram', 'twitter', 'youtube', 'tiktok', 'linkedin', 'threads', 'googleBusiness'];
-      
+      const allowedPlatforms = [
+        'facebook',
+        'instagram',
+        'twitter',
+        'youtube',
+        'tiktok',
+        'linkedin',
+        'threads',
+        'googleBusiness',
+      ];
+
       if (!allowedPlatforms.includes(platform)) {
         return res.status(400).json({ error: 'Invalid platform' });
       }
-      
+
       await storage.updateUserSocialToken((req.user as any).id, platform, '');
       res.json({ success: true, message: `${platform} disconnected successfully` });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
 
   // Marketplace Routes
-  app.get("/api/marketplace/beats", async (req, res) => {
+  app.get('/api/marketplace/beats', async (req, res) => {
     try {
       const { genre, mood, search, sortBy, minPrice, maxPrice, bpm, key, tags } = req.query;
-      
+
       // Build query filters for new getBeatListings method
       const filters: any = {};
       if (genre) filters.genre = genre as string;
@@ -5843,41 +6085,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (key) filters.key = key as string;
       if (tags) filters.tags = (tags as string).split(',');
       if (sortBy) filters.sortBy = sortBy as 'recent' | 'popular' | 'price_low' | 'price_high';
-      
+
       // Get beat listings from database using new marketplace method
       const beats = await storage.getBeatListings(filters);
-      
+
       // Get userId if authenticated, null if not
       const userId = req.user ? (req.user as any).id : null;
-      
+
       // Enrich with REAL data from database
-      const enrichedBeats = await Promise.all(beats.map(async (beat) => {
-        const [isLiked, isPurchased, likes, plays] = await Promise.all([
-          userId ? storage.isBeatLikedByUser(beat.id, userId) : Promise.resolve(false),
-          userId ? storage.isBeatPurchasedByUser(beat.id, userId) : Promise.resolve(false),
-          storage.getBeatLikes(beat.id),
-          storage.getBeatPlays(beat.id),
-        ]);
-        
-        return {
-          ...beat,
-          isLiked,
-          isPurchased,
-          currentPrice: beat.price,
-          likes,
-          plays,
-          aiRecommendations: null,
-        };
-      }));
-      
+      const enrichedBeats = await Promise.all(
+        beats.map(async (beat) => {
+          const [isLiked, isPurchased, likes, plays] = await Promise.all([
+            userId ? storage.isBeatLikedByUser(beat.id, userId) : Promise.resolve(false),
+            userId ? storage.isBeatPurchasedByUser(beat.id, userId) : Promise.resolve(false),
+            storage.getBeatLikes(beat.id),
+            storage.getBeatPlays(beat.id),
+          ]);
+
+          return {
+            ...beat,
+            isLiked,
+            isPurchased,
+            currentPrice: beat.price,
+            likes,
+            plays,
+            aiRecommendations: null,
+          };
+        })
+      );
+
       res.json(enrichedBeats);
-    } catch (error) {
-      console.error('Error fetching marketplace beats:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching marketplace beats:', error);
       res.status(500).json({ error: 'Failed to fetch beats' });
     }
   });
 
-  app.post("/api/marketplace/beats", requireAuth, requirePremium, (req, res) => {
+  app.post('/api/marketplace/beats', requireAuth, requirePremium, (req, res) => {
     const beatData = req.body;
     const beat = {
       id: Date.now().toString(),
@@ -5887,12 +6131,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       likes: 0,
       plays: 0,
       isLiked: false,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
     res.json(beat);
   });
 
-  app.post("/api/marketplace/purchase", requireAuth, (req, res) => {
+  app.post('/api/marketplace/purchase', requireAuth, (req, res) => {
     const { beatId, licenseType } = req.body;
     const purchase = {
       id: Date.now().toString(),
@@ -5900,39 +6144,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       licenseType,
       buyer: (req.user as any).username,
       amount: 30,
-      date: new Date()
+      date: new Date(),
     };
     res.json(purchase);
   });
 
-  app.get("/api/marketplace/sales", requireAuth, requirePremium, async (req, res) => {
+  app.get('/api/marketplace/sales', requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { period, status, limit = 50, offset = 0 } = req.query;
-      
+
       // Get real sales data from database
       const sales = await storage.getUserSales(userId, {
         period: period as string,
         status: status as string,
         limit: parseInt(limit as string),
-        offset: parseInt(offset as string)
+        offset: parseInt(offset as string),
       });
-      
+
       // Enhance with additional data
       const enhancedSales = await Promise.all(
         sales.map(async (sale) => {
           // Get beat details
           const beat = await storage.getBeat(sale.beatId);
-          
+
           // Get buyer information
           const buyer = await storage.getUser(sale.buyerId);
-          
+
           // Calculate earnings
           const earnings = await storage.calculateSaleEarnings(sale.id);
-          
+
           // Get AI insights
           const aiInsights = await storage.getSaleAIInsights(sale.id);
-          
+
           return {
             ...sale,
             beat,
@@ -5942,60 +6186,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Don't expose sensitive buyer data
             },
             earnings,
-            aiInsights
+            aiInsights,
           };
         })
       );
-      
+
       // Get sales summary
       const summary = await storage.getSalesSummary(userId);
-      
+
       res.json({
         sales: enhancedSales,
         summary,
         pagination: {
           total: await storage.getSalesCount(userId),
           limit: parseInt(limit as string),
-          offset: parseInt(offset as string)
-        }
+          offset: parseInt(offset as string),
+        },
       });
-    } catch (error) {
-      console.error('Error fetching sales:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching sales:', error);
       res.status(500).json({ error: 'Failed to fetch sales' });
     }
   });
 
   // Royalties Routes
-  app.get("/api/royalties/statements", requireAuth, async (req, res) => {
+  app.get('/api/royalties/statements', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { period, status } = req.query;
       const { page, limit, offset } = getPaginationParams(req);
-      
+
       // Get real royalty statements from database with pagination
-      const { data: paginatedStatements, total: totalRecords } = await storage.getRoyaltyStatements(userId, {
-        period: period as string,
-        status: status as string
-      }, limit, offset);
-      
+      const { data: paginatedStatements, total: totalRecords } = await storage.getRoyaltyStatements(
+        userId,
+        {
+          period: period as string,
+          status: status as string,
+        },
+        limit,
+        offset
+      );
+
       // Enhance with real-time data (only for paginated results)
       const enhancedStatements = await Promise.all(
         paginatedStatements.map(async (statement) => {
           // Get real platform breakdown
-          const platformBreakdown = await storage.getPlatformEarnings(
-            userId, 
-            statement.period
-          );
-          
+          const platformBreakdown = await storage.getPlatformEarnings(userId, statement.period);
+
           // Calculate pending payments
           const pendingPayments = await storage.getPendingPayments(userId);
-          
+
           // Get AI insights for earnings optimization
-          const aiInsights = await storage.getEarningsAIInsights(
-            userId, 
-            statement.period
-          );
-          
+          const aiInsights = await storage.getEarningsAIInsights(userId, statement.period);
+
           return {
             ...statement,
             platforms: platformBreakdown,
@@ -6007,11 +6250,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Dynamic status based on actual data
             status: await storage.getStatementStatus(statement.id),
             // Real due date calculation
-            dueDate: await storage.getNextPayoutDate(userId)
+            dueDate: await storage.getNextPayoutDate(userId),
           };
         })
       );
-      
+
       res.json({
         data: enhancedStatements,
         pagination: {
@@ -6019,40 +6262,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           limit,
           total: totalRecords,
           totalPages: Math.ceil(totalRecords / limit),
-          hasMore: offset + limit < totalRecords
-        }
+          hasMore: offset + limit < totalRecords,
+        },
       });
-    } catch (error) {
-      console.error('Error fetching royalty statements:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching royalty statements:', error);
       res.status(500).json({ error: 'Failed to fetch royalty statements' });
     }
   });
 
-  app.get("/api/royalties/payouts", requireAuth, async (req, res) => {
+  app.get('/api/royalties/payouts', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { status, limit = 50, offset = 0 } = req.query;
-      
+
       // Get real payout history from database
       const payouts = await storage.getUserPayouts(userId, {
         status: status as string,
         limit: parseInt(limit as string),
-        offset: parseInt(offset as string)
+        offset: parseInt(offset as string),
       });
-      
+
       // Enhance with additional data
       const enhancedPayouts = await Promise.all(
         payouts.map(async (payout) => {
           // Get payout details
           const details = await storage.getPayoutDetails(payout.id);
-          
+
           // Get associated statements
           const statements = await storage.getPayoutStatements(payout.id);
-          
+
           // Calculate fees and taxes
           const fees = await storage.calculatePayoutFees(payout.amount);
           const taxes = await storage.calculatePayoutTaxes(payout.amount, userId);
-          
+
           return {
             ...payout,
             details,
@@ -6063,64 +6306,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Add tracking information
             tracking: await storage.getPayoutTracking(payout.id),
             // Add AI insights for payout optimization
-            aiInsights: await storage.getPayoutAIInsights(payout.id)
+            aiInsights: await storage.getPayoutAIInsights(payout.id),
           };
         })
       );
-      
+
       // Get payout summary
       const summary = await storage.getPayoutSummary(userId);
-      
+
       res.json({
         payouts: enhancedPayouts,
         summary,
         pagination: {
           total: await storage.getPayoutCount(userId),
           limit: parseInt(limit as string),
-          offset: parseInt(offset as string)
-        }
+          offset: parseInt(offset as string),
+        },
       });
-    } catch (error) {
-      console.error('Error fetching payouts:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching payouts:', error);
       res.status(500).json({ error: 'Failed to fetch payouts' });
     }
   });
 
-  app.get("/api/royalties/analytics/:period", requireAuth, async (req, res) => {
+  app.get('/api/royalties/analytics/:period', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { period } = req.params;
-      
+
       // Get real earnings analytics from database
       const platformEarnings = await storage.getPlatformEarnings(userId, period);
       const totalEarnings = platformEarnings.reduce((sum, p) => sum + (p.amount || 0), 0);
       const totalStreams = platformEarnings.reduce((sum, p) => sum + (p.streams || 0), 0);
       const avgPerStream = totalStreams > 0 ? totalEarnings / totalStreams : 0;
-      
+
       res.json({
         totalEarnings,
         totalStreams,
-        avgPerStream
+        avgPerStream,
       });
-    } catch (error: any) {
-      console.error('Error fetching royalties analytics:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching royalties analytics:', error);
       res.status(500).json({ error: 'Failed to fetch royalties analytics' });
     }
   });
 
   // Main royalties endpoint
-  app.get("/api/royalties", requireAuth, async (req, res) => {
+  app.get('/api/royalties', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { period, platform } = req.query;
       const { page, limit, offset } = getPaginationParams(req);
-      
+
       // Get earnings/royalties data from database with pagination
-      const { data: paginatedRoyalties, total: totalRecords } = await storage.getUserEarnings(userId, {
-        period: period as string,
-        platform: platform as string
-      }, limit, offset);
-      
+      const { data: paginatedRoyalties, total: totalRecords } = await storage.getUserEarnings(
+        userId,
+        {
+          period: period as string,
+          platform: platform as string,
+        },
+        limit,
+        offset
+      );
+
       res.json({
         data: paginatedRoyalties,
         pagination: {
@@ -6128,11 +6376,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           limit,
           total: totalRecords,
           totalPages: Math.ceil(totalRecords / limit),
-          hasMore: offset + limit < totalRecords
-        }
+          hasMore: offset + limit < totalRecords,
+        },
       });
-    } catch (error) {
-      console.error('Error fetching royalties:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching royalties:', error);
       res.json({
         data: [],
         pagination: {
@@ -6140,61 +6388,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
           limit: 50,
           total: 0,
           totalPages: 0,
-          hasMore: false
-        }
+          hasMore: false,
+        },
       });
     }
   });
 
   // Export royalties report
-  app.post("/api/royalties/export", requireAuth, async (req, res) => {
+  app.post('/api/royalties/export', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { period, platform } = req.body;
-      
+
       // Generate export URL (in production, this would generate a CSV/PDF)
       const exportUrl = `/api/royalties/download-report/${userId}?period=${period}&platform=${platform}`;
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         url: exportUrl,
-        message: 'Report generated successfully'
+        message: 'Report generated successfully',
       });
-    } catch (error) {
-      console.error('Error exporting royalties:', error);
+    } catch (error: unknown) {
+      logger.error('Error exporting royalties:', error);
       res.status(500).json({ error: 'Failed to export report' });
     }
   });
 
   // Connect Stripe account for payouts
-  app.post("/api/royalties/connect-stripe", requireAuth, async (req, res) => {
+  app.post('/api/royalties/connect-stripe', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       if (user.stripeConnectedAccountId) {
-        return res.json({ 
+        return res.json({
           accountId: user.stripeConnectedAccountId,
-          connected: true
+          connected: true,
         });
       }
-      
+
       // Create Stripe Connected Account
-      const account = await stripe.accounts.create({
-        type: 'express',
-        country: 'US',
-        email: user.email,
-        capabilities: {
-          transfers: { requested: true },
+      const account = await stripe.accounts.create(
+        {
+          type: 'express',
+          country: 'US',
+          email: user.email,
+          capabilities: {
+            transfers: { requested: true },
+          },
         },
-      }, {
-        idempotencyKey: `account_${userId}_${Date.now()}`
-      });
-      
+        {
+          idempotencyKey: `account_${userId}_${Date.now()}`,
+        }
+      );
+
       // Create account link for onboarding
       const accountLink = await stripe.accountLinks.create({
         account: account.id,
@@ -6202,67 +6453,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return_url: `${req.protocol}://${req.get('host')}/royalties?setup=success`,
         type: 'account_onboarding',
       });
-      
+
       // Save account ID to user
       await storage.updateUser(userId, {
-        stripeConnectedAccountId: account.id
+        stripeConnectedAccountId: account.id,
       });
-      
-      res.json({ 
+
+      res.json({
         url: accountLink.url,
-        accountId: account.id
+        accountId: account.id,
       });
-    } catch (error: any) {
-      console.error('Error connecting Stripe:', error);
+    } catch (error: unknown) {
+      logger.error('Error connecting Stripe:', error);
       res.status(500).json({ error: error.message || 'Failed to connect Stripe account' });
     }
   });
 
   // Request payout
-  app.post("/api/royalties/request-payout", requireAuth, async (req, res) => {
+  app.post('/api/royalties/request-payout', requireAuth, async (req, res) => {
     try {
       const validation = requestPayoutSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const userId = (req.user as any).id;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       // Check if user has connected Stripe account
       if (!user.stripeConnectedAccountId) {
-        return res.status(400).json({ 
-          error: 'No payout method configured. Please connect your bank account first.' 
+        return res.status(400).json({
+          error: 'No payout method configured. Please connect your bank account first.',
         });
       }
-      
+
       // Get available balance
       const royalties = await storage.getUserRoyalties(userId);
-      const totalEarnings = royalties.reduce((sum: number, r: any) => sum + r.amount, 0);
+      const totalEarnings = royalties.reduce((sum: number, r: unknown) => sum + r.amount, 0);
       const totalPayouts = parseFloat(user.totalPayouts || '0');
       const availableForPayout = totalEarnings - totalPayouts;
-      
+
       if (availableForPayout <= 0) {
         return res.status(400).json({ error: 'No funds available for payout' });
       }
-      
+
       // Create Stripe transfer
-      const transfer = await stripe.transfers.create({
-        amount: Math.round(availableForPayout * 100), // Convert to cents
-        currency: 'usd',
-        destination: user.stripeConnectedAccountId,
-        description: `Royalty payout for ${user.email}`,
-      }, {
-        idempotencyKey: `transfer_${userId}_${Date.now()}`
-      });
-      
+      const transfer = await stripe.transfers.create(
+        {
+          amount: Math.round(availableForPayout * 100), // Convert to cents
+          currency: 'usd',
+          destination: user.stripeConnectedAccountId,
+          description: `Royalty payout for ${user.email}`,
+        },
+        {
+          idempotencyKey: `transfer_${userId}_${Date.now()}`,
+        }
+      );
+
       // Record payout in database
       await storage.createPayout({
         userId,
@@ -6271,79 +6525,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'completed',
         method: 'stripe',
       });
-      
+
       // Update user total payouts
       await storage.updateUser(userId, {
-        totalPayouts: (totalPayouts + availableForPayout).toString()
+        totalPayouts: (totalPayouts + availableForPayout).toString(),
       });
-      
-      res.json({ 
+
+      res.json({
         success: true,
         message: 'Payout processed successfully',
         amount: availableForPayout,
         payoutId: transfer.id,
-        estimatedArrival: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
+        estimatedArrival: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
       });
-    } catch (error: any) {
-      console.error('Error requesting payout:', error);
+    } catch (error: unknown) {
+      logger.error('Error requesting payout:', error);
       res.status(500).json({ error: error.message || 'Failed to process payout' });
     }
   });
 
   // Download statement
-  app.get("/api/royalties/download-statement/:id", requireAuth, async (req, res) => {
+  app.get('/api/royalties/download-statement/:id', requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // In production, this would generate and serve a PDF statement
-      res.json({ 
+      res.json({
         success: true,
-        downloadUrl: `/statements/${id}.pdf`
+        downloadUrl: `/statements/${id}.pdf`,
       });
-    } catch (error) {
-      console.error('Error downloading statement:', error);
+    } catch (error: unknown) {
+      logger.error('Error downloading statement:', error);
       res.status(500).json({ error: 'Failed to download statement' });
     }
   });
 
   // Platform breakdown
-  app.get("/api/royalties/platform-breakdown", requireAuth, async (req, res) => {
+  app.get('/api/royalties/platform-breakdown', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { period } = req.query;
-      
+
       // Get platform breakdown from earnings
       const breakdown = await storage.getPlatformBreakdown(userId, period as string);
-      
+
       res.json(breakdown || []);
-    } catch (error) {
-      console.error('Error fetching platform breakdown:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching platform breakdown:', error);
       res.json([]);
     }
   });
 
   // Top earning tracks
-  app.get("/api/royalties/top-tracks", requireAuth, async (req, res) => {
+  app.get('/api/royalties/top-tracks', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { period } = req.query;
-      
+
       // Get top tracks by earnings
       const topTracks = await storage.getTopEarningTracks(userId, period as string);
-      
+
       res.json(topTracks || []);
-    } catch (error) {
-      console.error('Error fetching top tracks:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching top tracks:', error);
       res.json([]);
     }
   });
 
   // Royalty splits - GET
-  app.get("/api/royalties/splits", requireAuth, async (req, res) => {
+  app.get('/api/royalties/splits', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { page, limit, offset } = getPaginationParams(req);
-      
+
       // Get splits using database-level pagination
       const [paginatedSplits, totalResult] = await Promise.all([
         db
@@ -6355,11 +6609,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         db
           .select({ total: sql<number>`count(*)` })
           .from(royaltySplits)
-          .where(eq(royaltySplits.recipientId, userId))
+          .where(eq(royaltySplits.recipientId, userId)),
       ]);
-      
+
       const totalRecords = totalResult[0]?.total || 0;
-      
+
       res.json({
         data: paginatedSplits,
         pagination: {
@@ -6367,11 +6621,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           limit,
           total: totalRecords,
           totalPages: Math.ceil(totalRecords / limit),
-          hasMore: offset + limit < totalRecords
-        }
+          hasMore: offset + limit < totalRecords,
+        },
       });
-    } catch (error) {
-      console.error('Error fetching splits:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching splits:', error);
       res.json({
         data: [],
         pagination: {
@@ -6379,53 +6633,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
           limit: 50,
           total: 0,
           totalPages: 0,
-          hasMore: false
-        }
+          hasMore: false,
+        },
       });
     }
   });
 
   // Royalty splits - POST
-  app.post("/api/royalties/splits", requireAuth, async (req, res) => {
+  app.post('/api/royalties/splits', requireAuth, async (req, res) => {
     try {
       const validation = createRoyaltySplitSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { listingId, recipientId, percentage, kind } = validation.data;
-      
+
       // Create new split
       const split = await storage.createRoyaltySplit({
         listingId,
         recipientId,
         percentage: percentage.toString(),
-        kind: kind || 'sale'
+        kind: kind || 'sale',
       });
-      
+
       res.json({ success: true, split });
-    } catch (error) {
-      console.error('Error creating split:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating split:', error);
       res.status(500).json({ success: false, error: 'Failed to create split' });
     }
   });
 
   // Royalty splits - PATCH
-  app.patch("/api/royalties/splits/:id", requireAuth, async (req, res) => {
+  app.patch('/api/royalties/splits/:id', requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       const validation = updateRoyaltySplitSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       // Build update object with validated fields
       const updateData: Partial<{ percentage: string; kind: string; recipientId: string }> = {};
       if (validation.data.percentage !== undefined) {
@@ -6437,146 +6691,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (validation.data.recipientId !== undefined) {
         updateData.recipientId = validation.data.recipientId;
       }
-      
+
       // Update split
       const split = await storage.updateRoyaltySplit(id, updateData);
-      
+
       if (!split) {
         return res.status(404).json({ success: false, error: 'Royalty split not found' });
       }
-      
+
       res.json({ success: true, split });
-    } catch (error) {
-      console.error('Error updating split:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating split:', error);
       res.status(500).json({ success: false, error: 'Failed to update split' });
     }
   });
 
   // Royalty splits - DELETE
-  app.delete("/api/royalties/splits/:id", requireAuth, async (req, res) => {
+  app.delete('/api/royalties/splits/:id', requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // Delete split
       await storage.deleteRoyaltySplit(id);
-      
+
       res.json({ success: true });
-    } catch (error) {
-      console.error('Error deleting split:', error);
+    } catch (error: unknown) {
+      logger.error('Error deleting split:', error);
       res.status(500).json({ success: false, error: 'Failed to delete split' });
     }
   });
 
   // Payment methods - GET
-  app.get("/api/royalties/payment-methods", requireAuth, async (req, res) => {
+  app.get('/api/royalties/payment-methods', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
-      
+
       // Get payment methods
       const methods = await storage.getPaymentMethods(userId);
-      
+
       res.json(methods || []);
-    } catch (error) {
-      console.error('Error fetching payment methods:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching payment methods:', error);
       res.json([]);
     }
   });
 
   // Payment methods - POST
-  app.post("/api/royalties/payment-methods", requireAuth, async (req, res) => {
+  app.post('/api/royalties/payment-methods', requireAuth, async (req, res) => {
     try {
       const validation = addPaymentMethodSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const userId = (req.user as any).id;
       const { type, accountNumber } = validation.data;
-      
+
       // Create payment method
       const method = await storage.createPaymentMethod({
         userId,
         type,
-        accountNumber
+        accountNumber,
       });
-      
+
       res.json({ success: true, method });
-    } catch (error) {
-      console.error('Error creating payment method:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating payment method:', error);
       res.status(500).json({ error: 'Failed to create payment method' });
     }
   });
 
   // Payout settings - GET
-  app.get("/api/royalties/payout-settings", requireAuth, async (req, res) => {
+  app.get('/api/royalties/payout-settings', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
-      
+
       // Get user's payout settings or return defaults
       const settings = await storage.getPayoutSettings(userId);
-      
+
       if (!settings) {
         return res.json({
           minimumPayoutAmount: 100,
           payoutFrequency: 'monthly',
           taxFormCompleted: false,
           taxCountry: null,
-          taxId: null
+          taxId: null,
         });
       }
-      
+
       res.json(settings);
-    } catch (error) {
-      console.error('Error fetching payout settings:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching payout settings:', error);
       res.status(500).json({ error: 'Failed to fetch payout settings' });
     }
   });
 
   // Payout settings - PUT
-  app.put("/api/royalties/payout-settings", requireAuth, async (req, res) => {
+  app.put('/api/royalties/payout-settings', requireAuth, async (req, res) => {
     try {
       const validation = updatePayoutSettingsSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const userId = (req.user as any).id;
-      
+
       // Update payout settings
       const settings = await storage.updatePayoutSettings(userId, validation.data);
-      
+
       res.json({ success: true, settings });
-    } catch (error) {
-      console.error('Error updating payout settings:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating payout settings:', error);
       res.status(500).json({ error: 'Failed to update payout settings' });
     }
   });
 
   // Tax information - PUT
-  app.put("/api/royalties/tax-info", requireAuth, async (req, res) => {
+  app.put('/api/royalties/tax-info', requireAuth, async (req, res) => {
     try {
       const validation = updateTaxInfoSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const userId = (req.user as any).id;
-      
+
       // Update tax information
       const settings = await storage.updateTaxInfo(userId, validation.data);
-      
+
       res.json({ success: true, settings });
-    } catch (error) {
-      console.error('Error updating tax information:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating tax information:', error);
       res.status(500).json({ error: 'Failed to update tax information' });
     }
   });
@@ -6589,7 +6843,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const user = req.user as any;
       const { bpm, timeSignature, key, masterVolume, sampleRate, bitDepth } = req.body;
-      
+
       const project = await storage.getProject(id);
       if (!project || project.userId !== user.id) {
         return res.status(404).json({ message: 'Project not found' });
@@ -6597,7 +6851,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update project with current settings and timestamp
       const updates: any = { updatedAt: new Date() };
-      
+
       if (bpm !== undefined) updates.bpm = bpm;
       if (timeSignature !== undefined) updates.timeSignature = timeSignature;
       if (key !== undefined) updates.key = key;
@@ -6606,9 +6860,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (bitDepth !== undefined) updates.bitDepth = bitDepth;
 
       const updatedProject = await storage.updateProject(id, updates);
-      
+
       res.json({ message: 'Project saved successfully', project: updatedProject });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({ message: error.message });
     }
   });
@@ -6618,16 +6872,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validation = exportProjectSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { id } = req.params;
       const { format = 'json', exportType = 'project', sampleRate, bitrate } = validation.data;
       const user = req.user as any;
-      
+
       const project = await storage.getProject(id);
       if (!project || project.userId !== user.id) {
         return res.status(404).json({ message: 'Project not found' });
@@ -6638,27 +6892,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const tracks = await storage.getProjectTracks(id);
         const markers = await storage.getProjectMarkers(id);
         const automation = await storage.getProjectAutomation(id);
-        
+
         const exportData = {
           project,
           tracks,
           markers,
           automation,
           exportedAt: new Date().toISOString(),
-          format
+          format,
         };
 
-        return res.json({ 
-          message: 'Project exported successfully', 
+        return res.json({
+          message: 'Project exported successfully',
           data: exportData,
-          downloadUrl: `/exports/${id}_${Date.now()}.json`
+          downloadUrl: `/exports/${id}_${Date.now()}.json`,
         });
       }
 
       // For audio export (WAV, MP3, FLAC, OGG, AAC)
       const { audioService } = await import('./services/audioService');
       const tracks = await storage.getProjectTracks(id);
-      
+
       // Get audio clips for each track
       const tracksWithAudio = await Promise.all(
         tracks.map(async (track) => {
@@ -6667,7 +6921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ...track,
             clips,
             filePath: clips[0]?.filePath, // Use first clip's file path
-            volume: track.volume || 0.8
+            volume: track.volume || 0.8,
           };
         })
       );
@@ -6679,17 +6933,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         exportType as 'mixdown' | 'stems'
       );
 
-      const downloadUrl = exportType === 'stems' 
-        ? result.stems?.[0]?.replace('uploads/', '/') 
-        : result.mixdown?.replace('uploads/', '/');
+      const downloadUrl =
+        exportType === 'stems'
+          ? result.stems?.[0]?.replace('uploads/', '/')
+          : result.mixdown?.replace('uploads/', '/');
 
-      res.json({ 
+      res.json({
         message: `Project exported successfully as ${format.toUpperCase()} ${exportType}`,
         downloadUrl,
-        files: exportType === 'stems' ? result.stems?.map((s: string) => s.replace('uploads/', '/')) : [downloadUrl]
+        files:
+          exportType === 'stems'
+            ? result.stems?.map((s: string) => s.replace('uploads/', '/'))
+            : [downloadUrl],
       });
-    } catch (error: any) {
-      console.error('Export error:', error);
+    } catch (error: unknown) {
+      logger.error('Export error:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6712,47 +6970,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await chunkedUploadService.initializeSession(user.id, filename, totalSize);
       res.status(201).json(result);
-    } catch (error: any) {
-      console.error('Error initializing upload session:', error);
+    } catch (error: unknown) {
+      logger.error('Error initializing upload session:', error);
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.post('/api/distribution/upload/:sessionId/chunk', requireAuth, upload.single('chunk'), async (req, res) => {
-    try {
-      const { sessionId } = req.params;
-      const { chunkIndex, chunkHash } = req.body;
-      const file = req.file;
+  app.post(
+    '/api/distribution/upload/:sessionId/chunk',
+    requireAuth,
+    upload.single('chunk'),
+    async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const { chunkIndex, chunkHash } = req.body;
+        const file = req.file;
 
-      if (!file) {
-        return res.status(400).json({ message: 'No chunk file provided' });
+        if (!file) {
+          return res.status(400).json({ message: 'No chunk file provided' });
+        }
+
+        if (chunkIndex === undefined || !chunkHash) {
+          return res.status(400).json({ message: 'chunkIndex and chunkHash are required' });
+        }
+
+        const result = await chunkedUploadService.uploadChunk(
+          sessionId,
+          parseInt(chunkIndex),
+          file.buffer,
+          chunkHash
+        );
+
+        res.json(result);
+      } catch (error: unknown) {
+        logger.error('Error uploading chunk:', error);
+        res.status(500).json({ message: error.message });
       }
-
-      if (chunkIndex === undefined || !chunkHash) {
-        return res.status(400).json({ message: 'chunkIndex and chunkHash are required' });
-      }
-
-      const result = await chunkedUploadService.uploadChunk(
-        sessionId,
-        parseInt(chunkIndex),
-        file.buffer,
-        chunkHash
-      );
-
-      res.json(result);
-    } catch (error: any) {
-      console.error('Error uploading chunk:', error);
-      res.status(500).json({ message: error.message });
     }
-  });
+  );
 
   app.get('/api/distribution/upload/:sessionId/status', requireAuth, async (req, res) => {
     try {
       const { sessionId } = req.params;
       const status = await chunkedUploadService.getSessionStatus(sessionId);
       res.json(status);
-    } catch (error: any) {
-      console.error('Error getting session status:', error);
+    } catch (error: unknown) {
+      logger.error('Error getting session status:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6762,8 +7025,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { sessionId } = req.params;
       const result = await chunkedUploadService.finalizeUpload(sessionId);
       res.json(result);
-    } catch (error: any) {
-      console.error('Error finalizing upload:', error);
+    } catch (error: unknown) {
+      logger.error('Error finalizing upload:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6773,8 +7036,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { sessionId } = req.params;
       await chunkedUploadService.abortUpload(sessionId);
       res.json({ message: 'Upload session aborted successfully' });
-    } catch (error: any) {
-      console.error('Error aborting upload:', error);
+    } catch (error: unknown) {
+      logger.error('Error aborting upload:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6785,8 +7048,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { status } = req.query;
       const sessions = await storage.getUserUploadSessions(user.id, status as string | undefined);
       res.json(sessions);
-    } catch (error: any) {
-      console.error('Error getting upload sessions:', error);
+    } catch (error: unknown) {
+      logger.error('Error getting upload sessions:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6803,8 +7066,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const isrc = await codeGenerationService.generateISRC(user.id, trackId, artist, title);
       res.status(201).json({ isrc });
-    } catch (error: any) {
-      console.error('Error generating ISRC:', error);
+    } catch (error: unknown) {
+      logger.error('Error generating ISRC:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6820,8 +7083,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const upc = await codeGenerationService.generateUPC(user.id, releaseId, title);
       res.status(201).json({ upc });
-    } catch (error: any) {
-      console.error('Error generating UPC:', error);
+    } catch (error: unknown) {
+      logger.error('Error generating UPC:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6831,8 +7094,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { code } = req.params;
       const verification = await codeGenerationService.verifyISRC(code);
       res.json(verification);
-    } catch (error: any) {
-      console.error('Error verifying ISRC:', error);
+    } catch (error: unknown) {
+      logger.error('Error verifying ISRC:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6842,8 +7105,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { code } = req.params;
       const verification = await codeGenerationService.verifyUPC(code);
       res.json(verification);
-    } catch (error: any) {
-      console.error('Error verifying UPC:', error);
+    } catch (error: unknown) {
+      logger.error('Error verifying UPC:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6860,8 +7123,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await platformService.spotifySubmit(releaseId, credentials || {}, user.id);
       res.status(201).json(result);
-    } catch (error: any) {
-      console.error('Error submitting to Spotify:', error);
+    } catch (error: unknown) {
+      logger.error('Error submitting to Spotify:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6877,8 +7140,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await platformService.appleMusicSubmit(releaseId, credentials || {}, user.id);
       res.status(201).json(result);
-    } catch (error: any) {
-      console.error('Error submitting to Apple Music:', error);
+    } catch (error: unknown) {
+      logger.error('Error submitting to Apple Music:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6894,8 +7157,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await platformService.youtubeSubmit(releaseId, credentials || {}, user.id);
       res.status(201).json(result);
-    } catch (error: any) {
-      console.error('Error submitting to YouTube:', error);
+    } catch (error: unknown) {
+      logger.error('Error submitting to YouTube:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6905,8 +7168,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const dispatch = await platformService.getDispatchStatus(id);
       res.json(dispatch);
-    } catch (error: any) {
-      console.error('Error getting dispatch status:', error);
+    } catch (error: unknown) {
+      logger.error('Error getting dispatch status:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6920,20 +7183,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const file = req.file;
-      
+
       if (!file) {
         return res.status(400).json({ message: 'No audio file provided' });
       }
 
       const { trackId, projectId, takeNumber, takeGroupId, startPosition } = req.body;
-      
+
       if (!trackId || !projectId) {
         return res.status(400).json({ message: 'trackId and projectId are required' });
       }
 
       const { studioService } = await import('./services/studioService');
       const service = new studioService();
-      
+
       const result = await service.uploadRecording(file, {
         userId: user.id,
         trackId,
@@ -6944,8 +7207,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(result);
-    } catch (error: any) {
-      console.error('Error uploading recording:', error);
+    } catch (error: unknown) {
+      logger.error('Error uploading recording:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6954,7 +7217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/studio/clips', requireAuth, async (req, res) => {
     try {
       const { trackId, takeGroupId, projectId } = req.query;
-      
+
       if (!trackId && !projectId) {
         return res.status(400).json({ message: 'trackId or projectId is required' });
       }
@@ -6967,14 +7230,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         const tracks = await storage.getProjectTracks(projectId as string);
         const allClips = await Promise.all(
-          tracks.map(track => storage.getTrackAudioClips(track.id))
+          tracks.map((track) => storage.getTrackAudioClips(track.id))
         );
         clips = allClips.flat();
       }
 
       res.json(clips);
-    } catch (error: any) {
-      console.error('Error fetching clips:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching clips:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6984,2190 +7247,2364 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const updates = req.body;
-      
+
       const updatedClip = await storage.updateAudioClip(id, updates);
       res.json(updatedClip);
-    } catch (error: any) {
-      console.error('Error updating clip:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating clip:', error);
       res.status(500).json({ message: error.message });
     }
   });
 
   // Audit System Routes
-  app.get("/api/audit/results", requireAdmin, (req, res) => {
-    const AuditSystem = require("./audit-system").default;
+  app.get('/api/audit/results', requireAdmin, (req, res) => {
+    const AuditSystem = require('./audit-system').default;
     const auditSystem = AuditSystem.getInstance();
     const results = auditSystem.getAuditResults();
     res.json(results);
   });
 
-  app.get("/api/audit/score", requireAuth, (req, res) => {
-    const AuditSystem = require("./audit-system").default;
+  app.get('/api/audit/score', requireAuth, (req, res) => {
+    const AuditSystem = require('./audit-system').default;
     const auditSystem = AuditSystem.getInstance();
     const score = auditSystem.getAuditScore();
     res.json({ score });
   });
 
-  app.post("/api/audit/run", requireAuth, (req, res) => {
-    const AuditSystem = require("./audit-system").default;
+  app.post('/api/audit/run', requireAuth, (req, res) => {
+    const AuditSystem = require('./audit-system').default;
     const auditSystem = AuditSystem.getInstance();
-    auditSystem.performFullAudit().then((results: any) => {
-      res.json(results);
-    }).catch((error: any) => {
-      res.status(500).json({ error: error.message });
-    });
+    auditSystem
+      .performFullAudit()
+      .then((results: unknown) => {
+        res.json(results);
+      })
+      .catch((error: unknown) => {
+        res.status(500).json({ error: error.message });
+      });
   });
 
-  app.get("/api/audit/issues", requireAuth, (req, res) => {
-    const AuditSystem = require("./audit-system").default;
+  app.get('/api/audit/issues', requireAuth, (req, res) => {
+    const AuditSystem = require('./audit-system').default;
     const auditSystem = AuditSystem.getInstance();
     const criticalIssues = auditSystem.getCriticalIssues();
     const highPriorityIssues = auditSystem.getHighPriorityIssues();
     res.json({ critical: criticalIssues, high: highPriorityIssues });
   });
 
-  app.get("/api/audit/recommendations", requireAuth, (req, res) => {
-    const AuditSystem = require("./audit-system").default;
+  app.get('/api/audit/recommendations', requireAuth, (req, res) => {
+    const AuditSystem = require('./audit-system').default;
     const auditSystem = AuditSystem.getInstance();
     const recommendations = auditSystem.getRecommendations();
     res.json(recommendations);
   });
 
-// Testing System Routes - ADMIN ONLY
-app.get("/api/testing/results", requireAuth, requireAdmin, (req, res) => {
-  const TestingSystem = require("./testing-system").default;
-  const testingSystem = TestingSystem.getInstance();
-  const results = testingSystem.getTestResults();
-  res.json(results);
-});
-
-app.get("/api/testing/score", requireAuth, requireAdmin, (req, res) => {
-  const TestingSystem = require("./testing-system").default;
-  const testingSystem = TestingSystem.getInstance();
-  const score = testingSystem.getTestScore();
-  res.json({ score });
-});
-
-app.post("/api/testing/run", requireAuth, requireAdmin, (req, res) => {
-  const TestingSystem = require("./testing-system").default;
-  const testingSystem = TestingSystem.getInstance();
-  testingSystem.runFullTestSuite().then((results: any) => {
+  // Testing System Routes - ADMIN ONLY
+  app.get('/api/testing/results', requireAuth, requireAdmin, (req, res) => {
+    const TestingSystem = require('./testing-system').default;
+    const testingSystem = TestingSystem.getInstance();
+    const results = testingSystem.getTestResults();
     res.json(results);
-  }).catch((error: any) => {
-    res.status(500).json({ error: error.message });
   });
-});
 
-app.get("/api/testing/failed", requireAuth, requireAdmin, (req, res) => {
-  const TestingSystem = require("./testing-system").default;
-  const testingSystem = TestingSystem.getInstance();
-  const failedTests = testingSystem.getFailedTests();
-  res.json(failedTests);
-});
+  app.get('/api/testing/score', requireAuth, requireAdmin, (req, res) => {
+    const TestingSystem = require('./testing-system').default;
+    const testingSystem = TestingSystem.getInstance();
+    const score = testingSystem.getTestScore();
+    res.json({ score });
+  });
 
-app.get("/api/testing/coverage", requireAuth, requireAdmin, (req, res) => {
-  const TestingSystem = require("./testing-system").default;
-  const testingSystem = TestingSystem.getInstance();
-  const coverage = testingSystem.getTestCoverage();
-  res.json(coverage);
-});
-
-// AI Advertising System Routes
-app.get("/api/advertising/campaigns", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const campaigns = await storage.getUserAdCampaigns((req.user as any).id);
-    res.json(campaigns);
-  } catch (error) {
-    console.error('Error fetching campaigns:', error);
-    // Return empty array instead of 500 error
-    res.json([]);
-  }
-});
-
-app.post("/api/advertising/campaigns", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const validation = createCampaignSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({ 
-        error: 'Validation failed', 
-        details: validation.error.flatten().fieldErrors 
-      });
-    }
-    
-    const { name, objective, budget, duration, targetAudience } = validation.data;
-    
-    // Initialize AI Advertising Engine
-    const { AIAdvertisingEngine } = await import("./ai-advertising.js");
-    const aiEngine = new AIAdvertisingEngine();
-    
-    // Generate AI optimizations
-    const aiOptimizations = await aiEngine.generateSuperiorAdContent(
-      { name, objective, budget },
-      targetAudience
-    );
-    
-    // Create campaign with AI enhancements (starts in draft status)
-    const campaign = await storage.createAdCampaign({
-      userId: (req.user as any).id,
-      name,
-      objective,
-      budget: parseFloat(budget) || 0,
-      spent: 0,
-      impressions: 0,
-      clicks: 0,
-      conversions: 0,
-      status: 'draft', // Campaigns start as draft, must be activated via /activate endpoint
-      startDate: new Date(),
-      endDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000),
-      platforms: targetAudience.platforms,
-      connectedPlatforms: [], // Will be populated when campaign is activated
-      aiOptimizations: aiOptimizations || {},
-      personalAdNetwork: {
-        connectedAccounts: targetAudience.platforms.length,
-        totalPlatforms: 8,
-        networkStrength: 95
-      },
-      organicMetrics: null // Will be populated when campaign posts are created
-    });
-    
-    res.json(campaign);
-  } catch (error) {
-    console.error('Error creating campaign:', error);
-    // Return error message but don't crash
-    res.json({ error: 'Failed to create campaign' });
-  }
-});
-
-// Activate campaign - posts to social media organically
-app.post("/api/advertising/campaigns/:id/activate", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const campaignId = parseInt(req.params.id);
-    const userId = (req.user as any).id;
-    
-    if (isNaN(campaignId)) {
-      return res.status(400).json({ error: 'Invalid campaign ID' });
-    }
-    
-    // Import dispatch service
-    const { advertisingDispatchService } = await import('./services/advertisingDispatchService.js');
-    
-    // Activate campaign and post to social media
-    const result = await advertisingDispatchService.activateCampaign(campaignId, userId);
-    
-    if (result.success) {
-      res.json(result);
-    } else {
-      res.status(result.requiredConnections ? 403 : 400).json(result);
-    }
-  } catch (error: any) {
-    console.error('Campaign activation error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Failed to activate campaign',
-      error: error.message 
-    });
-  }
-});
-
-// Collect engagement metrics for a campaign
-app.post("/api/advertising/campaigns/:id/collect-engagement", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const campaignId = parseInt(req.params.id);
-    const userId = (req.user as any).id;
-    
-    if (isNaN(campaignId)) {
-      return res.status(400).json({ error: 'Invalid campaign ID' });
-    }
-    
-    // Import dispatch service
-    const { advertisingDispatchService } = await import('./services/advertisingDispatchService.js');
-    
-    // Collect engagement metrics
-    await advertisingDispatchService.collectCampaignEngagement(campaignId, userId);
-    
-    res.json({ 
-      success: true,
-      message: 'Engagement metrics updated successfully'
-    });
-  } catch (error: any) {
-    console.error('Engagement collection error:', error);
-    res.status(500).json({ 
-      success: false,
-      error: error.message 
-    });
-  }
-});
-
-app.get("/api/advertising/ai-insights", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    // Check if insights already exist in database
-    const existingInsights = await storage.getUserAdInsights(userId);
-    
-    // If insights exist and are recent (less than 1 hour old), return them
-    if (existingInsights && existingInsights.createdAt) {
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      if (new Date(existingInsights.createdAt) > oneHourAgo) {
-        return res.json({
-          recommendations: existingInsights.recommendations,
-          performancePredictions: existingInsights.performancePredictions,
-          audienceInsights: existingInsights.audienceInsights
-        });
-      }
-    }
-    
-    // Get user's campaigns to generate real insights
-    const campaigns = await storage.getUserAdCampaigns(userId);
-    
-    // Calculate real metrics from campaigns
-    const totalSpent = campaigns.reduce((sum, c) => sum + (c.spent || 0), 0);
-    const totalImpressions = campaigns.reduce((sum, c) => sum + (c.impressions || 0), 0);
-    const totalClicks = campaigns.reduce((sum, c) => sum + (c.clicks || 0), 0);
-    const totalConversions = campaigns.reduce((sum, c) => sum + (c.conversions || 0), 0);
-    
-    const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
-    const avgConversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
-    
-    // Collect platforms from campaigns
-    const platformCounts = new Map<string, number>();
-    campaigns.forEach(c => {
-      (c.platforms || []).forEach((p: string) => {
-        platformCounts.set(p, (platformCounts.get(p) || 0) + 1);
-      });
-    });
-    
-    // Sort platforms by usage
-    const topPlatforms = Array.from(platformCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([platform]) => platform);
-    
-    // Generate deterministic recommendations based on real data
-    const recommendations = [];
-    
-    if (campaigns.length === 0) {
-      recommendations.push(
-        {
-          title: "Create Your First Campaign",
-          description: "Start by creating a campaign to promote your music and build your audience",
-          impact: 'high' as const,
-          category: "Getting Started"
-        },
-        {
-          title: "Connect Social Accounts",
-          description: "Link your social media accounts to expand your advertising reach",
-          impact: 'medium' as const,
-          category: "Platform Integration"
-        },
-        {
-          title: "Define Campaign Objectives",
-          description: "Set clear goals for awareness, engagement, or conversions",
-          impact: 'medium' as const,
-          category: "Strategy"
-        }
-      );
-    } else {
-      // Add recommendations based on performance
-      if (avgCTR < 2) {
-        recommendations.push({
-          title: "Improve Click-Through Rate",
-          description: `Your average CTR is ${avgCTR.toFixed(2)}%. Consider testing new ad creative and messaging to increase engagement`,
-          impact: 'high' as const,
-          category: "Performance"
-        });
-      }
-      
-      if (avgConversionRate < 5 && totalClicks > 0) {
-        recommendations.push({
-          title: "Optimize Conversion Funnel",
-          description: `Your conversion rate is ${avgConversionRate.toFixed(2)}%. Streamline your landing pages and call-to-action`,
-          impact: 'high' as const,
-          category: "Conversion"
-        });
-      }
-      
-      if (campaigns.length < 3) {
-        recommendations.push({
-          title: "Expand Campaign Portfolio",
-          description: "Create multiple campaigns to test different strategies and reach diverse audiences",
-          impact: 'medium' as const,
-          category: "Growth"
-        });
-      }
-      
-      if (topPlatforms.length < 3) {
-        recommendations.push({
-          title: "Diversify Platform Presence",
-          description: "Expand to additional platforms to maximize your reach and find new audiences",
-          impact: 'medium' as const,
-          category: "Platform Strategy"
-        });
-      }
-      
-      const activeCampaigns = campaigns.filter(c => c.status === 'active');
-      if (activeCampaigns.length > 0 && totalImpressions > 1000) {
-        recommendations.push({
-          title: "Leverage Top Performers",
-          description: "Increase budget allocation to your best-performing campaigns for maximum ROI",
-          impact: 'high' as const,
-          category: "Budget Optimization"
-        });
-      }
-    }
-    
-    // Generate performance predictions based on current data
-    const performancePredictions = {
-      expectedReach: Math.round(totalImpressions * 1.3), // 30% growth projection
-      expectedEngagement: Math.round(totalClicks * 1.25), // 25% growth projection
-      viralPotential: Math.min(95, Math.round((avgCTR * 10) + (campaigns.length * 5))) // 0-95 score
-    };
-    
-    // Generate audience insights
-    const audienceInsights = {
-      topInterests: campaigns.length > 0 
-        ? ["Music Production", "Electronic Music", "Live Performance", "Audio Engineering", "Music Technology"]
-        : ["Music", "Audio", "Creative Arts"],
-      bestPostingTimes: campaigns.length > 0
-        ? ["9:00 AM - 11:00 AM", "2:00 PM - 4:00 PM", "7:00 PM - 9:00 PM"]
-        : ["12:00 PM - 2:00 PM", "6:00 PM - 8:00 PM"],
-      optimalPlatforms: topPlatforms.length > 0 
-        ? topPlatforms.slice(0, 3)
-        : ["Instagram", "TikTok", "YouTube"]
-    };
-    
-    const insightsData = {
-      userId,
-      recommendations,
-      performancePredictions,
-      audienceInsights
-    };
-    
-    // Save or update insights in database
-    if (existingInsights) {
-      await storage.updateAdInsights(existingInsights.id, userId, insightsData);
-    } else {
-      await storage.createAdInsights(insightsData);
-    }
-    
-    res.json({
-      recommendations,
-      performancePredictions,
-      audienceInsights
-    });
-  } catch (error) {
-    console.error('Error fetching AI insights:', error);
-    // Return default insights instead of 500 error
-    res.json({
-      recommendations: [{
-        title: "Get Started",
-        description: "Create your first advertising campaign to see AI-powered insights",
-        impact: 'medium' as const,
-        category: "Getting Started"
-      }],
-      performancePredictions: {
-        expectedReach: 0,
-        expectedEngagement: 0,
-        viralPotential: 0
-      },
-      audienceInsights: {
-        topInterests: ["Music", "Audio", "Creative Arts"],
-        bestPostingTimes: ["12:00 PM - 2:00 PM", "6:00 PM - 8:00 PM"],
-        optimalPlatforms: ["Instagram", "TikTok", "YouTube"]
-      }
-    });
-  }
-});
-
-app.post("/api/advertising/generate-content", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const { musicData, targetAudience } = req.body;
-    
-    const { AIAdvertisingEngine } = await import("./ai-advertising.js");
-    const aiEngine = new AIAdvertisingEngine();
-    
-    const aiContent = await aiEngine.generateSuperiorAdContent(musicData, targetAudience);
-    const audienceTargeting = await aiEngine.generateSuperiorAudienceTargeting(musicData, 'awareness');
-    const viralAmplification = await aiEngine.generateViralAmplification(aiContent);
-    
-    res.json({
-      content: aiContent,
-      targeting: audienceTargeting,
-      viral: viralAmplification
-    });
-  } catch (error) {
-    console.error('Error generating AI content:', error);
-    // Return default content instead of 500 error
-    res.json({
-      content: {},
-      targeting: {},
-      viral: {}
-    });
-  }
-});
-
-app.post("/api/advertising/optimize-campaign", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const { campaignId, performance } = req.body;
-    
-    const { AIAdvertisingEngine } = await import("./ai-advertising.js");
-    const aiEngine = new AIAdvertisingEngine();
-    
-    const optimizations = await aiEngine.optimizeCreativeElements(req.body, performance);
-    const predictions = await aiEngine.predictCampaignPerformance(req.body);
-    
-    res.json({
-      optimizations,
-      predictions
-    });
-  } catch (error) {
-    console.error('Error optimizing campaign:', error);
-    // Return default optimizations instead of 500 error
-    res.json({
-      optimizations: {},
-      predictions: {}
-    });
-  }
-});
-
-app.get("/api/advertising/performance/:campaignId", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const { campaignId } = req.params;
-    const userId = (req.user as any).id;
-    
-    const campaign = await storage.getAdCampaign(parseInt(campaignId));
-    
-    if (!campaign) {
-      return res.status(404).json({ error: 'Campaign not found' });
-    }
-    
-    // Verify ownership
-    if (campaign.userId !== userId) {
-      return res.status(403).json({ error: 'Not authorized to view this campaign' });
-    }
-    
-    // Calculate real performance metrics
-    const ctr = campaign.impressions > 0 ? (campaign.clicks / campaign.impressions) * 100 : 0;
-    const conversionRate = campaign.clicks > 0 ? (campaign.conversions / campaign.clicks) * 100 : 0;
-    const costPerClick = campaign.clicks > 0 ? campaign.spent / campaign.clicks : 0;
-    const costPerConversion = campaign.conversions > 0 ? campaign.spent / campaign.conversions : 0;
-    
-    const performance = {
-      campaign,
-      metrics: {
-        ctr: parseFloat(ctr.toFixed(2)),
-        conversionRate: parseFloat(conversionRate.toFixed(2)),
-        costPerClick: parseFloat(costPerClick.toFixed(2)),
-        costPerConversion: parseFloat(costPerConversion.toFixed(2)),
-        roi: campaign.spent > 0 ? ((campaign.conversions * 50 - campaign.spent) / campaign.spent) * 100 : 0
-      },
-      recommendations: campaign.clicks > 0 ? [
-        ctr < 1 ? "Improve ad creative to increase click-through rate" : "CTR is performing well",
-        conversionRate < 2 ? "Optimize landing page for better conversions" : "Conversion rate is strong",
-        costPerClick > 5 ? "Refine targeting to reduce cost per click" : "Cost per click is efficient"
-      ] : [
-        "Campaign needs more data to generate recommendations",
-        "Increase budget or extend duration for better insights",
-        "Review targeting settings and ad creative"
-      ]
-    };
-    
-    res.json(performance);
-  } catch (error) {
-    console.error('Error fetching campaign performance:', error);
-    // Return default performance instead of 500 error
-    res.json({
-      campaign: null,
-      metrics: {
-        ctr: 0,
-        conversionRate: 0,
-        costPerClick: 0,
-        costPerConversion: 0,
-        roi: 0
-      },
-      recommendations: [
-        "Campaign data is currently unavailable",
-        "Please try again later"
-      ]
-    });
-  }
-});
-
-// Upload image for advertising campaign
-app.post("/api/advertising/upload-image", requireAuth, requirePremium, upload.single('image'), async (req, res) => {
-  try {
-    const user = req.user as any;
-    const file = req.file;
-
-    if (!file) {
-      return res.status(400).json({ error: 'No image uploaded' });
-    }
-
-    // Log file upload
-    auditLogger.logFileUpload(req, user.id, user.email, file.originalname, file.size, true);
-
-    res.json({
-      success: true,
-      imageUrl: `/uploads/${path.basename(file.path)}`,
-      filename: file.originalname,
-      size: file.size,
-      mimetype: file.mimetype
-    });
-  } catch (error: any) {
-    console.error('Error uploading image:', error);
-    res.status(500).json({ error: 'Failed to upload image' });
-  }
-});
-
-// REVOLUTIONARY: Zero-Cost Social Amplification System
-// Uses user's connected social profiles to eliminate ad spend while achieving 100%+ better results
-app.post("/api/advertising/amplify-organic", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const { campaignId, musicData, connectedPlatforms } = req.body;
-
-    // Get campaign
-    const campaign = await storage.getAdCampaign(parseInt(campaignId));
-    if (!campaign || campaign.userId !== userId) {
-      return res.status(404).json({ error: 'Campaign not found' });
-    }
-
-    // Import social amplification service
-    const { socialAmplificationService } = await import('./services/socialAmplificationService.js');
-
-    // Amplify through user's organic social profiles (ZERO AD SPEND)
-    const result = await socialAmplificationService.amplifyThroughOrganic({
-      adCampaignId: campaignId,
-      userId,
-      connectedPlatforms: connectedPlatforms || campaign.connectedPlatforms || {},
-      musicData: musicData || {},
-      targetAudience: {},
-      campaignObjective: campaign.objective
-    });
-
-    res.json({
-      success: result.success,
-      organicPosts: result.organicPosts,
-      projectedBoost: result.projectedBoost,
-      costSavings: result.costSavings,
-      message: `Organic amplification launched across ${result.organicPosts.length} platforms with ZERO AD SPEND`
-    });
-  } catch (error: any) {
-    console.error('Error amplifying campaign organically:', error);
-    res.status(500).json({ error: 'Failed to amplify campaign organically' });
-  }
-});
-
-// Get organic performance data for a campaign
-app.get("/api/advertising/organic-performance/:campaignId", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const { campaignId } = req.params;
-
-    // Verify campaign ownership
-    const campaign = await storage.getAdCampaign(parseInt(campaignId));
-    if (!campaign || campaign.userId !== userId) {
-      return res.status(404).json({ error: 'Campaign not found' });
-    }
-
-    // Import social amplification service
-    const { socialAmplificationService } = await import('./services/socialAmplificationService.js');
-
-    // Get performance comparison
-    const comparison = await socialAmplificationService.getPerformanceComparison(campaignId);
-
-    res.json({
-      campaignId,
-      organicPerformance: comparison.organicPerformance,
-      paidAdEquivalent: comparison.paidAdEquivalent,
-      performanceBoost: comparison.performanceBoost,
-      costSavings: comparison.costSavings,
-      roi: comparison.roi,
-      message: `Organic posts performing ${comparison.performanceBoost}% better than paid ads with ${comparison.roi}`
-    });
-  } catch (error: any) {
-    console.error('Error fetching organic performance:', error);
-    res.status(500).json({ error: 'Failed to fetch organic performance' });
-  }
-});
-
-// Get comprehensive comparison: Organic vs Paid Advertising
-app.get("/api/advertising/performance-comparison/:campaignId", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const { campaignId } = req.params;
-
-    // Verify campaign ownership
-    const campaign = await storage.getAdCampaign(parseInt(campaignId));
-    if (!campaign || campaign.userId !== userId) {
-      return res.status(404).json({ error: 'Campaign not found' });
-    }
-
-    // Import social amplification service
-    const { socialAmplificationService } = await import('./services/socialAmplificationService.js');
-
-    // Get full comparison data
-    const comparison = await socialAmplificationService.getPerformanceComparison(campaignId);
-
-    res.json({
-      campaignId,
-      campaignName: campaign.name,
-      comparison: {
-        organic: {
-          reach: comparison.organicPerformance.totalReach,
-          engagement: comparison.organicPerformance.totalEngagement,
-          shares: comparison.organicPerformance.totalShares,
-          engagementRate: `${(comparison.organicPerformance.avgEngagementRate * 100).toFixed(2)}%`,
-          cost: `$${comparison.organicPerformance.totalCost.toFixed(2)}`,
-          platform: 'User\'s Connected Social Profiles (Organic)'
-        },
-        paidAds: {
-          reach: comparison.paidAdEquivalent.estimatedReach,
-          engagement: comparison.paidAdEquivalent.estimatedEngagement,
-          shares: 'N/A (paid ads don\'t go viral)',
-          engagementRate: `${(comparison.paidAdEquivalent.avgEngagementRate * 100).toFixed(2)}%`,
-          cost: `$${comparison.paidAdEquivalent.estimatedCost.toFixed(2)}`,
-          platform: 'Facebook/Instagram/TikTok Paid Ads'
-        },
-        advantage: {
-          performanceBoost: `${comparison.performanceBoost}% better performance`,
-          costSavings: `$${comparison.costSavings.toFixed(2)} saved`,
-          roi: comparison.roi,
-          verdict: `Organic amplification outperforms paid ads by ${comparison.performanceBoost}% while costing $0`
-        }
-      }
-    });
-  } catch (error: any) {
-    console.error('Error fetching performance comparison:', error);
-    res.status(500).json({ error: 'Failed to fetch performance comparison' });
-  }
-});
-
-// Advertisement AI System - New Routes for Complete Implementation
-
-// Content Intake - Upload content and create adCreative
-app.post("/api/advertising/intake", requireAuth, requirePremium, upload.array('assets', 10), async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const { contentType, rawContent, campaignId } = req.body;
-    
-    const assetUrls: string[] = [];
-    if (req.files && Array.isArray(req.files)) {
-      for (const file of req.files) {
-        assetUrls.push(`/uploads/${file.filename}`);
-      }
-    }
-    
-    const creative = await storage.createAdCreative({
-      userId,
-      campaignId: campaignId ? parseInt(campaignId) : null,
-      contentType,
-      rawContent,
-      assetUrls,
-      complianceStatus: 'pending',
-      status: 'draft'
-    });
-    
-    res.json({ creative, message: 'Content uploaded successfully' });
-  } catch (error: any) {
-    console.error('Error uploading content:', error);
-    res.status(500).json({ error: 'Failed to upload content' });
-  }
-});
-
-// Normalize creative for platforms
-app.post("/api/advertising/normalize", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const { creativeId, platforms } = req.body;
-    
-    const creative = await storage.getAdCreative(creativeId);
-    if (!creative || creative.userId !== userId) {
-      return res.status(404).json({ error: 'Creative not found' });
-    }
-    
-    const { AdvertisingNormalizationService } = await import('./services/advertisingNormalizationService.js');
-    const normalizationService = new AdvertisingNormalizationService();
-    
-    const variants = await normalizationService.normalizeContent(creative, platforms);
-    const compliance = await normalizationService.checkCompliance(creative.rawContent || '', creative.assetUrls || []);
-    
-    await storage.updateAdCreative(creativeId, {
-      platformVariants: variants,
-      complianceStatus: compliance.status,
-      complianceIssues: compliance.issues
-    });
-    
-    res.json({ variants, compliance, message: 'Content normalized for platforms' });
-  } catch (error: any) {
-    console.error('Error normalizing content:', error);
-    res.status(500).json({ error: 'Failed to normalize content' });
-  }
-});
-
-// AI Amplification - Run AI on creative, create variants
-app.post("/api/advertising/amplify", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const { creativeId, campaignId, platforms } = req.body;
-    
-    const creative = await storage.getAdCreative(creativeId);
-    if (!creative || creative.userId !== userId) {
-      return res.status(404).json({ error: 'Creative not found' });
-    }
-    
-    const campaign = await storage.getAdCampaign(parseInt(campaignId));
-    if (!campaign || campaign.userId !== userId) {
-      return res.status(404).json({ error: 'Campaign not found' });
-    }
-    
-    const { AdvertisingAIService } = await import('./services/advertisingAIService.js');
-    const aiService = new AdvertisingAIService();
-    
-    const amplificationResult = await aiService.amplifyCreative(creative, campaign, platforms);
-    
-    // Batch create all variants in parallel instead of sequentially
-    const variantPromises = platforms.map(platform => 
-      storage.createAdCampaignVariant({
-        campaignId: parseInt(campaignId),
-        creativeId,
-        platform,
-        variantName: `${platform}_variant`,
-        content: creative.platformVariants?.[platform] || {},
-        predictedCTR: '0.05',
-        predictedEngagement: '0.08',
-        predictedConversion: '0.02',
-        viralityScore: amplificationResult.viralityScore,
-        status: 'pending'
+  app.post('/api/testing/run', requireAuth, requireAdmin, (req, res) => {
+    const TestingSystem = require('./testing-system').default;
+    const testingSystem = TestingSystem.getInstance();
+    testingSystem
+      .runFullTestSuite()
+      .then((results: unknown) => {
+        res.json(results);
       })
-    );
-    const variants = await Promise.all(variantPromises);
-    
-    res.json({ 
-      amplificationResult, 
-      variants,
-      message: 'AI amplification completed - 100%+ organic boost ready'
-    });
-  } catch (error: any) {
-    console.error('Error amplifying content:', error);
-    res.status(500).json({ error: 'Failed to amplify content' });
-  }
-});
+      .catch((error: unknown) => {
+        res.status(500).json({ error: error.message });
+      });
+  });
 
-// Organic Dispatch - Post variant organically via user's social profile
-app.post("/api/advertising/dispatch", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const { variantId, campaignId } = req.body;
-    
-    const variant = await storage.getAdCampaignVariant(variantId);
-    if (!variant) {
-      return res.status(404).json({ error: 'Variant not found' });
+  app.get('/api/testing/failed', requireAuth, requireAdmin, (req, res) => {
+    const TestingSystem = require('./testing-system').default;
+    const testingSystem = TestingSystem.getInstance();
+    const failedTests = testingSystem.getFailedTests();
+    res.json(failedTests);
+  });
+
+  app.get('/api/testing/coverage', requireAuth, requireAdmin, (req, res) => {
+    const TestingSystem = require('./testing-system').default;
+    const testingSystem = TestingSystem.getInstance();
+    const coverage = testingSystem.getTestCoverage();
+    res.json(coverage);
+  });
+
+  // AI Advertising System Routes
+  app.get('/api/advertising/campaigns', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const campaigns = await storage.getUserAdCampaigns((req.user as any).id);
+      res.json(campaigns);
+    } catch (error: unknown) {
+      logger.error('Error fetching campaigns:', error);
+      // Return empty array instead of 500 error
+      res.json([]);
     }
-    
-    const campaign = await storage.getAdCampaign(parseInt(campaignId));
-    if (!campaign || campaign.userId !== userId) {
-      return res.status(404).json({ error: 'Campaign not found' });
-    }
-    
-    const { AdvertisingDispatchService } = await import('./services/advertisingDispatchService.js');
-    const dispatchService = new AdvertisingDispatchService();
-    
-    const result = await dispatchService.dispatchToPlatform(
-      variant.platform,
-      variant,
-      userId,
-      campaign
-    );
-    
-    await storage.createAdDeliveryLog({
-      variantId,
-      platform: variant.platform,
-      platformAdId: result.id,
-      deliveryStatus: result.status,
-      platformResponse: result,
-      retryCount: 0,
-      deliveredAt: new Date()
-    });
-    
-    await storage.updateAdCampaignVariant(variantId, {
-      status: 'delivered'
-    });
-    
-    res.json({ 
-      result, 
-      message: `Posted organically to ${variant.platform} - $0 ad spend, 100% organic reach`
-    });
-  } catch (error: any) {
-    console.error('Error dispatching content:', error);
-    res.status(500).json({ error: error.message || 'Failed to dispatch content' });
-  }
-});
+  });
 
-// Create kill rule
-app.post("/api/advertising/rules", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const { campaignId, ruleName, condition, action } = req.body;
-    
-    const campaign = await storage.getAdCampaign(parseInt(campaignId));
-    if (!campaign || campaign.userId !== userId) {
-      return res.status(404).json({ error: 'Campaign not found' });
-    }
-    
-    const rule = await storage.createAdKillRule({
-      campaignId: parseInt(campaignId),
-      ruleName,
-      condition,
-      action,
-      status: 'active'
-    });
-    
-    res.json({ rule, message: 'Kill rule created' });
-  } catch (error: any) {
-    console.error('Error creating rule:', error);
-    res.status(500).json({ error: 'Failed to create rule' });
-  }
-});
-
-// Evaluate all rules for campaign
-app.post("/api/advertising/rules/evaluate", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const { campaignId } = req.body;
-    
-    const campaign = await storage.getAdCampaign(parseInt(campaignId));
-    if (!campaign || campaign.userId !== userId) {
-      return res.status(404).json({ error: 'Campaign not found' });
-    }
-    
-    const { AdvertisingRulesService } = await import('./services/advertisingRulesService.js');
-    const rulesService = new AdvertisingRulesService();
-    
-    const executions = await rulesService.evaluateRules(parseInt(campaignId));
-    
-    res.json({ 
-      executions, 
-      message: `Evaluated ${executions.length} rule(s)` 
-    });
-  } catch (error: any) {
-    console.error('Error evaluating rules:', error);
-    res.status(500).json({ error: 'Failed to evaluate rules' });
-  }
-});
-
-// Get rule execution history
-app.get("/api/advertising/rules/:ruleId/executions", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const { ruleId } = req.params;
-    
-    const executions = await storage.getRuleExecutions(ruleId);
-    
-    res.json({ executions });
-  } catch (error: any) {
-    console.error('Error fetching executions:', error);
-    res.status(500).json({ error: 'Failed to fetch executions' });
-  }
-});
-
-// Get user's creatives
-app.get("/api/advertising/creatives", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    const creatives = await storage.getUserAdCreatives(userId);
-    
-    res.json({ creatives });
-  } catch (error: any) {
-    console.error('Error fetching creatives:', error);
-    res.status(500).json({ error: 'Failed to fetch creatives' });
-  }
-});
-
-// Get campaign variants
-app.get("/api/advertising/campaigns/:id/variants", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const campaignId = parseInt(req.params.id);
-    
-    const campaign = await storage.getAdCampaign(campaignId);
-    if (!campaign || campaign.userId !== userId) {
-      return res.status(404).json({ error: 'Campaign not found' });
-    }
-    
-    const variants = await storage.getCampaignVariants(campaignId);
-    
-    res.json({ variants });
-  } catch (error: any) {
-    console.error('Error fetching variants:', error);
-    res.status(500).json({ error: 'Failed to fetch variants' });
-  }
-});
-
-// Get delivery logs for campaign
-app.get("/api/advertising/delivery/logs", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const { campaignId } = req.query;
-    
-    if (!campaignId) {
-      return res.status(400).json({ error: 'Campaign ID required' });
-    }
-    
-    const campaign = await storage.getAdCampaign(parseInt(campaignId as string));
-    if (!campaign || campaign.userId !== userId) {
-      return res.status(404).json({ error: 'Campaign not found' });
-    }
-    
-    const logs = await storage.getDeliveryLogs(parseInt(campaignId as string));
-    
-    res.json({ logs });
-  } catch (error: any) {
-    console.error('Error fetching delivery logs:', error);
-    res.status(500).json({ error: 'Failed to fetch delivery logs' });
-  }
-});
-
-// Autopilot Engine Routes
-app.post("/api/autopilot/configure", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const config = req.body;
-    
-    let userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(userId),
-        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
-      };
-      userAutopilotInstances.set(userId, userEngines);
-    }
-    
-    await userEngines.autopilot.configure(config);
-    
-    res.json({ 
-      success: true, 
-      message: 'Autopilot configured successfully',
-      config: await userEngines.autopilot.getConfig()
-    });
-  } catch (error: any) {
-    console.error('Error configuring autopilot:', error);
-    res.status(500).json({ error: 'Failed to configure autopilot' });
-  }
-});
-
-app.get("/api/autopilot/status", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    let userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(userId),
-        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
-      };
-      userAutopilotInstances.set(userId, userEngines);
-    }
-    
-    const config = await userEngines.autopilot.getConfig();
-    const status = userEngines.autopilot.getStatus();
-    
-    res.json({ 
-      config,
-      status,
-      isRunning: config.enabled
-    });
-  } catch (error: any) {
-    console.error('Error fetching autopilot status:', error);
-    res.status(500).json({ error: 'Failed to fetch autopilot status' });
-  }
-});
-
-app.post("/api/autopilot/start", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    let userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(userId),
-        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
-      };
-      userAutopilotInstances.set(userId, userEngines);
-    }
-    
-    await userEngines.autopilot.start();
-    
-    res.json({ 
-      success: true, 
-      message: 'Autopilot started successfully',
-      status: userEngines.autopilot.getStatus()
-    });
-  } catch (error: any) {
-    console.error('Error starting autopilot:', error);
-    res.status(500).json({ error: 'Failed to start autopilot' });
-  }
-});
-
-app.post("/api/autopilot/stop", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    const userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      return res.status(400).json({ error: 'No autopilot instance found for user' });
-    }
-    
-    await userEngines.autopilot.stop();
-    
-    res.json({ 
-      success: true, 
-      message: 'Autopilot stopped successfully',
-      status: userEngines.autopilot.getStatus()
-    });
-  } catch (error: any) {
-    console.error('Error stopping autopilot:', error);
-    res.status(500).json({ error: 'Failed to stop autopilot' });
-  }
-});
-
-// Autonomous Autopilot Routes
-app.post("/api/autopilot/autonomous/configure", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const config = req.body;
-    
-    let userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(userId),
-        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
-      };
-      userAutopilotInstances.set(userId, userEngines);
-    }
-    
-    await userEngines.autonomous.updateAutonomousConfig(config);
-    
-    res.json({ 
-      success: true, 
-      message: 'Autonomous autopilot configured successfully',
-      config: userEngines.autonomous.getConfig()
-    });
-  } catch (error: any) {
-    console.error('Error configuring autonomous autopilot:', error);
-    res.status(500).json({ error: 'Failed to configure autonomous autopilot' });
-  }
-});
-
-app.get("/api/autopilot/autonomous/status", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    let userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(userId),
-        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
-      };
-      userAutopilotInstances.set(userId, userEngines);
-    }
-    
-    const config = userEngines.autonomous.getConfig();
-    const status = userEngines.autonomous.getAutonomousStatus();
-    
-    res.json({ 
-      config,
-      status,
-      isRunning: config.enabled
-    });
-  } catch (error: any) {
-    console.error('Error fetching autonomous autopilot status:', error);
-    res.status(500).json({ error: 'Failed to fetch autonomous autopilot status' });
-  }
-});
-
-app.post("/api/autopilot/autonomous/start", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    let userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(userId),
-        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
-      };
-      userAutopilotInstances.set(userId, userEngines);
-    }
-    
-    await userEngines.autonomous.startAutonomousMode();
-    
-    res.json({ 
-      success: true, 
-      message: 'Autonomous autopilot started successfully',
-      status: userEngines.autonomous.getAutonomousStatus()
-    });
-  } catch (error: any) {
-    console.error('Error starting autonomous autopilot:', error);
-    res.status(500).json({ error: 'Failed to start autonomous autopilot' });
-  }
-});
-
-app.post("/api/autopilot/autonomous/stop", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    const userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      return res.status(400).json({ error: 'No autonomous autopilot instance found for user' });
-    }
-    
-    await userEngines.autonomous.stopAutonomousMode();
-    
-    res.json({ 
-      success: true, 
-      message: 'Autonomous autopilot stopped successfully',
-      status: userEngines.autonomous.getAutonomousStatus()
-    });
-  } catch (error: any) {
-    console.error('Error stopping autonomous autopilot:', error);
-    res.status(500).json({ error: 'Failed to stop autonomous autopilot' });
-  }
-});
-
-// Autopilot Social Alias Routes (for AdminAutonomy page compatibility)
-app.get("/api/autopilot/social/status", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    let userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(userId),
-        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
-      };
-      userAutopilotInstances.set(userId, userEngines);
-    }
-    
-    const config = await userEngines.autopilot.getConfig();
-    const status = userEngines.autopilot.getStatus();
-    
-    res.json({ 
-      config,
-      status,
-      isRunning: config.enabled,
-      nextScheduledJob: status.nextRun
-    });
-  } catch (error: any) {
-    console.error('Error fetching autopilot social status:', error);
-    res.status(500).json({ error: 'Failed to fetch autopilot status' });
-  }
-});
-
-app.post("/api/autopilot/social/start", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    let userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(userId),
-        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
-      };
-      userAutopilotInstances.set(userId, userEngines);
-    }
-    
-    await userEngines.autopilot.start();
-    
-    res.json({ 
-      success: true, 
-      message: 'Social autopilot started successfully',
-      status: userEngines.autopilot.getStatus()
-    });
-  } catch (error: any) {
-    console.error('Error starting autopilot:', error);
-    res.status(500).json({ error: 'Failed to start autopilot' });
-  }
-});
-
-app.post("/api/autopilot/social/stop", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    const userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      return res.status(400).json({ error: 'No autopilot instance found for user' });
-    }
-    
-    await userEngines.autopilot.stop();
-    
-    res.json({ 
-      success: true, 
-      message: 'Social autopilot stopped successfully',
-      status: userEngines.autopilot.getStatus()
-    });
-  } catch (error: any) {
-    console.error('Error stopping autopilot:', error);
-    res.status(500).json({ error: 'Failed to stop autopilot' });
-  }
-});
-
-// Auto Social Alias Routes (for AdminAutonomy page autonomous mode)
-app.get("/api/auto/social/status", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    let userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(userId),
-        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
-      };
-      userAutopilotInstances.set(userId, userEngines);
-    }
-    
-    const config = userEngines.autonomous.getConfig();
-    const status = userEngines.autonomous.getAutonomousStatus();
-    
-    res.json({ 
-      config,
-      status,
-      isRunning: config.enabled,
-      totalContentPublished: status.totalGenerated || 0
-    });
-  } catch (error: any) {
-    console.error('Error fetching autonomous social status:', error);
-    res.status(500).json({ error: 'Failed to fetch autonomous status' });
-  }
-});
-
-app.post("/api/auto/social/start", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    let userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      userEngines = {
-        autopilot: AutopilotEngine.createForSocialAndAds(userId),
-        autonomous: AutonomousAutopilot.createForSocialAndAds(userId)
-      };
-      userAutopilotInstances.set(userId, userEngines);
-    }
-    
-    await userEngines.autonomous.startAutonomousMode();
-    
-    res.json({ 
-      success: true, 
-      message: 'Autonomous social mode started successfully',
-      status: userEngines.autonomous.getAutonomousStatus()
-    });
-  } catch (error: any) {
-    console.error('Error starting autonomous mode:', error);
-    res.status(500).json({ error: 'Failed to start autonomous mode' });
-  }
-});
-
-app.post("/api/auto/social/stop", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    const userEngines = userAutopilotInstances.get(userId);
-    if (!userEngines) {
-      return res.status(400).json({ error: 'No autonomous instance found for user' });
-    }
-    
-    await userEngines.autonomous.stopAutonomousMode();
-    
-    res.json({ 
-      success: true, 
-      message: 'Autonomous social mode stopped successfully',
-      status: userEngines.autonomous.getAutonomousStatus()
-    });
-  } catch (error: any) {
-    console.error('Error stopping autonomous mode:', error);
-    res.status(500).json({ error: 'Failed to stop autonomous mode' });
-  }
-});
-
-// Auto-Updates Routes (Platform self-updating system)
-app.get("/api/auto-updates/status", requireAuth, async (req, res) => {
-  try {
-    res.json({
-      isRunning: false,
-      lastUpdate: new Date().toISOString(),
-      nextScheduledUpdate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      updatesApplied: 0,
-      availableUpdates: 0,
-      systemVersion: '1.0.0'
-    });
-  } catch (error: any) {
-    console.error('Error fetching auto-updates status:', error);
-    res.status(500).json({ error: 'Failed to fetch auto-updates status' });
-  }
-});
-
-app.post("/api/auto-updates/start", requireAuth, async (req, res) => {
-  try {
-    res.json({
-      success: true,
-      message: 'Auto-updates service started',
-      status: {
-        isRunning: true,
-        lastUpdate: new Date().toISOString()
+  app.post('/api/advertising/campaigns', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const validation = createCampaignSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
+        });
       }
-    });
-  } catch (error: any) {
-    console.error('Error starting auto-updates:', error);
-    res.status(500).json({ error: 'Failed to start auto-updates' });
-  }
-});
 
-app.post("/api/auto-updates/stop", requireAuth, async (req, res) => {
-  try {
-    res.json({
-      success: true,
-      message: 'Auto-updates service stopped',
-      status: {
-        isRunning: false
-      }
-    });
-  } catch (error: any) {
-    console.error('Error stopping auto-updates:', error);
-    res.status(500).json({ error: 'Failed to stop auto-updates' });
-  }
-});
+      const { name, objective, budget, duration, targetAudience } = validation.data;
 
-app.post("/api/auto-updates/run-once", requireAuth, async (req, res) => {
-  try {
-    res.json({
-      success: true,
-      message: 'Auto-updates run completed',
-      updatesApplied: 0,
-      details: 'System is up to date'
-    });
-  } catch (error: any) {
-    console.error('Error running auto-updates:', error);
-    res.status(500).json({ error: 'Failed to run auto-updates' });
-  }
-});
+      // Initialize AI Advertising Engine
+      const { AIAdvertisingEngine } = await import('./ai-advertising.js');
+      const aiEngine = new AIAdvertisingEngine();
 
-// Security Threats Endpoint
-app.get("/api/security/threats", requireAuth, async (req, res) => {
-  try {
-    res.json([]);
-  } catch (error: any) {
-    console.error('Error fetching security threats:', error);
-    res.status(500).json({ error: 'Failed to fetch security threats' });
-  }
-});
+      // Generate AI optimizations
+      const aiOptimizations = await aiEngine.generateSuperiorAdContent(
+        { name, objective, budget },
+        targetAudience
+      );
 
-// Comprehensive Dashboard Routes
-app.get("/api/dashboard/comprehensive", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const stats = await storage.getDashboardStats(userId);
-    const recentActivity = await storage.getRecentActivity(userId, 10);
-    const topPlatforms = stats.topPlatforms;
-    
-    res.json({
-      stats: {
-        totalStreams: stats.totalStreams,
-        totalRevenue: stats.totalRevenue,
-        totalProjects: stats.totalProjects,
-        totalFollowers: stats.totalFollowers,
-        monthlyGrowth: stats.monthlyGrowth
-      },
-      topPlatforms: stats.topPlatforms,
-      recentActivity: recentActivity
-    });
-  } catch (error) {
-    console.error('Error fetching comprehensive dashboard:', error);
-    res.status(500).json({ error: 'Failed to fetch dashboard data' });
-  }
-});
+      // Create campaign with AI enhancements (starts in draft status)
+      const campaign = await storage.createAdCampaign({
+        userId: (req.user as any).id,
+        name,
+        objective,
+        budget: parseFloat(budget) || 0,
+        spent: 0,
+        impressions: 0,
+        clicks: 0,
+        conversions: 0,
+        status: 'draft', // Campaigns start as draft, must be activated via /activate endpoint
+        startDate: new Date(),
+        endDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000),
+        platforms: targetAudience.platforms,
+        connectedPlatforms: [], // Will be populated when campaign is activated
+        aiOptimizations: aiOptimizations || {},
+        personalAdNetwork: {
+          connectedAccounts: targetAudience.platforms.length,
+          totalPlatforms: 8,
+          networkStrength: 95,
+        },
+        organicMetrics: null, // Will be populated when campaign posts are created
+      });
 
-// In-memory cache for next action recommendations (2-minute TTL)
-const nextActionCache = new Map<number, { data: any; timestamp: number }>();
-const NEXT_ACTION_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
-
-// Smart Next Action Widget (with caching to prevent slow queries)
-app.get("/api/dashboard/next-action", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const user = req.user as any;
-    
-    // Check cache first
-    const cached = nextActionCache.get(userId);
-    if (cached && (Date.now() - cached.timestamp) < NEXT_ACTION_CACHE_TTL) {
-      return res.json(cached.data);
+      res.json(campaign);
+    } catch (error: unknown) {
+      logger.error('Error creating campaign:', error);
+      // Return error message but don't crash
+      res.json({ error: 'Failed to create campaign' });
     }
-    
-    // Run all count queries in parallel for better performance
-    const [
-      [projectsCount],
-      [tracksCount],
-      [releasesCount],
-      [campaignsCount]
-    ] = await Promise.all([
-      db
-        .select({ count: count() })
-        .from(projects)
-        .where(eq(projects.userId, userId)),
-      
-      db
-        .select({ count: count() })
-        .from(tracks)
-        .innerJoin(projects, eq(tracks.projectId, projects.id))
-        .where(eq(projects.userId, userId)),
-      
-      db
-        .select({ count: count() })
-        .from(releases)
-        .where(eq(releases.userId, userId)),
-      
-      db
-        .select({ count: count() })
-        .from(socialCampaigns)
-        .where(and(
-          eq(socialCampaigns.userId, userId),
-          sql`${socialCampaigns.status} != 'completed'`
-        ))
-    ]);
-    
-    const totalProjects = Number(projectsCount?.count || 0);
-    const totalTracks = Number(tracksCount?.count || 0);
-    const totalReleases = Number(releasesCount?.count || 0);
-    const totalCampaigns = Number(campaignsCount?.count || 0);
-    
-    const hasSocialMedia = !!(
-      user.facebookToken || 
-      user.instagramToken || 
-      user.twitterToken || 
-      user.youtubeToken || 
-      user.tiktokToken
-    );
-    
-    let recommendation;
-    
-    if (totalProjects === 0) {
-      recommendation = {
-        action: 'create_project',
-        title: 'Create Your First Project',
-        description: 'Start your music journey by creating your first project in the studio.',
-        ctaText: 'Go to Studio',
-        ctaLink: '/studio',
-        reason: 'Every great artist starts with a single project. Let\'s get you started!',
-        icon: 'Music',
-        priority: 'high'
+  });
+
+  // Activate campaign - posts to social media organically
+  app.post(
+    '/api/advertising/campaigns/:id/activate',
+    requireAuth,
+    requirePremium,
+    async (req, res) => {
+      try {
+        const campaignId = parseInt(req.params.id);
+        const userId = (req.user as any).id;
+
+        if (isNaN(campaignId)) {
+          return res.status(400).json({ error: 'Invalid campaign ID' });
+        }
+
+        // Import dispatch service
+        const { advertisingDispatchService } = await import(
+          './services/advertisingDispatchService.js'
+        );
+
+        // Activate campaign and post to social media
+        const result = await advertisingDispatchService.activateCampaign(campaignId, userId);
+
+        if (result.success) {
+          res.json(result);
+        } else {
+          res.status(result.requiredConnections ? 403 : 400).json(result);
+        }
+      } catch (error: unknown) {
+        logger.error('Campaign activation error:', error);
+        res.status(500).json({
+          success: false,
+          message: 'Failed to activate campaign',
+          error: error.message,
+        });
+      }
+    }
+  );
+
+  // Collect engagement metrics for a campaign
+  app.post(
+    '/api/advertising/campaigns/:id/collect-engagement',
+    requireAuth,
+    requirePremium,
+    async (req, res) => {
+      try {
+        const campaignId = parseInt(req.params.id);
+        const userId = (req.user as any).id;
+
+        if (isNaN(campaignId)) {
+          return res.status(400).json({ error: 'Invalid campaign ID' });
+        }
+
+        // Import dispatch service
+        const { advertisingDispatchService } = await import(
+          './services/advertisingDispatchService.js'
+        );
+
+        // Collect engagement metrics
+        await advertisingDispatchService.collectCampaignEngagement(campaignId, userId);
+
+        res.json({
+          success: true,
+          message: 'Engagement metrics updated successfully',
+        });
+      } catch (error: unknown) {
+        logger.error('Engagement collection error:', error);
+        res.status(500).json({
+          success: false,
+          error: error.message,
+        });
+      }
+    }
+  );
+
+  app.get('/api/advertising/ai-insights', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      // Check if insights already exist in database
+      const existingInsights = await storage.getUserAdInsights(userId);
+
+      // If insights exist and are recent (less than 1 hour old), return them
+      if (existingInsights && existingInsights.createdAt) {
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+        if (new Date(existingInsights.createdAt) > oneHourAgo) {
+          return res.json({
+            recommendations: existingInsights.recommendations,
+            performancePredictions: existingInsights.performancePredictions,
+            audienceInsights: existingInsights.audienceInsights,
+          });
+        }
+      }
+
+      // Get user's campaigns to generate real insights
+      const campaigns = await storage.getUserAdCampaigns(userId);
+
+      // Calculate real metrics from campaigns
+      const totalSpent = campaigns.reduce((sum, c) => sum + (c.spent || 0), 0);
+      const totalImpressions = campaigns.reduce((sum, c) => sum + (c.impressions || 0), 0);
+      const totalClicks = campaigns.reduce((sum, c) => sum + (c.clicks || 0), 0);
+      const totalConversions = campaigns.reduce((sum, c) => sum + (c.conversions || 0), 0);
+
+      const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+      const avgConversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
+
+      // Collect platforms from campaigns
+      const platformCounts = new Map<string, number>();
+      campaigns.forEach((c) => {
+        (c.platforms || []).forEach((p: string) => {
+          platformCounts.set(p, (platformCounts.get(p) || 0) + 1);
+        });
+      });
+
+      // Sort platforms by usage
+      const topPlatforms = Array.from(platformCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([platform]) => platform);
+
+      // Generate deterministic recommendations based on real data
+      const recommendations = [];
+
+      if (campaigns.length === 0) {
+        recommendations.push(
+          {
+            title: 'Create Your First Campaign',
+            description:
+              'Start by creating a campaign to promote your music and build your audience',
+            impact: 'high' as const,
+            category: 'Getting Started',
+          },
+          {
+            title: 'Connect Social Accounts',
+            description: 'Link your social media accounts to expand your advertising reach',
+            impact: 'medium' as const,
+            category: 'Platform Integration',
+          },
+          {
+            title: 'Define Campaign Objectives',
+            description: 'Set clear goals for awareness, engagement, or conversions',
+            impact: 'medium' as const,
+            category: 'Strategy',
+          }
+        );
+      } else {
+        // Add recommendations based on performance
+        if (avgCTR < 2) {
+          recommendations.push({
+            title: 'Improve Click-Through Rate',
+            description: `Your average CTR is ${avgCTR.toFixed(2)}%. Consider testing new ad creative and messaging to increase engagement`,
+            impact: 'high' as const,
+            category: 'Performance',
+          });
+        }
+
+        if (avgConversionRate < 5 && totalClicks > 0) {
+          recommendations.push({
+            title: 'Optimize Conversion Funnel',
+            description: `Your conversion rate is ${avgConversionRate.toFixed(2)}%. Streamline your landing pages and call-to-action`,
+            impact: 'high' as const,
+            category: 'Conversion',
+          });
+        }
+
+        if (campaigns.length < 3) {
+          recommendations.push({
+            title: 'Expand Campaign Portfolio',
+            description:
+              'Create multiple campaigns to test different strategies and reach diverse audiences',
+            impact: 'medium' as const,
+            category: 'Growth',
+          });
+        }
+
+        if (topPlatforms.length < 3) {
+          recommendations.push({
+            title: 'Diversify Platform Presence',
+            description:
+              'Expand to additional platforms to maximize your reach and find new audiences',
+            impact: 'medium' as const,
+            category: 'Platform Strategy',
+          });
+        }
+
+        const activeCampaigns = campaigns.filter((c) => c.status === 'active');
+        if (activeCampaigns.length > 0 && totalImpressions > 1000) {
+          recommendations.push({
+            title: 'Leverage Top Performers',
+            description:
+              'Increase budget allocation to your best-performing campaigns for maximum ROI',
+            impact: 'high' as const,
+            category: 'Budget Optimization',
+          });
+        }
+      }
+
+      // Generate performance predictions based on current data
+      const performancePredictions = {
+        expectedReach: Math.round(totalImpressions * 1.3), // 30% growth projection
+        expectedEngagement: Math.round(totalClicks * 1.25), // 25% growth projection
+        viralPotential: Math.min(95, Math.round(avgCTR * 10 + campaigns.length * 5)), // 0-95 score
       };
-    } else if (totalTracks === 0) {
-      const [firstProject] = await db
+
+      // Generate audience insights
+      const audienceInsights = {
+        topInterests:
+          campaigns.length > 0
+            ? [
+                'Music Production',
+                'Electronic Music',
+                'Live Performance',
+                'Audio Engineering',
+                'Music Technology',
+              ]
+            : ['Music', 'Audio', 'Creative Arts'],
+        bestPostingTimes:
+          campaigns.length > 0
+            ? ['9:00 AM - 11:00 AM', '2:00 PM - 4:00 PM', '7:00 PM - 9:00 PM']
+            : ['12:00 PM - 2:00 PM', '6:00 PM - 8:00 PM'],
+        optimalPlatforms:
+          topPlatforms.length > 0 ? topPlatforms.slice(0, 3) : ['Instagram', 'TikTok', 'YouTube'],
+      };
+
+      const insightsData = {
+        userId,
+        recommendations,
+        performancePredictions,
+        audienceInsights,
+      };
+
+      // Save or update insights in database
+      if (existingInsights) {
+        await storage.updateAdInsights(existingInsights.id, userId, insightsData);
+      } else {
+        await storage.createAdInsights(insightsData);
+      }
+
+      res.json({
+        recommendations,
+        performancePredictions,
+        audienceInsights,
+      });
+    } catch (error: unknown) {
+      logger.error('Error fetching AI insights:', error);
+      // Return default insights instead of 500 error
+      res.json({
+        recommendations: [
+          {
+            title: 'Get Started',
+            description: 'Create your first advertising campaign to see AI-powered insights',
+            impact: 'medium' as const,
+            category: 'Getting Started',
+          },
+        ],
+        performancePredictions: {
+          expectedReach: 0,
+          expectedEngagement: 0,
+          viralPotential: 0,
+        },
+        audienceInsights: {
+          topInterests: ['Music', 'Audio', 'Creative Arts'],
+          bestPostingTimes: ['12:00 PM - 2:00 PM', '6:00 PM - 8:00 PM'],
+          optimalPlatforms: ['Instagram', 'TikTok', 'YouTube'],
+        },
+      });
+    }
+  });
+
+  app.post('/api/advertising/generate-content', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const { musicData, targetAudience } = req.body;
+
+      const { AIAdvertisingEngine } = await import('./ai-advertising.js');
+      const aiEngine = new AIAdvertisingEngine();
+
+      const aiContent = await aiEngine.generateSuperiorAdContent(musicData, targetAudience);
+      const audienceTargeting = await aiEngine.generateSuperiorAudienceTargeting(
+        musicData,
+        'awareness'
+      );
+      const viralAmplification = await aiEngine.generateViralAmplification(aiContent);
+
+      res.json({
+        content: aiContent,
+        targeting: audienceTargeting,
+        viral: viralAmplification,
+      });
+    } catch (error: unknown) {
+      logger.error('Error generating AI content:', error);
+      // Return default content instead of 500 error
+      res.json({
+        content: {},
+        targeting: {},
+        viral: {},
+      });
+    }
+  });
+
+  app.post('/api/advertising/optimize-campaign', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const { campaignId, performance } = req.body;
+
+      const { AIAdvertisingEngine } = await import('./ai-advertising.js');
+      const aiEngine = new AIAdvertisingEngine();
+
+      const optimizations = await aiEngine.optimizeCreativeElements(req.body, performance);
+      const predictions = await aiEngine.predictCampaignPerformance(req.body);
+
+      res.json({
+        optimizations,
+        predictions,
+      });
+    } catch (error: unknown) {
+      logger.error('Error optimizing campaign:', error);
+      // Return default optimizations instead of 500 error
+      res.json({
+        optimizations: {},
+        predictions: {},
+      });
+    }
+  });
+
+  app.get(
+    '/api/advertising/performance/:campaignId',
+    requireAuth,
+    requirePremium,
+    async (req, res) => {
+      try {
+        const { campaignId } = req.params;
+        const userId = (req.user as any).id;
+
+        const campaign = await storage.getAdCampaign(parseInt(campaignId));
+
+        if (!campaign) {
+          return res.status(404).json({ error: 'Campaign not found' });
+        }
+
+        // Verify ownership
+        if (campaign.userId !== userId) {
+          return res.status(403).json({ error: 'Not authorized to view this campaign' });
+        }
+
+        // Calculate real performance metrics
+        const ctr = campaign.impressions > 0 ? (campaign.clicks / campaign.impressions) * 100 : 0;
+        const conversionRate =
+          campaign.clicks > 0 ? (campaign.conversions / campaign.clicks) * 100 : 0;
+        const costPerClick = campaign.clicks > 0 ? campaign.spent / campaign.clicks : 0;
+        const costPerConversion =
+          campaign.conversions > 0 ? campaign.spent / campaign.conversions : 0;
+
+        const performance = {
+          campaign,
+          metrics: {
+            ctr: parseFloat(ctr.toFixed(2)),
+            conversionRate: parseFloat(conversionRate.toFixed(2)),
+            costPerClick: parseFloat(costPerClick.toFixed(2)),
+            costPerConversion: parseFloat(costPerConversion.toFixed(2)),
+            roi:
+              campaign.spent > 0
+                ? ((campaign.conversions * 50 - campaign.spent) / campaign.spent) * 100
+                : 0,
+          },
+          recommendations:
+            campaign.clicks > 0
+              ? [
+                  ctr < 1
+                    ? 'Improve ad creative to increase click-through rate'
+                    : 'CTR is performing well',
+                  conversionRate < 2
+                    ? 'Optimize landing page for better conversions'
+                    : 'Conversion rate is strong',
+                  costPerClick > 5
+                    ? 'Refine targeting to reduce cost per click'
+                    : 'Cost per click is efficient',
+                ]
+              : [
+                  'Campaign needs more data to generate recommendations',
+                  'Increase budget or extend duration for better insights',
+                  'Review targeting settings and ad creative',
+                ],
+        };
+
+        res.json(performance);
+      } catch (error: unknown) {
+        logger.error('Error fetching campaign performance:', error);
+        // Return default performance instead of 500 error
+        res.json({
+          campaign: null,
+          metrics: {
+            ctr: 0,
+            conversionRate: 0,
+            costPerClick: 0,
+            costPerConversion: 0,
+            roi: 0,
+          },
+          recommendations: ['Campaign data is currently unavailable', 'Please try again later'],
+        });
+      }
+    }
+  );
+
+  // Upload image for advertising campaign
+  app.post(
+    '/api/advertising/upload-image',
+    requireAuth,
+    requirePremium,
+    upload.single('image'),
+    async (req, res) => {
+      try {
+        const user = req.user as any;
+        const file = req.file;
+
+        if (!file) {
+          return res.status(400).json({ error: 'No image uploaded' });
+        }
+
+        // Log file upload
+        auditLogger.logFileUpload(req, user.id, user.email, file.originalname, file.size, true);
+
+        res.json({
+          success: true,
+          imageUrl: `/uploads/${path.basename(file.path)}`,
+          filename: file.originalname,
+          size: file.size,
+          mimetype: file.mimetype,
+        });
+      } catch (error: unknown) {
+        logger.error('Error uploading image:', error);
+        res.status(500).json({ error: 'Failed to upload image' });
+      }
+    }
+  );
+
+  // REVOLUTIONARY: Zero-Cost Social Amplification System
+  // Uses user's connected social profiles to eliminate ad spend while achieving 100%+ better results
+  app.post('/api/advertising/amplify-organic', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { campaignId, musicData, connectedPlatforms } = req.body;
+
+      // Get campaign
+      const campaign = await storage.getAdCampaign(parseInt(campaignId));
+      if (!campaign || campaign.userId !== userId) {
+        return res.status(404).json({ error: 'Campaign not found' });
+      }
+
+      // Import social amplification service
+      const { socialAmplificationService } = await import(
+        './services/socialAmplificationService.js'
+      );
+
+      // Amplify through user's organic social profiles (ZERO AD SPEND)
+      const result = await socialAmplificationService.amplifyThroughOrganic({
+        adCampaignId: campaignId,
+        userId,
+        connectedPlatforms: connectedPlatforms || campaign.connectedPlatforms || {},
+        musicData: musicData || {},
+        targetAudience: {},
+        campaignObjective: campaign.objective,
+      });
+
+      res.json({
+        success: result.success,
+        organicPosts: result.organicPosts,
+        projectedBoost: result.projectedBoost,
+        costSavings: result.costSavings,
+        message: `Organic amplification launched across ${result.organicPosts.length} platforms with ZERO AD SPEND`,
+      });
+    } catch (error: unknown) {
+      logger.error('Error amplifying campaign organically:', error);
+      res.status(500).json({ error: 'Failed to amplify campaign organically' });
+    }
+  });
+
+  // Get organic performance data for a campaign
+  app.get(
+    '/api/advertising/organic-performance/:campaignId',
+    requireAuth,
+    requirePremium,
+    async (req, res) => {
+      try {
+        const userId = (req.user as any).id;
+        const { campaignId } = req.params;
+
+        // Verify campaign ownership
+        const campaign = await storage.getAdCampaign(parseInt(campaignId));
+        if (!campaign || campaign.userId !== userId) {
+          return res.status(404).json({ error: 'Campaign not found' });
+        }
+
+        // Import social amplification service
+        const { socialAmplificationService } = await import(
+          './services/socialAmplificationService.js'
+        );
+
+        // Get performance comparison
+        const comparison = await socialAmplificationService.getPerformanceComparison(campaignId);
+
+        res.json({
+          campaignId,
+          organicPerformance: comparison.organicPerformance,
+          paidAdEquivalent: comparison.paidAdEquivalent,
+          performanceBoost: comparison.performanceBoost,
+          costSavings: comparison.costSavings,
+          roi: comparison.roi,
+          message: `Organic posts performing ${comparison.performanceBoost}% better than paid ads with ${comparison.roi}`,
+        });
+      } catch (error: unknown) {
+        logger.error('Error fetching organic performance:', error);
+        res.status(500).json({ error: 'Failed to fetch organic performance' });
+      }
+    }
+  );
+
+  // Get comprehensive comparison: Organic vs Paid Advertising
+  app.get(
+    '/api/advertising/performance-comparison/:campaignId',
+    requireAuth,
+    requirePremium,
+    async (req, res) => {
+      try {
+        const userId = (req.user as any).id;
+        const { campaignId } = req.params;
+
+        // Verify campaign ownership
+        const campaign = await storage.getAdCampaign(parseInt(campaignId));
+        if (!campaign || campaign.userId !== userId) {
+          return res.status(404).json({ error: 'Campaign not found' });
+        }
+
+        // Import social amplification service
+        const { socialAmplificationService } = await import(
+          './services/socialAmplificationService.js'
+        );
+
+        // Get full comparison data
+        const comparison = await socialAmplificationService.getPerformanceComparison(campaignId);
+
+        res.json({
+          campaignId,
+          campaignName: campaign.name,
+          comparison: {
+            organic: {
+              reach: comparison.organicPerformance.totalReach,
+              engagement: comparison.organicPerformance.totalEngagement,
+              shares: comparison.organicPerformance.totalShares,
+              engagementRate: `${(comparison.organicPerformance.avgEngagementRate * 100).toFixed(2)}%`,
+              cost: `$${comparison.organicPerformance.totalCost.toFixed(2)}`,
+              platform: "User's Connected Social Profiles (Organic)",
+            },
+            paidAds: {
+              reach: comparison.paidAdEquivalent.estimatedReach,
+              engagement: comparison.paidAdEquivalent.estimatedEngagement,
+              shares: "N/A (paid ads don't go viral)",
+              engagementRate: `${(comparison.paidAdEquivalent.avgEngagementRate * 100).toFixed(2)}%`,
+              cost: `$${comparison.paidAdEquivalent.estimatedCost.toFixed(2)}`,
+              platform: 'Facebook/Instagram/TikTok Paid Ads',
+            },
+            advantage: {
+              performanceBoost: `${comparison.performanceBoost}% better performance`,
+              costSavings: `$${comparison.costSavings.toFixed(2)} saved`,
+              roi: comparison.roi,
+              verdict: `Organic amplification outperforms paid ads by ${comparison.performanceBoost}% while costing $0`,
+            },
+          },
+        });
+      } catch (error: unknown) {
+        logger.error('Error fetching performance comparison:', error);
+        res.status(500).json({ error: 'Failed to fetch performance comparison' });
+      }
+    }
+  );
+
+  // Advertisement AI System - New Routes for Complete Implementation
+
+  // Content Intake - Upload content and create adCreative
+  app.post(
+    '/api/advertising/intake',
+    requireAuth,
+    requirePremium,
+    upload.array('assets', 10),
+    async (req, res) => {
+      try {
+        const userId = (req.user as any).id;
+        const { contentType, rawContent, campaignId } = req.body;
+
+        const assetUrls: string[] = [];
+        if (req.files && Array.isArray(req.files)) {
+          for (const file of req.files) {
+            assetUrls.push(`/uploads/${file.filename}`);
+          }
+        }
+
+        const creative = await storage.createAdCreative({
+          userId,
+          campaignId: campaignId ? parseInt(campaignId) : null,
+          contentType,
+          rawContent,
+          assetUrls,
+          complianceStatus: 'pending',
+          status: 'draft',
+        });
+
+        res.json({ creative, message: 'Content uploaded successfully' });
+      } catch (error: unknown) {
+        logger.error('Error uploading content:', error);
+        res.status(500).json({ error: 'Failed to upload content' });
+      }
+    }
+  );
+
+  // Normalize creative for platforms
+  app.post('/api/advertising/normalize', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { creativeId, platforms } = req.body;
+
+      const creative = await storage.getAdCreative(creativeId);
+      if (!creative || creative.userId !== userId) {
+        return res.status(404).json({ error: 'Creative not found' });
+      }
+
+      const { AdvertisingNormalizationService } = await import(
+        './services/advertisingNormalizationService.js'
+      );
+      const normalizationService = new AdvertisingNormalizationService();
+
+      const variants = await normalizationService.normalizeContent(creative, platforms);
+      const compliance = await normalizationService.checkCompliance(
+        creative.rawContent || '',
+        creative.assetUrls || []
+      );
+
+      await storage.updateAdCreative(creativeId, {
+        platformVariants: variants,
+        complianceStatus: compliance.status,
+        complianceIssues: compliance.issues,
+      });
+
+      res.json({ variants, compliance, message: 'Content normalized for platforms' });
+    } catch (error: unknown) {
+      logger.error('Error normalizing content:', error);
+      res.status(500).json({ error: 'Failed to normalize content' });
+    }
+  });
+
+  // AI Amplification - Run AI on creative, create variants
+  app.post('/api/advertising/amplify', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { creativeId, campaignId, platforms } = req.body;
+
+      const creative = await storage.getAdCreative(creativeId);
+      if (!creative || creative.userId !== userId) {
+        return res.status(404).json({ error: 'Creative not found' });
+      }
+
+      const campaign = await storage.getAdCampaign(parseInt(campaignId));
+      if (!campaign || campaign.userId !== userId) {
+        return res.status(404).json({ error: 'Campaign not found' });
+      }
+
+      const { AdvertisingAIService } = await import('./services/advertisingAIService.js');
+      const aiService = new AdvertisingAIService();
+
+      const amplificationResult = await aiService.amplifyCreative(creative, campaign, platforms);
+
+      // Batch create all variants in parallel instead of sequentially
+      const variantPromises = platforms.map((platform) =>
+        storage.createAdCampaignVariant({
+          campaignId: parseInt(campaignId),
+          creativeId,
+          platform,
+          variantName: `${platform}_variant`,
+          content: creative.platformVariants?.[platform] || {},
+          predictedCTR: '0.05',
+          predictedEngagement: '0.08',
+          predictedConversion: '0.02',
+          viralityScore: amplificationResult.viralityScore,
+          status: 'pending',
+        })
+      );
+      const variants = await Promise.all(variantPromises);
+
+      res.json({
+        amplificationResult,
+        variants,
+        message: 'AI amplification completed - 100%+ organic boost ready',
+      });
+    } catch (error: unknown) {
+      logger.error('Error amplifying content:', error);
+      res.status(500).json({ error: 'Failed to amplify content' });
+    }
+  });
+
+  // Organic Dispatch - Post variant organically via user's social profile
+  app.post('/api/advertising/dispatch', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { variantId, campaignId } = req.body;
+
+      const variant = await storage.getAdCampaignVariant(variantId);
+      if (!variant) {
+        return res.status(404).json({ error: 'Variant not found' });
+      }
+
+      const campaign = await storage.getAdCampaign(parseInt(campaignId));
+      if (!campaign || campaign.userId !== userId) {
+        return res.status(404).json({ error: 'Campaign not found' });
+      }
+
+      const { AdvertisingDispatchService } = await import(
+        './services/advertisingDispatchService.js'
+      );
+      const dispatchService = new AdvertisingDispatchService();
+
+      const result = await dispatchService.dispatchToPlatform(
+        variant.platform,
+        variant,
+        userId,
+        campaign
+      );
+
+      await storage.createAdDeliveryLog({
+        variantId,
+        platform: variant.platform,
+        platformAdId: result.id,
+        deliveryStatus: result.status,
+        platformResponse: result,
+        retryCount: 0,
+        deliveredAt: new Date(),
+      });
+
+      await storage.updateAdCampaignVariant(variantId, {
+        status: 'delivered',
+      });
+
+      res.json({
+        result,
+        message: `Posted organically to ${variant.platform} - $0 ad spend, 100% organic reach`,
+      });
+    } catch (error: unknown) {
+      logger.error('Error dispatching content:', error);
+      res.status(500).json({ error: error.message || 'Failed to dispatch content' });
+    }
+  });
+
+  // Create kill rule
+  app.post('/api/advertising/rules', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { campaignId, ruleName, condition, action } = req.body;
+
+      const campaign = await storage.getAdCampaign(parseInt(campaignId));
+      if (!campaign || campaign.userId !== userId) {
+        return res.status(404).json({ error: 'Campaign not found' });
+      }
+
+      const rule = await storage.createAdKillRule({
+        campaignId: parseInt(campaignId),
+        ruleName,
+        condition,
+        action,
+        status: 'active',
+      });
+
+      res.json({ rule, message: 'Kill rule created' });
+    } catch (error: unknown) {
+      logger.error('Error creating rule:', error);
+      res.status(500).json({ error: 'Failed to create rule' });
+    }
+  });
+
+  // Evaluate all rules for campaign
+  app.post('/api/advertising/rules/evaluate', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { campaignId } = req.body;
+
+      const campaign = await storage.getAdCampaign(parseInt(campaignId));
+      if (!campaign || campaign.userId !== userId) {
+        return res.status(404).json({ error: 'Campaign not found' });
+      }
+
+      const { AdvertisingRulesService } = await import('./services/advertisingRulesService.js');
+      const rulesService = new AdvertisingRulesService();
+
+      const executions = await rulesService.evaluateRules(parseInt(campaignId));
+
+      res.json({
+        executions,
+        message: `Evaluated ${executions.length} rule(s)`,
+      });
+    } catch (error: unknown) {
+      logger.error('Error evaluating rules:', error);
+      res.status(500).json({ error: 'Failed to evaluate rules' });
+    }
+  });
+
+  // Get rule execution history
+  app.get(
+    '/api/advertising/rules/:ruleId/executions',
+    requireAuth,
+    requirePremium,
+    async (req, res) => {
+      try {
+        const userId = (req.user as any).id;
+        const { ruleId } = req.params;
+
+        const executions = await storage.getRuleExecutions(ruleId);
+
+        res.json({ executions });
+      } catch (error: unknown) {
+        logger.error('Error fetching executions:', error);
+        res.status(500).json({ error: 'Failed to fetch executions' });
+      }
+    }
+  );
+
+  // Get user's creatives
+  app.get('/api/advertising/creatives', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      const creatives = await storage.getUserAdCreatives(userId);
+
+      res.json({ creatives });
+    } catch (error: unknown) {
+      logger.error('Error fetching creatives:', error);
+      res.status(500).json({ error: 'Failed to fetch creatives' });
+    }
+  });
+
+  // Get campaign variants
+  app.get(
+    '/api/advertising/campaigns/:id/variants',
+    requireAuth,
+    requirePremium,
+    async (req, res) => {
+      try {
+        const userId = (req.user as any).id;
+        const campaignId = parseInt(req.params.id);
+
+        const campaign = await storage.getAdCampaign(campaignId);
+        if (!campaign || campaign.userId !== userId) {
+          return res.status(404).json({ error: 'Campaign not found' });
+        }
+
+        const variants = await storage.getCampaignVariants(campaignId);
+
+        res.json({ variants });
+      } catch (error: unknown) {
+        logger.error('Error fetching variants:', error);
+        res.status(500).json({ error: 'Failed to fetch variants' });
+      }
+    }
+  );
+
+  // Get delivery logs for campaign
+  app.get('/api/advertising/delivery/logs', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { campaignId } = req.query;
+
+      if (!campaignId) {
+        return res.status(400).json({ error: 'Campaign ID required' });
+      }
+
+      const campaign = await storage.getAdCampaign(parseInt(campaignId as string));
+      if (!campaign || campaign.userId !== userId) {
+        return res.status(404).json({ error: 'Campaign not found' });
+      }
+
+      const logs = await storage.getDeliveryLogs(parseInt(campaignId as string));
+
+      res.json({ logs });
+    } catch (error: unknown) {
+      logger.error('Error fetching delivery logs:', error);
+      res.status(500).json({ error: 'Failed to fetch delivery logs' });
+    }
+  });
+
+  // Autopilot Engine Routes
+  app.post('/api/autopilot/configure', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const config = req.body;
+
+      let userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        userEngines = {
+          autopilot: AutopilotEngine.createForSocialAndAds(userId),
+          autonomous: AutonomousAutopilot.createForSocialAndAds(userId),
+        };
+        userAutopilotInstances.set(userId, userEngines);
+      }
+
+      await userEngines.autopilot.configure(config);
+
+      res.json({
+        success: true,
+        message: 'Autopilot configured successfully',
+        config: await userEngines.autopilot.getConfig(),
+      });
+    } catch (error: unknown) {
+      logger.error('Error configuring autopilot:', error);
+      res.status(500).json({ error: 'Failed to configure autopilot' });
+    }
+  });
+
+  app.get('/api/autopilot/status', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      let userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        userEngines = {
+          autopilot: AutopilotEngine.createForSocialAndAds(userId),
+          autonomous: AutonomousAutopilot.createForSocialAndAds(userId),
+        };
+        userAutopilotInstances.set(userId, userEngines);
+      }
+
+      const config = await userEngines.autopilot.getConfig();
+      const status = userEngines.autopilot.getStatus();
+
+      res.json({
+        config,
+        status,
+        isRunning: config.enabled,
+      });
+    } catch (error: unknown) {
+      logger.error('Error fetching autopilot status:', error);
+      res.status(500).json({ error: 'Failed to fetch autopilot status' });
+    }
+  });
+
+  app.post('/api/autopilot/start', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      let userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        userEngines = {
+          autopilot: AutopilotEngine.createForSocialAndAds(userId),
+          autonomous: AutonomousAutopilot.createForSocialAndAds(userId),
+        };
+        userAutopilotInstances.set(userId, userEngines);
+      }
+
+      await userEngines.autopilot.start();
+
+      res.json({
+        success: true,
+        message: 'Autopilot started successfully',
+        status: userEngines.autopilot.getStatus(),
+      });
+    } catch (error: unknown) {
+      logger.error('Error starting autopilot:', error);
+      res.status(500).json({ error: 'Failed to start autopilot' });
+    }
+  });
+
+  app.post('/api/autopilot/stop', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      const userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        return res.status(400).json({ error: 'No autopilot instance found for user' });
+      }
+
+      await userEngines.autopilot.stop();
+
+      res.json({
+        success: true,
+        message: 'Autopilot stopped successfully',
+        status: userEngines.autopilot.getStatus(),
+      });
+    } catch (error: unknown) {
+      logger.error('Error stopping autopilot:', error);
+      res.status(500).json({ error: 'Failed to stop autopilot' });
+    }
+  });
+
+  // Autonomous Autopilot Routes
+  app.post('/api/autopilot/autonomous/configure', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const config = req.body;
+
+      let userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        userEngines = {
+          autopilot: AutopilotEngine.createForSocialAndAds(userId),
+          autonomous: AutonomousAutopilot.createForSocialAndAds(userId),
+        };
+        userAutopilotInstances.set(userId, userEngines);
+      }
+
+      await userEngines.autonomous.updateAutonomousConfig(config);
+
+      res.json({
+        success: true,
+        message: 'Autonomous autopilot configured successfully',
+        config: userEngines.autonomous.getConfig(),
+      });
+    } catch (error: unknown) {
+      logger.error('Error configuring autonomous autopilot:', error);
+      res.status(500).json({ error: 'Failed to configure autonomous autopilot' });
+    }
+  });
+
+  app.get('/api/autopilot/autonomous/status', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      let userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        userEngines = {
+          autopilot: AutopilotEngine.createForSocialAndAds(userId),
+          autonomous: AutonomousAutopilot.createForSocialAndAds(userId),
+        };
+        userAutopilotInstances.set(userId, userEngines);
+      }
+
+      const config = userEngines.autonomous.getConfig();
+      const status = userEngines.autonomous.getAutonomousStatus();
+
+      res.json({
+        config,
+        status,
+        isRunning: config.enabled,
+      });
+    } catch (error: unknown) {
+      logger.error('Error fetching autonomous autopilot status:', error);
+      res.status(500).json({ error: 'Failed to fetch autonomous autopilot status' });
+    }
+  });
+
+  app.post('/api/autopilot/autonomous/start', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      let userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        userEngines = {
+          autopilot: AutopilotEngine.createForSocialAndAds(userId),
+          autonomous: AutonomousAutopilot.createForSocialAndAds(userId),
+        };
+        userAutopilotInstances.set(userId, userEngines);
+      }
+
+      await userEngines.autonomous.startAutonomousMode();
+
+      res.json({
+        success: true,
+        message: 'Autonomous autopilot started successfully',
+        status: userEngines.autonomous.getAutonomousStatus(),
+      });
+    } catch (error: unknown) {
+      logger.error('Error starting autonomous autopilot:', error);
+      res.status(500).json({ error: 'Failed to start autonomous autopilot' });
+    }
+  });
+
+  app.post('/api/autopilot/autonomous/stop', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      const userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        return res.status(400).json({ error: 'No autonomous autopilot instance found for user' });
+      }
+
+      await userEngines.autonomous.stopAutonomousMode();
+
+      res.json({
+        success: true,
+        message: 'Autonomous autopilot stopped successfully',
+        status: userEngines.autonomous.getAutonomousStatus(),
+      });
+    } catch (error: unknown) {
+      logger.error('Error stopping autonomous autopilot:', error);
+      res.status(500).json({ error: 'Failed to stop autonomous autopilot' });
+    }
+  });
+
+  // Autopilot Social Alias Routes (for AdminAutonomy page compatibility)
+  app.get('/api/autopilot/social/status', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      let userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        userEngines = {
+          autopilot: AutopilotEngine.createForSocialAndAds(userId),
+          autonomous: AutonomousAutopilot.createForSocialAndAds(userId),
+        };
+        userAutopilotInstances.set(userId, userEngines);
+      }
+
+      const config = await userEngines.autopilot.getConfig();
+      const status = userEngines.autopilot.getStatus();
+
+      res.json({
+        config,
+        status,
+        isRunning: config.enabled,
+        nextScheduledJob: status.nextRun,
+      });
+    } catch (error: unknown) {
+      logger.error('Error fetching autopilot social status:', error);
+      res.status(500).json({ error: 'Failed to fetch autopilot status' });
+    }
+  });
+
+  app.post('/api/autopilot/social/start', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      let userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        userEngines = {
+          autopilot: AutopilotEngine.createForSocialAndAds(userId),
+          autonomous: AutonomousAutopilot.createForSocialAndAds(userId),
+        };
+        userAutopilotInstances.set(userId, userEngines);
+      }
+
+      await userEngines.autopilot.start();
+
+      res.json({
+        success: true,
+        message: 'Social autopilot started successfully',
+        status: userEngines.autopilot.getStatus(),
+      });
+    } catch (error: unknown) {
+      logger.error('Error starting autopilot:', error);
+      res.status(500).json({ error: 'Failed to start autopilot' });
+    }
+  });
+
+  app.post('/api/autopilot/social/stop', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      const userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        return res.status(400).json({ error: 'No autopilot instance found for user' });
+      }
+
+      await userEngines.autopilot.stop();
+
+      res.json({
+        success: true,
+        message: 'Social autopilot stopped successfully',
+        status: userEngines.autopilot.getStatus(),
+      });
+    } catch (error: unknown) {
+      logger.error('Error stopping autopilot:', error);
+      res.status(500).json({ error: 'Failed to stop autopilot' });
+    }
+  });
+
+  // Auto Social Alias Routes (for AdminAutonomy page autonomous mode)
+  app.get('/api/auto/social/status', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      let userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        userEngines = {
+          autopilot: AutopilotEngine.createForSocialAndAds(userId),
+          autonomous: AutonomousAutopilot.createForSocialAndAds(userId),
+        };
+        userAutopilotInstances.set(userId, userEngines);
+      }
+
+      const config = userEngines.autonomous.getConfig();
+      const status = userEngines.autonomous.getAutonomousStatus();
+
+      res.json({
+        config,
+        status,
+        isRunning: config.enabled,
+        totalContentPublished: status.totalGenerated || 0,
+      });
+    } catch (error: unknown) {
+      logger.error('Error fetching autonomous social status:', error);
+      res.status(500).json({ error: 'Failed to fetch autonomous status' });
+    }
+  });
+
+  app.post('/api/auto/social/start', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      let userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        userEngines = {
+          autopilot: AutopilotEngine.createForSocialAndAds(userId),
+          autonomous: AutonomousAutopilot.createForSocialAndAds(userId),
+        };
+        userAutopilotInstances.set(userId, userEngines);
+      }
+
+      await userEngines.autonomous.startAutonomousMode();
+
+      res.json({
+        success: true,
+        message: 'Autonomous social mode started successfully',
+        status: userEngines.autonomous.getAutonomousStatus(),
+      });
+    } catch (error: unknown) {
+      logger.error('Error starting autonomous mode:', error);
+      res.status(500).json({ error: 'Failed to start autonomous mode' });
+    }
+  });
+
+  app.post('/api/auto/social/stop', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      const userEngines = userAutopilotInstances.get(userId);
+      if (!userEngines) {
+        return res.status(400).json({ error: 'No autonomous instance found for user' });
+      }
+
+      await userEngines.autonomous.stopAutonomousMode();
+
+      res.json({
+        success: true,
+        message: 'Autonomous social mode stopped successfully',
+        status: userEngines.autonomous.getAutonomousStatus(),
+      });
+    } catch (error: unknown) {
+      logger.error('Error stopping autonomous mode:', error);
+      res.status(500).json({ error: 'Failed to stop autonomous mode' });
+    }
+  });
+
+  // Auto-Updates Routes (Platform self-updating system)
+  app.get('/api/auto-updates/status', requireAuth, async (req, res) => {
+    try {
+      res.json({
+        isRunning: false,
+        lastUpdate: new Date().toISOString(),
+        nextScheduledUpdate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        updatesApplied: 0,
+        availableUpdates: 0,
+        systemVersion: '1.0.0',
+      });
+    } catch (error: unknown) {
+      logger.error('Error fetching auto-updates status:', error);
+      res.status(500).json({ error: 'Failed to fetch auto-updates status' });
+    }
+  });
+
+  app.post('/api/auto-updates/start', requireAuth, async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        message: 'Auto-updates service started',
+        status: {
+          isRunning: true,
+          lastUpdate: new Date().toISOString(),
+        },
+      });
+    } catch (error: unknown) {
+      logger.error('Error starting auto-updates:', error);
+      res.status(500).json({ error: 'Failed to start auto-updates' });
+    }
+  });
+
+  app.post('/api/auto-updates/stop', requireAuth, async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        message: 'Auto-updates service stopped',
+        status: {
+          isRunning: false,
+        },
+      });
+    } catch (error: unknown) {
+      logger.error('Error stopping auto-updates:', error);
+      res.status(500).json({ error: 'Failed to stop auto-updates' });
+    }
+  });
+
+  app.post('/api/auto-updates/run-once', requireAuth, async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        message: 'Auto-updates run completed',
+        updatesApplied: 0,
+        details: 'System is up to date',
+      });
+    } catch (error: unknown) {
+      logger.error('Error running auto-updates:', error);
+      res.status(500).json({ error: 'Failed to run auto-updates' });
+    }
+  });
+
+  // Security Threats Endpoint
+  app.get('/api/security/threats', requireAuth, async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error: unknown) {
+      logger.error('Error fetching security threats:', error);
+      res.status(500).json({ error: 'Failed to fetch security threats' });
+    }
+  });
+
+  // Comprehensive Dashboard Routes
+  app.get('/api/dashboard/comprehensive', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const stats = await storage.getDashboardStats(userId);
+      const recentActivity = await storage.getRecentActivity(userId, 10);
+      const topPlatforms = stats.topPlatforms;
+
+      res.json({
+        stats: {
+          totalStreams: stats.totalStreams,
+          totalRevenue: stats.totalRevenue,
+          totalProjects: stats.totalProjects,
+          totalFollowers: stats.totalFollowers,
+          monthlyGrowth: stats.monthlyGrowth,
+        },
+        topPlatforms: stats.topPlatforms,
+        recentActivity: recentActivity,
+      });
+    } catch (error: unknown) {
+      logger.error('Error fetching comprehensive dashboard:', error);
+      res.status(500).json({ error: 'Failed to fetch dashboard data' });
+    }
+  });
+
+  // In-memory cache for next action recommendations (2-minute TTL)
+  const nextActionCache = new Map<number, { data: any; timestamp: number }>();
+  const NEXT_ACTION_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
+  // Smart Next Action Widget (with caching to prevent slow queries)
+  app.get('/api/dashboard/next-action', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const user = req.user as any;
+
+      // Check cache first
+      const cached = nextActionCache.get(userId);
+      if (cached && Date.now() - cached.timestamp < NEXT_ACTION_CACHE_TTL) {
+        return res.json(cached.data);
+      }
+
+      // Run all count queries in parallel for better performance
+      const [[projectsCount], [tracksCount], [releasesCount], [campaignsCount]] = await Promise.all(
+        [
+          db.select({ count: count() }).from(projects).where(eq(projects.userId, userId)),
+
+          db
+            .select({ count: count() })
+            .from(tracks)
+            .innerJoin(projects, eq(tracks.projectId, projects.id))
+            .where(eq(projects.userId, userId)),
+
+          db.select({ count: count() }).from(releases).where(eq(releases.userId, userId)),
+
+          db
+            .select({ count: count() })
+            .from(socialCampaigns)
+            .where(
+              and(eq(socialCampaigns.userId, userId), sql`${socialCampaigns.status} != 'completed'`)
+            ),
+        ]
+      );
+
+      const totalProjects = Number(projectsCount?.count || 0);
+      const totalTracks = Number(tracksCount?.count || 0);
+      const totalReleases = Number(releasesCount?.count || 0);
+      const totalCampaigns = Number(campaignsCount?.count || 0);
+
+      const hasSocialMedia = !!(
+        user.facebookToken ||
+        user.instagramToken ||
+        user.twitterToken ||
+        user.youtubeToken ||
+        user.tiktokToken
+      );
+
+      let recommendation;
+
+      if (totalProjects === 0) {
+        recommendation = {
+          action: 'create_project',
+          title: 'Create Your First Project',
+          description: 'Start your music journey by creating your first project in the studio.',
+          ctaText: 'Go to Studio',
+          ctaLink: '/studio',
+          reason: "Every great artist starts with a single project. Let's get you started!",
+          icon: 'Music',
+          priority: 'high',
+        };
+      } else if (totalTracks === 0) {
+        const [firstProject] = await db
+          .select()
+          .from(projects)
+          .where(eq(projects.userId, userId))
+          .orderBy(desc(projects.createdAt))
+          .limit(1);
+
+        recommendation = {
+          action: 'add_tracks',
+          title: `Add Tracks to "${firstProject?.title || 'Your Project'}"`,
+          description: 'Upload or create audio tracks to bring your project to life.',
+          ctaText: 'Add Tracks',
+          ctaLink: `/studio?project=${firstProject?.id || ''}`,
+          reason: 'Your project needs audio content to share with the world.',
+          icon: 'Upload',
+          priority: 'high',
+        };
+      } else if (totalReleases === 0) {
+        recommendation = {
+          action: 'distribute',
+          title: 'Distribute Your Music',
+          description: 'Get your music on Spotify, Apple Music, and all major platforms.',
+          ctaText: 'Start Distribution',
+          ctaLink: '/distribution',
+          reason: 'Your music deserves to be heard! Distribute it to reach millions of listeners.',
+          icon: 'Globe',
+          priority: 'high',
+        };
+      } else if (!hasSocialMedia) {
+        recommendation = {
+          action: 'promote_social',
+          title: 'Connect Social Media',
+          description: 'Promote your music by connecting your social media accounts.',
+          ctaText: 'Connect Accounts',
+          ctaLink: '/social-media',
+          reason:
+            'Social media is essential for building your fanbase and promoting your releases.',
+          icon: 'Share2',
+          priority: 'medium',
+        };
+      } else if (totalCampaigns === 0) {
+        recommendation = {
+          action: 'launch_ads',
+          title: 'Launch Your First Ad Campaign',
+          description: 'Boost your reach with AI-powered advertising campaigns.',
+          ctaText: 'Create Campaign',
+          ctaLink: '/advertising',
+          reason: 'Advertising helps you reach new audiences and grow your fanbase faster.',
+          icon: 'Megaphone',
+          priority: 'medium',
+        };
+      } else {
+        recommendation = {
+          action: 'check_analytics',
+          title: 'Check Your Analytics',
+          description: 'Review your performance metrics and insights.',
+          ctaText: 'View Analytics',
+          ctaLink: '/analytics',
+          reason: 'Stay on top of your growth with detailed analytics and AI insights.',
+          icon: 'BarChart3',
+          priority: 'low',
+        };
+      }
+
+      // Cache the result
+      nextActionCache.set(userId, { data: recommendation, timestamp: Date.now() });
+
+      // Clean up old cache entries (keep cache size under control)
+      if (nextActionCache.size > 1000) {
+        const now = Date.now();
+        for (const [key, value] of nextActionCache.entries()) {
+          if (now - value.timestamp > NEXT_ACTION_CACHE_TTL) {
+            nextActionCache.delete(key);
+          }
+        }
+      }
+
+      res.json(recommendation);
+    } catch (error: unknown) {
+      logger.error('Error fetching next action:', error);
+      res.status(500).json({ error: 'Failed to fetch next action' });
+    }
+  });
+
+  // Analytics Overview with Caching
+  app.get('/api/analytics/overview', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const days = parseInt(req.query.days as string) || 30;
+      const cacheKey = `analytics_${userId}_${days}`;
+      const cached = await getAnalyticsCache(cacheKey);
+
+      if (cached) {
+        return res.json(JSON.parse(cached));
+      }
+
+      const analytics = await storage.getAnalytics(userId, days);
+
+      await setAnalyticsCache(cacheKey, JSON.stringify(analytics));
+
+      res.json(analytics);
+    } catch (error: unknown) {
+      logger.error('Error fetching analytics overview:', error);
+      res.status(500).json({ error: 'Failed to fetch analytics' });
+    }
+  });
+
+  // Comprehensive Analytics Routes
+  app.get('/api/analytics/comprehensive', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const days = parseInt(req.query.days as string) || 30;
+
+      // Get real analytics from database
+      const analytics = await storage.getAnalytics(userId, days);
+      const dashboardStats = await storage.getDashboardStats(userId);
+
+      const comprehensiveData = {
+        overview: {
+          totalStreams: dashboardStats.totalStreams || 0,
+          totalRevenue: parseFloat(dashboardStats.totalRevenue) || 0,
+          totalListeners: dashboardStats.totalFollowers || 0,
+          totalPlays: dashboardStats.totalStreams || 0,
+          avgListenTime: 0,
+          completionRate: 0,
+          skipRate: 0,
+          shareRate: 0,
+          likeRate: 0,
+          growthRate: dashboardStats.monthlyGrowth || 0,
+        },
+        streams: analytics.streams || [],
+        platformBreakdown: dashboardStats.topPlatforms || [],
+        revenue: {
+          totalRevenue: parseFloat(dashboardStats.totalRevenue) || 0,
+          monthlyRevenue: parseFloat(dashboardStats.totalRevenue) || 0,
+          revenueGrowth: dashboardStats.monthlyGrowth || 0,
+          revenuePerStream:
+            dashboardStats.totalStreams > 0
+              ? parseFloat(dashboardStats.totalRevenue) / dashboardStats.totalStreams
+              : 0,
+          platformBreakdown: dashboardStats.topPlatforms || [],
+        },
+        insights: {
+          topTracks: analytics.topTracks || [],
+          recommendations: analytics.recommendations || [],
+          trends: analytics.trends || [],
+        },
+      };
+
+      res.json(comprehensiveData);
+    } catch (error: unknown) {
+      logger.error('Error fetching comprehensive analytics:', error);
+      res.status(500).json({ error: 'Failed to fetch analytics data' });
+    }
+  });
+
+  // AI Insights Routes
+  app.get('/api/ai/insights', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const user = req.user as any;
+
+      // Check if user has active paid subscription (AI features are for paid subscribers only)
+      if (!user.subscriptionPlan || user.subscriptionPlan === '') {
+        return res.status(403).json({
+          message: 'AI features require an active subscription. Please upgrade your plan.',
+          requiresUpgrade: true,
+        });
+      }
+
+      const userId = user.id;
+      const aiInsights = await storage.getAiInsights(userId);
+
+      res.json({
+        performanceScore: aiInsights.performanceScore,
+        recommendations: aiInsights.recommendations,
+        predictions: aiInsights.predictions,
+      });
+    } catch (error: unknown) {
+      logger.error('Error fetching AI insights:', error);
+      res.status(500).json({ error: 'Failed to fetch AI insights' });
+    }
+  });
+
+  app.post('/api/ai/optimize-content', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const user = req.user as any;
+
+      // Check if user has active paid subscription (AI features are for paid subscribers only)
+      if (!user.subscriptionPlan || user.subscriptionPlan === '') {
+        return res.status(403).json({
+          message: 'AI features require an active subscription. Please upgrade your plan.',
+          requiresUpgrade: true,
+        });
+      }
+
+      const userId = user.id;
+
+      // Get user data
+      const dashboardStats = await storage.getDashboardStats(userId);
+      const projects = await storage.getUserProjects(userId);
+
+      // Use custom AI engine (100% proprietary)
+      const optimizations = customAIEngine.generateOptimizations(dashboardStats, projects);
+
+      res.json({
+        success: true,
+        optimizations: optimizations.recommendations,
+        summary: optimizations.summary,
+      });
+    } catch (error: unknown) {
+      logger.error('AI optimization error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate AI optimizations',
+        error: error.message,
+      });
+    }
+  });
+
+  // Analytics Export Route
+  app.post('/api/analytics/export', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const { format, filters } = req.body;
+      const userId = (req.user as any).id;
+
+      // Generate export data based on filters
+      const exportData = {
+        format,
+        downloadUrl: `/exports/analytics-${userId}-${Date.now()}.${format}`,
+        filename: `analytics-${new Date().toISOString().split('T')[0]}.${format}`,
+        size: '2.3MB',
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      };
+
+      res.json(exportData);
+    } catch (error: unknown) {
+      logger.error('Error exporting analytics:', error);
+      res.status(500).json({ error: 'Failed to export analytics' });
+    }
+  });
+
+  // Social Media Management Routes
+  app.get('/api/social/platform-status', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const user = await storage.getUser(userId);
+
+      const platforms = await storage.getSocialPlatforms(userId);
+
+      const platformStatus = {
+        facebook: {
+          connected: !!user?.facebookToken,
+          username: user?.facebookToken ? 'Connected' : null,
+          followers: 0,
+          engagement: 0,
+        },
+        instagram: {
+          connected: !!user?.instagramToken,
+          username: user?.instagramToken ? 'Connected' : null,
+          followers: 0,
+          engagement: 0,
+        },
+        twitter: {
+          connected: !!user?.twitterToken,
+          username: user?.twitterToken ? 'Connected' : null,
+          followers: 0,
+          engagement: 0,
+        },
+        youtube: {
+          connected: !!user?.youtubeToken,
+          username: user?.youtubeToken ? 'Connected' : null,
+          followers: 0,
+          engagement: 0,
+        },
+        tiktok: {
+          connected: !!user?.tiktokToken,
+          username: user?.tiktokToken ? 'Connected' : null,
+          followers: 0,
+          engagement: 0,
+        },
+        linkedin: {
+          connected: !!user?.linkedinToken,
+          username: user?.linkedinToken ? 'Connected' : null,
+          followers: 0,
+          engagement: 0,
+        },
+        threads: {
+          connected: !!user?.threadsToken,
+          username: user?.threadsToken ? 'Connected' : null,
+          followers: 0,
+          engagement: 0,
+        },
+        googleBusiness: {
+          connected: !!user?.googleBusinessToken,
+          username: user?.googleBusinessToken ? 'Connected' : null,
+          followers: 0,
+          engagement: 0,
+        },
+      };
+
+      platforms.forEach((platform) => {
+        const platformKey = platform.name.toLowerCase().replace(/\s+/g, '');
+        if (platformStatus[platformKey as keyof typeof platformStatus]) {
+          platformStatus[platformKey as keyof typeof platformStatus].followers =
+            platform.followers || 0;
+          platformStatus[platformKey as keyof typeof platformStatus].engagement =
+            platform.engagement || 0;
+          if (platform.username) {
+            platformStatus[platformKey as keyof typeof platformStatus].username = platform.username;
+          }
+        }
+      });
+
+      res.json(platformStatus);
+    } catch (error: unknown) {
+      logger.error('Error fetching platform status:', error);
+      res.status(500).json({ error: 'Failed to fetch platform status' });
+    }
+  });
+
+  app.get('/api/social/metrics', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const platforms = await storage.getSocialPlatforms(userId);
+      const posts = await storage.getSocialPosts(userId);
+
+      // Get all social metrics for the user
+      const allMetrics = await db
         .select()
-        .from(projects)
-        .where(eq(projects.userId, userId))
-        .orderBy(desc(projects.createdAt))
-        .limit(1);
-      
-      recommendation = {
-        action: 'add_tracks',
-        title: `Add Tracks to "${firstProject?.title || 'Your Project'}"`,
-        description: 'Upload or create audio tracks to bring your project to life.',
-        ctaText: 'Add Tracks',
-        ctaLink: `/studio?project=${firstProject?.id || ''}`,
-        reason: 'Your project needs audio content to share with the world.',
-        icon: 'Upload',
-        priority: 'high'
-      };
-    } else if (totalReleases === 0) {
-      recommendation = {
-        action: 'distribute',
-        title: 'Distribute Your Music',
-        description: 'Get your music on Spotify, Apple Music, and all major platforms.',
-        ctaText: 'Start Distribution',
-        ctaLink: '/distribution',
-        reason: 'Your music deserves to be heard! Distribute it to reach millions of listeners.',
-        icon: 'Globe',
-        priority: 'high'
-      };
-    } else if (!hasSocialMedia) {
-      recommendation = {
-        action: 'promote_social',
-        title: 'Connect Social Media',
-        description: 'Promote your music by connecting your social media accounts.',
-        ctaText: 'Connect Accounts',
-        ctaLink: '/social-media',
-        reason: 'Social media is essential for building your fanbase and promoting your releases.',
-        icon: 'Share2',
-        priority: 'medium'
-      };
-    } else if (totalCampaigns === 0) {
-      recommendation = {
-        action: 'launch_ads',
-        title: 'Launch Your First Ad Campaign',
-        description: 'Boost your reach with AI-powered advertising campaigns.',
-        ctaText: 'Create Campaign',
-        ctaLink: '/advertising',
-        reason: 'Advertising helps you reach new audiences and grow your fanbase faster.',
-        icon: 'Megaphone',
-        priority: 'medium'
-      };
-    } else {
-      recommendation = {
-        action: 'check_analytics',
-        title: 'Check Your Analytics',
-        description: 'Review your performance metrics and insights.',
-        ctaText: 'View Analytics',
-        ctaLink: '/analytics',
-        reason: 'Stay on top of your growth with detailed analytics and AI insights.',
-        icon: 'BarChart3',
-        priority: 'low'
-      };
-    }
-    
-    // Cache the result
-    nextActionCache.set(userId, { data: recommendation, timestamp: Date.now() });
-    
-    // Clean up old cache entries (keep cache size under control)
-    if (nextActionCache.size > 1000) {
-      const now = Date.now();
-      for (const [key, value] of nextActionCache.entries()) {
-        if (now - value.timestamp > NEXT_ACTION_CACHE_TTL) {
-          nextActionCache.delete(key);
-        }
-      }
-    }
-    
-    res.json(recommendation);
-  } catch (error) {
-    console.error('Error fetching next action:', error);
-    res.status(500).json({ error: 'Failed to fetch next action' });
-  }
-});
+        .from(socialMetrics)
+        .where(
+          eq(
+            socialMetrics.campaignId,
+            sql`(SELECT id FROM social_campaigns WHERE user_id = ${userId} LIMIT 1)`
+          )
+        )
+        .orderBy(desc(socialMetrics.metricAt));
 
-// Analytics Overview with Caching
-app.get("/api/analytics/overview", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const days = parseInt(req.query.days as string) || 30;
-    const cacheKey = `analytics_${userId}_${days}`;
-    const cached = await getAnalyticsCache(cacheKey);
-    
-    if (cached) {
-      return res.json(JSON.parse(cached));
-    }
+      // Calculate current month date range
+      const now = new Date();
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
-    const analytics = await storage.getAnalytics(userId, days);
-    
-    await setAnalyticsCache(cacheKey, JSON.stringify(analytics));
-    
-    res.json(analytics);
-  } catch (error) {
-    console.error('Error fetching analytics overview:', error);
-    res.status(500).json({ error: 'Failed to fetch analytics' });
-  }
-});
+      // Filter metrics by month
+      const currentMonthMetrics = allMetrics.filter(
+        (m) => m.metricAt && new Date(m.metricAt) >= currentMonthStart
+      );
+      const previousMonthMetrics = allMetrics.filter(
+        (m) =>
+          m.metricAt &&
+          new Date(m.metricAt) >= previousMonthStart &&
+          new Date(m.metricAt) <= previousMonthEnd
+      );
 
-// Comprehensive Analytics Routes
-app.get("/api/analytics/comprehensive", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const days = parseInt(req.query.days as string) || 30;
-    
-    // Get real analytics from database
-    const analytics = await storage.getAnalytics(userId, days);
-    const dashboardStats = await storage.getDashboardStats(userId);
-    
-    const comprehensiveData = {
-      overview: {
-        totalStreams: dashboardStats.totalStreams || 0,
-        totalRevenue: parseFloat(dashboardStats.totalRevenue) || 0,
-        totalListeners: dashboardStats.totalFollowers || 0,
-        totalPlays: dashboardStats.totalStreams || 0,
-        avgListenTime: 0,
-        completionRate: 0,
-        skipRate: 0,
-        shareRate: 0,
-        likeRate: 0,
-        growthRate: dashboardStats.monthlyGrowth || 0
-      },
-      streams: analytics.streams || [],
-      platformBreakdown: dashboardStats.topPlatforms || [],
-      revenue: {
-        totalRevenue: parseFloat(dashboardStats.totalRevenue) || 0,
-        monthlyRevenue: parseFloat(dashboardStats.totalRevenue) || 0,
-        revenueGrowth: dashboardStats.monthlyGrowth || 0,
-        revenuePerStream: dashboardStats.totalStreams > 0 ? parseFloat(dashboardStats.totalRevenue) / dashboardStats.totalStreams : 0,
-        platformBreakdown: dashboardStats.topPlatforms || []
-      },
-      insights: {
-        topTracks: analytics.topTracks || [],
-        recommendations: analytics.recommendations || [],
-        trends: analytics.trends || []
-      }
-    };
-    
-    res.json(comprehensiveData);
-  } catch (error) {
-    console.error('Error fetching comprehensive analytics:', error);
-    res.status(500).json({ error: 'Failed to fetch analytics data' });
-  }
-});
+      // Calculate total followers
+      const totalFollowers = platforms.reduce((sum, p) => sum + (p.followers || 0), 0);
 
-// AI Insights Routes
-app.get("/api/ai/insights", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const user = req.user as any;
-    
-    // Check if user has active paid subscription (AI features are for paid subscribers only)
-    if (!user.subscriptionPlan || user.subscriptionPlan === '') {
-      return res.status(403).json({ 
-        message: "AI features require an active subscription. Please upgrade your plan.",
-        requiresUpgrade: true
+      // Calculate total reach (impressions from all metrics)
+      const totalReach = allMetrics.reduce((sum, m) => sum + (m.impressions || 0), 0);
+      const currentMonthReach = currentMonthMetrics.reduce(
+        (sum, m) => sum + (m.impressions || 0),
+        0
+      );
+      const previousMonthReach = previousMonthMetrics.reduce(
+        (sum, m) => sum + (m.impressions || 0),
+        0
+      );
+
+      // Calculate total engagement (likes + comments + shares)
+      const totalEngagement = allMetrics.reduce(
+        (sum, m) => sum + (m.likes || 0) + (m.comments || 0) + (m.shares || 0),
+        0
+      );
+      const currentMonthEngagement = currentMonthMetrics.reduce(
+        (sum, m) => sum + (m.likes || 0) + (m.comments || 0) + (m.shares || 0),
+        0
+      );
+      const previousMonthEngagement = previousMonthMetrics.reduce(
+        (sum, m) => sum + (m.likes || 0) + (m.comments || 0) + (m.shares || 0),
+        0
+      );
+
+      // Calculate average engagement rate as percentage
+      const avgEngagementRate = totalReach > 0 ? (totalEngagement / totalReach) * 100 : 0;
+
+      // Calculate growth percentages
+      const calculateGrowth = (current: number, previous: number) => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return ((current - previous) / previous) * 100;
+      };
+
+      const followersGrowth = {
+        current: totalFollowers,
+        previous: totalFollowers, // Note: Platform followers don't have historical data
+        percentChange: 0,
+      };
+
+      const engagementGrowth = {
+        current: currentMonthEngagement,
+        previous: previousMonthEngagement,
+        percentChange: calculateGrowth(currentMonthEngagement, previousMonthEngagement),
+      };
+
+      const reachGrowth = {
+        current: currentMonthReach,
+        previous: previousMonthReach,
+        percentChange: calculateGrowth(currentMonthReach, previousMonthReach),
+      };
+
+      res.json({
+        totalFollowers,
+        totalEngagement,
+        totalReach,
+        avgEngagementRate,
+        totalPosts: posts.length,
+        platformMetrics: platforms,
+        followersGrowth,
+        engagementGrowth,
+        reachGrowth,
       });
+    } catch (error: unknown) {
+      logger.error('Error fetching metrics:', error);
+      res.status(500).json({ error: 'Failed to fetch metrics' });
     }
-    
-    const userId = user.id;
-    const aiInsights = await storage.getAiInsights(userId);
-    
-    res.json({
-      performanceScore: aiInsights.performanceScore,
-      recommendations: aiInsights.recommendations,
-      predictions: aiInsights.predictions
-    });
-  } catch (error) {
-    console.error('Error fetching AI insights:', error);
-    res.status(500).json({ error: 'Failed to fetch AI insights' });
-  }
-});
+  });
 
-app.post("/api/ai/optimize-content", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const user = req.user as any;
-    
-    // Check if user has active paid subscription (AI features are for paid subscribers only)
-    if (!user.subscriptionPlan || user.subscriptionPlan === '') {
-      return res.status(403).json({ 
-        message: "AI features require an active subscription. Please upgrade your plan.",
-        requiresUpgrade: true
+  app.get('/api/social/posts', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const posts = await storage.getSocialPosts(userId);
+      res.json(posts);
+    } catch (error: unknown) {
+      logger.error('Error fetching posts:', error);
+      res.status(500).json({ error: 'Failed to fetch posts' });
+    }
+  });
+
+  app.get('/api/social/accounts', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const platformStatus = await storage.getPlatformConnectionStatus(userId);
+      res.json(platformStatus);
+    } catch (error: unknown) {
+      logger.error('Error fetching social accounts:', error);
+      res.status(500).json({ error: 'Failed to fetch social accounts' });
+    }
+  });
+
+  app.get('/api/social/ai-insights', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const insights = await storage.getSocialInsights(userId);
+      res.json(insights || { recommendations: [], trends: [], optimalTimes: {} });
+    } catch (error: unknown) {
+      logger.error('Error fetching AI insights:', error);
+      res.status(500).json({ error: 'Failed to fetch AI insights' });
+    }
+  });
+
+  app.get('/api/social/activity', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const activity = await storage.getSocialActivity(userId);
+      res.json(activity || []);
+    } catch (error: unknown) {
+      logger.error('Error fetching activity:', error);
+      res.status(500).json({ error: 'Failed to fetch activity' });
+    }
+  });
+
+  app.get('/api/social/weekly-stats', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      // Get posts from social storage
+      const posts = await storage.getSocialPosts(userId);
+
+      // Get posts from last 7 days
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+      const postsThisWeek = posts.filter(
+        (p) => p.createdAt && new Date(p.createdAt) >= oneWeekAgo
+      ).length;
+
+      // Calculate metrics from posts
+      const totalReach = posts.reduce((sum, p) => sum + (p.metrics?.reach || 0), 0);
+      const totalEngagements = posts.reduce(
+        (sum, p) =>
+          sum + (p.metrics?.likes || 0) + (p.metrics?.comments || 0) + (p.metrics?.shares || 0),
+        0
+      );
+      const engagementRate = totalReach > 0 ? (totalEngagements / totalReach) * 100 : 0;
+
+      res.json({
+        totalReach,
+        engagementRate: parseFloat(engagementRate.toFixed(2)),
+        postsThisWeek,
       });
+    } catch (error: unknown) {
+      logger.error('Error fetching weekly stats:', error);
+      res.status(500).json({ error: 'Failed to fetch weekly stats' });
     }
-    
-    const userId = user.id;
-    
-    // Get user data
-    const dashboardStats = await storage.getDashboardStats(userId);
-    const projects = await storage.getUserProjects(userId);
-    
-    // Use custom AI engine (100% proprietary)
-    const optimizations = customAIEngine.generateOptimizations(
-      dashboardStats,
-      projects
-    );
-    
-    res.json({
-      success: true,
-      optimizations: optimizations.recommendations,
-      summary: optimizations.summary
-    });
-    
-  } catch (error: any) {
-    console.error("AI optimization error:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Failed to generate AI optimizations",
-      error: error.message 
-    });
-  }
-});
+  });
 
-// Analytics Export Route
-app.post("/api/analytics/export", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const { format, filters } = req.body;
-    const userId = (req.user as any).id;
-    
-    // Generate export data based on filters
-    const exportData = {
-      format,
-      downloadUrl: `/exports/analytics-${userId}-${Date.now()}.${format}`,
-      filename: `analytics-${new Date().toISOString().split('T')[0]}.${format}`,
-      size: '2.3MB',
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-    };
-    
-    res.json(exportData);
-  } catch (error) {
-    console.error('Error exporting analytics:', error);
-    res.status(500).json({ error: 'Failed to export analytics' });
-  }
-});
+  app.post('/api/social/connect/:platform', requireAuth, async (req, res) => {
+    try {
+      const { platform } = req.params;
+      const user = req.user as any;
 
-// Social Media Management Routes
-app.get("/api/social/platform-status", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const user = await storage.getUser(userId);
-    
-    const platforms = await storage.getSocialPlatforms(userId);
-    
-    const platformStatus = {
-      facebook: {
-        connected: !!user?.facebookToken,
-        username: user?.facebookToken ? 'Connected' : null,
-        followers: 0,
-        engagement: 0
-      },
-      instagram: {
-        connected: !!user?.instagramToken,
-        username: user?.instagramToken ? 'Connected' : null,
-        followers: 0,
-        engagement: 0
-      },
-      twitter: {
-        connected: !!user?.twitterToken,
-        username: user?.twitterToken ? 'Connected' : null,
-        followers: 0,
-        engagement: 0
-      },
-      youtube: {
-        connected: !!user?.youtubeToken,
-        username: user?.youtubeToken ? 'Connected' : null,
-        followers: 0,
-        engagement: 0
-      },
-      tiktok: {
-        connected: !!user?.tiktokToken,
-        username: user?.tiktokToken ? 'Connected' : null,
-        followers: 0,
-        engagement: 0
-      },
-      linkedin: {
-        connected: !!user?.linkedinToken,
-        username: user?.linkedinToken ? 'Connected' : null,
-        followers: 0,
-        engagement: 0
-      },
-      threads: {
-        connected: !!user?.threadsToken,
-        username: user?.threadsToken ? 'Connected' : null,
-        followers: 0,
-        engagement: 0
-      },
-      googleBusiness: {
-        connected: !!user?.googleBusinessToken,
-        username: user?.googleBusinessToken ? 'Connected' : null,
-        followers: 0,
-        engagement: 0
+      // Validate platform parameter with allowlist
+      const allowedPlatforms = [
+        'facebook',
+        'instagram',
+        'twitter',
+        'youtube',
+        'tiktok',
+        'linkedin',
+        'threads',
+        'googlebusiness',
+      ];
+
+      if (!allowedPlatforms.includes(platform)) {
+        return res.status(400).json({ error: 'Invalid platform' });
       }
-    };
-    
-    platforms.forEach(platform => {
-      const platformKey = platform.name.toLowerCase().replace(/\s+/g, '');
-      if (platformStatus[platformKey as keyof typeof platformStatus]) {
-        platformStatus[platformKey as keyof typeof platformStatus].followers = platform.followers || 0;
-        platformStatus[platformKey as keyof typeof platformStatus].engagement = platform.engagement || 0;
-        if (platform.username) {
-          platformStatus[platformKey as keyof typeof platformStatus].username = platform.username;
-        }
+
+      // Helper function to check if credential is valid (not empty/obvious placeholder)
+      const isValidCredential = (value: string | undefined): boolean => {
+        if (!value || value.trim().length === 0) return false;
+        // Reject if credential is suspiciously short (most real credentials are >8 chars)
+        if (value.length < 8) return false;
+        // Reject exact placeholder values only (case-insensitive)
+        const exactPlaceholders = [
+          'placeholder',
+          'changeme',
+          'your_key_here',
+          'your_secret_here',
+          'example',
+          'xxx',
+          'todo',
+          'undefined',
+          'null',
+          'none',
+        ];
+        const lowerValue = value.toLowerCase();
+        return !exactPlaceholders.includes(lowerValue);
+      };
+
+      // Validate platform credentials before generating OAuth URL
+      const credentialChecks: Record<string, boolean> = {
+        facebook:
+          isValidCredential(process.env.FACEBOOK_APP_ID) &&
+          isValidCredential(process.env.FACEBOOK_APP_SECRET),
+        instagram:
+          isValidCredential(process.env.FACEBOOK_APP_ID) &&
+          isValidCredential(process.env.FACEBOOK_APP_SECRET),
+        twitter:
+          isValidCredential(process.env.TWITTER_API_KEY) &&
+          isValidCredential(process.env.TWITTER_API_SECRET),
+        youtube:
+          isValidCredential(process.env.YOUTUBE_CLIENT_ID) &&
+          isValidCredential(process.env.YOUTUBE_CLIENT_SECRET),
+        tiktok:
+          isValidCredential(process.env.TIKTOK_CLIENT_KEY) &&
+          isValidCredential(process.env.TIKTOK_CLIENT_SECRET),
+        linkedin:
+          isValidCredential(process.env.LINKEDIN_CLIENT_ID) &&
+          isValidCredential(process.env.LINKEDIN_CLIENT_SECRET),
+        threads:
+          isValidCredential(process.env.THREADS_APP_ID) &&
+          isValidCredential(process.env.THREADS_APP_SECRET),
+        googlebusiness:
+          isValidCredential(process.env.GOOGLE_BUSINESS_CLIENT_ID) &&
+          isValidCredential(process.env.GOOGLE_CLIENT_SECRET),
+      };
+
+      if (!credentialChecks[platform]) {
+        return res.status(503).json({
+          error: `${platform} integration is not configured`,
+          message: `Please configure ${platform.toUpperCase()} API credentials to enable this integration.`,
+        });
       }
-    });
-    
-    res.json(platformStatus);
-  } catch (error) {
-    console.error('Error fetching platform status:', error);
-    res.status(500).json({ error: 'Failed to fetch platform status' });
-  }
-});
 
-app.get('/api/social/metrics', requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const platforms = await storage.getSocialPlatforms(userId);
-    const posts = await storage.getSocialPosts(userId);
-    
-    // Get all social metrics for the user
-    const allMetrics = await db
-      .select()
-      .from(socialMetrics)
-      .where(eq(socialMetrics.campaignId, sql`(SELECT id FROM social_campaigns WHERE user_id = ${userId} LIMIT 1)`))
-      .orderBy(desc(socialMetrics.metricAt));
-    
-    // Calculate current month date range
-    const now = new Date();
-    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
-    
-    // Filter metrics by month
-    const currentMonthMetrics = allMetrics.filter(m => 
-      m.metricAt && new Date(m.metricAt) >= currentMonthStart
-    );
-    const previousMonthMetrics = allMetrics.filter(m => 
-      m.metricAt && new Date(m.metricAt) >= previousMonthStart && new Date(m.metricAt) <= previousMonthEnd
-    );
-    
-    // Calculate total followers
-    const totalFollowers = platforms.reduce((sum, p) => sum + (p.followers || 0), 0);
-    
-    // Calculate total reach (impressions from all metrics)
-    const totalReach = allMetrics.reduce((sum, m) => sum + (m.impressions || 0), 0);
-    const currentMonthReach = currentMonthMetrics.reduce((sum, m) => sum + (m.impressions || 0), 0);
-    const previousMonthReach = previousMonthMetrics.reduce((sum, m) => sum + (m.impressions || 0), 0);
-    
-    // Calculate total engagement (likes + comments + shares)
-    const totalEngagement = allMetrics.reduce((sum, m) => 
-      sum + (m.likes || 0) + (m.comments || 0) + (m.shares || 0), 0
-    );
-    const currentMonthEngagement = currentMonthMetrics.reduce((sum, m) => 
-      sum + (m.likes || 0) + (m.comments || 0) + (m.shares || 0), 0
-    );
-    const previousMonthEngagement = previousMonthMetrics.reduce((sum, m) => 
-      sum + (m.likes || 0) + (m.comments || 0) + (m.shares || 0), 0
-    );
-    
-    // Calculate average engagement rate as percentage
-    const avgEngagementRate = totalReach > 0 
-      ? ((totalEngagement / totalReach) * 100) 
-      : 0;
-    
-    // Calculate growth percentages
-    const calculateGrowth = (current: number, previous: number) => {
-      if (previous === 0) return current > 0 ? 100 : 0;
-      return ((current - previous) / previous) * 100;
-    };
-    
-    const followersGrowth = {
-      current: totalFollowers,
-      previous: totalFollowers, // Note: Platform followers don't have historical data
-      percentChange: 0
-    };
-    
-    const engagementGrowth = {
-      current: currentMonthEngagement,
-      previous: previousMonthEngagement,
-      percentChange: calculateGrowth(currentMonthEngagement, previousMonthEngagement)
-    };
-    
-    const reachGrowth = {
-      current: currentMonthReach,
-      previous: previousMonthReach,
-      percentChange: calculateGrowth(currentMonthReach, previousMonthReach)
-    };
-    
-    res.json({
-      totalFollowers,
-      totalEngagement,
-      totalReach,
-      avgEngagementRate,
-      totalPosts: posts.length,
-      platformMetrics: platforms,
-      followersGrowth,
-      engagementGrowth,
-      reachGrowth
-    });
-  } catch (error) {
-    console.error('Error fetching metrics:', error);
-    res.status(500).json({ error: 'Failed to fetch metrics' });
-  }
-});
+      // Dynamically construct redirect URIs like the GET routes do
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
 
-app.get('/api/social/posts', requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const posts = await storage.getSocialPosts(userId);
-    res.json(posts);
-  } catch (error) {
-    console.error('Error fetching posts:', error);
-    res.status(500).json({ error: 'Failed to fetch posts' });
-  }
-});
+      // Generate OAuth URL for the platform with proper redirect URIs
+      const oauthUrls = {
+        facebook: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/facebook`)}&scope=pages_manage_posts,pages_read_engagement,pages_show_list,instagram_basic,instagram_content_publish&state=${user.id}`,
+        instagram: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/instagram`)}&scope=instagram_basic,instagram_content_publish,instagram_manage_insights&state=${user.id}`,
+        twitter: `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${process.env.TWITTER_API_KEY}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/twitter`)}&scope=tweet.read%20tweet.write%20users.read%20offline.access&state=${user.id}&code_challenge=challenge&code_challenge_method=plain`,
+        youtube: `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.YOUTUBE_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/youtube`)}&scope=https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.upload&state=${user.id}`,
+        tiktok: `https://www.tiktok.com/auth/authorize/?client_key=${process.env.TIKTOK_CLIENT_KEY}&response_type=code&scope=user.info.basic,video.list,video.upload&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/tiktok`)}&state=${user.id}`,
+        linkedin: `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${process.env.LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/linkedin`)}&scope=w_member_social,r_liteprofile,r_emailaddress&state=${user.id}`,
+        threads: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.THREADS_APP_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/threads`)}&scope=threads_basic,threads_content_publish,threads_manage_insights&state=${user.id}`,
+        googlebusiness: `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_BUSINESS_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/googlebusiness`)}&scope=https://www.googleapis.com/auth/business.manage&state=${user.id}`,
+      };
 
-app.get('/api/social/accounts', requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const platformStatus = await storage.getPlatformConnectionStatus(userId);
-    res.json(platformStatus);
-  } catch (error) {
-    console.error('Error fetching social accounts:', error);
-    res.status(500).json({ error: 'Failed to fetch social accounts' });
-  }
-});
+      const oauthUrl = oauthUrls[platform as keyof typeof oauthUrls];
 
-app.get('/api/social/ai-insights', requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const insights = await storage.getSocialInsights(userId);
-    res.json(insights || { recommendations: [], trends: [], optimalTimes: {} });
-  } catch (error) {
-    console.error('Error fetching AI insights:', error);
-    res.status(500).json({ error: 'Failed to fetch AI insights' });
-  }
-});
+      if (!oauthUrl) {
+        return res.status(400).json({ error: 'Invalid platform' });
+      }
 
-app.get('/api/social/activity', requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const activity = await storage.getSocialActivity(userId);
-    res.json(activity || []);
-  } catch (error) {
-    console.error('Error fetching activity:', error);
-    res.status(500).json({ error: 'Failed to fetch activity' });
-  }
-});
-
-app.get('/api/social/weekly-stats', requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    // Get posts from social storage
-    const posts = await storage.getSocialPosts(userId);
-    
-    // Get posts from last 7 days
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    
-    const postsThisWeek = posts.filter(p => 
-      p.createdAt && new Date(p.createdAt) >= oneWeekAgo
-    ).length;
-    
-    // Calculate metrics from posts
-    const totalReach = posts.reduce((sum, p) => sum + (p.metrics?.reach || 0), 0);
-    const totalEngagements = posts.reduce((sum, p) => 
-      sum + (p.metrics?.likes || 0) + (p.metrics?.comments || 0) + (p.metrics?.shares || 0), 0
-    );
-    const engagementRate = totalReach > 0 ? (totalEngagements / totalReach) * 100 : 0;
-    
-    res.json({
-      totalReach,
-      engagementRate: parseFloat(engagementRate.toFixed(2)),
-      postsThisWeek
-    });
-  } catch (error) {
-    console.error('Error fetching weekly stats:', error);
-    res.status(500).json({ error: 'Failed to fetch weekly stats' });
-  }
-});
-
-app.post("/api/social/connect/:platform", requireAuth, async (req, res) => {
-  try {
-    const { platform } = req.params;
-    const user = req.user as any;
-    
-    // Validate platform parameter with allowlist
-    const allowedPlatforms = ['facebook', 'instagram', 'twitter', 'youtube', 'tiktok', 'linkedin', 'threads', 'googlebusiness'];
-    
-    if (!allowedPlatforms.includes(platform)) {
-      return res.status(400).json({ error: 'Invalid platform' });
+      res.json({ oauthUrl });
+    } catch (error: unknown) {
+      logger.error('Error generating OAuth URL:', error);
+      res.status(500).json({ error: 'Failed to generate OAuth URL' });
     }
-    
-    // Helper function to check if credential is valid (not empty/obvious placeholder)
-    const isValidCredential = (value: string | undefined): boolean => {
-      if (!value || value.trim().length === 0) return false;
-      // Reject if credential is suspiciously short (most real credentials are >8 chars)
-      if (value.length < 8) return false;
-      // Reject exact placeholder values only (case-insensitive)
-      const exactPlaceholders = ['placeholder', 'changeme', 'your_key_here', 'your_secret_here', 'example', 'xxx', 'todo', 'undefined', 'null', 'none'];
-      const lowerValue = value.toLowerCase();
-      return !exactPlaceholders.includes(lowerValue);
-    };
-    
-    // Validate platform credentials before generating OAuth URL
-    const credentialChecks: Record<string, boolean> = {
-      facebook: isValidCredential(process.env.FACEBOOK_APP_ID) && isValidCredential(process.env.FACEBOOK_APP_SECRET),
-      instagram: isValidCredential(process.env.FACEBOOK_APP_ID) && isValidCredential(process.env.FACEBOOK_APP_SECRET),
-      twitter: isValidCredential(process.env.TWITTER_API_KEY) && isValidCredential(process.env.TWITTER_API_SECRET),
-      youtube: isValidCredential(process.env.YOUTUBE_CLIENT_ID) && isValidCredential(process.env.YOUTUBE_CLIENT_SECRET),
-      tiktok: isValidCredential(process.env.TIKTOK_CLIENT_KEY) && isValidCredential(process.env.TIKTOK_CLIENT_SECRET),
-      linkedin: isValidCredential(process.env.LINKEDIN_CLIENT_ID) && isValidCredential(process.env.LINKEDIN_CLIENT_SECRET),
-      threads: isValidCredential(process.env.THREADS_APP_ID) && isValidCredential(process.env.THREADS_APP_SECRET),
-      googlebusiness: isValidCredential(process.env.GOOGLE_BUSINESS_CLIENT_ID) && isValidCredential(process.env.GOOGLE_CLIENT_SECRET)
-    };
-    
-    if (!credentialChecks[platform]) {
-      return res.status(503).json({ 
-        error: `${platform} integration is not configured`,
-        message: `Please configure ${platform.toUpperCase()} API credentials to enable this integration.`
-      });
-    }
-    
-    // Dynamically construct redirect URIs like the GET routes do
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    
-    // Generate OAuth URL for the platform with proper redirect URIs
-    const oauthUrls = {
-      facebook: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/facebook`)}&scope=pages_manage_posts,pages_read_engagement,pages_show_list,instagram_basic,instagram_content_publish&state=${user.id}`,
-      instagram: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/instagram`)}&scope=instagram_basic,instagram_content_publish,instagram_manage_insights&state=${user.id}`,
-      twitter: `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${process.env.TWITTER_API_KEY}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/twitter`)}&scope=tweet.read%20tweet.write%20users.read%20offline.access&state=${user.id}&code_challenge=challenge&code_challenge_method=plain`,
-      youtube: `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.YOUTUBE_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/youtube`)}&scope=https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.upload&state=${user.id}`,
-      tiktok: `https://www.tiktok.com/auth/authorize/?client_key=${process.env.TIKTOK_CLIENT_KEY}&response_type=code&scope=user.info.basic,video.list,video.upload&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/tiktok`)}&state=${user.id}`,
-      linkedin: `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${process.env.LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/linkedin`)}&scope=w_member_social,r_liteprofile,r_emailaddress&state=${user.id}`,
-      threads: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.THREADS_APP_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/threads`)}&scope=threads_basic,threads_content_publish,threads_manage_insights&state=${user.id}`,
-      googlebusiness: `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_BUSINESS_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${baseUrl}/api/social/callback/googlebusiness`)}&scope=https://www.googleapis.com/auth/business.manage&state=${user.id}`
-    };
-    
-    const oauthUrl = oauthUrls[platform as keyof typeof oauthUrls];
-    
-    if (!oauthUrl) {
-      return res.status(400).json({ error: 'Invalid platform' });
-    }
-    
-    res.json({ oauthUrl });
-  } catch (error) {
-    console.error('Error generating OAuth URL:', error);
-    res.status(500).json({ error: 'Failed to generate OAuth URL' });
-  }
-});
+  });
 
-app.post("/api/social/disconnect/:platform", requireAuth, async (req, res) => {
-  try {
-    const { platform } = req.params;
-    const userId = (req.user as any).id;
-    
-    // Clear the token for the platform
-    const tokenFields = {
-      facebook: 'facebookToken',
-      instagram: 'instagramToken',
-      twitter: 'twitterToken',
-      youtube: 'youtubeToken',
-      tiktok: 'tiktokToken',
-      linkedin: 'linkedinToken',
-      threads: 'threadsToken',
-      googleBusiness: 'googleBusinessToken'
-    };
-    
-    const tokenField = tokenFields[platform as keyof typeof tokenFields];
-    
-    if (!tokenField) {
-      return res.status(400).json({ error: 'Invalid platform' });
-    }
-    
-    await storage.updateUser(userId, { [tokenField]: null });
-    
-    res.json({ success: true, message: `${platform} disconnected successfully` });
-  } catch (error) {
-    console.error('Error disconnecting platform:', error);
-    res.status(500).json({ error: 'Failed to disconnect platform' });
-  }
-});
+  app.post('/api/social/disconnect/:platform', requireAuth, async (req, res) => {
+    try {
+      const { platform } = req.params;
+      const userId = (req.user as any).id;
 
-  app.post("/api/social/generate-content", requireAuth, async (req, res) => {
+      // Clear the token for the platform
+      const tokenFields = {
+        facebook: 'facebookToken',
+        instagram: 'instagramToken',
+        twitter: 'twitterToken',
+        youtube: 'youtubeToken',
+        tiktok: 'tiktokToken',
+        linkedin: 'linkedinToken',
+        threads: 'threadsToken',
+        googleBusiness: 'googleBusinessToken',
+      };
+
+      const tokenField = tokenFields[platform as keyof typeof tokenFields];
+
+      if (!tokenField) {
+        return res.status(400).json({ error: 'Invalid platform' });
+      }
+
+      await storage.updateUser(userId, { [tokenField]: null });
+
+      res.json({ success: true, message: `${platform} disconnected successfully` });
+    } catch (error: unknown) {
+      logger.error('Error disconnecting platform:', error);
+      res.status(500).json({ error: 'Failed to disconnect platform' });
+    }
+  });
+
+  app.post('/api/social/generate-content', requireAuth, async (req, res) => {
     try {
       const validation = generateContentSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { platforms, musicData, targetAudience } = validation.data;
       const { contentType, format = 'text', tone = 'professional' } = req.body;
       const userId = (req.user as any).id;
-      
+
       // Generate comprehensive AI-powered content for each platform
       const generatedContent = await Promise.all(
         platforms.map(async (platform: string) => {
           const content = await generateSocialMediaContent(
-            platform, 
-            musicData || { tone }, 
-            targetAudience, 
+            platform,
+            musicData || { tone },
+            targetAudience,
             contentType || 'all'
           );
-          
+
           let result: any = {
             platform,
             ...content,
-            format
+            format,
           };
-          
+
           // Generate media content based on format
           if (format === 'image') {
-            const imageUrl = await generateSocialMediaImage(platform, musicData || { tone }, targetAudience);
+            const imageUrl = await generateSocialMediaImage(
+              platform,
+              musicData || { tone },
+              targetAudience
+            );
             result.mediaUrl = imageUrl;
           } else if (format === 'video') {
-            const videoData = await generateSocialMediaContent(platform, musicData || { tone }, targetAudience, 'video');
+            const videoData = await generateSocialMediaContent(
+              platform,
+              musicData || { tone },
+              targetAudience,
+              'video'
+            );
             result.mediaUrl = videoData.video || null;
             result.mediaType = 'video';
           } else if (format === 'audio') {
-            const audioData = await generateSocialMediaContent(platform, musicData || { tone }, targetAudience, 'audio');
+            const audioData = await generateSocialMediaContent(
+              platform,
+              musicData || { tone },
+              targetAudience,
+              'audio'
+            );
             result.mediaUrl = audioData.audio || null;
             result.mediaType = 'audio';
           }
-          
+
           return result;
         })
       );
-      
+
       res.json({ generatedContent });
-    } catch (error) {
-      console.error('Error generating content:', error);
+    } catch (error: unknown) {
+      logger.error('Error generating content:', error);
       res.status(500).json({ error: 'Failed to generate content' });
     }
   });
 
   // Generate content from URL
-  app.post("/api/social/generate-from-url", requireAuth, async (req, res) => {
+  app.post('/api/social/generate-from-url', requireAuth, async (req, res) => {
     try {
       const validation = generateFromUrlSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const { url, platforms, targetAudience, format = 'text' } = validation.data;
       const userId = (req.user as any).id;
-      
+
       // Generate content from URL for each platform
       const generatedContent = await Promise.all(
         platforms.map(async (platform: string) => {
           const content = await generateContentFromURL(url, platform, targetAudience);
-          
+
           let result: any = {
             platform,
             ...content,
-            format
+            format,
           };
-          
+
           // Generate media content based on format
           if (format === 'image') {
-            const imageUrl = await generateSocialMediaImage(platform, { title: content.content }, targetAudience);
+            const imageUrl = await generateSocialMediaImage(
+              platform,
+              { title: content.content },
+              targetAudience
+            );
             result.mediaUrl = imageUrl;
           } else if (format === 'video') {
-            const videoData = await generateSocialMediaContent(platform, { title: content.content }, targetAudience, 'video');
+            const videoData = await generateSocialMediaContent(
+              platform,
+              { title: content.content },
+              targetAudience,
+              'video'
+            );
             result.mediaUrl = videoData.video || null;
             result.mediaType = 'video';
-            result.note = videoData.video ? null : 'Video generation requires additional configuration';
+            result.note = videoData.video
+              ? null
+              : 'Video generation requires additional configuration';
           } else if (format === 'audio') {
-            const audioData = await generateSocialMediaContent(platform, { title: content.content }, targetAudience, 'audio');
+            const audioData = await generateSocialMediaContent(
+              platform,
+              { title: content.content },
+              targetAudience,
+              'audio'
+            );
             result.mediaUrl = audioData.audio || null;
             result.mediaType = 'audio';
-            result.note = audioData.audio ? null : 'Audio generation requires additional configuration';
+            result.note = audioData.audio
+              ? null
+              : 'Audio generation requires additional configuration';
           }
-          
+
           return result;
         })
       );
-      
+
       res.json({ generatedContent });
-    } catch (error) {
-      console.error('Error generating content from URL:', error);
+    } catch (error: unknown) {
+      logger.error('Error generating content from URL:', error);
       res.status(500).json({ error: 'Failed to generate content from URL' });
     }
   });
 
   // Generate specific content type
-  app.post("/api/social/generate-specific", requireAuth, async (req, res) => {
+  app.post('/api/social/generate-specific', requireAuth, async (req, res) => {
     try {
       const { platform, contentType, musicData, targetAudience } = req.body;
       const userId = (req.user as any).id;
-      
+
       let result;
-      
+
       switch (contentType) {
         case 'image':
           result = {
-            image: await generateSocialMediaImage(platform, musicData, targetAudience)
+            image: await generateSocialMediaImage(platform, musicData, targetAudience),
           };
           break;
         case 'video':
@@ -9179,519 +9616,533 @@ app.post("/api/social/disconnect/:platform", requireAuth, async (req, res) => {
         default:
           result = await generateSocialMediaContent(platform, musicData, targetAudience, 'all');
       }
-      
+
       res.json(result);
-    } catch (error) {
-      console.error('Error generating specific content:', error);
+    } catch (error: unknown) {
+      logger.error('Error generating specific content:', error);
       res.status(500).json({ error: 'Failed to generate specific content' });
     }
   });
 
   // Legacy endpoint for backward compatibility
-  app.post("/api/social/generate-content-legacy", requireAuth, async (req, res) => {
+  app.post('/api/social/generate-content-legacy', requireAuth, async (req, res) => {
     try {
       const { platforms, contentType, musicData, targetAudience } = req.body;
       const userId = (req.user as any).id;
-      
+
       // Generate AI-powered content for each platform (legacy format)
       const generatedContent = {
         facebook: {
           post: "🎵 Just dropped my latest track! The energy in this one is absolutely incredible. Can't wait for you all to hear it! #NewMusic #Music #Artist",
           image: await generateSocialMediaImage('facebook', musicData, targetAudience),
-          hashtags: ["#NewMusic", "#Music", "#Artist", "#LatestTrack"],
-          optimalTime: "7:00 PM",
-          engagement: 0.85
+          hashtags: ['#NewMusic', '#Music', '#Artist', '#LatestTrack'],
+          optimalTime: '7:00 PM',
+          engagement: 0.85,
         },
         instagram: {
-          caption: "✨ New music vibes ✨ This track has been in the works for months and I'm so excited to finally share it with you! Link in bio to stream everywhere 🎧",
+          caption:
+            "✨ New music vibes ✨ This track has been in the works for months and I'm so excited to finally share it with you! Link in bio to stream everywhere 🎧",
           image: await generateSocialMediaImage('instagram', musicData, targetAudience),
-          hashtags: ["#NewMusic", "#Music", "#Artist", "#LatestTrack", "#Vibes"],
-          optimalTime: "6:00 PM",
-          engagement: 0.92
+          hashtags: ['#NewMusic', '#Music', '#Artist', '#LatestTrack', '#Vibes'],
+          optimalTime: '6:00 PM',
+          engagement: 0.92,
         },
-      twitter: {
-        tweet: "🎵 New track is live! The production on this one is next level. Streaming everywhere now 🔥",
-        hashtags: ["#NewMusic", "#Music", "#Artist"],
-        optimalTime: "8:00 PM",
-        engagement: 0.78
-      },
-      youtube: {
-        title: "NEW SONG RELEASE - [Track Name] (Official Audio)",
-        description: "Stream my latest track everywhere! This one has been in the works for months and I'm so excited to finally share it with you all. The energy and production on this track is absolutely incredible. Let me know what you think in the comments below!",
-        tags: ["new music", "latest track", "official audio", "music video"],
-        optimalTime: "7:00 PM",
-        engagement: 0.88
-      },
-      tiktok: {
-        caption: "New track is here! The beat on this one hits different 🔥 #NewMusic #Music #Artist #LatestTrack",
-        hashtags: ["#NewMusic", "#Music", "#Artist", "#LatestTrack", "#Beat"],
-        optimalTime: "9:00 PM",
-        engagement: 0.95
-      },
-      linkedin: {
-        post: "Excited to share my latest musical creation! This track represents months of hard work and creative collaboration. Music has the power to connect us all, and I'm grateful for the opportunity to share my art with the world.",
-        hashtags: ["#Music", "#Artist", "#Creative", "#NewRelease"],
-        optimalTime: "12:00 PM",
-        engagement: 0.65
-      },
-      threads: {
-        post: "New music is here! This track has been in the works for months and I'm so excited to finally share it with you all. The energy and production on this track is absolutely incredible.",
-        hashtags: ["#NewMusic", "#Music", "#Artist"],
-        optimalTime: "7:30 PM",
-        engagement: 0.82
-      },
-      googleBusiness: {
-        post: "🎵 New track release! Stream my latest single everywhere now. This one has been in the works for months and I'm so excited to finally share it with you all.",
-        hashtags: ["#NewMusic", "#Music", "#Artist", "#LatestTrack"],
-        optimalTime: "6:30 PM",
-        engagement: 0.70
-      }
-    };
-    
-    // Filter content for requested platforms
-    const filteredContent = platforms.reduce((acc: any, platform: string) => {
-      if (generatedContent[platform as keyof typeof generatedContent]) {
-        acc[platform] = generatedContent[platform as keyof typeof generatedContent];
-      }
-      return acc;
-    }, {});
-    
-    res.json(filteredContent);
-  } catch (error) {
-    console.error('Error generating content:', error);
-    res.status(500).json({ error: 'Failed to generate content' });
-  }
-});
-
-app.post("/api/social/schedule-post", requireAuth, async (req, res) => {
-  try {
-    const validation = schedulePostSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({ 
-        error: 'Validation failed', 
-        details: validation.error.flatten().fieldErrors 
-      });
-    }
-    
-    const { platforms, content, scheduledTime, mediaUrl } = validation.data;
-    const userId = (req.user as any).id;
-    
-    // Schedule the post (in a real implementation, this would use a job queue)
-    const scheduledPost = {
-      id: `post_${Date.now()}`,
-      userId,
-      platforms,
-      content,
-      scheduledTime: scheduledTime ? new Date(scheduledTime) : new Date(),
-      mediaUrl,
-      status: 'scheduled',
-      createdAt: new Date()
-    };
-    
-    res.json(scheduledPost);
-  } catch (error) {
-    console.error('Error scheduling post:', error);
-    res.status(500).json({ error: 'Failed to schedule post' });
-  }
-});
-
-app.get("/api/social/scheduled-posts", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    // Get scheduled posts from database (posts with future publishedAt dates)
-    const allPosts = await storage.getSocialPosts(userId);
-    const now = new Date();
-    const scheduledPosts = allPosts.filter(post => 
-      post.scheduledTime && new Date(post.scheduledTime) > now
-    );
-    
-    res.json(scheduledPosts);
-  } catch (error) {
-    console.error('Error fetching scheduled posts:', error);
-    res.status(500).json({ error: 'Failed to fetch scheduled posts' });
-  }
-});
-
-app.get("/api/social/analytics", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    
-    // Get real social media analytics from database
-    const platforms = await storage.getSocialPlatforms(userId);
-    const posts = await storage.getSocialPosts(userId);
-    
-    const totalFollowers = platforms.reduce((sum, p) => sum + (p.followers || 0), 0);
-    const totalEngagement = platforms.reduce((sum, p) => sum + (p.engagement || 0), 0);
-    
-    // Calculate platform breakdown
-    const platformBreakdown = platforms.reduce((acc, platform) => {
-      const platformKey = platform.name.toLowerCase().replace(/\s+/g, '');
-      acc[platformKey] = {
-        followers: platform.followers || 0,
-        engagement: platform.engagement || 0,
-        reach: platform.reach || 0,
-        impressions: platform.impressions || 0
+        twitter: {
+          tweet:
+            '🎵 New track is live! The production on this one is next level. Streaming everywhere now 🔥',
+          hashtags: ['#NewMusic', '#Music', '#Artist'],
+          optimalTime: '8:00 PM',
+          engagement: 0.78,
+        },
+        youtube: {
+          title: 'NEW SONG RELEASE - [Track Name] (Official Audio)',
+          description:
+            "Stream my latest track everywhere! This one has been in the works for months and I'm so excited to finally share it with you all. The energy and production on this track is absolutely incredible. Let me know what you think in the comments below!",
+          tags: ['new music', 'latest track', 'official audio', 'music video'],
+          optimalTime: '7:00 PM',
+          engagement: 0.88,
+        },
+        tiktok: {
+          caption:
+            'New track is here! The beat on this one hits different 🔥 #NewMusic #Music #Artist #LatestTrack',
+          hashtags: ['#NewMusic', '#Music', '#Artist', '#LatestTrack', '#Beat'],
+          optimalTime: '9:00 PM',
+          engagement: 0.95,
+        },
+        linkedin: {
+          post: "Excited to share my latest musical creation! This track represents months of hard work and creative collaboration. Music has the power to connect us all, and I'm grateful for the opportunity to share my art with the world.",
+          hashtags: ['#Music', '#Artist', '#Creative', '#NewRelease'],
+          optimalTime: '12:00 PM',
+          engagement: 0.65,
+        },
+        threads: {
+          post: "New music is here! This track has been in the works for months and I'm so excited to finally share it with you all. The energy and production on this track is absolutely incredible.",
+          hashtags: ['#NewMusic', '#Music', '#Artist'],
+          optimalTime: '7:30 PM',
+          engagement: 0.82,
+        },
+        googleBusiness: {
+          post: "🎵 New track release! Stream my latest single everywhere now. This one has been in the works for months and I'm so excited to finally share it with you all.",
+          hashtags: ['#NewMusic', '#Music', '#Artist', '#LatestTrack'],
+          optimalTime: '6:30 PM',
+          engagement: 0.7,
+        },
       };
-      return acc;
-    }, {} as Record<string, any>);
-    
-    // Get top posts by engagement
-    const topPosts = posts
-      .sort((a, b) => (b.likes || 0) + (b.shares || 0) - (a.likes || 0) - (a.shares || 0))
-      .slice(0, 5);
-    
-    const analytics = {
-      totalFollowers,
-      totalEngagement,
-      totalReach: platforms.reduce((sum, p) => sum + (p.reach || 0), 0),
-      totalImpressions: platforms.reduce((sum, p) => sum + (p.impressions || 0), 0),
-      platformBreakdown,
-      topPosts,
-      engagementTrends: posts.map(p => ({
-        date: p.publishedAt,
-        engagement: (p.likes || 0) + (p.comments || 0) + (p.shares || 0)
-      }))
-    };
-    
-    res.json(analytics);
-  } catch (error) {
-    console.error('Error fetching social analytics:', error);
-    res.status(500).json({ error: 'Failed to fetch social analytics' });
-  }
-});
 
-// Upload media for social posts
-app.post("/api/social/upload-media", requireAuth, upload.single('media'), async (req, res) => {
-  try {
-    const user = req.user as any;
-    const file = req.file;
+      // Filter content for requested platforms
+      const filteredContent = platforms.reduce((acc: unknown, platform: string) => {
+        if (generatedContent[platform as keyof typeof generatedContent]) {
+          acc[platform] = generatedContent[platform as keyof typeof generatedContent];
+        }
+        return acc;
+      }, {});
 
-    if (!file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      res.json(filteredContent);
+    } catch (error: unknown) {
+      logger.error('Error generating content:', error);
+      res.status(500).json({ error: 'Failed to generate content' });
     }
+  });
 
-    // Log file upload
-    auditLogger.logFileUpload(req, user.id, user.email, file.originalname, file.size, true);
-
-    res.json({
-      success: true,
-      mediaUrl: `/uploads/${path.basename(file.path)}`,
-      filename: file.originalname,
-      size: file.size,
-      mimetype: file.mimetype
-    });
-  } catch (error: any) {
-    console.error('Error uploading media:', error);
-    res.status(500).json({ error: 'Failed to upload media' });
-  }
-});
-
-// Delete scheduled post
-app.delete("/api/social/posts/:id", requireAuth, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const userId = (req.user as any).id;
-
-    // Get post with campaign to verify ownership
-    const postWithCampaign = await db
-      .select({
-        postId: posts.id,
-        campaignId: posts.campaignId,
-        campaignUserId: socialCampaigns.userId,
-      })
-      .from(posts)
-      .innerJoin(socialCampaigns, eq(posts.campaignId, socialCampaigns.id))
-      .where(eq(posts.id, id))
-      .execute();
-
-    if (postWithCampaign.length === 0) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    // Verify ownership
-    if (postWithCampaign[0].campaignUserId !== userId) {
-      return res.status(403).json({ error: 'Not authorized to delete this post' });
-    }
-
-    // Delete from database
-    await db
-      .delete(posts)
-      .where(eq(posts.id, id))
-      .execute();
-
-    res.json({ success: true, message: 'Post deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting post:', error);
-    res.status(500).json({ error: 'Failed to delete post' });
-  }
-});
-
-
-// Marketplace Producer Profiles
-app.get("/api/marketplace/producers", requireAuth, async (req, res) => {
-  try {
-    const { page, limit } = getPaginationParams(req);
-    const result = await storage.getProducers({ page, limit });
-    res.json({
-      producers: result.data,
-      pagination: result.pagination
-    });
-  } catch (error) {
-    console.error('Error fetching producers:', error);
-    res.status(500).json({ error: 'Failed to fetch producers' });
-  }
-});
-
-// Marketplace Sales Analytics
-app.get("/api/marketplace/sales-analytics", requireAuth, requirePremium, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const analytics = await storage.getSalesAnalytics(userId);
-    res.json(analytics);
-  } catch (error) {
-    console.error('Error fetching sales analytics:', error);
-    res.status(500).json({ error: 'Failed to fetch sales analytics' });
-  }
-});
-
-// Upload Beat to Marketplace
-app.post("/api/marketplace/upload", requireAuth, marketplaceUpload.fields([
-  { name: 'audioFile', maxCount: 1 },
-  { name: 'coverArt', maxCount: 1 }
-]), async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-    
-    if (!files?.audioFile || files.audioFile.length === 0) {
-      return res.status(400).json({ error: 'Audio file is required' });
-    }
-
-    const audioFile = files.audioFile[0];
-    const coverArtFile = files.coverArt?.[0];
-
-    const { title, genre, mood, tempo, key, price, licenseType, description, tags } = req.body;
-
-    if (!title || !genre) {
-      return res.status(400).json({ error: 'Title and genre are required' });
-    }
-
-    const priceInCents = Math.round((parseFloat(price) || 50) * 100);
-
-    const listingData = {
-      ownerId: userId,
-      title,
-      description: description || '',
-      priceCents: priceInCents,
-      currency: 'usd',
-      downloadUrl: `/uploads/${path.basename(audioFile.path)}`,
-      previewUrl: `/uploads/${path.basename(audioFile.path)}`,
-      coverArtUrl: coverArtFile ? `/uploads/${path.basename(coverArtFile.path)}` : null,
-      licenseType: licenseType || 'basic',
-      isPublished: true,
-      tags: tags ? tags.split(',').map((t: string) => t.trim()) : [],
-      metadata: {
-        genre,
-        mood: mood || null,
-        tempo: parseInt(tempo) || 120,
-        key: key || 'C',
-        bpm: parseInt(tempo) || 120,
+  app.post('/api/social/schedule-post', requireAuth, async (req, res) => {
+    try {
+      const validation = schedulePostSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
+        });
       }
-    };
 
-    const listing = await storage.createListing(listingData);
+      const { platforms, content, scheduledTime, mediaUrl } = validation.data;
+      const userId = (req.user as any).id;
 
-    res.json({ 
-      success: true, 
-      listing,
-      message: 'Beat uploaded successfully' 
-    });
-  } catch (error) {
-    console.error('Error uploading beat:', error);
-    res.status(500).json({ error: 'Failed to upload beat' });
-  }
-});
+      // Schedule the post (in a real implementation, this would use a job queue)
+      const scheduledPost = {
+        id: `post_${Date.now()}`,
+        userId,
+        platforms,
+        content,
+        scheduledTime: scheduledTime ? new Date(scheduledTime) : new Date(),
+        mediaUrl,
+        status: 'scheduled',
+        createdAt: new Date(),
+      };
 
-// Setup Stripe Connect for Marketplace Seller
-app.post("/api/marketplace/connect-stripe", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.user as any).id;
-    const user = await storage.getUser(userId);
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      res.json(scheduledPost);
+    } catch (error: unknown) {
+      logger.error('Error scheduling post:', error);
+      res.status(500).json({ error: 'Failed to schedule post' });
     }
+  });
 
-    let accountId = user.stripeConnectedAccountId;
+  app.get('/api/social/scheduled-posts', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
 
-    if (!accountId) {
-      const account = await stripe.accounts.create({
-        type: 'express',
-        country: 'US',
-        email: user.email,
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
+      // Get scheduled posts from database (posts with future publishedAt dates)
+      const allPosts = await storage.getSocialPosts(userId);
+      const now = new Date();
+      const scheduledPosts = allPosts.filter(
+        (post) => post.scheduledTime && new Date(post.scheduledTime) > now
+      );
+
+      res.json(scheduledPosts);
+    } catch (error: unknown) {
+      logger.error('Error fetching scheduled posts:', error);
+      res.status(500).json({ error: 'Failed to fetch scheduled posts' });
+    }
+  });
+
+  app.get('/api/social/analytics', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+
+      // Get real social media analytics from database
+      const platforms = await storage.getSocialPlatforms(userId);
+      const posts = await storage.getSocialPosts(userId);
+
+      const totalFollowers = platforms.reduce((sum, p) => sum + (p.followers || 0), 0);
+      const totalEngagement = platforms.reduce((sum, p) => sum + (p.engagement || 0), 0);
+
+      // Calculate platform breakdown
+      const platformBreakdown = platforms.reduce(
+        (acc, platform) => {
+          const platformKey = platform.name.toLowerCase().replace(/\s+/g, '');
+          acc[platformKey] = {
+            followers: platform.followers || 0,
+            engagement: platform.engagement || 0,
+            reach: platform.reach || 0,
+            impressions: platform.impressions || 0,
+          };
+          return acc;
         },
-      }, {
-        idempotencyKey: `marketplace_account_${userId}_${Date.now()}`
+        {} as Record<string, any>
+      );
+
+      // Get top posts by engagement
+      const topPosts = posts
+        .sort((a, b) => (b.likes || 0) + (b.shares || 0) - (a.likes || 0) - (a.shares || 0))
+        .slice(0, 5);
+
+      const analytics = {
+        totalFollowers,
+        totalEngagement,
+        totalReach: platforms.reduce((sum, p) => sum + (p.reach || 0), 0),
+        totalImpressions: platforms.reduce((sum, p) => sum + (p.impressions || 0), 0),
+        platformBreakdown,
+        topPosts,
+        engagementTrends: posts.map((p) => ({
+          date: p.publishedAt,
+          engagement: (p.likes || 0) + (p.comments || 0) + (p.shares || 0),
+        })),
+      };
+
+      res.json(analytics);
+    } catch (error: unknown) {
+      logger.error('Error fetching social analytics:', error);
+      res.status(500).json({ error: 'Failed to fetch social analytics' });
+    }
+  });
+
+  // Upload media for social posts
+  app.post('/api/social/upload-media', requireAuth, upload.single('media'), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      // Log file upload
+      auditLogger.logFileUpload(req, user.id, user.email, file.originalname, file.size, true);
+
+      res.json({
+        success: true,
+        mediaUrl: `/uploads/${path.basename(file.path)}`,
+        filename: file.originalname,
+        size: file.size,
+        mimetype: file.mimetype,
       });
-      accountId = account.id;
+    } catch (error: unknown) {
+      logger.error('Error uploading media:', error);
+      res.status(500).json({ error: 'Failed to upload media' });
+    }
+  });
 
-      await storage.updateUser(userId, {
-        stripeConnectedAccountId: account.id
+  // Delete scheduled post
+  app.delete('/api/social/posts/:id', requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = (req.user as any).id;
+
+      // Get post with campaign to verify ownership
+      const postWithCampaign = await db
+        .select({
+          postId: posts.id,
+          campaignId: posts.campaignId,
+          campaignUserId: socialCampaigns.userId,
+        })
+        .from(posts)
+        .innerJoin(socialCampaigns, eq(posts.campaignId, socialCampaigns.id))
+        .where(eq(posts.id, id))
+        .execute();
+
+      if (postWithCampaign.length === 0) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+
+      // Verify ownership
+      if (postWithCampaign[0].campaignUserId !== userId) {
+        return res.status(403).json({ error: 'Not authorized to delete this post' });
+      }
+
+      // Delete from database
+      await db.delete(posts).where(eq(posts.id, id)).execute();
+
+      res.json({ success: true, message: 'Post deleted successfully' });
+    } catch (error: unknown) {
+      logger.error('Error deleting post:', error);
+      res.status(500).json({ error: 'Failed to delete post' });
+    }
+  });
+
+  // Marketplace Producer Profiles
+  app.get('/api/marketplace/producers', requireAuth, async (req, res) => {
+    try {
+      const { page, limit } = getPaginationParams(req);
+      const result = await storage.getProducers({ page, limit });
+      res.json({
+        producers: result.data,
+        pagination: result.pagination,
       });
+    } catch (error: unknown) {
+      logger.error('Error fetching producers:', error);
+      res.status(500).json({ error: 'Failed to fetch producers' });
     }
+  });
 
-    const accountLink = await stripe.accountLinks.create({
-      account: accountId,
-      refresh_url: `${req.protocol}://${req.get('host')}/marketplace?tab=sales&setup=failed`,
-      return_url: `${req.protocol}://${req.get('host')}/marketplace?tab=sales&setup=success`,
-      type: 'account_onboarding',
-    });
-
-    res.json({ 
-      url: accountLink.url,
-      accountId: accountId
-    });
-  } catch (error: any) {
-    console.error('Error connecting Stripe for marketplace:', error);
-    res.status(500).json({ error: error.message || 'Failed to connect Stripe account' });
-  }
-});
-
-// Purchase Beat with Stripe Connect
-app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
-  try {
-    const validation = purchaseBeatSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({ 
-        error: 'Validation failed', 
-        details: validation.error.flatten().fieldErrors 
-      });
+  // Marketplace Sales Analytics
+  app.get('/api/marketplace/sales-analytics', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const analytics = await storage.getSalesAnalytics(userId);
+      res.json(analytics);
+    } catch (error: unknown) {
+      logger.error('Error fetching sales analytics:', error);
+      res.status(500).json({ error: 'Failed to fetch sales analytics' });
     }
-    
-    const buyerId = (req.user as any).id;
-    const { beatId, licenseType } = validation.data;
+  });
 
-    const beat = await storage.getListing(beatId);
-    if (!beat) {
-      return res.status(404).json({ error: 'Beat not found' });
-    }
+  // Upload Beat to Marketplace
+  app.post(
+    '/api/marketplace/upload',
+    requireAuth,
+    marketplaceUpload.fields([
+      { name: 'audioFile', maxCount: 1 },
+      { name: 'coverArt', maxCount: 1 },
+    ]),
+    async (req, res) => {
+      try {
+        const userId = (req.user as any).id;
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-    const seller = await storage.getUser(beat.userId);
-    if (!seller) {
-      return res.status(404).json({ error: 'Seller not found' });
-    }
+        if (!files?.audioFile || files.audioFile.length === 0) {
+          return res.status(400).json({ error: 'Audio file is required' });
+        }
 
-    if (!seller.stripeConnectedAccountId) {
-      return res.status(400).json({ 
-        error: 'Seller has not connected their payment account yet' 
-      });
-    }
+        const audioFile = files.audioFile[0];
+        const coverArtFile = files.coverArt?.[0];
 
-    const platformFeePercent = 10;
-    const totalAmount = Math.round(beat.price * 100);
-    const platformFee = Math.round(totalAmount * platformFeePercent / 100);
+        const { title, genre, mood, tempo, key, price, licenseType, description, tags } = req.body;
 
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `${beat.title} - ${licenseType} License`,
-              description: beat.description || '',
-            },
-            unit_amount: totalAmount,
+        if (!title || !genre) {
+          return res.status(400).json({ error: 'Title and genre are required' });
+        }
+
+        const priceInCents = Math.round((parseFloat(price) || 50) * 100);
+
+        const listingData = {
+          ownerId: userId,
+          title,
+          description: description || '',
+          priceCents: priceInCents,
+          currency: 'usd',
+          downloadUrl: `/uploads/${path.basename(audioFile.path)}`,
+          previewUrl: `/uploads/${path.basename(audioFile.path)}`,
+          coverArtUrl: coverArtFile ? `/uploads/${path.basename(coverArtFile.path)}` : null,
+          licenseType: licenseType || 'basic',
+          isPublished: true,
+          tags: tags ? tags.split(',').map((t: string) => t.trim()) : [],
+          metadata: {
+            genre,
+            mood: mood || null,
+            tempo: parseInt(tempo) || 120,
+            key: key || 'C',
+            bpm: parseInt(tempo) || 120,
           },
-          quantity: 1,
-        },
-      ],
-      payment_intent_data: {
-        application_fee_amount: platformFee,
-        transfer_data: {
-          destination: seller.stripeConnectedAccountId,
-        },
-        metadata: {
-          beatId: beatId.toString(),
-          buyerId,
-          sellerId: beat.userId,
-          licenseType,
-        },
-      },
-      metadata: {
-        beatId: beatId.toString(),
-        buyerId,
-        sellerId: beat.userId,
-        licenseType,
-      },
-      success_url: `${req.protocol}://${req.get('host')}/marketplace?purchase=success`,
-      cancel_url: `${req.protocol}://${req.get('host')}/marketplace?purchase=canceled`,
-    }, {
-      idempotencyKey: `marketplace_purchase_${buyerId}_${beatId}_${Date.now()}`
-    });
+        };
 
-    res.json({ 
-      sessionId: session.id,
-      url: session.url 
-    });
-  } catch (error: any) {
-    console.error('Error creating purchase session:', error);
-    res.status(500).json({ error: error.message || 'Failed to create purchase session' });
-  }
-});
+        const listing = await storage.createListing(listingData);
+
+        res.json({
+          success: true,
+          listing,
+          message: 'Beat uploaded successfully',
+        });
+      } catch (error: unknown) {
+        logger.error('Error uploading beat:', error);
+        res.status(500).json({ error: 'Failed to upload beat' });
+      }
+    }
+  );
+
+  // Setup Stripe Connect for Marketplace Seller
+  app.post('/api/marketplace/connect-stripe', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      let accountId = user.stripeConnectedAccountId;
+
+      if (!accountId) {
+        const account = await stripe.accounts.create(
+          {
+            type: 'express',
+            country: 'US',
+            email: user.email,
+            capabilities: {
+              card_payments: { requested: true },
+              transfers: { requested: true },
+            },
+          },
+          {
+            idempotencyKey: `marketplace_account_${userId}_${Date.now()}`,
+          }
+        );
+        accountId = account.id;
+
+        await storage.updateUser(userId, {
+          stripeConnectedAccountId: account.id,
+        });
+      }
+
+      const accountLink = await stripe.accountLinks.create({
+        account: accountId,
+        refresh_url: `${req.protocol}://${req.get('host')}/marketplace?tab=sales&setup=failed`,
+        return_url: `${req.protocol}://${req.get('host')}/marketplace?tab=sales&setup=success`,
+        type: 'account_onboarding',
+      });
+
+      res.json({
+        url: accountLink.url,
+        accountId: accountId,
+      });
+    } catch (error: unknown) {
+      logger.error('Error connecting Stripe for marketplace:', error);
+      res.status(500).json({ error: error.message || 'Failed to connect Stripe account' });
+    }
+  });
+
+  // Purchase Beat with Stripe Connect
+  app.post('/api/marketplace/purchase', requireAuth, async (req, res) => {
+    try {
+      const validation = purchaseBeatSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
+        });
+      }
+
+      const buyerId = (req.user as any).id;
+      const { beatId, licenseType } = validation.data;
+
+      const beat = await storage.getListing(beatId);
+      if (!beat) {
+        return res.status(404).json({ error: 'Beat not found' });
+      }
+
+      const seller = await storage.getUser(beat.userId);
+      if (!seller) {
+        return res.status(404).json({ error: 'Seller not found' });
+      }
+
+      if (!seller.stripeConnectedAccountId) {
+        return res.status(400).json({
+          error: 'Seller has not connected their payment account yet',
+        });
+      }
+
+      const platformFeePercent = 10;
+      const totalAmount = Math.round(beat.price * 100);
+      const platformFee = Math.round((totalAmount * platformFeePercent) / 100);
+
+      const session = await stripe.checkout.sessions.create(
+        {
+          mode: 'payment',
+          payment_method_types: ['card'],
+          line_items: [
+            {
+              price_data: {
+                currency: 'usd',
+                product_data: {
+                  name: `${beat.title} - ${licenseType} License`,
+                  description: beat.description || '',
+                },
+                unit_amount: totalAmount,
+              },
+              quantity: 1,
+            },
+          ],
+          payment_intent_data: {
+            application_fee_amount: platformFee,
+            transfer_data: {
+              destination: seller.stripeConnectedAccountId,
+            },
+            metadata: {
+              beatId: beatId.toString(),
+              buyerId,
+              sellerId: beat.userId,
+              licenseType,
+            },
+          },
+          metadata: {
+            beatId: beatId.toString(),
+            buyerId,
+            sellerId: beat.userId,
+            licenseType,
+          },
+          success_url: `${req.protocol}://${req.get('host')}/marketplace?purchase=success`,
+          cancel_url: `${req.protocol}://${req.get('host')}/marketplace?purchase=canceled`,
+        },
+        {
+          idempotencyKey: `marketplace_purchase_${buyerId}_${beatId}_${Date.now()}`,
+        }
+      );
+
+      res.json({
+        sessionId: session.id,
+        url: session.url,
+      });
+    } catch (error: unknown) {
+      logger.error('Error creating purchase session:', error);
+      res.status(500).json({ error: error.message || 'Failed to create purchase session' });
+    }
+  });
 
   // ============================================================================
   // DISTRIBUTION SYSTEM ROUTES (DistroKid Clone)
   // ============================================================================
-  
-  const { distributionService } = await import("./services/distributionService");
-  
+
+  const { distributionService } = await import('./services/distributionService');
+
   // Create release
-  app.post("/api/distribution/releases", requireAuth, async (req, res) => {
+  app.post('/api/distribution/releases', requireAuth, async (req, res) => {
     try {
       const release = await distributionService.createRelease({
         ...req.body,
         userId: (req.user as any).id,
       });
       res.json(release);
-    } catch (error) {
-      console.error("Error creating release:", error);
-      res.status(500).json({ error: "Failed to create release" });
+    } catch (error: unknown) {
+      logger.error('Error creating release:', error);
+      res.status(500).json({ error: 'Failed to create release' });
     }
   });
-  
+
   // List user's releases
-  app.get("/api/distribution/releases", requireAuth, async (req, res) => {
+  app.get('/api/distribution/releases', requireAuth, async (req, res) => {
     try {
       const releases = await distributionService.getUserReleases((req.user as any).id);
       res.json(releases);
-    } catch (error) {
-      console.error("Error fetching releases:", error);
-      res.status(500).json({ error: "Failed to fetch releases" });
+    } catch (error: unknown) {
+      logger.error('Error fetching releases:', error);
+      res.status(500).json({ error: 'Failed to fetch releases' });
     }
   });
-  
+
   // Get release details
-  app.get("/api/distribution/releases/:id", requireAuth, async (req, res) => {
+  app.get('/api/distribution/releases/:id', requireAuth, async (req, res) => {
     try {
       const release = await distributionService.getRelease(req.params.id, (req.user as any).id);
       if (!release) {
-        return res.status(404).json({ error: "Release not found" });
+        return res.status(404).json({ error: 'Release not found' });
       }
       res.json(release);
-    } catch (error) {
-      console.error("Error fetching release:", error);
-      res.status(500).json({ error: "Failed to fetch release" });
+    } catch (error: unknown) {
+      logger.error('Error fetching release:', error);
+      res.status(500).json({ error: 'Failed to fetch release' });
     }
   });
-  
+
   // Submit to DSPs
-  app.post("/api/distribution/releases/:id/submit", requireAuth, async (req, res) => {
+  app.post('/api/distribution/releases/:id/submit', requireAuth, async (req, res) => {
     try {
       const { providerId } = req.body;
       const result = await distributionService.submitToProvider(
@@ -9700,112 +10151,120 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         (req.user as any).id
       );
       res.json(result);
-    } catch (error) {
-      console.error("Error submitting to provider:", error);
-      res.status(500).json({ error: "Failed to submit to provider" });
+    } catch (error: unknown) {
+      logger.error('Error submitting to provider:', error);
+      res.status(500).json({ error: 'Failed to submit to provider' });
     }
   });
-  
+
   // Get available DSP providers
-  app.get("/api/distribution/providers", requireAuth, async (req, res) => {
+  app.get('/api/distribution/providers', requireAuth, async (req, res) => {
     try {
       const providers = await distributionService.getProviders();
       res.json(providers);
-    } catch (error) {
-      console.error("Error fetching providers:", error);
-      res.status(500).json({ error: "Failed to fetch providers" });
+    } catch (error: unknown) {
+      logger.error('Error fetching providers:', error);
+      res.status(500).json({ error: 'Failed to fetch providers' });
     }
   });
-  
+
   // DSP webhook endpoint
-  app.post("/api/webhooks/dsp", async (req, res) => {
+  app.post('/api/webhooks/dsp', async (req, res) => {
     try {
       await distributionService.handleDSPWebhook(req.body);
       res.json({ success: true });
-    } catch (error) {
-      console.error("Error handling DSP webhook:", error);
-      res.status(500).json({ error: "Failed to process webhook" });
+    } catch (error: unknown) {
+      logger.error('Error handling DSP webhook:', error);
+      res.status(500).json({ error: 'Failed to process webhook' });
     }
   });
-  
+
   // Track dispatch status
-  app.get("/api/distribution/releases/:id/status", requireAuth, async (req, res) => {
+  app.get('/api/distribution/releases/:id/status', requireAuth, async (req, res) => {
     try {
-      const status = await distributionService.trackDispatchStatus(req.params.id, (req.user as any).id);
+      const status = await distributionService.trackDispatchStatus(
+        req.params.id,
+        (req.user as any).id
+      );
       res.json(status);
-    } catch (error) {
-      console.error("Error tracking status:", error);
-      res.status(500).json({ error: "Failed to track status" });
+    } catch (error: unknown) {
+      logger.error('Error tracking status:', error);
+      res.status(500).json({ error: 'Failed to track status' });
     }
   });
-  
+
   // ============================================================================
   // MARKETPLACE ROUTES (BeatStars Clone)
   // ============================================================================
-  
-  const { marketplaceService } = await import("./services/marketplaceService");
-  
+
+  const { marketplaceService } = await import('./services/marketplaceService');
+
   // Create beat listing
-  app.post("/api/marketplace/listings", requireAuth, async (req, res) => {
+  app.post('/api/marketplace/listings', requireAuth, async (req, res) => {
     try {
       const listing = await marketplaceService.createListing({
         ...req.body,
         userId: (req.user as any).id,
       });
       res.json(listing);
-    } catch (error) {
-      console.error("Error creating listing:", error);
-      res.status(500).json({ error: "Failed to create listing" });
+    } catch (error: unknown) {
+      logger.error('Error creating listing:', error);
+      res.status(500).json({ error: 'Failed to create listing' });
     }
   });
-  
+
   // Browse listings
-  app.get("/api/marketplace/listings", requireAuth, async (req, res) => {
+  app.get('/api/marketplace/listings', requireAuth, async (req, res) => {
     try {
       const filters = {
         genre: req.query.genre as string,
         minPrice: req.query.minPrice ? parseFloat(req.query.minPrice as string) : undefined,
         maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice as string) : undefined,
-        sortBy: (req.query.sortBy as string) as "recent" | "popular" | "price_low" | "price_high" | undefined,
+        sortBy: req.query.sortBy as string as
+          | 'recent'
+          | 'popular'
+          | 'price_low'
+          | 'price_high'
+          | undefined,
       };
       const listings = await marketplaceService.browseListings(filters);
       res.json(listings);
-    } catch (error) {
-      console.error("Error browsing listings:", error);
-      res.status(500).json({ error: "Failed to browse listings" });
+    } catch (error: unknown) {
+      logger.error('Error browsing listings:', error);
+      res.status(500).json({ error: 'Failed to browse listings' });
     }
   });
-  
+
   // Get listing details
-  app.get("/api/marketplace/listings/:id", requireAuth, async (req, res) => {
+  app.get('/api/marketplace/listings/:id', requireAuth, async (req, res) => {
     try {
       const listing = await marketplaceService.getListing(req.params.id);
       if (!listing) {
-        return res.status(404).json({ error: "Listing not found" });
+        return res.status(404).json({ error: 'Listing not found' });
       }
       res.json(listing);
-    } catch (error) {
-      console.error("Error fetching listing:", error);
-      res.status(500).json({ error: "Failed to fetch listing" });
+    } catch (error: unknown) {
+      logger.error('Error fetching listing:', error);
+      res.status(500).json({ error: 'Failed to fetch listing' });
     }
   });
-  
+
   // Create order
-  app.post("/api/marketplace/orders", requireAuth, async (req, res) => {
+  app.post('/api/marketplace/orders', requireAuth, async (req, res) => {
     try {
       const order = await marketplaceService.createOrder({
         ...req.body,
         buyerId: (req.user as any).id,
       });
       res.json(order);
-    } catch (error) {
-      console.error("Error creating order:", error);
-      res.status(500).json({ error: "Failed to create order" });
+    } catch (error: unknown) {
+      logger.error('Error creating order:', error);
+      res.status(500).json({ error: 'Failed to create order' });
     }
   });
-  
+
   // Stripe checkout for marketplace
-  app.post("/api/marketplace/checkout", requireAuth, async (req, res) => {
+  app.post('/api/marketplace/checkout', requireAuth, async (req, res) => {
     try {
       const { beatId, licenseType } = req.body;
       const session = await marketplaceService.createCheckoutSession({
@@ -9816,25 +10275,25 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         cancelUrl: `${req.headers.origin}/marketplace`,
       });
       res.json(session);
-    } catch (error) {
-      console.error("Error creating checkout:", error);
-      res.status(500).json({ error: "Failed to create checkout session" });
+    } catch (error: unknown) {
+      logger.error('Error creating checkout:', error);
+      res.status(500).json({ error: 'Failed to create checkout session' });
     }
   });
-  
+
   // Get user's orders
-  app.get("/api/marketplace/orders", requireAuth, async (req, res) => {
+  app.get('/api/marketplace/orders', requireAuth, async (req, res) => {
     try {
       const orders = await marketplaceService.getUserOrders((req.user as any).id);
       res.json(orders);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      res.status(500).json({ error: "Failed to fetch orders" });
+    } catch (error: unknown) {
+      logger.error('Error fetching orders:', error);
+      res.status(500).json({ error: 'Failed to fetch orders' });
     }
   });
-  
+
   // Stripe Connect onboarding
-  app.post("/api/stripe/connect/onboard", requireAuth, async (req, res) => {
+  app.post('/api/stripe/connect/onboard', requireAuth, async (req, res) => {
     try {
       const result = await marketplaceService.setupStripeConnect(
         (req.user as any).id,
@@ -9842,14 +10301,14 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         `${req.headers.origin}/marketplace/seller/onboard`
       );
       res.json(result);
-    } catch (error) {
-      console.error("Error setting up Stripe Connect:", error);
-      res.status(500).json({ error: "Failed to setup Stripe Connect" });
+    } catch (error: unknown) {
+      logger.error('Error setting up Stripe Connect:', error);
+      res.status(500).json({ error: 'Failed to setup Stripe Connect' });
     }
   });
 
   // Get Stripe Connect account status
-  app.get("/api/marketplace/connect/status", requireAuth, async (req, res) => {
+  app.get('/api/marketplace/connect/status', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const verification = await instantPayoutService.verifyStripeAccount(userId);
@@ -9859,99 +10318,99 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         onboardingRequired: !verification.verified,
         error: verification.error,
       });
-    } catch (error) {
-      console.error("Error checking Connect status:", error);
-      res.status(500).json({ error: "Failed to check Connect status" });
+    } catch (error: unknown) {
+      logger.error('Error checking Connect status:', error);
+      res.status(500).json({ error: 'Failed to check Connect status' });
     }
   });
 
   // Get payout history
-  app.get("/api/marketplace/payouts", requireAuth, async (req, res) => {
+  app.get('/api/marketplace/payouts', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
-      
+
       const payouts = await instantPayoutService.getPayoutHistory(userId, limit, offset);
       res.json(payouts);
-    } catch (error) {
-      console.error("Error fetching payout history:", error);
-      res.status(500).json({ error: "Failed to fetch payout history" });
+    } catch (error: unknown) {
+      logger.error('Error fetching payout history:', error);
+      res.status(500).json({ error: 'Failed to fetch payout history' });
     }
   });
 
   // Get earnings summary
-  app.get("/api/marketplace/earnings", requireAuth, async (req, res) => {
+  app.get('/api/marketplace/earnings', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const earnings = await instantPayoutService.calculateAvailableBalance(userId);
       res.json(earnings);
-    } catch (error) {
-      console.error("Error fetching earnings:", error);
-      res.status(500).json({ error: "Failed to fetch earnings" });
+    } catch (error: unknown) {
+      logger.error('Error fetching earnings:', error);
+      res.status(500).json({ error: 'Failed to fetch earnings' });
     }
   });
 
   // Request manual payout/withdrawal
-  app.post("/api/marketplace/payouts/withdraw", requireAuth, async (req, res) => {
+  app.post('/api/marketplace/payouts/withdraw', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { amount } = req.body;
 
       if (!amount || amount <= 0) {
-        return res.status(400).json({ error: "Invalid amount" });
+        return res.status(400).json({ error: 'Invalid amount' });
       }
 
       const result = await instantPayoutService.requestInstantPayout(userId, amount);
-      
+
       if (!result.success) {
         return res.status(400).json({ error: result.error });
       }
 
       res.json(result);
-    } catch (error) {
-      console.error("Error requesting withdrawal:", error);
-      res.status(500).json({ error: "Failed to request withdrawal" });
+    } catch (error: unknown) {
+      logger.error('Error requesting withdrawal:', error);
+      res.status(500).json({ error: 'Failed to request withdrawal' });
     }
   });
-  
+
   // ============================================================================
   // SOCIAL & ADVERTISING AI ROUTES
   // ============================================================================
-  
-  const { socialService } = await import("./services/socialService");
-  const { aiContentService } = await import("./services/aiContentService");
-  
+
+  const { socialService } = await import('./services/socialService');
+  const { aiContentService } = await import('./services/aiContentService');
+
   // Create campaign
-  app.post("/api/social/campaigns", requireAuth, async (req, res) => {
+  app.post('/api/social/campaigns', requireAuth, async (req, res) => {
     try {
       const campaign = await socialService.createCampaign({
         ...req.body,
         userId: (req.user as any).id,
       });
       res.json(campaign);
-    } catch (error) {
-      console.error("Error creating campaign:", error);
-      res.status(500).json({ error: "Failed to create campaign" });
+    } catch (error: unknown) {
+      logger.error('Error creating campaign:', error);
+      res.status(500).json({ error: 'Failed to create campaign' });
     }
   });
-  
+
   // List campaigns
-  app.get("/api/social/campaigns", requireAuth, async (req, res) => {
+  app.get('/api/social/campaigns', requireAuth, async (req, res) => {
     try {
       const campaigns = await socialService.getUserCampaigns((req.user as any).id);
       res.json(campaigns);
-    } catch (error) {
-      console.error("Error fetching campaigns:", error);
-      res.status(500).json({ error: "Failed to fetch campaigns" });
+    } catch (error: unknown) {
+      logger.error('Error fetching campaigns:', error);
+      res.status(500).json({ error: 'Failed to fetch campaigns' });
     }
   });
-  
+
   // Generate AI content
-  app.post("/api/social/generate", requireAuth, async (req, res) => {
+  app.post('/api/social/generate', requireAuth, async (req, res) => {
     try {
       const { prompt, platform, format, tone } = req.body;
-      
+
       let result;
       switch (format) {
         case 'image':
@@ -9966,54 +10425,54 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         default:
           result = await aiContentService.generateText({ prompt, platform, format, tone });
       }
-      
+
       res.json(result);
-    } catch (error) {
-      console.error("Error generating content:", error);
-      res.status(500).json({ error: "Failed to generate content" });
+    } catch (error: unknown) {
+      logger.error('Error generating content:', error);
+      res.status(500).json({ error: 'Failed to generate content' });
     }
   });
-  
+
   // Generate from URL
-  app.post("/api/social/generate-from-url", requireAuth, async (req, res) => {
+  app.post('/api/social/generate-from-url', requireAuth, async (req, res) => {
     try {
       const { url } = req.body;
       const analysis = await aiContentService.analyzeFromURL(url);
       res.json(analysis);
-    } catch (error) {
-      console.error("Error analyzing URL:", error);
-      res.status(500).json({ error: "Failed to analyze URL" });
+    } catch (error: unknown) {
+      logger.error('Error analyzing URL:', error);
+      res.status(500).json({ error: 'Failed to analyze URL' });
     }
   });
-  
+
   // Schedule posts
-  app.post("/api/social/schedule", requireAuth, async (req, res) => {
+  app.post('/api/social/schedule', requireAuth, async (req, res) => {
     try {
       const { campaignId, schedule } = req.body;
       const result = await socialService.schedulePost(campaignId, schedule);
       res.json(result);
-    } catch (error) {
-      console.error("Error scheduling posts:", error);
-      res.status(500).json({ error: "Failed to schedule posts" });
+    } catch (error: unknown) {
+      logger.error('Error scheduling posts:', error);
+      res.status(500).json({ error: 'Failed to schedule posts' });
     }
   });
-  
+
   // Get campaign metrics
-  app.get("/api/social/metrics/:campaignId", requireAuth, async (req, res) => {
+  app.get('/api/social/metrics/:campaignId', requireAuth, async (req, res) => {
     try {
       const metrics = await socialService.getCampaignMetrics(
         parseInt(req.params.campaignId),
         (req.user as any).id
       );
       res.json(metrics);
-    } catch (error) {
-      console.error("Error fetching metrics:", error);
-      res.status(500).json({ error: "Failed to fetch metrics" });
+    } catch (error: unknown) {
+      logger.error('Error fetching metrics:', error);
+      res.status(500).json({ error: 'Failed to fetch metrics' });
     }
   });
-  
+
   // OAuth connection
-  app.post("/api/oauth/:provider/connect", requireAuth, async (req, res) => {
+  app.post('/api/oauth/:provider/connect', requireAuth, async (req, res) => {
     try {
       const { authCode } = req.body;
       const result = await socialService.connectPlatform(
@@ -10022,61 +10481,61 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         authCode
       );
       res.json(result);
-    } catch (error) {
-      console.error("Error connecting platform:", error);
-      res.status(500).json({ error: "Failed to connect platform" });
+    } catch (error: unknown) {
+      logger.error('Error connecting platform:', error);
+      res.status(500).json({ error: 'Failed to connect platform' });
     }
   });
-  
+
   // Generate campaign variants
-  app.post("/api/social/campaigns/:id/variants", requireAuth, async (req, res) => {
+  app.post('/api/social/campaigns/:id/variants', requireAuth, async (req, res) => {
     try {
       const { platforms } = req.body;
-      const result = await socialService.generateVariants(
-        parseInt(req.params.id),
-        platforms
-      );
+      const result = await socialService.generateVariants(parseInt(req.params.id), platforms);
       res.json(result);
-    } catch (error) {
-      console.error("Error generating variants:", error);
-      res.status(500).json({ error: "Failed to generate variants" });
+    } catch (error: unknown) {
+      logger.error('Error generating variants:', error);
+      res.status(500).json({ error: 'Failed to generate variants' });
     }
   });
 
   // ============================================================================
   // CONTENT CALENDAR ROUTES
   // ============================================================================
-  
+
   // POST /api/social/calendar - Create scheduled post
-  app.post("/api/social/calendar", requireAuth, requirePremium, async (req, res) => {
+  app.post('/api/social/calendar', requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const validation = insertContentCalendarSchema.safeParse(req.body);
-      
+
       if (!validation.success) {
-        return res.status(400).json({ error: "Invalid data", details: validation.error });
+        return res.status(400).json({ error: 'Invalid data', details: validation.error });
       }
 
       const scheduledFor = new Date(validation.data.scheduledFor);
       if (scheduledFor <= new Date()) {
-        return res.status(400).json({ error: "scheduledFor must be a future date" });
+        return res.status(400).json({ error: 'scheduledFor must be a future date' });
       }
 
-      const [post] = await db.insert(contentCalendar).values({
-        ...validation.data,
-        userId,
-        status: validation.data.status || "draft"
-      }).returning();
+      const [post] = await db
+        .insert(contentCalendar)
+        .values({
+          ...validation.data,
+          userId,
+          status: validation.data.status || 'draft',
+        })
+        .returning();
 
       res.json(post);
-    } catch (error) {
-      console.error("Error creating calendar post:", error);
-      res.status(500).json({ error: "Failed to create scheduled post" });
+    } catch (error: unknown) {
+      logger.error('Error creating calendar post:', error);
+      res.status(500).json({ error: 'Failed to create scheduled post' });
     }
   });
 
   // GET /api/social/calendar - Get user's content calendar
-  app.get("/api/social/calendar", requireAuth, requirePremium, async (req, res) => {
+  app.get('/api/social/calendar', requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { startDate, endDate, platform, status } = req.query;
@@ -10088,7 +10547,11 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
 
       if (startDate && endDate) {
         conditions.push(
-          between(contentCalendar.scheduledFor, new Date(startDate as string), new Date(endDate as string))
+          between(
+            contentCalendar.scheduledFor,
+            new Date(startDate as string),
+            new Date(endDate as string)
+          )
         );
       }
 
@@ -10096,7 +10559,8 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         conditions.push(eq(contentCalendar.status, status as string));
       }
 
-      const posts = await db.select()
+      const posts = await db
+        .select()
         .from(contentCalendar)
         .where(and(...conditions))
         .orderBy(desc(contentCalendar.scheduledFor));
@@ -10104,68 +10568,72 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       // Filter by platform if specified (platforms is JSONB array)
       let filteredPosts = posts;
       if (platform) {
-        filteredPosts = posts.filter(post => {
+        filteredPosts = posts.filter((post) => {
           const platforms = post.platforms as string[];
           return platforms && platforms.includes(platform as string);
         });
       }
 
       // Group by date for calendar view
-      const groupedByDate = filteredPosts.reduce((acc, post) => {
-        const date = new Date(post.scheduledFor).toISOString().split('T')[0];
-        if (!acc[date]) {
-          acc[date] = [];
-        }
-        acc[date].push(post);
-        return acc;
-      }, {} as Record<string, typeof filteredPosts>);
+      const groupedByDate = filteredPosts.reduce(
+        (acc, post) => {
+          const date = new Date(post.scheduledFor).toISOString().split('T')[0];
+          if (!acc[date]) {
+            acc[date] = [];
+          }
+          acc[date].push(post);
+          return acc;
+        },
+        {} as Record<string, typeof filteredPosts>
+      );
 
       // Include counts for each day
       const calendarData = Object.entries(groupedByDate).map(([date, posts]) => ({
         date,
         count: posts.length,
-        posts
+        posts,
       }));
 
       res.json({
         posts: filteredPosts,
-        groupedByDate: calendarData
+        groupedByDate: calendarData,
       });
-    } catch (error) {
-      console.error("Error fetching calendar:", error);
-      res.status(500).json({ error: "Failed to fetch calendar" });
+    } catch (error: unknown) {
+      logger.error('Error fetching calendar:', error);
+      res.status(500).json({ error: 'Failed to fetch calendar' });
     }
   });
 
   // GET /api/social/calendar/stats - Get calendar statistics
-  app.get("/api/social/calendar/stats", requireAuth, requirePremium, async (req, res) => {
+  app.get('/api/social/calendar/stats', requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const now = new Date();
       const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
       // Get all posts for the user
-      const allPosts = await db.select()
+      const allPosts = await db
+        .select()
         .from(contentCalendar)
         .where(eq(contentCalendar.userId, userId));
 
       // Calculate stats
       const stats = {
-        totalScheduled: allPosts.filter(p => p.status === 'scheduled').length,
-        totalPublished: allPosts.filter(p => p.status === 'published').length,
-        totalDrafts: allPosts.filter(p => p.status === 'draft').length,
-        totalFailed: allPosts.filter(p => p.status === 'failed').length,
-        upcomingThisWeek: allPosts.filter(p => {
+        totalScheduled: allPosts.filter((p) => p.status === 'scheduled').length,
+        totalPublished: allPosts.filter((p) => p.status === 'published').length,
+        totalDrafts: allPosts.filter((p) => p.status === 'draft').length,
+        totalFailed: allPosts.filter((p) => p.status === 'failed').length,
+        upcomingThisWeek: allPosts.filter((p) => {
           const scheduledDate = new Date(p.scheduledFor);
           return scheduledDate >= now && scheduledDate <= oneWeekFromNow;
         }).length,
-        byPlatform: {} as Record<string, { scheduled: number; published: number; failed: number; }>
+        byPlatform: {} as Record<string, { scheduled: number; published: number; failed: number }>,
       };
 
       // Group by platform
-      allPosts.forEach(post => {
+      allPosts.forEach((post) => {
         const platforms = (post.platforms as string[]) || [];
-        platforms.forEach(platform => {
+        platforms.forEach((platform) => {
           if (!stats.byPlatform[platform]) {
             stats.byPlatform[platform] = { scheduled: 0, published: 0, failed: 0 };
           }
@@ -10176,173 +10644,183 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       });
 
       res.json(stats);
-    } catch (error) {
-      console.error("Error fetching calendar stats:", error);
-      res.status(500).json({ error: "Failed to fetch stats" });
+    } catch (error: unknown) {
+      logger.error('Error fetching calendar stats:', error);
+      res.status(500).json({ error: 'Failed to fetch stats' });
     }
   });
 
   // PUT /api/social/calendar/:postId - Update scheduled post
-  app.put("/api/social/calendar/:postId", requireAuth, requirePremium, async (req, res) => {
+  app.put('/api/social/calendar/:postId', requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { postId } = req.params;
 
       // Verify ownership
-      const [existing] = await db.select()
+      const [existing] = await db
+        .select()
         .from(contentCalendar)
         .where(and(eq(contentCalendar.id, postId), eq(contentCalendar.userId, userId)));
 
       if (!existing) {
-        return res.status(404).json({ error: "Post not found or unauthorized" });
+        return res.status(404).json({ error: 'Post not found or unauthorized' });
       }
 
       // Validate future date if rescheduling
       if (req.body.scheduledFor) {
         const newScheduledFor = new Date(req.body.scheduledFor);
         if (newScheduledFor <= new Date()) {
-          return res.status(400).json({ error: "scheduledFor must be a future date" });
+          return res.status(400).json({ error: 'scheduledFor must be a future date' });
         }
       }
 
-      const [updated] = await db.update(contentCalendar)
+      const [updated] = await db
+        .update(contentCalendar)
         .set({
           ...req.body,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(contentCalendar.id, postId))
         .returning();
 
       res.json(updated);
-    } catch (error) {
-      console.error("Error updating calendar post:", error);
-      res.status(500).json({ error: "Failed to update post" });
+    } catch (error: unknown) {
+      logger.error('Error updating calendar post:', error);
+      res.status(500).json({ error: 'Failed to update post' });
     }
   });
 
   // DELETE /api/social/calendar/:postId - Delete scheduled post
-  app.delete("/api/social/calendar/:postId", requireAuth, requirePremium, async (req, res) => {
+  app.delete('/api/social/calendar/:postId', requireAuth, requirePremium, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { postId } = req.params;
 
       // Verify ownership
-      const [existing] = await db.select()
+      const [existing] = await db
+        .select()
         .from(contentCalendar)
         .where(and(eq(contentCalendar.id, postId), eq(contentCalendar.userId, userId)));
 
       if (!existing) {
-        return res.status(404).json({ error: "Post not found or unauthorized" });
+        return res.status(404).json({ error: 'Post not found or unauthorized' });
       }
 
       // Only allow deletion of draft/scheduled posts
       if (existing.status !== 'draft' && existing.status !== 'scheduled') {
-        return res.status(400).json({ error: "Only draft or scheduled posts can be deleted" });
+        return res.status(400).json({ error: 'Only draft or scheduled posts can be deleted' });
       }
 
       await db.delete(contentCalendar).where(eq(contentCalendar.id, postId));
 
-      res.json({ success: true, message: "Post deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting calendar post:", error);
-      res.status(500).json({ error: "Failed to delete post" });
+      res.json({ success: true, message: 'Post deleted successfully' });
+    } catch (error: unknown) {
+      logger.error('Error deleting calendar post:', error);
+      res.status(500).json({ error: 'Failed to delete post' });
     }
   });
 
   // POST /api/social/calendar/:postId/publish - Manually publish now
-  app.post("/api/social/calendar/:postId/publish", requireAuth, requirePremium, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const { postId } = req.params;
+  app.post(
+    '/api/social/calendar/:postId/publish',
+    requireAuth,
+    requirePremium,
+    async (req, res) => {
+      try {
+        const userId = (req.user as any).id;
+        const { postId } = req.params;
 
-      // Verify ownership
-      const [existing] = await db.select()
-        .from(contentCalendar)
-        .where(and(eq(contentCalendar.id, postId), eq(contentCalendar.userId, userId)));
+        // Verify ownership
+        const [existing] = await db
+          .select()
+          .from(contentCalendar)
+          .where(and(eq(contentCalendar.id, postId), eq(contentCalendar.userId, userId)));
 
-      if (!existing) {
-        return res.status(404).json({ error: "Post not found or unauthorized" });
+        if (!existing) {
+          return res.status(404).json({ error: 'Post not found or unauthorized' });
+        }
+
+        // Real platform posting using OAuth tokens
+        const { platformAPI } = await import('./platform-apis');
+        const platforms = (existing.platforms as string[]) || [];
+
+        // Extract first media URL if available (schema uses mediaUrls array)
+        const mediaUrls = existing.mediaUrls as string[] | null;
+        const firstMediaUrl = mediaUrls && mediaUrls.length > 0 ? mediaUrls[0] : null;
+
+        const publishResults = await platformAPI.publishContent(
+          {
+            text: existing.content || '',
+            mediaUrl: firstMediaUrl,
+            hashtags: (existing.hashtags as string[]) || [],
+          },
+          platforms,
+          userId
+        );
+
+        // Determine final status based on results
+        const allSuccess = publishResults.every((r) => r.success);
+        const anySuccess = publishResults.some((r) => r.success);
+        const finalStatus = allSuccess ? 'published' : anySuccess ? 'published' : 'failed';
+
+        // Update status based on actual publish results
+        const [published] = await db
+          .update(contentCalendar)
+          .set({
+            status: finalStatus,
+            publishedAt: allSuccess || anySuccess ? new Date() : null,
+            updatedAt: new Date(),
+          })
+          .where(eq(contentCalendar.id, postId))
+          .returning();
+
+        res.json({
+          post: published,
+          publishResults,
+        });
+      } catch (error: unknown) {
+        logger.error('Error publishing calendar post:', error);
+        res.status(500).json({ error: 'Failed to publish post' });
       }
-
-      // Real platform posting using OAuth tokens
-      const { platformAPI } = await import('./platform-apis');
-      const platforms = (existing.platforms as string[]) || [];
-      
-      // Extract first media URL if available (schema uses mediaUrls array)
-      const mediaUrls = existing.mediaUrls as string[] | null;
-      const firstMediaUrl = mediaUrls && mediaUrls.length > 0 ? mediaUrls[0] : null;
-
-      const publishResults = await platformAPI.publishContent(
-        {
-          text: existing.content || '',
-          mediaUrl: firstMediaUrl,
-          hashtags: existing.hashtags as string[] || []
-        },
-        platforms,
-        userId
-      );
-
-      // Determine final status based on results
-      const allSuccess = publishResults.every(r => r.success);
-      const anySuccess = publishResults.some(r => r.success);
-      const finalStatus = allSuccess ? 'published' : (anySuccess ? 'published' : 'failed');
-
-      // Update status based on actual publish results
-      const [published] = await db.update(contentCalendar)
-        .set({
-          status: finalStatus,
-          publishedAt: allSuccess || anySuccess ? new Date() : null,
-          updatedAt: new Date()
-        })
-        .where(eq(contentCalendar.id, postId))
-        .returning();
-
-      res.json({
-        post: published,
-        publishResults
-      });
-    } catch (error) {
-      console.error("Error publishing calendar post:", error);
-      res.status(500).json({ error: "Failed to publish post" });
     }
-  });
-  
+  );
+
   // ============================================================================
   // AI MUSIC SUITE (DAW) ROUTES
   // ============================================================================
   // Note: Studio project routes are now defined above using unified projects table
-  
-  const { aiMusicService } = await import("./services/aiMusicService");
-  const { studioService } = await import("./services/studioService");
-  
+
+  const { aiMusicService } = await import('./services/aiMusicService');
+  const { studioService } = await import('./services/studioService');
+
   // Add track
-  app.post("/api/studio/tracks", requireAuth, async (req, res) => {
+  app.post('/api/studio/tracks', requireAuth, async (req, res) => {
     try {
       const track = await studioService.addTrack(req.body.projectId, {
         ...req.body,
       });
       res.json(track);
-    } catch (error) {
-      console.error("Error adding track:", error);
-      res.status(500).json({ error: "Failed to add track" });
+    } catch (error: unknown) {
+      logger.error('Error adding track:', error);
+      res.status(500).json({ error: 'Failed to add track' });
     }
   });
-  
+
   // Upload audio
-  app.post("/api/studio/upload", requireAuth, upload.single('audio'), async (req, res) => {
+  app.post('/api/studio/upload', requireAuth, upload.single('audio'), async (req, res) => {
     try {
       if (!req.file) {
-        return res.status(400).json({ error: "No audio file provided" });
+        return res.status(400).json({ error: 'No audio file provided' });
       }
-      
+
       const projectId = req.body.projectId;
       if (!projectId) {
-        return res.status(400).json({ error: "Project ID is required" });
+        return res.status(400).json({ error: 'Project ID is required' });
       }
-      
+
       // Upload the file
       const fileResult = await studioService.uploadAudio(req.file, (req.user as any).id);
-      
+
       // Create a track record in the database
       const track = await studioService.addTrack(projectId, {
         projectId,
@@ -10355,7 +10833,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         solo: false,
         armed: false,
       });
-      
+
       // Create audio clip for the uploaded file
       const clipDuration = fileResult.duration || 10; // Default to 10 seconds if not provided
       await storage.createAudioClip({
@@ -10368,42 +10846,42 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         startTime: 0,
         endTime: clipDuration,
       });
-      
+
       res.json({ ...fileResult, track });
-    } catch (error) {
-      console.error("Error uploading audio:", error);
-      res.status(500).json({ error: "Failed to upload audio" });
+    } catch (error: unknown) {
+      logger.error('Error uploading audio:', error);
+      res.status(500).json({ error: 'Failed to upload audio' });
     }
   });
 
   // Get recent files (for file browser)
-  app.get("/api/studio/recent-files", requireAuth, async (req, res) => {
+  app.get('/api/studio/recent-files', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
-      
+
       // Get all audio clips for this user's projects
       const userProjectsResponse = await storage.getUserProjectsWithStudio(userId);
-      const projectIds = userProjectsResponse.data.map(p => p.id);
-      
+      const projectIds = userProjectsResponse.data.map((p) => p.id);
+
       if (projectIds.length === 0) {
         return res.json([]);
       }
-      
+
       // Get all tracks for user's projects
       const allTracks = await Promise.all(
-        projectIds.map(projectId => storage.getProjectTracks(projectId))
+        projectIds.map((projectId) => storage.getProjectTracks(projectId))
       );
-      const trackIds = allTracks.flat().map(t => t.id);
-      
+      const trackIds = allTracks.flat().map((t) => t.id);
+
       if (trackIds.length === 0) {
         return res.json([]);
       }
-      
+
       // Get all audio clips for these tracks
       const allClips = await Promise.all(
-        trackIds.map(trackId => storage.getTrackAudioClips(trackId))
+        trackIds.map((trackId) => storage.getTrackAudioClips(trackId))
       );
-      
+
       // Flatten and sort by creation date (most recent first)
       const recentFiles = allClips
         .flat()
@@ -10413,7 +10891,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
           return dateB - dateA;
         })
         .slice(0, 50) // Return last 50 files
-        .map(clip => ({
+        .map((clip) => ({
           id: clip.id,
           name: clip.name || clip.originalFilename,
           path: clip.filePath,
@@ -10423,51 +10901,51 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
           duration: clip.duration,
           createdAt: clip.createdAt,
         }));
-      
+
       res.json(recentFiles);
-    } catch (error) {
-      console.error("Error fetching recent files:", error);
-      res.status(500).json({ error: "Failed to fetch recent files" });
+    } catch (error: unknown) {
+      logger.error('Error fetching recent files:', error);
+      res.status(500).json({ error: 'Failed to fetch recent files' });
     }
   });
 
   // Get samples/loops (for file browser)
-  app.get("/api/studio/samples", requireAuth, async (req, res) => {
+  app.get('/api/studio/samples', requireAuth, async (req, res) => {
     try {
       // For now, return the same as recent files
       // In the future, this could filter by sample type or return pre-loaded loops
       const userId = (req.user as any).id;
-      
+
       const userProjectsResponse = await storage.getUserProjectsWithStudio(userId);
-      const projectIds = userProjectsResponse.data.map(p => p.id);
-      
+      const projectIds = userProjectsResponse.data.map((p) => p.id);
+
       if (projectIds.length === 0) {
         return res.json([]);
       }
-      
+
       const allTracks = await Promise.all(
-        projectIds.map(projectId => storage.getProjectTracks(projectId))
+        projectIds.map((projectId) => storage.getProjectTracks(projectId))
       );
-      const trackIds = allTracks.flat().map(t => t.id);
-      
+      const trackIds = allTracks.flat().map((t) => t.id);
+
       if (trackIds.length === 0) {
         return res.json([]);
       }
-      
+
       const allClips = await Promise.all(
-        trackIds.map(trackId => storage.getTrackAudioClips(trackId))
+        trackIds.map((trackId) => storage.getTrackAudioClips(trackId))
       );
-      
+
       const samples = allClips
         .flat()
-        .filter(clip => clip.duration && clip.duration < 30) // Only short clips as samples
+        .filter((clip) => clip.duration && clip.duration < 30) // Only short clips as samples
         .sort((a, b) => {
           const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
           const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
           return dateB - dateA;
         })
         .slice(0, 50)
-        .map(clip => ({
+        .map((clip) => ({
           id: clip.id,
           name: clip.name || clip.originalFilename,
           path: clip.filePath,
@@ -10477,128 +10955,127 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
           duration: clip.duration,
           createdAt: clip.createdAt,
         }));
-      
+
       res.json(samples);
-    } catch (error) {
-      console.error("Error fetching samples:", error);
-      res.status(500).json({ error: "Failed to fetch samples" });
+    } catch (error: unknown) {
+      logger.error('Error fetching samples:', error);
+      res.status(500).json({ error: 'Failed to fetch samples' });
     }
   });
-  
+
   // Run AI mixing
-  app.post("/api/studio/ai-mix", requireAuth, requirePremium, async (req, res) => {
+  app.post('/api/studio/ai-mix', requireAuth, requirePremium, async (req, res) => {
     try {
       const { trackId } = req.body;
       const result = await aiMusicService.runAIMix(trackId, (req.user as any).id);
       res.json(result);
-    } catch (error) {
-      console.error("Error running AI mix:", error);
-      res.status(500).json({ error: "Failed to run AI mixing" });
+    } catch (error: unknown) {
+      logger.error('Error running AI mix:', error);
+      res.status(500).json({ error: 'Failed to run AI mixing' });
     }
   });
-  
+
   // Run AI mastering
-  app.post("/api/studio/ai-master", requireAuth, requirePremium, async (req, res) => {
+  app.post('/api/studio/ai-master', requireAuth, requirePremium, async (req, res) => {
     try {
       const { projectId } = req.body;
       const result = await aiMusicService.runAIMaster(projectId, (req.user as any).id);
       res.json(result);
-    } catch (error) {
-      console.error("Error running AI master:", error);
-      res.status(500).json({ error: "Failed to run AI mastering" });
+    } catch (error: unknown) {
+      logger.error('Error running AI master:', error);
+      res.status(500).json({ error: 'Failed to run AI mastering' });
     }
   });
-  
+
   // Autosave
-  app.post("/api/studio/autosave", requireAuth, async (req, res) => {
+  app.post('/api/studio/autosave', requireAuth, async (req, res) => {
     try {
       const { projectId, state } = req.body;
       await studioService.saveAutosave(projectId, (req.user as any).id, state);
       res.json({ success: true });
-    } catch (error) {
-      console.error("Error saving autosave:", error);
-      res.status(500).json({ error: "Failed to save autosave" });
+    } catch (error: unknown) {
+      logger.error('Error saving autosave:', error);
+      res.status(500).json({ error: 'Failed to save autosave' });
     }
   });
-  
+
   // Get mixing suggestions
-  app.get("/api/studio/mixing-suggestions", requireAuth, async (req, res) => {
+  app.get('/api/studio/mixing-suggestions', requireAuth, async (req, res) => {
     try {
       const { genre, mood } = req.query;
-      const result = await aiMusicService.getMixingSuggestions(
-        genre as string,
-        mood as string
-      );
+      const result = await aiMusicService.getMixingSuggestions(genre as string, mood as string);
       res.json(result);
-    } catch (error) {
-      console.error("Error fetching mixing suggestions:", error);
-      res.status(500).json({ error: "Failed to fetch mixing suggestions" });
+    } catch (error: unknown) {
+      logger.error('Error fetching mixing suggestions:', error);
+      res.status(500).json({ error: 'Failed to fetch mixing suggestions' });
     }
   });
-  
+
   // Get mastering suggestions
-  app.get("/api/studio/mastering-suggestions", requireAuth, async (req, res) => {
+  app.get('/api/studio/mastering-suggestions', requireAuth, async (req, res) => {
     try {
       const { platform } = req.query;
-      const result = await aiMusicService.getMasteringSuggestions(
-        platform as any
-      );
+      const result = await aiMusicService.getMasteringSuggestions(platform as any);
       res.json(result);
-    } catch (error) {
-      console.error("Error fetching mastering suggestions:", error);
-      res.status(500).json({ error: "Failed to fetch mastering suggestions" });
+    } catch (error: unknown) {
+      logger.error('Error fetching mastering suggestions:', error);
+      res.status(500).json({ error: 'Failed to fetch mastering suggestions' });
     }
   });
-  
+
   // ============================================================================
   // STEM EXPORT ROUTES
   // ============================================================================
-  
+
   // Create stem export job
-  app.post("/api/studio/projects/:projectId/export-stems", requireAuth, async (req, res) => {
+  app.post('/api/studio/projects/:projectId/export-stems', requireAuth, async (req, res) => {
     try {
       const { projectId } = req.params;
       const user = req.user as any;
       const { trackIds, exportFormat, sampleRate, bitDepth, normalize, includeEffects } = req.body;
-      
+
       // Validate required fields
       if (!trackIds || !Array.isArray(trackIds) || trackIds.length === 0) {
-        return res.status(400).json({ error: "trackIds array is required and must not be empty" });
+        return res.status(400).json({ error: 'trackIds array is required and must not be empty' });
       }
-      
+
       if (!exportFormat || !['wav', 'mp3', 'flac'].includes(exportFormat)) {
-        return res.status(400).json({ error: "exportFormat must be wav, mp3, or flac" });
+        return res.status(400).json({ error: 'exportFormat must be wav, mp3, or flac' });
       }
-      
+
       // Create stem export record
-      const [stemExport] = await db.insert(stemExports).values({
-        projectId,
-        userId: user.id,
-        trackIds: trackIds,
-        exportFormat,
-        sampleRate: sampleRate || 48000,
-        bitDepth: bitDepth || 24,
-        normalize: normalize !== false,
-        includeEffects: includeEffects !== false,
-        status: 'pending',
-        progress: 0,
-      }).returning();
-      
+      const [stemExport] = await db
+        .insert(stemExports)
+        .values({
+          projectId,
+          userId: user.id,
+          trackIds: trackIds,
+          exportFormat,
+          sampleRate: sampleRate || 48000,
+          bitDepth: bitDepth || 24,
+          normalize: normalize !== false,
+          includeEffects: includeEffects !== false,
+          status: 'pending',
+          progress: 0,
+        })
+        .returning();
+
       // Simulate stem processing in background (3-5 seconds)
       const processingDuration = 3000 + Math.random() * 2000; // 3-5 seconds
       const progressInterval = 100; // Update every 100ms
       const totalSteps = Math.floor(processingDuration / progressInterval);
       let currentStep = 0;
-      
+
       const progressTimer = setInterval(async () => {
         currentStep++;
         const progress = Math.min(Math.floor((currentStep / totalSteps) * 100), 100);
-        
+
         try {
           if (progress >= 100) {
             // Export complete
             clearInterval(progressTimer);
-            await db.update(stemExports)
+            await db
+              .update(stemExports)
               .set({
                 progress: 100,
                 status: 'completed',
@@ -10608,119 +11085,117 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
               .where(eq(stemExports.id, stemExport.id));
           } else {
             // Update progress
-            await db.update(stemExports)
-              .set({ 
+            await db
+              .update(stemExports)
+              .set({
                 progress,
-                status: 'processing'
+                status: 'processing',
               })
               .where(eq(stemExports.id, stemExport.id));
           }
-        } catch (error) {
-          console.error("Error updating stem export progress:", error);
+        } catch (error: unknown) {
+          logger.error('Error updating stem export progress:', error);
           clearInterval(progressTimer);
         }
       }, progressInterval);
-      
+
       res.json({ jobId: stemExport.id, status: 'pending' });
-    } catch (error) {
-      console.error("Error creating stem export:", error);
-      res.status(500).json({ error: "Failed to create stem export job" });
+    } catch (error: unknown) {
+      logger.error('Error creating stem export:', error);
+      res.status(500).json({ error: 'Failed to create stem export job' });
     }
   });
-  
+
   // Get stem export status
-  app.get("/api/studio/stem-exports/:exportId", requireAuth, async (req, res) => {
+  app.get('/api/studio/stem-exports/:exportId', requireAuth, async (req, res) => {
     try {
       const { exportId } = req.params;
       const user = req.user as any;
-      
-      const [stemExport] = await db.select()
+
+      const [stemExport] = await db
+        .select()
         .from(stemExports)
-        .where(and(
-          eq(stemExports.id, exportId),
-          eq(stemExports.userId, user.id)
-        ))
+        .where(and(eq(stemExports.id, exportId), eq(stemExports.userId, user.id)))
         .limit(1);
-      
+
       if (!stemExport) {
-        return res.status(404).json({ error: "Stem export not found" });
+        return res.status(404).json({ error: 'Stem export not found' });
       }
-      
+
       res.json(stemExport);
-    } catch (error) {
-      console.error("Error fetching stem export status:", error);
-      res.status(500).json({ error: "Failed to fetch stem export status" });
+    } catch (error: unknown) {
+      logger.error('Error fetching stem export status:', error);
+      res.status(500).json({ error: 'Failed to fetch stem export status' });
     }
   });
-  
+
   // List user's stem exports
-  app.get("/api/studio/stem-exports", requireAuth, async (req, res) => {
+  app.get('/api/studio/stem-exports', requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
       const { projectId, status } = req.query;
-      
-      let query = db.select()
-        .from(stemExports)
-        .where(eq(stemExports.userId, user.id));
-      
+
+      let query = db.select().from(stemExports).where(eq(stemExports.userId, user.id));
+
       // Apply filters
       const conditions = [eq(stemExports.userId, user.id)];
-      
+
       if (projectId) {
         conditions.push(eq(stemExports.projectId, projectId as string));
       }
-      
+
       if (status) {
         conditions.push(eq(stemExports.status, status as string));
       }
-      
-      const exports = await db.select()
+
+      const exports = await db
+        .select()
         .from(stemExports)
         .where(and(...conditions))
         .orderBy(desc(stemExports.createdAt))
         .limit(50);
-      
+
       res.json(exports);
-    } catch (error) {
-      console.error("Error fetching stem exports:", error);
-      res.status(500).json({ error: "Failed to fetch stem exports" });
+    } catch (error: unknown) {
+      logger.error('Error fetching stem exports:', error);
+      res.status(500).json({ error: 'Failed to fetch stem exports' });
     }
   });
-  
+
   // ============================================================================
   // SECURITY & INFRASTRUCTURE ROUTES
   // ============================================================================
-  
-  const { securityService } = await import("./services/securityService");
-  const { monitoringService } = await import("./services/monitoringService");
-  
+
+  const { securityService } = await import('./services/securityService');
+  const { monitoringService } = await import('./services/monitoringService');
+
   // Health status
-  app.get("/api/security/health", requireAuth, async (req, res) => {
+  app.get('/api/security/health', requireAuth, async (req, res) => {
     try {
       const health = await monitoringService.runHealthChecks();
       res.json(health);
-    } catch (error) {
-      console.error("Error fetching health status:", error);
-      res.status(500).json({ error: "Failed to fetch health status" });
+    } catch (error: unknown) {
+      logger.error('Error fetching health status:', error);
+      res.status(500).json({ error: 'Failed to fetch health status' });
     }
   });
-  
+
   // List incidents
-  app.get("/api/security/incidents", requireAuth, async (req, res) => {
+  app.get('/api/security/incidents', requireAuth, async (req, res) => {
     try {
       const incidents = await securityService.getIncidents({
         severity: req.query.severity as string,
         status: req.query.status as string,
       });
       res.json(incidents);
-    } catch (error) {
-      console.error("Error fetching incidents:", error);
-      res.status(500).json({ error: "Failed to fetch incidents" });
+    } catch (error: unknown) {
+      logger.error('Error fetching incidents:', error);
+      res.status(500).json({ error: 'Failed to fetch incidents' });
     }
   });
-  
+
   // Create incident
-  app.post("/api/security/incidents", requireAuth, async (req, res) => {
+  app.post('/api/security/incidents', requireAuth, async (req, res) => {
     try {
       const { severity, title, description, affectedUsers } = req.body;
       const incident = await securityService.createIncident(
@@ -10730,28 +11205,25 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         affectedUsers
       );
       res.json(incident);
-    } catch (error) {
-      console.error("Error creating incident:", error);
-      res.status(500).json({ error: "Failed to create incident" });
+    } catch (error: unknown) {
+      logger.error('Error creating incident:', error);
+      res.status(500).json({ error: 'Failed to create incident' });
     }
   });
-  
+
   // Update incident
-  app.patch("/api/security/incidents/:id", requireAuth, async (req, res) => {
+  app.patch('/api/security/incidents/:id', requireAuth, async (req, res) => {
     try {
-      const incident = await securityService.resolveIncident(
-        req.params.id,
-        (req.user as any).id
-      );
+      const incident = await securityService.resolveIncident(req.params.id, (req.user as any).id);
       res.json(incident);
-    } catch (error) {
-      console.error("Error updating incident:", error);
-      res.status(500).json({ error: "Failed to update incident" });
+    } catch (error: unknown) {
+      logger.error('Error updating incident:', error);
+      res.status(500).json({ error: 'Failed to update incident' });
     }
   });
-  
+
   // Get audit logs
-  app.get("/api/security/audit", requireAuth, async (req, res) => {
+  app.get('/api/security/audit', requireAuth, async (req, res) => {
     try {
       const logs = await securityService.getAuditLogs({
         userId: req.query.userId as string,
@@ -10759,14 +11231,14 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         resource: req.query.resource as string,
       });
       res.json(logs);
-    } catch (error) {
-      console.error("Error fetching audit logs:", error);
-      res.status(500).json({ error: "Failed to fetch audit logs" });
+    } catch (error: unknown) {
+      logger.error('Error fetching audit logs:', error);
+      res.status(500).json({ error: 'Failed to fetch audit logs' });
     }
   });
-  
+
   // Log audit entry
-  app.post("/api/security/audit", requireAuth, async (req, res) => {
+  app.post('/api/security/audit', requireAuth, async (req, res) => {
     try {
       const { action, resource, metadata } = req.body;
       const log = await securityService.createAuditLog(
@@ -10778,48 +11250,48 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         req.get('user-agent')
       );
       res.json(log);
-    } catch (error) {
-      console.error("Error creating audit log:", error);
-      res.status(500).json({ error: "Failed to create audit log" });
+    } catch (error: unknown) {
+      logger.error('Error creating audit log:', error);
+      res.status(500).json({ error: 'Failed to create audit log' });
     }
   });
-  
+
   // Get system metrics
-  app.get("/api/security/metrics", requireAuth, async (req, res) => {
+  app.get('/api/security/metrics', requireAuth, async (req, res) => {
     try {
       const metrics = await securityService.getSystemMetrics();
       res.json(metrics);
-    } catch (error) {
-      console.error("Error fetching metrics:", error);
-      res.status(500).json({ error: "Failed to fetch metrics" });
+    } catch (error: unknown) {
+      logger.error('Error fetching metrics:', error);
+      res.status(500).json({ error: 'Failed to fetch metrics' });
     }
   });
-  
+
   // Get performance summary
-  app.get("/api/monitoring/performance", requireAuth, async (req, res) => {
+  app.get('/api/monitoring/performance', requireAuth, async (req, res) => {
     try {
       const summary = await monitoringService.getPerformanceSummary();
       res.json(summary);
-    } catch (error) {
-      console.error("Error fetching performance summary:", error);
-      res.status(500).json({ error: "Failed to fetch performance summary" });
+    } catch (error: unknown) {
+      logger.error('Error fetching performance summary:', error);
+      res.status(500).json({ error: 'Failed to fetch performance summary' });
     }
   });
-  
+
   // Get monitoring alerts
-  app.get("/api/monitoring/alerts", requireAuth, async (req, res) => {
+  app.get('/api/monitoring/alerts', requireAuth, async (req, res) => {
     try {
       const alerts = await monitoringService.getAlerts({
         severity: req.query.severity as string,
         metric: req.query.metric as string,
       });
       res.json(alerts);
-    } catch (error) {
-      console.error("Error fetching alerts:", error);
-      res.status(500).json({ error: "Failed to fetch alerts" });
+    } catch (error: unknown) {
+      logger.error('Error fetching alerts:', error);
+      res.status(500).json({ error: 'Failed to fetch alerts' });
     }
   });
-  
+
   // ============================================================================
   // SETTINGS PAGE ENDPOINTS
   // ============================================================================
@@ -10835,8 +11307,8 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       // Remove sensitive data
       const { password, ...userProfile } = user;
       res.json(userProfile);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching profile:', error);
       res.status(500).json({ error: 'Failed to fetch profile' });
     }
   });
@@ -10846,15 +11318,15 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const validation = updateProfileSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const userId = (req.user as any).id;
       const { firstName, lastName, email, username } = validation.data;
-      
+
       // Check if email/username is already taken by another user
       if (email) {
         const existingUser = await storage.getUserByEmail(email);
@@ -10862,19 +11334,19 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
           return res.status(400).json({ error: 'Email already in use' });
         }
       }
-      
+
       if (username) {
         const existingUser = await storage.getUserByUsername(username);
         if (existingUser && existingUser.id !== userId) {
           return res.status(400).json({ error: 'Username already taken' });
         }
       }
-      
+
       const updated = await storage.updateUser(userId, { firstName, lastName, email, username });
       const { password, ...userProfile } = updated;
       res.json(userProfile);
-    } catch (error) {
-      console.error('Error updating profile:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating profile:', error);
       res.status(500).json({ error: 'Failed to update profile' });
     }
   });
@@ -10887,18 +11359,20 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
-      res.json(user.notificationPreferences || {
-        email: true,
-        browser: true,
-        releases: true,
-        earnings: true,
-        sales: true,
-        marketing: true,
-        system: true
-      });
-    } catch (error) {
-      console.error('Error fetching notification preferences:', error);
+
+      res.json(
+        user.notificationPreferences || {
+          email: true,
+          browser: true,
+          releases: true,
+          earnings: true,
+          sales: true,
+          marketing: true,
+          system: true,
+        }
+      );
+    } catch (error: unknown) {
+      logger.error('Error fetching notification preferences:', error);
       res.status(500).json({ error: 'Failed to fetch notification preferences' });
     }
   });
@@ -10908,19 +11382,19 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const validation = updateNotificationPreferencesSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const userId = (req.user as any).id;
-      const updated = await storage.updateUser(userId, { 
-        notificationPreferences: validation.data 
+      const updated = await storage.updateUser(userId, {
+        notificationPreferences: validation.data,
       });
       res.json(updated.notificationPreferences);
-    } catch (error) {
-      console.error('Error updating notification preferences:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating notification preferences:', error);
       res.status(500).json({ error: 'Failed to update notification preferences' });
     }
   });
@@ -10933,7 +11407,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       // Extract preferences from onboardingData or use defaults
       const preferences = user.onboardingData?.preferences || {
         theme: 'dark',
@@ -10943,12 +11417,12 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
           studio: false,
           dashboard: false,
           distribution: false,
-        }
+        },
       };
-      
+
       res.json(preferences);
-    } catch (error) {
-      console.error('Error fetching preferences:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching preferences:', error);
       res.status(500).json({ error: 'Failed to fetch preferences' });
     }
   });
@@ -10961,7 +11435,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       // Extract preferences from onboardingData or use defaults
       const preferences = user.onboardingData?.preferences || {
         theme: 'dark',
@@ -10971,12 +11445,12 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
           studio: false,
           dashboard: false,
           distribution: false,
-        }
+        },
       };
-      
+
       res.json(preferences);
-    } catch (error) {
-      console.error('Error fetching preferences:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching preferences:', error);
       res.status(500).json({ error: 'Failed to fetch preferences' });
     }
   });
@@ -10986,37 +11460,37 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const validation = updateUserPreferencesSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const userId = (req.user as any).id;
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       // Store preferences in onboardingData with deep merge for tutorialCompleted
       const onboardingData = user.onboardingData || {};
       const currentPreferences = onboardingData.preferences || {};
-      
+
       // Deep merge tutorialCompleted
       if (validation.data.tutorialCompleted) {
         const currentTutorialCompleted = currentPreferences.tutorialCompleted || {};
         validation.data.tutorialCompleted = {
           ...currentTutorialCompleted,
-          ...validation.data.tutorialCompleted
+          ...validation.data.tutorialCompleted,
         };
       }
-      
+
       onboardingData.preferences = { ...currentPreferences, ...validation.data };
-      
+
       await storage.updateUser(userId, { onboardingData });
       res.json(onboardingData.preferences);
-    } catch (error) {
-      console.error('Error updating preferences:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating preferences:', error);
       res.status(500).json({ error: 'Failed to update preferences' });
     }
   });
@@ -11026,37 +11500,37 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const validation = updateUserPreferencesSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: validation.error.flatten().fieldErrors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
         });
       }
-      
+
       const userId = (req.user as any).id;
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       // Store preferences in onboardingData with deep merge for tutorialCompleted
       const onboardingData = user.onboardingData || {};
       const currentPreferences = onboardingData.preferences || {};
-      
+
       // Deep merge tutorialCompleted
       if (validation.data.tutorialCompleted) {
         const currentTutorialCompleted = currentPreferences.tutorialCompleted || {};
         validation.data.tutorialCompleted = {
           ...currentTutorialCompleted,
-          ...validation.data.tutorialCompleted
+          ...validation.data.tutorialCompleted,
         };
       }
-      
+
       onboardingData.preferences = { ...currentPreferences, ...validation.data };
-      
+
       await storage.updateUser(userId, { onboardingData });
       res.json(onboardingData.preferences);
-    } catch (error) {
-      console.error('Error updating preferences:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating preferences:', error);
       res.status(500).json({ error: 'Failed to update preferences' });
     }
   });
@@ -11069,17 +11543,17 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       res.json({
         plan: user.subscriptionPlan || 'free',
         status: user.subscriptionStatus || 'inactive',
         stripeCustomerId: user.stripeCustomerId,
         stripeSubscriptionId: user.stripeSubscriptionId,
         currentPeriodEnd: user.subscriptionEndsAt,
-        trialEndsAt: user.trialEndsAt
+        trialEndsAt: user.trialEndsAt,
       });
-    } catch (error) {
-      console.error('Error fetching subscription:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching subscription:', error);
       res.status(500).json({ error: 'Failed to fetch subscription' });
     }
   });
@@ -11092,7 +11566,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       if (!user.stripeCustomerId) {
         return res.json([]);
       }
@@ -11105,15 +11579,15 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       try {
         const paymentMethods = await stripe.paymentMethods.list({
           customer: user.stripeCustomerId,
-          type: 'card'
+          type: 'card',
         });
         res.json(paymentMethods.data);
-      } catch (stripeError) {
-        console.error('Stripe error fetching payment methods:', stripeError);
+      } catch (stripeError: unknown) {
+        logger.error('Stripe error fetching payment methods:', stripeError);
         res.json([]);
       }
-    } catch (error) {
-      console.error('Error fetching payment methods:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching payment methods:', error);
       res.status(500).json({ error: 'Failed to fetch payment methods' });
     }
   });
@@ -11126,7 +11600,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       if (!user.stripeCustomerId) {
         return res.json([]);
       }
@@ -11139,15 +11613,15 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       try {
         const invoices = await stripe.invoices.list({
           customer: user.stripeCustomerId,
-          limit: 100
+          limit: 100,
         });
         res.json(invoices.data);
-      } catch (stripeError) {
-        console.error('Stripe error fetching invoices:', stripeError);
+      } catch (stripeError: unknown) {
+        logger.error('Stripe error fetching invoices:', stripeError);
         res.json([]);
       }
-    } catch (error) {
-      console.error('Error fetching billing history:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching billing history:', error);
       res.status(500).json({ error: 'Failed to fetch billing history' });
     }
   });
@@ -11157,19 +11631,19 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const currentSessionId = req.sessionID;
-      
+
       // Get all user sessions from database
       const sessions = await storage.getUserSessions(userId);
-      
+
       // Mark current session
-      const sessionsWithCurrent = sessions.map(session => ({
+      const sessionsWithCurrent = sessions.map((session) => ({
         ...session,
-        current: session.sessionId === currentSessionId
+        current: session.sessionId === currentSessionId,
       }));
-      
+
       res.json(sessionsWithCurrent);
-    } catch (error) {
-      console.error('Error fetching sessions:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching sessions:', error);
       res.status(500).json({ error: 'Failed to fetch sessions' });
     }
   });
@@ -11183,20 +11657,20 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
 
       const userId = (req.user as any).id;
       const avatarUrl = `/uploads/${req.file.filename}`;
-      
-      await storage.updateUser(userId, { 
-        profileImageUrl: avatarUrl 
+
+      await storage.updateUser(userId, {
+        profileImageUrl: avatarUrl,
       });
 
       res.json({ avatarUrl });
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
+    } catch (error: unknown) {
+      logger.error('Error uploading avatar:', error);
       res.status(500).json({ error: 'Failed to upload avatar' });
     }
   });
 
   // Marketplace endpoints
-  
+
   // GET /api/marketplace/my-beats - Fetch user's uploaded beats
   app.get('/api/marketplace/my-beats', requireAuth, async (req, res) => {
     try {
@@ -11207,7 +11681,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         .where(eq(listings.ownerId, userId))
         .orderBy(desc(listings.createdAt));
       res.json(beats);
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ error: 'Failed to fetch your beats' });
     }
   });
@@ -11225,14 +11699,14 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
           amountCents: orders.amountCents,
           status: orders.status,
           downloadUrl: orders.downloadUrl,
-          createdAt: orders.createdAt
+          createdAt: orders.createdAt,
         })
         .from(orders)
         .leftJoin(listings, eq(orders.listingId, listings.id))
         .where(eq(orders.buyerId, userId))
         .orderBy(desc(orders.createdAt));
       res.json(purchases);
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ error: 'Failed to fetch purchase history' });
     }
   });
@@ -11242,10 +11716,10 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const producerId = req.params.id;
-      
+
       // Could create a follows table, for now just return success
       res.json({ success: true, following: true });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({ error: 'Failed to follow producer' });
     }
   });
@@ -11255,52 +11729,60 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   // ============================================================================
 
   // POST /api/marketplace/listings/:listingId/stems - Upload stem for listing
-  app.post('/api/marketplace/listings/:listingId/stems', requireAuth, upload.single('stemFile'), async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const { listingId } = req.params;
-      const { stemName, stemType, price } = req.body;
+  app.post(
+    '/api/marketplace/listings/:listingId/stems',
+    requireAuth,
+    upload.single('stemFile'),
+    async (req, res) => {
+      try {
+        const userId = (req.user as any).id;
+        const { listingId } = req.params;
+        const { stemName, stemType, price } = req.body;
 
-      if (!req.file) {
-        return res.status(400).json({ error: 'Stem file is required' });
+        if (!req.file) {
+          return res.status(400).json({ error: 'Stem file is required' });
+        }
+
+        // Verify listing ownership
+        const listing = await db.select().from(listings).where(eq(listings.id, listingId)).limit(1);
+        if (!listing || listing.length === 0) {
+          return res.status(404).json({ error: 'Listing not found' });
+        }
+        if (listing[0].ownerId !== userId) {
+          return res.status(403).json({ error: 'Unauthorized: You do not own this listing' });
+        }
+
+        // Get file details
+        const fileUrl = `/uploads/${path.basename(req.file.path)}`;
+        const fileSize = req.file.size;
+        const format = path.extname(req.file.originalname).substring(1).toLowerCase();
+
+        // Create stem record
+        const [stem] = await db
+          .insert(listingStems)
+          .values({
+            listingId,
+            stemName,
+            stemType,
+            fileUrl,
+            fileSize,
+            format,
+            price: price ? parseFloat(price) : null,
+            downloadCount: 0,
+          })
+          .returning();
+
+        res.json({
+          success: true,
+          stem,
+          message: 'Stem uploaded successfully',
+        });
+      } catch (error: unknown) {
+        logger.error('Error uploading stem:', error);
+        res.status(500).json({ error: 'Failed to upload stem' });
       }
-
-      // Verify listing ownership
-      const listing = await db.select().from(listings).where(eq(listings.id, listingId)).limit(1);
-      if (!listing || listing.length === 0) {
-        return res.status(404).json({ error: 'Listing not found' });
-      }
-      if (listing[0].ownerId !== userId) {
-        return res.status(403).json({ error: 'Unauthorized: You do not own this listing' });
-      }
-
-      // Get file details
-      const fileUrl = `/uploads/${path.basename(req.file.path)}`;
-      const fileSize = req.file.size;
-      const format = path.extname(req.file.originalname).substring(1).toLowerCase();
-
-      // Create stem record
-      const [stem] = await db.insert(listingStems).values({
-        listingId,
-        stemName,
-        stemType,
-        fileUrl,
-        fileSize,
-        format,
-        price: price ? parseFloat(price) : null,
-        downloadCount: 0
-      }).returning();
-
-      res.json({ 
-        success: true, 
-        stem,
-        message: 'Stem uploaded successfully' 
-      });
-    } catch (error) {
-      console.error('Error uploading stem:', error);
-      res.status(500).json({ error: 'Failed to upload stem' });
     }
-  });
+  );
 
   // GET /api/marketplace/listings/:listingId/stems - Get all stems for a listing
   app.get('/api/marketplace/listings/:listingId/stems', async (req, res) => {
@@ -11314,8 +11796,8 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         .orderBy(listingStems.createdAt);
 
       res.json(stems);
-    } catch (error) {
-      console.error('Error fetching stems:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching stems:', error);
       res.status(500).json({ error: 'Failed to fetch stems' });
     }
   });
@@ -11331,7 +11813,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         .select({
           id: listingStems.id,
           fileUrl: listingStems.fileUrl,
-          ownerId: listings.ownerId
+          ownerId: listings.ownerId,
         })
         .from(listingStems)
         .innerJoin(listings, eq(listingStems.listingId, listings.id))
@@ -11352,19 +11834,19 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }
-      } catch (fileError) {
-        console.error('Error deleting stem file:', fileError);
+      } catch (fileError: unknown) {
+        logger.error('Error deleting stem file:', fileError);
       }
 
       // Delete stem record
       await db.delete(listingStems).where(eq(listingStems.id, stemId));
 
-      res.json({ 
-        success: true, 
-        message: 'Stem deleted successfully' 
+      res.json({
+        success: true,
+        message: 'Stem deleted successfully',
       });
-    } catch (error) {
-      console.error('Error deleting stem:', error);
+    } catch (error: unknown) {
+      logger.error('Error deleting stem:', error);
       res.status(500).json({ error: 'Failed to delete stem' });
     }
   });
@@ -11380,7 +11862,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         .select({
           stem: listingStems,
           listing: listings,
-          seller: users
+          seller: users,
         })
         .from(listingStems)
         .innerJoin(listings, eq(listingStems.listingId, listings.id))
@@ -11396,13 +11878,13 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
 
       // Verify seller has Stripe Connect account
       if (!seller.stripeConnectedAccountId) {
-        return res.status(400).json({ 
-          error: 'Seller has not connected their payment account yet' 
+        return res.status(400).json({
+          error: 'Seller has not connected their payment account yet',
         });
       }
 
       // Calculate price (use stem price if set, otherwise use listing price)
-      const priceInCents = stem.price 
+      const priceInCents = stem.price
         ? Math.round(parseFloat(stem.price as any) * 100)
         : listing.priceCents;
 
@@ -11410,26 +11892,36 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       const platformFee = Math.round(priceInCents * 0.1);
 
       // Create Stripe Checkout Session with Stripe Connect transfer
-      const session = await stripe.checkout.sessions.create({
-        mode: 'payment',
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: `${stem.name} - Audio Stem`,
-                description: `Purchase individual stem from ${listing.title}`,
+      const session = await stripe.checkout.sessions.create(
+        {
+          mode: 'payment',
+          payment_method_types: ['card'],
+          line_items: [
+            {
+              price_data: {
+                currency: 'usd',
+                product_data: {
+                  name: `${stem.name} - Audio Stem`,
+                  description: `Purchase individual stem from ${listing.title}`,
+                },
+                unit_amount: priceInCents,
               },
-              unit_amount: priceInCents,
+              quantity: 1,
             },
-            quantity: 1,
-          },
-        ],
-        payment_intent_data: {
-          application_fee_amount: platformFee,
-          transfer_data: {
-            destination: seller.stripeConnectedAccountId,
+          ],
+          payment_intent_data: {
+            application_fee_amount: platformFee,
+            transfer_data: {
+              destination: seller.stripeConnectedAccountId,
+            },
+            metadata: {
+              type: 'stem_purchase',
+              stemId: stem.id,
+              buyerId,
+              sellerId: listing.ownerId,
+              listingId: listing.id.toString(),
+              stemFileUrl: stem.fileUrl || '',
+            },
           },
           metadata: {
             type: 'stem_purchase',
@@ -11437,28 +11929,21 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
             buyerId,
             sellerId: listing.ownerId,
             listingId: listing.id.toString(),
-            stemFileUrl: stem.fileUrl || '',
           },
+          success_url: `${req.protocol}://${req.get('host')}/marketplace?stem_purchase=success&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${req.protocol}://${req.get('host')}/marketplace?stem_purchase=canceled`,
         },
-        metadata: {
-          type: 'stem_purchase',
-          stemId: stem.id,
-          buyerId,
-          sellerId: listing.ownerId,
-          listingId: listing.id.toString(),
-        },
-        success_url: `${req.protocol}://${req.get('host')}/marketplace?stem_purchase=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${req.protocol}://${req.get('host')}/marketplace?stem_purchase=canceled`,
-      }, {
-        idempotencyKey: `stem_purchase_${buyerId}_${stemId}_${Date.now()}`
-      });
+        {
+          idempotencyKey: `stem_purchase_${buyerId}_${stemId}_${Date.now()}`,
+        }
+      );
 
-      res.json({ 
+      res.json({
         sessionId: session.id,
-        url: session.url 
+        url: session.url,
       });
-    } catch (error: any) {
-      console.error('Error creating stem purchase session:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating stem purchase session:', error);
       res.status(500).json({ error: error.message || 'Failed to create purchase session' });
     }
   });
@@ -11472,14 +11957,11 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       const [stemOrder] = await db
         .select({
           stemOrder: stemOrders,
-          stem: listingStems
+          stem: listingStems,
         })
         .from(stemOrders)
         .innerJoin(listingStems, eq(stemOrders.stemId, listingStems.id))
-        .where(and(
-          eq(stemOrders.stemId, stemId),
-          eq(stemOrders.downloadToken, token)
-        ))
+        .where(and(eq(stemOrders.stemId, stemId), eq(stemOrders.downloadToken, token)))
         .limit(1);
 
       if (!stemOrder) {
@@ -11489,9 +11971,9 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       // Update download count
       await db
         .update(stemOrders)
-        .set({ 
+        .set({
           downloadCount: sql`${stemOrders.downloadCount} + 1`,
-          downloadedAt: new Date()
+          downloadedAt: new Date(),
         })
         .where(eq(stemOrders.id, stemOrder.stemOrder.id));
 
@@ -11502,8 +11984,8 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       }
 
       res.download(filePath, `${stemOrder.stem.stemName}.${stemOrder.stem.format}`);
-    } catch (error) {
-      console.error('Error downloading stem:', error);
+    } catch (error: unknown) {
+      logger.error('Error downloading stem:', error);
       res.status(500).json({ error: 'Failed to download stem' });
     }
   });
@@ -11525,7 +12007,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
           fileSize: listingStems.fileSize,
           price: listingStems.price,
           downloadCount: listingStems.downloadCount,
-          createdAt: listingStems.createdAt
+          createdAt: listingStems.createdAt,
         })
         .from(listingStems)
         .innerJoin(listings, eq(listingStems.listingId, listings.id))
@@ -11533,25 +12015,27 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         .orderBy(desc(listingStems.createdAt));
 
       // Calculate earnings for each stem
-      const stemsWithEarnings = await Promise.all(stems.map(async (stem) => {
-        const [earnings] = await db
-          .select({
-            totalEarnings: sql<number>`COALESCE(SUM(${stemOrders.price}), 0)`,
-            totalDownloads: sql<number>`COALESCE(SUM(${stemOrders.downloadCount}), 0)`
-          })
-          .from(stemOrders)
-          .where(eq(stemOrders.stemId, stem.id));
+      const stemsWithEarnings = await Promise.all(
+        stems.map(async (stem) => {
+          const [earnings] = await db
+            .select({
+              totalEarnings: sql<number>`COALESCE(SUM(${stemOrders.price}), 0)`,
+              totalDownloads: sql<number>`COALESCE(SUM(${stemOrders.downloadCount}), 0)`,
+            })
+            .from(stemOrders)
+            .where(eq(stemOrders.stemId, stem.id));
 
-        return {
-          ...stem,
-          totalEarnings: earnings?.totalEarnings || 0,
-          totalDownloads: earnings?.totalDownloads || 0
-        };
-      }));
+          return {
+            ...stem,
+            totalEarnings: earnings?.totalEarnings || 0,
+            totalDownloads: earnings?.totalDownloads || 0,
+          };
+        })
+      );
 
       res.json(stemsWithEarnings);
-    } catch (error) {
-      console.error('Error fetching my stems:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching my stems:', error);
       res.status(500).json({ error: 'Failed to fetch stems' });
     }
   });
@@ -11562,24 +12046,24 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const validatedData = insertTrackAnalysisSchema.parse(req.body);
-      
+
       // Verify user owns the project
       const project = await storage.getProject(validatedData.projectId);
       if (!project || project.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       const analysis = await storage.saveTrackAnalysis(validatedData);
       res.json(analysis);
-    } catch (error) {
+    } catch (error: unknown) {
       // Handle Zod validation errors with 400
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: error.errors 
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: error.errors,
         });
       }
-      console.error('Error saving track analysis:', error);
+      logger.error('Error saving track analysis:', error);
       res.status(500).json({ error: 'Failed to save audio analysis' });
     }
   });
@@ -11589,17 +12073,17 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { projectId } = req.params;
-      
+
       // Verify user owns the project
       const project = await storage.getProject(projectId);
       if (!project || project.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       const analysis = await storage.getTrackAnalysis(projectId);
       res.json(analysis || null);
-    } catch (error) {
-      console.error('Error fetching track analysis:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching track analysis:', error);
       res.status(500).json({ error: 'Failed to fetch audio analysis' });
     }
   });
@@ -11609,27 +12093,26 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { projectId } = req.params;
-      
+
       // Verify user owns the project
       const project = await storage.getProject(projectId);
       if (!project || project.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       const analyses = await storage.getProjectAnalysis(projectId);
       res.json(analyses);
-    } catch (error) {
-      console.error('Error fetching project analyses:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching project analyses:', error);
       res.status(500).json({ error: 'Failed to fetch project analyses' });
     }
   });
-
 
   // Distribution Artwork Upload Configuration
   const artworkUpload = multer({
     storage: multer.diskStorage({
       destination: (req, file, cb) => {
-        const artworkDir = path.join(process.cwd(), "public", "distribution", "artwork");
+        const artworkDir = path.join(process.cwd(), 'public', 'distribution', 'artwork');
         if (!fs.existsSync(artworkDir)) {
           fs.mkdirSync(artworkDir, { recursive: true });
         }
@@ -11640,49 +12123,52 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         const sanitizedName = sanitizeFilename(file.originalname);
         const ext = path.extname(sanitizedName).toLowerCase();
         cb(null, `artwork_${uniqueSuffix}${ext}`);
-      }
+      },
     }),
     limits: {
       fileSize: 10 * 1024 * 1024, // 10MB limit for artwork
     },
     fileFilter: (req, file, cb) => {
-      const allowedImageMimes = [
-        'image/jpeg',
-        'image/jpg',
-        'image/png'
-      ];
-      
+      const allowedImageMimes = ['image/jpeg', 'image/jpg', 'image/png'];
+
       const allowedImageExts = ['.jpg', '.jpeg', '.png'];
       const ext = path.extname(file.originalname).toLowerCase();
-      
+
       if (allowedImageMimes.includes(file.mimetype) && allowedImageExts.includes(ext)) {
         cb(null, true);
       } else {
         cb(new Error('Invalid artwork file. Allowed types: JPEG, PNG'));
       }
-    }
+    },
   });
 
   // POST /api/distribution/artwork/upload - Upload distribution artwork
-  app.post('/api/distribution/artwork/upload', requireAuth, artworkUpload.single('artwork'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: 'No artwork file uploaded' });
-      }
+  app.post(
+    '/api/distribution/artwork/upload',
+    requireAuth,
+    artworkUpload.single('artwork'),
+    async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: 'No artwork file uploaded' });
+        }
 
-      // Return the public path to the uploaded artwork
-      const artworkPath = `/distribution/artwork/${req.file.filename}`;
-      
-      res.json({ 
-        success: true, 
-        artworkUrl: artworkPath,
-        filename: req.file.filename 
-      });
-    } catch (error) {
-      console.error('Error uploading artwork:', error);
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to upload artwork' });
+        // Return the public path to the uploaded artwork
+        const artworkPath = `/distribution/artwork/${req.file.filename}`;
+
+        res.json({
+          success: true,
+          artworkUrl: artworkPath,
+          filename: req.file.filename,
+        });
+      } catch (error: unknown) {
+        logger.error('Error uploading artwork:', error);
+        res
+          .status(500)
+          .json({ error: error instanceof Error ? error.message : 'Failed to upload artwork' });
+      }
     }
-  });
+  );
 
   // Distribution Package Routes
   // POST /api/distribution/packages - Create distribution package
@@ -11690,7 +12176,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const data = { ...req.body, userId };
-      
+
       // Verify user owns the project if projectId is provided
       if (data.projectId) {
         const project = await storage.getProject(data.projectId);
@@ -11698,12 +12184,16 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
           return res.status(403).json({ error: 'Unauthorized' });
         }
       }
-      
+
       const pkg = await distributionService.createDistributionPackage(data);
       res.json(pkg);
-    } catch (error) {
-      console.error('Error creating distribution package:', error);
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to create distribution package' });
+    } catch (error: unknown) {
+      logger.error('Error creating distribution package:', error);
+      res
+        .status(500)
+        .json({
+          error: error instanceof Error ? error.message : 'Failed to create distribution package',
+        });
     }
   });
 
@@ -11712,17 +12202,17 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { projectId } = req.params;
-      
+
       // Verify user owns the project
       const project = await storage.getProject(projectId);
       if (!project || project.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       const pkg = await distributionService.getDistributionPackageByProject(projectId);
       res.json(pkg || null);
-    } catch (error) {
-      console.error('Error fetching distribution package:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching distribution package:', error);
       res.status(500).json({ error: 'Failed to fetch distribution package' });
     }
   });
@@ -11732,18 +12222,22 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { id } = req.params;
-      
+
       // Verify user owns the package
       const pkg = await storage.getDistributionPackageById(id);
       if (!pkg || pkg.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       const updated = await distributionService.updateDistributionPackage(id, req.body);
       res.json(updated);
-    } catch (error) {
-      console.error('Error updating distribution package:', error);
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to update distribution package' });
+    } catch (error: unknown) {
+      logger.error('Error updating distribution package:', error);
+      res
+        .status(500)
+        .json({
+          error: error instanceof Error ? error.message : 'Failed to update distribution package',
+        });
     }
   });
 
@@ -11752,22 +12246,26 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { id } = req.params;
-      
+
       // Verify user owns the package
       const pkg = await storage.getDistributionPackageById(id);
       if (!pkg || pkg.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       const downloadUrl = await distributionService.packageAsZIP(id);
-      
+
       // Update package status to 'ready'
       await storage.updateDistributionPackage(id, { status: 'ready' });
-      
+
       res.json({ success: true, downloadUrl });
-    } catch (error) {
-      console.error('Error exporting distribution package:', error);
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to export distribution package' });
+    } catch (error: unknown) {
+      logger.error('Error exporting distribution package:', error);
+      res
+        .status(500)
+        .json({
+          error: error instanceof Error ? error.message : 'Failed to export distribution package',
+        });
     }
   });
 
@@ -11776,17 +12274,17 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { id } = req.params;
-      
+
       // Verify user owns the package
       const pkg = await storage.getDistributionPackageById(id);
       if (!pkg || pkg.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       const metadata = await distributionService.generateMetadataJSON(id);
       res.json(metadata);
-    } catch (error) {
-      console.error('Error generating metadata:', error);
+    } catch (error: unknown) {
+      logger.error('Error generating metadata:', error);
       res.status(500).json({ error: 'Failed to generate metadata' });
     }
   });
@@ -11796,21 +12294,23 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { packageId } = req.params;
-      
+
       // Verify user owns the package
       const pkg = await storage.getDistributionPackageById(packageId);
       if (!pkg || pkg.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       const track = await distributionService.addPackageTrack({
         ...req.body,
-        packageId
+        packageId,
       });
       res.json(track);
-    } catch (error) {
-      console.error('Error adding package track:', error);
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to add track' });
+    } catch (error: unknown) {
+      logger.error('Error adding package track:', error);
+      res
+        .status(500)
+        .json({ error: error instanceof Error ? error.message : 'Failed to add track' });
     }
   });
 
@@ -11819,17 +12319,17 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { packageId } = req.params;
-      
+
       // Verify user owns the package
       const pkg = await storage.getDistributionPackageById(packageId);
       if (!pkg || pkg.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       const tracks = await distributionService.getPackageTracks(packageId);
       res.json(tracks);
-    } catch (error) {
-      console.error('Error fetching package tracks:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching package tracks:', error);
       res.status(500).json({ error: 'Failed to fetch tracks' });
     }
   });
@@ -11840,17 +12340,17 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       const userId = (req.user as any).id;
       const { id } = req.params;
       const { packageId, ...updates } = req.body;
-      
+
       // Verify user owns the package
       const pkg = await storage.getDistributionPackageById(packageId);
       if (!pkg || pkg.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       const track = await storage.updateDistributionTrack(id, packageId, updates);
       res.json(track);
-    } catch (error) {
-      console.error('Error updating track:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating track:', error);
       res.status(500).json({ error: 'Failed to update track' });
     }
   });
@@ -11861,21 +12361,21 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       const userId = (req.user as any).id;
       const { id } = req.params;
       const { packageId } = req.query;
-      
+
       if (!packageId || typeof packageId !== 'string') {
         return res.status(400).json({ error: 'packageId is required' });
       }
-      
+
       // Verify user owns the package
       const pkg = await storage.getDistributionPackageById(packageId);
       if (!pkg || pkg.userId !== userId) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-      
+
       await storage.deleteDistributionTrack(id, packageId);
       res.json({ success: true });
-    } catch (error) {
-      console.error('Error deleting track:', error);
+    } catch (error: unknown) {
+      logger.error('Error deleting track:', error);
       res.status(500).json({ error: 'Failed to delete track' });
     }
   });
@@ -11893,25 +12393,38 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         const sanitizedName = sanitizeFilename(file.originalname);
         const ext = path.extname(sanitizedName).toLowerCase();
         cb(null, `${uniqueSuffix}${ext}`);
-      }
+      },
     }),
     limits: {
       fileSize: 500 * 1024 * 1024, // 500MB limit for samples
     },
     fileFilter: (req, file, cb) => {
-      const allowedAudioMimes = ['audio/wav', 'audio/x-wav', 'audio/mpeg', 'audio/mp3', 'audio/flac', 'audio/aiff', 'audio/x-aiff', 'audio/ogg'];
-      const allowedPluginMimes = ['application/json', 'application/zip', 'application/x-zip-compressed'];
+      const allowedAudioMimes = [
+        'audio/wav',
+        'audio/x-wav',
+        'audio/mpeg',
+        'audio/mp3',
+        'audio/flac',
+        'audio/aiff',
+        'audio/x-aiff',
+        'audio/ogg',
+      ];
+      const allowedPluginMimes = [
+        'application/json',
+        'application/zip',
+        'application/x-zip-compressed',
+      ];
       const allowedMimes = [...allowedAudioMimes, ...allowedPluginMimes];
-      
+
       const allowedExts = ['.wav', '.mp3', '.flac', '.aiff', '.aif', '.ogg', '.json', '.zip'];
       const ext = path.extname(file.originalname).toLowerCase();
-      
+
       if (allowedMimes.includes(file.mimetype) && allowedExts.includes(ext)) {
         cb(null, true);
       } else {
         cb(new Error('Invalid file type. Allowed: WAV, MP3, FLAC, AIFF, OGG, JSON, ZIP'));
       }
-    }
+    },
   });
 
   // Ensure user-assets directory exists
@@ -11921,7 +12434,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   }
 
   // Helper function to sanitize asset responses (remove internal file paths)
-  const sanitizeAssetResponse = (asset: any) => {
+  const sanitizeAssetResponse = (asset: unknown) => {
     const { filePath, ...sanitized } = asset;
     return {
       ...sanitized,
@@ -11934,16 +12447,16 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const file = req.file;
-      
+
       if (!file) {
         return res.status(400).json({ error: 'Asset file is required' });
       }
 
       const { name, description, assetType, folderId, tags } = req.body;
-      
+
       // Determine asset type from file if not provided
       const detectedType = assetType || (file.mimetype.startsWith('audio/') ? 'sample' : 'plugin');
-      
+
       // Create asset record
       const asset = await storage.createUserAsset({
         userId,
@@ -11955,21 +12468,26 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         filePath: file.path,
         fileSize: file.size,
         mimeType: file.mimetype,
-        metadata: {}
+        metadata: {},
       });
 
       // Add tags if provided
       if (tags && typeof tags === 'string') {
-        const tagArray = tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+        const tagArray = tags
+          .split(',')
+          .map((t: string) => t.trim())
+          .filter(Boolean);
         for (const tag of tagArray) {
           await storage.addAssetTag(asset.id, tag);
         }
       }
 
       res.status(201).json(sanitizeAssetResponse(asset));
-    } catch (error) {
-      console.error('Error uploading asset:', error);
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to upload asset' });
+    } catch (error: unknown) {
+      logger.error('Error uploading asset:', error);
+      res
+        .status(500)
+        .json({ error: error instanceof Error ? error.message : 'Failed to upload asset' });
     }
   });
 
@@ -11978,7 +12496,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { assetType, folderId, search, limit = '50', offset = '0' } = req.query;
-      
+
       const assets = await storage.getUserAssets(
         userId,
         assetType as string,
@@ -11989,8 +12507,8 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       );
 
       res.json(assets.map(sanitizeAssetResponse));
-    } catch (error) {
-      console.error('Error fetching assets:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching assets:', error);
       res.status(500).json({ error: 'Failed to fetch assets' });
     }
   });
@@ -12000,19 +12518,19 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { id } = req.params;
-      
+
       const asset = await storage.getUserAssetById(id);
-      
+
       if (!asset || asset.userId !== userId) {
         return res.status(404).json({ error: 'Asset not found' });
       }
 
       // Get tags for this asset
       const tags = await storage.getAssetTags(id);
-      
+
       res.json({ ...sanitizeAssetResponse(asset), tags });
-    } catch (error) {
-      console.error('Error fetching asset:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching asset:', error);
       res.status(500).json({ error: 'Failed to fetch asset' });
     }
   });
@@ -12022,9 +12540,9 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { id } = req.params;
-      
+
       const asset = await storage.getUserAssetById(id);
-      
+
       if (!asset || asset.userId !== userId) {
         return res.status(404).json({ error: 'Asset not found' });
       }
@@ -12037,12 +12555,12 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       res.setHeader('Content-Type', asset.mimeType || 'application/octet-stream');
       res.setHeader('Content-Disposition', `attachment; filename="${asset.name}"`);
       res.setHeader('Content-Length', asset.fileSize.toString());
-      
+
       // Stream the file
       const fileStream = fs.createReadStream(asset.filePath);
       fileStream.pipe(res);
-    } catch (error) {
-      console.error('Error downloading asset:', error);
+    } catch (error: unknown) {
+      logger.error('Error downloading asset:', error);
       res.status(500).json({ error: 'Failed to download asset' });
     }
   });
@@ -12052,9 +12570,9 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { id } = req.params;
-      
+
       const asset = await storage.getUserAssetById(id);
-      
+
       if (!asset || asset.userId !== userId) {
         return res.status(404).json({ error: 'Asset not found' });
       }
@@ -12066,10 +12584,10 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
 
       // Delete database record (cascades to tags)
       await storage.deleteUserAsset(id);
-      
+
       res.json({ success: true });
-    } catch (error) {
-      console.error('Error deleting asset:', error);
+    } catch (error: unknown) {
+      logger.error('Error deleting asset:', error);
       res.status(500).json({ error: 'Failed to delete asset' });
     }
   });
@@ -12079,7 +12597,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { name, parentId } = req.body;
-      
+
       if (!name) {
         return res.status(400).json({ error: 'Folder name is required' });
       }
@@ -12098,12 +12616,12 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         userId,
         parentId: parentId || null,
         name,
-        path: folderPath
+        path: folderPath,
       });
 
       res.status(201).json(folder);
-    } catch (error) {
-      console.error('Error creating folder:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating folder:', error);
       res.status(500).json({ error: 'Failed to create folder' });
     }
   });
@@ -12114,8 +12632,8 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       const userId = (req.user as any).id;
       const folders = await storage.getUserAssetFolders(userId);
       res.json(folders);
-    } catch (error) {
-      console.error('Error fetching folders:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching folders:', error);
       res.status(500).json({ error: 'Failed to fetch folders' });
     }
   });
@@ -12125,9 +12643,9 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const { id } = req.params;
-      
+
       const folder = await storage.getAssetFolderById(id);
-      
+
       if (!folder || folder.userId !== userId) {
         return res.status(404).json({ error: 'Folder not found' });
       }
@@ -12135,13 +12653,15 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       // Check if folder has assets
       const assets = await storage.getUserAssets(userId, undefined, id);
       if (assets.length > 0) {
-        return res.status(400).json({ error: 'Cannot delete folder with assets. Move or delete assets first.' });
+        return res
+          .status(400)
+          .json({ error: 'Cannot delete folder with assets. Move or delete assets first.' });
       }
 
       await storage.deleteAssetFolder(id);
       res.json({ success: true });
-    } catch (error) {
-      console.error('Error deleting folder:', error);
+    } catch (error: unknown) {
+      logger.error('Error deleting folder:', error);
       res.status(500).json({ error: 'Failed to delete folder' });
     }
   });
@@ -12152,7 +12672,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       const userId = (req.user as any).id;
       const { id } = req.params;
       const { tag } = req.body;
-      
+
       if (!tag) {
         return res.status(400).json({ error: 'Tag is required' });
       }
@@ -12164,8 +12684,8 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
 
       const assetTag = await storage.addAssetTag(id, tag);
       res.status(201).json(assetTag);
-    } catch (error) {
-      console.error('Error adding tag:', error);
+    } catch (error: unknown) {
+      logger.error('Error adding tag:', error);
       res.status(500).json({ error: 'Failed to add tag' });
     }
   });
@@ -12179,12 +12699,12 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
       const uptime = process.uptime();
       const environment = process.env.NODE_ENV || 'development';
       const version = '1.0.0';
-      
+
       // Check basic service health
       const services = {
         database: process.env.DATABASE_URL ? 'configured' : 'not configured',
         stripe: process.env.STRIPE_SECRET_KEY ? 'configured' : 'not configured',
-        googleOAuth: process.env.GOOGLE_OAUTH_CLIENT_ID ? 'configured' : 'not configured'
+        googleOAuth: process.env.GOOGLE_OAUTH_CLIENT_ID ? 'configured' : 'not configured',
       };
 
       res.status(200).json({
@@ -12194,13 +12714,13 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         environment: environment,
         version: version,
         services: services,
-        message: '🎵 Max Booster - AI-Powered Music Career Management Platform'
+        message: '🎵 Max Booster - AI-Powered Music Career Management Platform',
       });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({
         status: 'unhealthy',
         timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -12209,53 +12729,57 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   // Upload error handler middleware
-  app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    // Track error for security monitoring
-    trackError();
-    
-    if (error instanceof multer.MulterError) {
-      if (error.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ error: 'File too large. Maximum size is 100MB.' });
+  app.use(
+    (error: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
+      // Track error for security monitoring
+      trackError();
+
+      if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ error: 'File too large. Maximum size is 100MB.' });
+        }
+        if (error.code === 'LIMIT_UNEXPECTED_FILE') {
+          return res.status(400).json({ error: 'Unexpected file field' });
+        }
+        return res.status(400).json({ error: error.message });
       }
-      if (error.code === 'LIMIT_UNEXPECTED_FILE') {
-        return res.status(400).json({ error: 'Unexpected file field' });
+
+      if (error.message && error.message.includes('Invalid')) {
+        return res.status(400).json({ error: error.message });
       }
-      return res.status(400).json({ error: error.message });
+
+      next(error);
     }
-    
-    if (error.message && error.message.includes('Invalid')) {
-      return res.status(400).json({ error: error.message });
-    }
-    
-    next(error);
-  });
+  );
 
   const httpServer = createServer(app);
-  
+
   // WebSocket server for real-time notifications and analytics
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
+
   // Store active WebSocket connections by user ID
   const wsConnections = new Map<string, Set<WebSocket>>();
-  
+
   // Store analytics subscriptions per connection
   const analyticsSubscriptions = new Map<WebSocket, { userId: string; subscribed: boolean }>();
-  
+
   // Connection throttling - max 100 concurrent connections
   const MAX_CONNECTIONS = 100;
   let totalConnections = 0;
-  
-  wss.on('connection', (ws: WebSocket, req: any) => {
+
+  wss.on('connection', (ws: WebSocket, req: unknown) => {
     // Connection throttling
     if (totalConnections >= MAX_CONNECTIONS) {
-      console.log('❌ WebSocket connection rejected: Max connections reached');
+      logger.info('❌ WebSocket connection rejected: Max connections reached');
       ws.close(1008, 'Server at capacity - please try again later');
       return;
     }
-    
+
     totalConnections++;
-    console.log(`🔌 WebSocket connection attempt from ${req.socket.remoteAddress} (${totalConnections}/${MAX_CONNECTIONS})`);
-    
+    logger.info(
+      `🔌 WebSocket connection attempt from ${req.socket.remoteAddress} (${totalConnections}/${MAX_CONNECTIONS})`
+    );
+
     // Parse session from WebSocket upgrade request
     sessionParser(req, {} as any, () => {
       // Authenticate using Passport session
@@ -12263,69 +12787,71 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         passport.session()(req, {} as any, () => {
           // Check if user is authenticated
           if (!req.user || !req.user.id) {
-            console.log('❌ WebSocket connection rejected: No valid session');
+            logger.info('❌ WebSocket connection rejected: No valid session');
             ws.close(1008, 'Unauthorized - Valid session required');
             totalConnections--;
             return;
           }
-          
+
           const userId = req.user.id;
-          console.log(`✅ WebSocket authenticated for user ${userId}`);
-          
+          logger.info(`✅ WebSocket authenticated for user ${userId}`);
+
           // Add this connection to the user's set of connections
           if (!wsConnections.has(userId)) {
             wsConnections.set(userId, new Set());
           }
           wsConnections.get(userId)!.add(ws);
-          
+
           // Initialize analytics subscription for this connection
           analyticsSubscriptions.set(ws, { userId, subscribed: false });
-          
+
           // Send authentication success confirmation
-          ws.send(JSON.stringify({ 
-            type: 'auth_success', 
-            message: 'WebSocket authenticated successfully',
-            userId 
-          }));
-          
+          ws.send(
+            JSON.stringify({
+              type: 'auth_success',
+              message: 'WebSocket authenticated successfully',
+              userId,
+            })
+          );
+
           // Setup heartbeat to keep connection alive and detect stale connections
           let isAlive = true;
           const heartbeatInterval = setInterval(() => {
             if (!isAlive) {
-              console.log(`💔 Heartbeat failed for user ${userId} - closing connection`);
+              logger.info(`💔 Heartbeat failed for user ${userId} - closing connection`);
               ws.terminate();
               return;
             }
-            
+
             isAlive = false;
             if (ws.readyState === WebSocket.OPEN) {
               ws.ping();
             }
           }, 30000);
-          
+
           // Handle protocol-level pong responses
           ws.on('pong', () => {
             isAlive = true;
           });
-          
+
           // Handle incoming messages
           ws.on('message', async (message: string) => {
             try {
               const data = JSON.parse(message.toString());
-              
+
               // Handle analytics subscription
               if (data.type === 'subscribe_analytics') {
                 const subscription = analyticsSubscriptions.get(ws);
                 if (subscription) {
                   subscription.subscribed = true;
-                  console.log(`📊 User ${userId} subscribed to analytics stream`);
-                  
+                  logger.info(`📊 User ${userId} subscribed to analytics stream`);
+
                   // Send immediate analytics update
                   try {
                     const cacheKey = `ws_analytics_${userId}`;
                     const cached = await getAnalyticsCache(cacheKey);
                     const now = Date.now();
-                    
+
                     let analyticsData;
                     if (cached) {
                       analyticsData = JSON.parse(cached);
@@ -12338,63 +12864,67 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
                         monthlyGrowth: {
                           streams: dashboardStats.monthlyGrowth?.streams || 0,
                           revenue: dashboardStats.monthlyGrowth?.revenue || 0,
-                          listeners: dashboardStats.monthlyGrowth?.socialReach || 0
-                        }
+                          listeners: dashboardStats.monthlyGrowth?.socialReach || 0,
+                        },
                       };
                       await setAnalyticsCache(cacheKey, JSON.stringify(analyticsData), 1);
                     }
-                    
-                    ws.send(JSON.stringify({
-                      type: 'analytics_update',
-                      timestamp: now,
-                      data: analyticsData
-                    }));
-                  } catch (error) {
-                    console.error('Error sending analytics update:', error);
+
+                    ws.send(
+                      JSON.stringify({
+                        type: 'analytics_update',
+                        timestamp: now,
+                        data: analyticsData,
+                      })
+                    );
+                  } catch (error: unknown) {
+                    logger.error('Error sending analytics update:', error);
                   }
                 }
               }
-              
+
               // Handle analytics unsubscription
               if (data.type === 'unsubscribe_analytics') {
                 const subscription = analyticsSubscriptions.get(ws);
                 if (subscription) {
                   subscription.subscribed = false;
-                  console.log(`📊 User ${userId} unsubscribed from analytics stream`);
+                  logger.info(`📊 User ${userId} unsubscribed from analytics stream`);
                 }
               }
-            } catch (error) {
-              console.error('WebSocket message error:', error);
+            } catch (error: unknown) {
+              logger.error('WebSocket message error:', error);
             }
           });
-          
+
           // Handle connection close
           ws.on('close', () => {
             clearInterval(heartbeatInterval);
             totalConnections--;
-            
+
             // Remove analytics subscription
             analyticsSubscriptions.delete(ws);
-            
+
             if (wsConnections.has(userId)) {
               wsConnections.get(userId)!.delete(ws);
               if (wsConnections.get(userId)!.size === 0) {
                 wsConnections.delete(userId);
               }
-              console.log(`🔌 WebSocket disconnected for user ${userId} (${totalConnections}/${MAX_CONNECTIONS})`);
+              logger.info(
+                `🔌 WebSocket disconnected for user ${userId} (${totalConnections}/${MAX_CONNECTIONS})`
+              );
             }
           });
-          
+
           // Handle errors
           ws.on('error', (error) => {
-            console.error(`❌ WebSocket error for user ${userId}:`, error);
+            logger.error(`❌ WebSocket error for user ${userId}:`, error);
             clearInterval(heartbeatInterval);
           });
         });
       });
     });
   });
-  
+
   // Broadcast analytics updates every 1 second to subscribed clients
   const analyticsInterval = setInterval(async () => {
     for (const [ws, subscription] of analyticsSubscriptions.entries()) {
@@ -12404,7 +12934,7 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
           const cacheKey = `ws_analytics_${userId}`;
           const cached = await getAnalyticsCache(cacheKey);
           const now = Date.now();
-          
+
           let analyticsData;
           if (cached) {
             analyticsData = JSON.parse(cached);
@@ -12417,37 +12947,39 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
               monthlyGrowth: {
                 streams: dashboardStats.monthlyGrowth?.streams || 0,
                 revenue: dashboardStats.monthlyGrowth?.revenue || 0,
-                listeners: dashboardStats.monthlyGrowth?.socialReach || 0
-              }
+                listeners: dashboardStats.monthlyGrowth?.socialReach || 0,
+              },
             };
             await setAnalyticsCache(cacheKey, JSON.stringify(analyticsData), 1);
           }
-          
-          ws.send(JSON.stringify({
-            type: 'analytics_update',
-            timestamp: now,
-            data: analyticsData
-          }));
-        } catch (error) {
-          console.error('Error broadcasting analytics:', error);
+
+          ws.send(
+            JSON.stringify({
+              type: 'analytics_update',
+              timestamp: now,
+              data: analyticsData,
+            })
+          );
+        } catch (error: unknown) {
+          logger.error('Error broadcasting analytics:', error);
         }
       }
     }
   }, 1000); // Broadcast every 1 second
-  
+
   // Export broadcast function for sending notifications
-  (global as any).broadcastNotification = (userId: string, notification: any) => {
+  (global as any).broadcastNotification = (userId: string, notification: unknown) => {
     const userConnections = wsConnections.get(userId);
     if (userConnections) {
       const message = JSON.stringify({
         type: 'notification',
-        data: notification
+        data: notification,
       });
-      
+
       userConnections.forEach((ws) => {
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(message);
-          console.log(`Sent notification to user ${userId} via WebSocket`);
+          logger.info(`Sent notification to user ${userId} via WebSocket`);
         }
       });
     }
@@ -12457,15 +12989,15 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   // CONTACT FORM API ENDPOINT
   // ============================================================================
 
-  app.post("/api/contact", async (req, res) => {
+  app.post('/api/contact', async (req, res) => {
     try {
       const { name, email, subject, message } = req.body;
-      
+
       // Validate input
       if (!name || !email || !subject || !message) {
-        return res.status(400).json({ error: "All fields are required" });
+        return res.status(400).json({ error: 'All fields are required' });
       }
-      
+
       // Send email notification to support
       try {
         await emailService.sendEmail({
@@ -12478,24 +13010,24 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
             <p><strong>Subject:</strong> ${subject}</p>
             <p><strong>Message:</strong></p>
             <p>${message}</p>
-          `
+          `,
         });
-      } catch (emailError) {
-        console.error("Failed to send contact email:", emailError);
+      } catch (emailError: unknown) {
+        logger.error('Failed to send contact email:', emailError);
         // Continue even if email fails - still save to database
       }
-      
+
       // Store submission in database (you may need to add contactSubmissions table to schema.ts)
       // For now, just log it - can add database storage later if needed
-      console.log("Contact form submission:", { name, email, subject, message });
-      
-      res.json({ 
+      logger.info('Contact form submission:', { name, email, subject, message });
+
+      res.json({
         success: true,
-        message: "Thank you for contacting us. We'll get back to you within 24 hours."
+        message: "Thank you for contacting us. We'll get back to you within 24 hours.",
       });
-    } catch (error) {
-      console.error("Error processing contact form:", error);
-      res.status(500).json({ error: "Failed to submit contact form" });
+    } catch (error: unknown) {
+      logger.error('Error processing contact form:', error);
+      res.status(500).json({ error: 'Failed to submit contact form' });
     }
   });
 
@@ -12512,30 +13044,30 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   // await knowledgeBaseService.seedDefaultArticles();
 
   // Support Tickets - Create new ticket
-  app.post("/api/support/tickets", requireAuth, async (req, res) => {
+  app.post('/api/support/tickets', requireAuth, async (req, res) => {
     try {
       const userId = req.user!.id;
       const ticketData = insertSupportTicketSchema.parse(req.body);
-      
+
       const category = await supportAIService.categorizeTicket(
         ticketData.subject,
         ticketData.description
       );
-      
+
       const ticket = await supportTicketService.createTicket(userId, {
         ...ticketData,
         category: ticketData.category || category,
       });
-      
+
       res.json(ticket);
-    } catch (error: any) {
-      console.error('Error creating support ticket:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating support ticket:', error);
       res.status(500).json({ error: error.message || 'Failed to create ticket' });
     }
   });
 
   // Support Tickets - Get user's tickets
-  app.get("/api/support/tickets", requireAuth, async (req, res) => {
+  app.get('/api/support/tickets', requireAuth, async (req, res) => {
     try {
       const userId = req.user!.id;
       const filters = {
@@ -12543,84 +13075,84 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         priority: req.query.priority ? (req.query.priority as string).split(',') : undefined,
         category: req.query.category as string,
       };
-      
+
       const tickets = await supportTicketService.getUserTickets(userId, filters);
       res.json(tickets);
-    } catch (error: any) {
-      console.error('Error fetching tickets:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching tickets:', error);
       res.status(500).json({ error: 'Failed to fetch tickets' });
     }
   });
 
   // Support Tickets - Get all tickets (admin only)
-  app.get("/api/support/tickets/all", requireAuth, async (req, res) => {
+  app.get('/api/support/tickets/all', requireAuth, async (req, res) => {
     try {
       if (!req.user!.isAdmin) {
         return res.status(403).json({ error: 'Admin access required' });
       }
-      
+
       const filters = {
         status: req.query.status ? (req.query.status as string).split(',') : undefined,
         priority: req.query.priority ? (req.query.priority as string).split(',') : undefined,
         assignedTo: req.query.assignedTo as string,
         search: req.query.search as string,
       };
-      
+
       const tickets = await supportTicketService.getAllTickets(filters);
       res.json(tickets);
-    } catch (error: any) {
-      console.error('Error fetching all tickets:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching all tickets:', error);
       res.status(500).json({ error: 'Failed to fetch tickets' });
     }
   });
 
   // Support Tickets - Get ticket by ID
-  app.get("/api/support/tickets/:id", requireAuth, async (req, res) => {
+  app.get('/api/support/tickets/:id', requireAuth, async (req, res) => {
     try {
       const ticketId = req.params.id;
       const userId = req.user!.id;
-      
+
       const ticket = await supportTicketService.getTicketById(ticketId, userId);
-      
+
       if (!ticket) {
         return res.status(404).json({ error: 'Ticket not found' });
       }
-      
+
       res.json(ticket);
-    } catch (error: any) {
-      console.error('Error fetching ticket:', error);
-      res.status(error.message === 'Unauthorized to view this ticket' ? 403 : 500).json({ 
-        error: error.message || 'Failed to fetch ticket' 
+    } catch (error: unknown) {
+      logger.error('Error fetching ticket:', error);
+      res.status(error.message === 'Unauthorized to view this ticket' ? 403 : 500).json({
+        error: error.message || 'Failed to fetch ticket',
       });
     }
   });
 
   // Support Tickets - Update ticket
-  app.patch("/api/support/tickets/:id", requireAuth, async (req, res) => {
+  app.patch('/api/support/tickets/:id', requireAuth, async (req, res) => {
     try {
       const ticketId = req.params.id;
       const userId = req.user!.id;
       const updates = updateSupportTicketSchema.parse(req.body);
-      
+
       const ticket = await supportTicketService.updateTicket(ticketId, userId, updates);
       res.json(ticket);
-    } catch (error: any) {
-      console.error('Error updating ticket:', error);
-      res.status(error.message.includes('Unauthorized') ? 403 : 500).json({ 
-        error: error.message || 'Failed to update ticket' 
+    } catch (error: unknown) {
+      logger.error('Error updating ticket:', error);
+      res.status(error.message.includes('Unauthorized') ? 403 : 500).json({
+        error: error.message || 'Failed to update ticket',
       });
     }
   });
 
   // Support Tickets - Add message
-  app.post("/api/support/tickets/:id/messages", requireAuth, async (req, res) => {
+  app.post('/api/support/tickets/:id/messages', requireAuth, async (req, res) => {
     try {
       const ticketId = req.params.id;
       const userId = req.user!.id;
       const { message, attachments } = req.body;
-      
+
       const isStaffReply = req.user!.isAdmin || false;
-      
+
       const messageRecord = await supportTicketService.addMessage(
         ticketId,
         userId,
@@ -12628,178 +13160,178 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
         isStaffReply,
         attachments
       );
-      
+
       res.json(messageRecord);
-    } catch (error: any) {
-      console.error('Error adding message:', error);
+    } catch (error: unknown) {
+      logger.error('Error adding message:', error);
       res.status(500).json({ error: error.message || 'Failed to add message' });
     }
   });
 
   // Support Tickets - Get stats (admin only)
-  app.get("/api/support/stats", requireAuth, async (req, res) => {
+  app.get('/api/support/stats', requireAuth, async (req, res) => {
     try {
       if (!req.user!.isAdmin) {
         return res.status(403).json({ error: 'Admin access required' });
       }
-      
+
       const stats = await supportTicketService.getTicketStats();
       res.json(stats);
-    } catch (error: any) {
-      console.error('Error fetching ticket stats:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching ticket stats:', error);
       res.status(500).json({ error: 'Failed to fetch stats' });
     }
   });
 
   // Knowledge Base - Search articles
-  app.get("/api/support/kb/articles", async (req, res) => {
+  app.get('/api/support/kb/articles', async (req, res) => {
     try {
       const query = req.query.search as string;
       const category = req.query.category as string;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
-      
+
       const articles = await knowledgeBaseService.searchArticles(query, category, limit);
       res.json(articles);
-    } catch (error: any) {
-      console.error('Error searching articles:', error);
+    } catch (error: unknown) {
+      logger.error('Error searching articles:', error);
       res.status(500).json({ error: 'Failed to search articles' });
     }
   });
 
   // Knowledge Base - Get article by ID
-  app.get("/api/support/kb/articles/:id", async (req, res) => {
+  app.get('/api/support/kb/articles/:id', async (req, res) => {
     try {
       const articleId = req.params.id;
       const article = await knowledgeBaseService.getArticleById(articleId);
-      
+
       if (!article) {
         return res.status(404).json({ error: 'Article not found' });
       }
-      
+
       res.json(article);
-    } catch (error: any) {
-      console.error('Error fetching article:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching article:', error);
       res.status(500).json({ error: 'Failed to fetch article' });
     }
   });
 
   // Knowledge Base - Mark article as helpful
-  app.post("/api/support/kb/articles/:id/feedback", async (req, res) => {
+  app.post('/api/support/kb/articles/:id/feedback', async (req, res) => {
     try {
       const articleId = req.params.id;
       const { helpful } = req.body;
-      
+
       await knowledgeBaseService.markHelpful(articleId, helpful === true);
       res.json({ success: true });
-    } catch (error: any) {
-      console.error('Error marking article feedback:', error);
+    } catch (error: unknown) {
+      logger.error('Error marking article feedback:', error);
       res.status(500).json({ error: 'Failed to save feedback' });
     }
   });
 
   // Knowledge Base - Get categories
-  app.get("/api/support/kb/categories", async (req, res) => {
+  app.get('/api/support/kb/categories', async (req, res) => {
     try {
       const categories = await knowledgeBaseService.getCategories();
       res.json(categories);
-    } catch (error: any) {
-      console.error('Error fetching categories:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching categories:', error);
       res.status(500).json({ error: 'Failed to fetch categories' });
     }
   });
 
   // Knowledge Base - Get popular articles
-  app.get("/api/support/kb/popular", async (req, res) => {
+  app.get('/api/support/kb/popular', async (req, res) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
       const articles = await knowledgeBaseService.getPopularArticles(limit);
       res.json(articles);
-    } catch (error: any) {
-      console.error('Error fetching popular articles:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching popular articles:', error);
       res.status(500).json({ error: 'Failed to fetch popular articles' });
     }
   });
 
   // Knowledge Base - Create article (admin only)
-  app.post("/api/support/kb/articles", requireAuth, async (req, res) => {
+  app.post('/api/support/kb/articles', requireAuth, async (req, res) => {
     try {
       if (!req.user!.isAdmin) {
         return res.status(403).json({ error: 'Admin access required' });
       }
-      
+
       const articleData = insertKnowledgeBaseArticleSchema.parse(req.body);
       const article = await knowledgeBaseService.createArticle({
         ...articleData,
         authorId: req.user!.id,
       });
-      
+
       res.json(article);
-    } catch (error: any) {
-      console.error('Error creating article:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating article:', error);
       res.status(500).json({ error: 'Failed to create article' });
     }
   });
 
   // Knowledge Base - Update article (admin only)
-  app.patch("/api/support/kb/articles/:id", requireAuth, async (req, res) => {
+  app.patch('/api/support/kb/articles/:id', requireAuth, async (req, res) => {
     try {
       if (!req.user!.isAdmin) {
         return res.status(403).json({ error: 'Admin access required' });
       }
-      
+
       const articleId = req.params.id;
       const updates = updateKnowledgeBaseArticleSchema.parse(req.body);
-      
+
       const article = await knowledgeBaseService.updateArticle(articleId, updates);
       res.json(article);
-    } catch (error: any) {
-      console.error('Error updating article:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating article:', error);
       res.status(500).json({ error: 'Failed to update article' });
     }
   });
 
   // Knowledge Base - Get stats (admin only)
-  app.get("/api/support/kb/stats", requireAuth, async (req, res) => {
+  app.get('/api/support/kb/stats', requireAuth, async (req, res) => {
     try {
       if (!req.user!.isAdmin) {
         return res.status(403).json({ error: 'Admin access required' });
       }
-      
+
       const stats = await knowledgeBaseService.getKBStats();
       res.json(stats);
-    } catch (error: any) {
-      console.error('Error fetching KB stats:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching KB stats:', error);
       res.status(500).json({ error: 'Failed to fetch stats' });
     }
   });
 
   // AI Support - Ask question
-  app.post("/api/support/ai/ask", async (req, res) => {
+  app.post('/api/support/ai/ask', async (req, res) => {
     try {
       const { question } = req.body;
       const userId = req.user?.id;
-      
+
       const response = await supportAIService.answerQuestion({
         question,
         userId,
       });
-      
+
       res.json(response);
-    } catch (error: any) {
-      console.error('Error answering question:', error);
+    } catch (error: unknown) {
+      logger.error('Error answering question:', error);
       res.status(500).json({ error: 'Failed to get answer' });
     }
   });
 
   // Live Chat - Send message to support
-  app.post("/api/support/chat", requireAuth, async (req, res) => {
+  app.post('/api/support/chat', requireAuth, async (req, res) => {
     try {
       const { message } = req.body;
-      
+
       if (!message || message.trim().length === 0) {
-        return res.status(400).json({ error: "Message is required" });
+        return res.status(400).json({ error: 'Message is required' });
       }
-      
+
       // Send notification email to support team
       try {
         await emailService.sendEmail({
@@ -12812,28 +13344,29 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
             <p><strong>Message:</strong></p>
             <p>${message}</p>
             <p><a href="mailto:${req.user.email}">Reply to ${req.user.email}</a></p>
-          `
+          `,
         });
-      } catch (emailError) {
-        console.error("Failed to send chat notification:", emailError);
+      } catch (emailError: unknown) {
+        logger.error('Failed to send chat notification:', emailError);
       }
-      
+
       // Log the chat message
-      console.log("Live chat message:", {
+      logger.info('Live chat message:', {
         userId: req.user.id,
         username: req.user.username,
         message,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
-      
+
       res.json({
         success: true,
-        message: "Your message has been sent to our support team. We'll respond via email within 1-2 business hours.",
-        timestamp: new Date()
+        message:
+          "Your message has been sent to our support team. We'll respond via email within 1-2 business hours.",
+        timestamp: new Date(),
       });
-    } catch (error) {
-      console.error("Error processing chat message:", error);
-      res.status(500).json({ error: "Failed to send message" });
+    } catch (error: unknown) {
+      logger.error('Error processing chat message:', error);
+      res.status(500).json({ error: 'Failed to send message' });
     }
   });
 
@@ -12842,100 +13375,104 @@ app.post("/api/marketplace/purchase", requireAuth, async (req, res) => {
   // ============================================================================
 
   // Get blog posts
-  app.get("/api/blog/posts", async (req, res) => {
+  app.get('/api/blog/posts', async (req, res) => {
     try {
       // For now, return static blog posts
       // Can be replaced with database query later: await storage.getBlogPosts()
       const posts = [
         {
-          id: "1",
-          title: "Introducing Max Booster: All-in-One Music Career Platform",
-          excerpt: "Everything you need to create, distribute, and promote your music in one powerful platform.",
-          content: "Max Booster combines professional music production, distribution to 34+ platforms, social media automation, and AI-powered marketing tools...",
-          author: "Max Booster Team",
-          publishedAt: "2025-11-01T00:00:00Z",
-          category: "Product",
-          image: "/blog/launch.jpg",
-          slug: "introducing-max-booster"
+          id: '1',
+          title: 'Introducing Max Booster: All-in-One Music Career Platform',
+          excerpt:
+            'Everything you need to create, distribute, and promote your music in one powerful platform.',
+          content:
+            'Max Booster combines professional music production, distribution to 34+ platforms, social media automation, and AI-powered marketing tools...',
+          author: 'Max Booster Team',
+          publishedAt: '2025-11-01T00:00:00Z',
+          category: 'Product',
+          image: '/blog/launch.jpg',
+          slug: 'introducing-max-booster',
         },
         {
-          id: "2",
-          title: "How AI Autopilot Saves Artists $45,000/Year",
-          excerpt: "Our autonomous AI systems replace expensive marketing teams and tools.",
-          content: "Traditional artist marketing requires $45,000+ per year in tools and labor. Max Booster's AI Autopilot automates it all...",
-          author: "Max Booster Team",
-          publishedAt: "2025-11-05T00:00:00Z",
-          category: "Features",
-          image: "/blog/ai-autopilot.jpg",
-          slug: "ai-autopilot-saves-money"
+          id: '2',
+          title: 'How AI Autopilot Saves Artists $45,000/Year',
+          excerpt: 'Our autonomous AI systems replace expensive marketing teams and tools.',
+          content:
+            "Traditional artist marketing requires $45,000+ per year in tools and labor. Max Booster's AI Autopilot automates it all...",
+          author: 'Max Booster Team',
+          publishedAt: '2025-11-05T00:00:00Z',
+          category: 'Features',
+          image: '/blog/ai-autopilot.jpg',
+          slug: 'ai-autopilot-saves-money',
         },
         {
-          id: "3",
-          title: "Zero-Cost Advertising: Organic vs Paid Ads",
-          excerpt: "Why organic amplification beats paid advertising for independent artists.",
-          content: "Max Booster's Zero-Cost Advertising AI posts to your social profiles organically, leveraging engagement algorithms...",
-          author: "Max Booster Team",
-          publishedAt: "2025-11-10T00:00:00Z",
-          category: "Strategy",
-          image: "/blog/organic-advertising.jpg",
-          slug: "zero-cost-advertising"
-        }
+          id: '3',
+          title: 'Zero-Cost Advertising: Organic vs Paid Ads',
+          excerpt: 'Why organic amplification beats paid advertising for independent artists.',
+          content:
+            "Max Booster's Zero-Cost Advertising AI posts to your social profiles organically, leveraging engagement algorithms...",
+          author: 'Max Booster Team',
+          publishedAt: '2025-11-10T00:00:00Z',
+          category: 'Strategy',
+          image: '/blog/organic-advertising.jpg',
+          slug: 'zero-cost-advertising',
+        },
       ];
-      
+
       res.json({ posts });
-    } catch (error) {
-      console.error("Error fetching blog posts:", error);
-      res.status(500).json({ error: "Failed to fetch blog posts" });
+    } catch (error: unknown) {
+      logger.error('Error fetching blog posts:', error);
+      res.status(500).json({ error: 'Failed to fetch blog posts' });
     }
   });
 
   // ============================================================================
   // Job Queue Status Endpoints
-  
+
   // Get job status by queue name and job ID
-  app.get("/api/jobs/:queueName/:jobId", requireAuth, async (req, res) => {
+  app.get('/api/jobs/:queueName/:jobId', requireAuth, async (req, res) => {
     try {
       const { queueName, jobId } = req.params;
-      
+
       // Validate queue name
       const validQueues = ['audio', 'csv', 'analytics', 'email'];
       if (!validQueues.includes(queueName)) {
-        return res.status(400).json({ 
-          error: `Invalid queue name. Must be one of: ${validQueues.join(', ')}` 
+        return res.status(400).json({
+          error: `Invalid queue name. Must be one of: ${validQueues.join(', ')}`,
         });
       }
 
       const jobStatus = await queueService.getJobStatus(queueName, jobId);
-      
+
       res.json({
         jobId,
         queueName,
-        ...jobStatus
+        ...jobStatus,
       });
-    } catch (error: any) {
-      console.error('Error getting job status:', error);
-      res.status(404).json({ 
-        error: error.message || 'Job not found' 
+    } catch (error: unknown) {
+      logger.error('Error getting job status:', error);
+      res.status(404).json({
+        error: error.message || 'Job not found',
       });
     }
   });
 
   // Get statistics for all queues
-  app.get("/api/jobs/stats", requireAuth, async (req, res) => {
+  app.get('/api/jobs/stats', requireAuth, async (req, res) => {
     try {
       const stats = await queueService.getAllQueueStats();
-      
+
       res.json({
         timestamp: new Date().toISOString(),
-        queues: stats
+        queues: stats,
       });
-    } catch (error: any) {
-      console.error('Error getting queue stats:', error);
-      res.status(500).json({ 
-        error: 'Failed to retrieve queue statistics' 
+    } catch (error: unknown) {
+      logger.error('Error getting queue stats:', error);
+      res.status(500).json({
+        error: 'Failed to retrieve queue statistics',
       });
     }
   });
-  
+
   return httpServer;
 }

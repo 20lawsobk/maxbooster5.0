@@ -1,6 +1,7 @@
-import { aiService } from "./aiService";
-import { knowledgeBaseService } from "./knowledgeBaseService";
-import { supportTicketService } from "./supportTicketService";
+import { aiService } from './aiService';
+import { knowledgeBaseService } from './knowledgeBaseService';
+import { supportTicketService } from './supportTicketService';
+import { logger } from '../logger.js';
 
 interface SupportQuery {
   question: string;
@@ -11,7 +12,7 @@ interface SupportQuery {
 interface AIResponse {
   answer: string;
   confidence: number;
-  suggestedArticles: any[];
+  suggestedArticles: unknown[];
   shouldEscalate: boolean;
   category?: string;
 }
@@ -19,59 +20,59 @@ interface AIResponse {
 export class SupportAIService {
   private commonQuestions = new Map<string, { answer: string; category: string }>([
     [
-      "how to reset password",
+      'how to reset password',
       {
         answer:
           "To reset your password:\n1. Go to the login page\n2. Click 'Forgot Password'\n3. Enter your email address\n4. Check your email for a reset link\n5. Follow the link and create a new password\n\nIf you don't receive the email within 5 minutes, please check your spam folder or contact support.",
-        category: "account",
+        category: 'account',
       },
     ],
     [
-      "how to upload music",
+      'how to upload music',
       {
         answer:
           "To upload and distribute your music:\n1. Go to the Distribution page\n2. Click 'New Release'\n3. Upload your audio file (WAV or FLAC recommended)\n4. Upload artwork (3000x3000 pixels)\n5. Fill in metadata (title, artist, genre, etc.)\n6. Select distribution platforms\n7. Submit for review\n\nYour music typically goes live within 1-3 business days.",
-        category: "distribution",
+        category: 'distribution',
       },
     ],
     [
-      "when will i get paid",
+      'when will i get paid',
       {
         answer:
-          "Royalty payments work as follows:\n- Streaming platforms pay 60-90 days after streams occur\n- We process payouts monthly\n- Minimum payout threshold: $10\n- You keep 100% of your royalties\n\nYou can track your earnings in real-time on the Royalties page. Once you reach $10, payment will be processed automatically on the next monthly cycle.",
-        category: "royalties",
+          'Royalty payments work as follows:\n- Streaming platforms pay 60-90 days after streams occur\n- We process payouts monthly\n- Minimum payout threshold: $10\n- You keep 100% of your royalties\n\nYou can track your earnings in real-time on the Royalties page. Once you reach $10, payment will be processed automatically on the next monthly cycle.',
+        category: 'royalties',
       },
     ],
     [
-      "how to cancel subscription",
+      'how to cancel subscription',
       {
         answer:
           "To cancel your subscription:\n1. Go to Settings > Billing\n2. Click 'Manage Subscription'\n3. Select 'Cancel Subscription'\n4. Confirm cancellation\n\nYour access continues until the end of your current billing period. You can reactivate anytime before the period ends. Lifetime subscriptions cannot be canceled.",
-        category: "billing",
+        category: 'billing',
       },
     ],
     [
-      "supported platforms",
+      'supported platforms',
       {
         answer:
-          "Max Booster distributes to 150+ platforms including:\n\n**Major Platforms:**\n- Spotify\n- Apple Music\n- YouTube Music\n- Amazon Music\n- Tidal\n- Deezer\n\n**Social Platforms:**\n- TikTok\n- Instagram\n- Facebook\n\nAnd many more! You can select which platforms to distribute to when creating a release.",
-        category: "distribution",
+          'Max Booster distributes to 150+ platforms including:\n\n**Major Platforms:**\n- Spotify\n- Apple Music\n- YouTube Music\n- Amazon Music\n- Tidal\n- Deezer\n\n**Social Platforms:**\n- TikTok\n- Instagram\n- Facebook\n\nAnd many more! You can select which platforms to distribute to when creating a release.',
+        category: 'distribution',
       },
     ],
     [
-      "ai tools",
+      'ai tools',
       {
         answer:
-          "Max Booster offers several AI-powered tools:\n\n**Music Production:**\n- AI Mixer: Automatic level balancing, EQ, and compression\n- AI Mastering: Professional mastering for streaming platforms\n- Beat Generation: Create custom beats and instrumentals\n\n**Content Creation:**\n- Social Media Post Generator\n- Hashtag Suggestions\n- Caption Writing\n- Content Calendar Planning\n\n**Analytics:**\n- Predictive Analytics\n- Audience Insights\n- Performance Optimization\n\nAll AI tools are included in your subscription!",
-        category: "features",
+          'Max Booster offers several AI-powered tools:\n\n**Music Production:**\n- AI Mixer: Automatic level balancing, EQ, and compression\n- AI Mastering: Professional mastering for streaming platforms\n- Beat Generation: Create custom beats and instrumentals\n\n**Content Creation:**\n- Social Media Post Generator\n- Hashtag Suggestions\n- Caption Writing\n- Content Calendar Planning\n\n**Analytics:**\n- Predictive Analytics\n- Audience Insights\n- Performance Optimization\n\nAll AI tools are included in your subscription!',
+        category: 'features',
       },
     ],
     [
-      "how to contact support",
+      'how to contact support',
       {
         answer:
-          "You can contact support through:\n\n1. **Live Chat**: Click the chat button in the bottom-right corner for instant help\n2. **Support Ticket**: Go to Help > Contact Support to create a ticket\n3. **Email**: support@maxbooster.ai\n\nOur team typically responds within 24 hours. For urgent issues, use live chat for fastest response.",
-        category: "support",
+          'You can contact support through:\n\n1. **Live Chat**: Click the chat button in the bottom-right corner for instant help\n2. **Support Ticket**: Go to Help > Contact Support to create a ticket\n3. **Email**: support@maxbooster.ai\n\nOur team typically responds within 24 hours. For urgent issues, use live chat for fastest response.',
+        category: 'support',
       },
     ],
   ]);
@@ -125,8 +126,8 @@ export class SupportAIService {
         suggestedArticles: articles,
         shouldEscalate: false,
       };
-    } catch (error) {
-      console.error("AI generation failed:", error);
+    } catch (error: unknown) {
+      logger.error('AI generation failed:', error);
       return {
         answer:
           "I apologize, but I'm having trouble understanding your question. Our support team can help! Would you like to create a support ticket or try rephrasing your question?",
@@ -148,7 +149,7 @@ export class SupportAIService {
 
   private async findRelevantArticles(question: string) {
     const keywords = this.extractKeywords(question);
-    const articles = await knowledgeBaseService.searchArticles(keywords.join(" "), undefined, 3);
+    const articles = await knowledgeBaseService.searchArticles(keywords.join(' '), undefined, 3);
     return articles.map((a) => ({
       id: a.id,
       title: a.title,
@@ -159,7 +160,7 @@ export class SupportAIService {
 
   private extractSnippet(content: string, query: string): string {
     const sentences = content.split(/[.!?]+/).map((s) => s.trim());
-    
+
     const queryWords = query.toLowerCase().split(/\s+/);
     let bestSentence = sentences[0] || content.substring(0, 200);
     let maxScore = 0;
@@ -174,18 +175,18 @@ export class SupportAIService {
       }
     }
 
-    return bestSentence.length > 300 ? bestSentence.substring(0, 297) + "..." : bestSentence;
+    return bestSentence.length > 300 ? bestSentence.substring(0, 297) + '...' : bestSentence;
   }
 
   private analyzeComplexity(question: string): number {
     const indicators = [
-      question.includes("why"),
-      question.includes("how come"),
-      question.includes("explain"),
-      question.includes("detailed"),
-      question.includes("specific"),
-      question.split(" ").length > 20,
-      question.includes("?") && question.split("?").length > 2,
+      question.includes('why'),
+      question.includes('how come'),
+      question.includes('explain'),
+      question.includes('detailed'),
+      question.includes('specific'),
+      question.split(' ').length > 20,
+      question.includes('?') && question.split('?').length > 2,
     ];
 
     return indicators.filter((i) => i).length / indicators.length;
@@ -200,40 +201,40 @@ export class SupportAIService {
 
   private extractKeywords(text: string): string[] {
     const stopWords = new Set([
-      "the",
-      "a",
-      "an",
-      "and",
-      "or",
-      "but",
-      "in",
-      "on",
-      "at",
-      "to",
-      "for",
-      "of",
-      "with",
-      "by",
-      "from",
-      "how",
-      "what",
-      "when",
-      "where",
-      "why",
-      "is",
-      "are",
-      "can",
-      "do",
-      "does",
-      "my",
-      "i",
-      "me",
+      'the',
+      'a',
+      'an',
+      'and',
+      'or',
+      'but',
+      'in',
+      'on',
+      'at',
+      'to',
+      'for',
+      'of',
+      'with',
+      'by',
+      'from',
+      'how',
+      'what',
+      'when',
+      'where',
+      'why',
+      'is',
+      'are',
+      'can',
+      'do',
+      'does',
+      'my',
+      'i',
+      'me',
     ]);
 
     const words = text
       .toLowerCase()
       .split(/\s+/)
-      .map((w) => w.replace(/[^a-z0-9]/g, ""))
+      .map((w) => w.replace(/[^a-z0-9]/g, ''))
       .filter((w) => w.length > 2 && !stopWords.has(w));
 
     return Array.from(new Set(words));
@@ -250,14 +251,14 @@ Provide a clear, concise, and helpful answer. If you're not certain about the an
 Answer:`;
 
       const response = await aiService.generateSocialContent({
-        platform: "twitter",
-        contentType: "post",
+        platform: 'twitter',
+        contentType: 'post',
         customPrompt: prompt,
       });
 
       return response.content;
-    } catch (error) {
-      throw new Error("Failed to generate AI answer");
+    } catch (error: unknown) {
+      throw new Error('Failed to generate AI answer');
     }
   }
 
@@ -265,15 +266,15 @@ Answer:`;
     const text = `${subject} ${description}`.toLowerCase();
 
     const categories = {
-      billing: ["payment", "subscription", "refund", "charge", "billing", "invoice", "price"],
-      distribution: ["distribute", "release", "platform", "spotify", "apple music", "upload"],
-      royalties: ["royalty", "payment", "earnings", "payout", "revenue", "money"],
-      technical: ["error", "bug", "crash", "not working", "broken", "issue", "problem"],
-      account: ["password", "login", "email", "account", "profile", "access"],
-      features: ["how to", "feature", "ai", "tool", "studio", "mixer"],
+      billing: ['payment', 'subscription', 'refund', 'charge', 'billing', 'invoice', 'price'],
+      distribution: ['distribute', 'release', 'platform', 'spotify', 'apple music', 'upload'],
+      royalties: ['royalty', 'payment', 'earnings', 'payout', 'revenue', 'money'],
+      technical: ['error', 'bug', 'crash', 'not working', 'broken', 'issue', 'problem'],
+      account: ['password', 'login', 'email', 'account', 'profile', 'access'],
+      features: ['how to', 'feature', 'ai', 'tool', 'studio', 'mixer'],
     };
 
-    let bestCategory = "general";
+    let bestCategory = 'general';
     let maxScore = 0;
 
     for (const [category, keywords] of Object.entries(categories)) {
@@ -290,7 +291,7 @@ Answer:`;
   async suggestResponse(ticketId: string): Promise<string> {
     const ticket = await supportTicketService.getTicketById(ticketId);
     if (!ticket) {
-      throw new Error("Ticket not found");
+      throw new Error('Ticket not found');
     }
 
     const response = await this.answerQuestion({

@@ -14,6 +14,7 @@ import { AudioService } from '../services/audioService.js';
 import { RoyaltiesCSVImportService } from '../services/royaltiesCSVImportService.js';
 import { AnalyticsAnomalyService } from '../services/analyticsAnomalyService.js';
 import sgMail from '@sendgrid/mail';
+import { logger } from '../logger.js';
 import type {
   AudioConvertJobData,
   AudioMixJobData,
@@ -35,9 +36,9 @@ const anomalyService = new AnalyticsAnomalyService();
 // Initialize SendGrid for email worker
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  console.log('✅ SendGrid initialized for email worker');
+  logger.info('✅ SendGrid initialized for email worker');
 } else {
-  console.warn('⚠️  SendGrid API key not configured. Email worker will fail to send emails.');
+  logger.warn('⚠️  SendGrid API key not configured. Email worker will fail to send emails.');
 }
 
 // Create Redis connection for BullMQ with graceful error handling
@@ -58,17 +59,17 @@ function createRedisConnection(): Redis {
   redisClient.on('error', (err) => {
     if (isDevelopment) {
       if (!hasLoggedWarning) {
-        console.warn(`⚠️  Workers: Redis unavailable (${err.message}), workers will use fallback behavior`);
+        logger.warn(`⚠️  Workers: Redis unavailable (${err.message}), workers will use fallback behavior`);
         hasLoggedWarning = true;
       }
     } else {
-      console.error(`❌ Workers Redis Error:`, err.message);
+      logger.error(`❌ Workers Redis Error:`, err.message);
     }
   });
 
   redisClient.on('connect', () => {
     if (isDevelopment) {
-      console.log(`✅ Workers Redis connected`);
+      logger.info(`✅ Workers Redis connected`);
     }
   });
 
@@ -84,7 +85,7 @@ const connection = createRedisConnection();
 const audioWorker = new Worker<AudioConvertJobData | AudioMixJobData, AudioJobResult>(
   'audio',
   async (job: Job<AudioConvertJobData | AudioMixJobData, AudioJobResult>) => {
-    console.log(`🎵 Processing ${job.name} job ${job.id}...`);
+    logger.info(`🎵 Processing ${job.name} job ${job.id}...`);
     
     try {
       switch (job.name) {
@@ -100,8 +101,8 @@ const audioWorker = new Worker<AudioConvertJobData | AudioMixJobData, AudioJobRe
         default:
           throw new Error(`Unknown audio job type: ${job.name}`);
       }
-    } catch (error: any) {
-      console.error(`❌ Audio job ${job.id} failed:`, error.message);
+    } catch (error: unknown) {
+      logger.error(`❌ Audio job ${job.id} failed:`, error.message);
       throw error;
     }
   },
@@ -112,31 +113,31 @@ const audioWorker = new Worker<AudioConvertJobData | AudioMixJobData, AudioJobRe
 );
 
 audioWorker.on('active', (job: Job) => {
-  console.log(`▶️  Audio job ${job.id} (${job.name}) is now active`);
+  logger.info(`▶️  Audio job ${job.id} (${job.name}) is now active`);
 });
 
 audioWorker.on('completed', (job: Job, result: AudioJobResult) => {
-  console.log(`✅ Audio job ${job.id} completed - Output: ${result.storageKey}`);
+  logger.info(`✅ Audio job ${job.id} completed - Output: ${result.storageKey}`);
 });
 
 audioWorker.on('failed', (job: Job | undefined, err: Error) => {
-  console.error(`❌ Audio job ${job?.id} failed:`, err.message);
+  logger.error(`❌ Audio job ${job?.id} failed:`, err.message);
 });
 
 audioWorker.on('progress', (job: Job, progress: number | object) => {
-  console.log(`📊 Audio job ${job.id} progress:`, progress);
+  logger.info(`📊 Audio job ${job.id} progress:`, progress);
 });
 
 // ==================== CSV WORKER ====================
 const csvWorker = new Worker<CSVImportJobData, CSVImportResult>(
   'csv',
   async (job: Job<CSVImportJobData, CSVImportResult>) => {
-    console.log(`📊 Processing CSV import job ${job.id}...`);
+    logger.info(`📊 Processing CSV import job ${job.id}...`);
     
     try {
       return await csvImportService.processCSVImport(job.data);
-    } catch (error: any) {
-      console.error(`❌ CSV job ${job.id} failed:`, error.message);
+    } catch (error: unknown) {
+      logger.error(`❌ CSV job ${job.id} failed:`, error.message);
       throw error;
     }
   },
@@ -147,26 +148,26 @@ const csvWorker = new Worker<CSVImportJobData, CSVImportResult>(
 );
 
 csvWorker.on('active', (job: Job) => {
-  console.log(`▶️  CSV job ${job.id} is now active - User: ${job.data.userId}`);
+  logger.info(`▶️  CSV job ${job.id} is now active - User: ${job.data.userId}`);
 });
 
 csvWorker.on('completed', (job: Job, result: CSVImportResult) => {
-  console.log(`✅ CSV job ${job.id} completed - Processed: ${result.rowsProcessed} rows in ${result.duration}ms`);
+  logger.info(`✅ CSV job ${job.id} completed - Processed: ${result.rowsProcessed} rows in ${result.duration}ms`);
 });
 
 csvWorker.on('failed', (job: Job | undefined, err: Error) => {
-  console.error(`❌ CSV job ${job?.id} failed:`, err.message);
+  logger.error(`❌ CSV job ${job?.id} failed:`, err.message);
 });
 
 csvWorker.on('progress', (job: Job, progress: number | object) => {
-  console.log(`📊 CSV job ${job.id} progress:`, progress);
+  logger.info(`📊 CSV job ${job.id} progress:`, progress);
 });
 
 // ==================== ANALYTICS WORKER ====================
 const analyticsWorker = new Worker<AnalyticsJobData, any>(
   'analytics',
   async (job: Job<AnalyticsJobData, any>) => {
-    console.log(`📈 Processing analytics job ${job.id} (${job.data.type})...`);
+    logger.info(`📈 Processing analytics job ${job.id} (${job.data.type})...`);
     
     try {
       switch (job.data.type) {
@@ -176,8 +177,8 @@ const analyticsWorker = new Worker<AnalyticsJobData, any>(
         default:
           throw new Error(`Unknown analytics job type: ${job.data.type}`);
       }
-    } catch (error: any) {
-      console.error(`❌ Analytics job ${job.id} failed:`, error.message);
+    } catch (error: unknown) {
+      logger.error(`❌ Analytics job ${job.id} failed:`, error.message);
       throw error;
     }
   },
@@ -188,32 +189,32 @@ const analyticsWorker = new Worker<AnalyticsJobData, any>(
 );
 
 analyticsWorker.on('active', (job: Job) => {
-  console.log(`▶️  Analytics job ${job.id} (${job.data.type}) is now active`);
+  logger.info(`▶️  Analytics job ${job.id} (${job.data.type}) is now active`);
 });
 
-analyticsWorker.on('completed', (job: Job, result: any) => {
-  console.log(`✅ Analytics job ${job.id} completed`, result);
+analyticsWorker.on('completed', (job: Job, result: unknown) => {
+  logger.info(`✅ Analytics job ${job.id} completed`, result);
 });
 
 analyticsWorker.on('failed', (job: Job | undefined, err: Error) => {
-  console.error(`❌ Analytics job ${job?.id} failed:`, err.message);
+  logger.error(`❌ Analytics job ${job?.id} failed:`, err.message);
 });
 
 analyticsWorker.on('progress', (job: Job, progress: number | object) => {
-  console.log(`📊 Analytics job ${job.id} progress:`, progress);
+  logger.info(`📊 Analytics job ${job.id} progress:`, progress);
 });
 
 // ==================== EMAIL WORKER ====================
 const emailWorker = new Worker<EmailJobData, void>(
   'email',
   async (job: Job<EmailJobData, void>) => {
-    console.log(`📧 Processing email job ${job.id} - To: ${job.data.to}...`);
+    logger.info(`📧 Processing email job ${job.id} - To: ${job.data.to}...`);
     
     try {
       const { to, subject, html, from } = job.data;
       
       if (!process.env.SENDGRID_API_KEY) {
-        console.warn('⚠️  SendGrid not configured, skipping email send');
+        logger.warn('⚠️  SendGrid not configured, skipping email send');
         return;
       }
       
@@ -226,9 +227,9 @@ const emailWorker = new Worker<EmailJobData, void>(
         html,
       });
       
-      console.log(`✅ Email sent to ${to}`);
-    } catch (error: any) {
-      console.error(`❌ Email job ${job.id} failed:`, error.message);
+      logger.info(`✅ Email sent to ${to}`);
+    } catch (error: unknown) {
+      logger.error(`❌ Email job ${job.id} failed:`, error.message);
       throw error;
     }
   },
@@ -239,24 +240,24 @@ const emailWorker = new Worker<EmailJobData, void>(
 );
 
 emailWorker.on('active', (job: Job) => {
-  console.log(`▶️  Email job ${job.id} is now active - To: ${job.data.to}`);
+  logger.info(`▶️  Email job ${job.id} is now active - To: ${job.data.to}`);
 });
 
 emailWorker.on('completed', (job: Job) => {
-  console.log(`✅ Email job ${job.id} completed - Sent to: ${job.data.to}`);
+  logger.info(`✅ Email job ${job.id} completed - Sent to: ${job.data.to}`);
 });
 
 emailWorker.on('failed', (job: Job | undefined, err: Error) => {
-  console.error(`❌ Email job ${job?.id} failed:`, err.message);
+  logger.error(`❌ Email job ${job?.id} failed:`, err.message);
 });
 
 emailWorker.on('progress', (job: Job, progress: number | object) => {
-  console.log(`📊 Email job ${job.id} progress:`, progress);
+  logger.info(`📊 Email job ${job.id} progress:`, progress);
 });
 
 // ==================== GRACEFUL SHUTDOWN ====================
 async function gracefulShutdown(signal: string): Promise<void> {
-  console.log(`\n🛑 Received ${signal}, shutting down workers gracefully...`);
+  logger.info(`\n🛑 Received ${signal}, shutting down workers gracefully...`);
   
   try {
     await Promise.all([
@@ -266,15 +267,15 @@ async function gracefulShutdown(signal: string): Promise<void> {
       emailWorker.close(),
     ]);
     
-    console.log('✅ All workers closed successfully');
+    logger.info('✅ All workers closed successfully');
     
     // Close Redis connection
     await connection.quit();
-    console.log('✅ Redis connection closed');
+    logger.info('✅ Redis connection closed');
     
     process.exit(0);
-  } catch (error) {
-    console.error('❌ Error during shutdown:', error);
+  } catch (error: unknown) {
+    logger.error('❌ Error during shutdown:', error);
     process.exit(1);
   }
 }
@@ -285,21 +286,21 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught exception:', error);
+  logger.error('❌ Uncaught exception:', error);
   gracefulShutdown('uncaughtException');
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled rejection at:', promise, 'reason:', reason);
+  logger.error('❌ Unhandled rejection at:', promise, 'reason:', reason);
   gracefulShutdown('unhandledRejection');
 });
 
 // ==================== STARTUP ====================
-console.log('🚀 Background workers started successfully');
-console.log('📋 Active workers:');
-console.log(`   - Audio (concurrency: ${config.queue.concurrency.audio})`);
-console.log(`   - CSV Import (concurrency: ${config.queue.concurrency.csv})`);
-console.log(`   - Analytics (concurrency: ${config.queue.concurrency.analytics})`);
-console.log(`   - Email (concurrency: ${config.queue.concurrency.email})`);
-console.log('🔌 Connected to Redis:', config.redis.url);
-console.log('\n⏳ Waiting for jobs...\n');
+logger.info('🚀 Background workers started successfully');
+logger.info('📋 Active workers:');
+logger.info(`   - Audio (concurrency: ${config.queue.concurrency.audio})`);
+logger.info(`   - CSV Import (concurrency: ${config.queue.concurrency.csv})`);
+logger.info(`   - Analytics (concurrency: ${config.queue.concurrency.analytics})`);
+logger.info(`   - Email (concurrency: ${config.queue.concurrency.email})`);
+logger.info('🔌 Connected to Redis:', config.redis.url);
+logger.info('\n⏳ Waiting for jobs...\n');

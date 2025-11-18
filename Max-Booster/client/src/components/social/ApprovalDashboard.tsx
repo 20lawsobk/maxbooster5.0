@@ -7,17 +7,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  Send, 
+import {
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Send,
   AlertCircle,
   MessageSquare,
   User,
   Calendar,
   History,
-  FileText
+  FileText,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -62,12 +62,19 @@ interface ApprovalHistoryItem {
 
 const statusConfig = {
   draft: { color: 'bg-gray-500/20 text-gray-400', icon: FileText, label: 'Draft' },
-  pending_review: { color: 'bg-yellow-500/20 text-yellow-400', icon: Clock, label: 'Pending Review' },
+  pending_review: {
+    color: 'bg-yellow-500/20 text-yellow-400',
+    icon: Clock,
+    label: 'Pending Review',
+  },
   approved: { color: 'bg-green-500/20 text-green-400', icon: CheckCircle2, label: 'Approved' },
   rejected: { color: 'bg-red-500/20 text-red-400', icon: XCircle, label: 'Rejected' },
   published: { color: 'bg-blue-500/20 text-blue-400', icon: Send, label: 'Published' },
 };
 
+/**
+ * TODO: Add function documentation
+ */
 export function ApprovalDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -153,7 +160,15 @@ export function ApprovalDashboard() {
   });
 
   const rejectPostMutation = useMutation({
-    mutationFn: async ({ postId, reason, comment }: { postId: string; reason: string; comment?: string }) => {
+    mutationFn: async ({
+      postId,
+      reason,
+      comment,
+    }: {
+      postId: string;
+      reason: string;
+      comment?: string;
+    }) => {
       const res = await fetch(`/api/social/approvals/${postId}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -221,7 +236,8 @@ export function ApprovalDashboard() {
 
   const PostCard = ({ post, showActions = true }: { post: Post; showActions?: boolean }) => {
     const StatusIcon = statusConfig[post.approvalStatus].icon;
-    const canReview = stats?.stats?.userRole && ['reviewer', 'manager', 'admin'].includes(stats.stats.userRole);
+    const canReview =
+      stats?.stats?.userRole && ['reviewer', 'manager', 'admin'].includes(stats.stats.userRole);
     const canSubmit = post.approvalStatus === 'draft' || post.approvalStatus === 'rejected';
 
     return (
@@ -252,7 +268,7 @@ export function ApprovalDashboard() {
         </CardHeader>
         <CardContent>
           <p className="text-sm whitespace-pre-wrap mb-4">{post.content}</p>
-          
+
           {post.rejectionReason && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">
               <p className="text-sm text-red-400">
@@ -275,17 +291,13 @@ export function ApprovalDashboard() {
                     <CheckCircle2 className="w-4 h-4 mr-1" />
                     Approve
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleReject(post)}
-                  >
+                  <Button size="sm" variant="destructive" onClick={() => handleReject(post)}>
                     <XCircle className="w-4 h-4 mr-1" />
                     Reject
                   </Button>
                 </>
               )}
-              
+
               {canSubmit && (
                 <Button
                   size="sm"
@@ -298,11 +310,7 @@ export function ApprovalDashboard() {
                 </Button>
               )}
 
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleViewHistory(post)}
-              >
+              <Button size="sm" variant="outline" onClick={() => handleViewHistory(post)}>
                 <History className="w-4 h-4 mr-1" />
                 History
               </Button>
@@ -318,9 +326,7 @@ export function ApprovalDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold gradient-text">Approval Dashboard</h2>
-          <p className="text-muted-foreground mt-2">
-            Manage and review social media posts
-          </p>
+          <p className="text-muted-foreground mt-2">Manage and review social media posts</p>
         </div>
         {stats?.stats && (
           <Badge variant="outline" className="text-lg px-4 py-2">
@@ -338,7 +344,9 @@ export function ApprovalDashboard() {
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-2xl font-bold text-yellow-400">{stats?.stats?.pending_review || 0}</p>
+            <p className="text-2xl font-bold text-yellow-400">
+              {stats?.stats?.pending_review || 0}
+            </p>
             <p className="text-sm text-muted-foreground">Pending Review</p>
           </CardContent>
         </Card>
@@ -389,9 +397,7 @@ export function ApprovalDashboard() {
               </CardContent>
             </Card>
           ) : (
-            pendingApprovals?.posts?.map((post: Post) => (
-              <PostCard key={post.id} post={post} />
-            ))
+            pendingApprovals?.posts?.map((post: Post) => <PostCard key={post.id} post={post} />)
           )}
         </TabsContent>
 
@@ -409,9 +415,7 @@ export function ApprovalDashboard() {
               </CardContent>
             </Card>
           ) : (
-            myPosts?.posts?.map((post: Post) => (
-              <PostCard key={post.id} post={post} />
-            ))
+            myPosts?.posts?.map((post: Post) => <PostCard key={post.id} post={post} />)
           )}
         </TabsContent>
       </Tabs>
@@ -420,9 +424,7 @@ export function ApprovalDashboard() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Approve Post</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to approve this post?
-            </DialogDescription>
+            <DialogDescription>Are you sure you want to approve this post?</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -452,9 +454,7 @@ export function ApprovalDashboard() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reject Post</DialogTitle>
-            <DialogDescription>
-              Please provide a reason for rejecting this post.
-            </DialogDescription>
+            <DialogDescription>Please provide a reason for rejecting this post.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -489,9 +489,7 @@ export function ApprovalDashboard() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Approval History</DialogTitle>
-            <DialogDescription>
-              Complete audit trail for this post
-            </DialogDescription>
+            <DialogDescription>Complete audit trail for this post</DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-96">
             <div className="space-y-4">
@@ -502,7 +500,7 @@ export function ApprovalDashboard() {
                       <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                         <MessageSquare className="w-4 h-4 text-primary" />
                       </div>
-                      {index < (approvalHistory.history.length - 1) && (
+                      {index < approvalHistory.history.length - 1 && (
                         <div className="w-0.5 h-full bg-border mt-2" />
                       )}
                     </div>
@@ -515,7 +513,11 @@ export function ApprovalDashboard() {
                       </div>
                       {item.fromStatus && (
                         <p className="text-sm text-muted-foreground">
-                          {statusConfig[item.fromStatus as keyof typeof statusConfig]?.label || item.fromStatus} → {statusConfig[item.toStatus as keyof typeof statusConfig]?.label || item.toStatus}
+                          {statusConfig[item.fromStatus as keyof typeof statusConfig]?.label ||
+                            item.fromStatus}{' '}
+                          →{' '}
+                          {statusConfig[item.toStatus as keyof typeof statusConfig]?.label ||
+                            item.toStatus}
                         </p>
                       )}
                       {item.comment && (

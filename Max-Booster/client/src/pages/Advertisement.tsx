@@ -10,10 +10,23 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { AutonomousDashboard } from '@/components/autonomous/autonomous-dashboard';
@@ -64,7 +77,7 @@ import {
   X,
   Bot,
   RefreshCw,
-  MessageCircle
+  MessageCircle,
 } from 'lucide-react';
 
 interface AdCampaign {
@@ -172,7 +185,7 @@ export default function Advertisement() {
   const { user, isLoading: authLoading } = useRequireSubscription();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [isCreateCampaignOpen, setIsCreateCampaignOpen] = useState(false);
   const [campaignForm, setCampaignForm] = useState({
     name: '',
@@ -184,8 +197,8 @@ export default function Advertisement() {
       ageMax: 65,
       interests: [] as string[],
       locations: [] as string[],
-      platforms: [] as string[]
-    }
+      platforms: [] as string[],
+    },
   });
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -234,7 +247,7 @@ export default function Advertisement() {
 
   // Create campaign mutation
   const createCampaignMutation = useMutation({
-    mutationFn: async (campaignData: any) => {
+    mutationFn: async (campaignData: unknown) => {
       const response = await apiRequest('POST', '/api/advertising/campaigns', campaignData);
       return response.json();
     },
@@ -254,14 +267,14 @@ export default function Advertisement() {
           ageMax: 65,
           interests: [],
           locations: [],
-          platforms: []
-        }
+          platforms: [],
+        },
       });
       setUploadedImage(null);
       setImagePreviewUrl(null);
       queryClient.invalidateQueries({ queryKey: ['/api/advertising/campaigns'] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Failed to Create Campaign',
         description: error.message,
@@ -278,7 +291,7 @@ export default function Advertisement() {
   });
 
   const configureAutopilotMutation = useMutation({
-    mutationFn: async (config: any) => {
+    mutationFn: async (config: unknown) => {
       const response = await apiRequest('POST', '/api/autopilot/configure', config);
       return response.json();
     },
@@ -332,21 +345,61 @@ export default function Advertisement() {
     { value: 'traffic', label: 'Drive Traffic', icon: MousePointerClick },
     { value: 'engagement', label: 'Increase Engagement', icon: Users },
     { value: 'conversions', label: 'Get More Streams', icon: Play },
-    { value: 'followers', label: 'Grow Following', icon: TrendingUp }
+    { value: 'followers', label: 'Grow Following', icon: TrendingUp },
   ];
 
   const platforms = [
-    { value: 'spotify', label: 'Spotify Personal Network', icon: Music, description: 'Use your Spotify for Artists profile for organic promotion' },
-    { value: 'youtube', label: 'YouTube Channel Network', icon: Tv, description: 'Leverage your YouTube channel for cross-promotion' },
-    { value: 'instagram', label: 'Instagram Profile Power', icon: Users, description: 'Transform your Instagram into a promotional hub' },
-    { value: 'facebook', label: 'Facebook Profile Amplification', icon: Users, description: 'Use your Facebook profile and connections' },
-    { value: 'tiktok', label: 'TikTok Personal Brand', icon: Play, description: 'Amplify through your TikTok presence' },
-    { value: 'twitter', label: 'Twitter Personal Network', icon: Radio, description: 'Leverage your Twitter following and engagement' }
+    {
+      value: 'spotify',
+      label: 'Spotify Personal Network',
+      icon: Music,
+      description: 'Use your Spotify for Artists profile for organic promotion',
+    },
+    {
+      value: 'youtube',
+      label: 'YouTube Channel Network',
+      icon: Tv,
+      description: 'Leverage your YouTube channel for cross-promotion',
+    },
+    {
+      value: 'instagram',
+      label: 'Instagram Profile Power',
+      icon: Users,
+      description: 'Transform your Instagram into a promotional hub',
+    },
+    {
+      value: 'facebook',
+      label: 'Facebook Profile Amplification',
+      icon: Users,
+      description: 'Use your Facebook profile and connections',
+    },
+    {
+      value: 'tiktok',
+      label: 'TikTok Personal Brand',
+      icon: Play,
+      description: 'Amplify through your TikTok presence',
+    },
+    {
+      value: 'twitter',
+      label: 'Twitter Personal Network',
+      icon: Radio,
+      description: 'Leverage your Twitter following and engagement',
+    },
   ];
 
   const musicInterests = [
-    'Hip Hop', 'Pop', 'R&B', 'Rock', 'Electronic', 'Country',
-    'Jazz', 'Classical', 'Reggae', 'Alternative', 'Indie', 'Folk'
+    'Hip Hop',
+    'Pop',
+    'R&B',
+    'Rock',
+    'Electronic',
+    'Country',
+    'Jazz',
+    'Classical',
+    'Reggae',
+    'Alternative',
+    'Indie',
+    'Folk',
   ];
 
   const handleCreateCampaign = () => {
@@ -371,804 +424,904 @@ export default function Advertisement() {
     createCampaignMutation.mutate(campaignForm);
   };
 
-  const totalSpent = campaigns.reduce((acc: number, campaign: AdCampaign) => acc + campaign.spent, 0);
-  const totalImpressions = campaigns.reduce((acc: number, campaign: AdCampaign) => acc + campaign.impressions, 0);
-  const totalClicks = campaigns.reduce((acc: number, campaign: AdCampaign) => acc + campaign.clicks, 0);
+  const totalSpent = campaigns.reduce(
+    (acc: number, campaign: AdCampaign) => acc + campaign.spent,
+    0
+  );
+  const totalImpressions = campaigns.reduce(
+    (acc: number, campaign: AdCampaign) => acc + campaign.impressions,
+    0
+  );
+  const totalClicks = campaigns.reduce(
+    (acc: number, campaign: AdCampaign) => acc + campaign.clicks,
+    0
+  );
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
 
   return (
     <AppLayout>
-          <div className="max-w-7xl mx-auto space-y-6">
-            {/* Header */}
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                  🚀 Revolutionary AI Advertising
-                </h1>
-                <p className="text-muted-foreground">
-                  Zero ad spend through AI-optimized organic posting
-                </p>
-              </div>
-              <Dialog open={isCreateCampaignOpen} onOpenChange={setIsCreateCampaignOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white">
-                    <Rocket className="w-4 h-4 mr-2" />
-                    Activate AI Campaign
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center">
-                      <Brain className="w-5 h-5 mr-2 text-blue-600" />
-                      Create Revolutionary AI Campaign
-                    </DialogTitle>
-                    <DialogDescription>
-                      Set up an AI-enhanced organic social media campaign
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="campaign-name">Campaign Name</Label>
-                      <Input
-                        id="campaign-name"
-                        placeholder="e.g., Summer Single Release Campaign"
-                        value={campaignForm.name}
-                        onChange={(e) => setCampaignForm(prev => ({ ...prev, name: e.target.value }))}
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+              🚀 Revolutionary AI Advertising
+            </h1>
+            <p className="text-muted-foreground">
+              Zero ad spend through AI-optimized organic posting
+            </p>
+          </div>
+          <Dialog open={isCreateCampaignOpen} onOpenChange={setIsCreateCampaignOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white">
+                <Rocket className="w-4 h-4 mr-2" />
+                Activate AI Campaign
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center">
+                  <Brain className="w-5 h-5 mr-2 text-blue-600" />
+                  Create Revolutionary AI Campaign
+                </DialogTitle>
+                <DialogDescription>
+                  Set up an AI-enhanced organic social media campaign
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="campaign-name">Campaign Name</Label>
+                  <Input
+                    id="campaign-name"
+                    placeholder="e.g., Summer Single Release Campaign"
+                    value={campaignForm.name}
+                    onChange={(e) => setCampaignForm((prev) => ({ ...prev, name: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Campaign Objective</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {adObjectives.map(({ value, label, icon: Icon }) => (
+                      <div
+                        key={value}
+                        className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                          campaignForm.objective === value
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                            : 'border-border hover:border-blue-400'
+                        }`}
+                        onClick={() => setCampaignForm((prev) => ({ ...prev, objective: value }))}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="text-sm font-medium">{label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Traditional Budget (Eliminated by AI)</Label>
+                    <div className="space-y-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-red-600 line-through opacity-50">
+                          ${campaignForm.budget}
+                        </div>
+                        <div className="text-lg font-bold text-green-600">$0 (AI Elimination)</div>
+                        <div className="text-xs text-muted-foreground">
+                          Zero ad spend through AI-optimized organic posting
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Duration (Days)</Label>
+                    <div className="space-y-3">
+                      <Slider
+                        value={[campaignForm.duration]}
+                        onValueChange={(value) =>
+                          setCampaignForm((prev) => ({ ...prev, duration: value[0] }))
+                        }
+                        max={30}
+                        min={1}
+                        step={1}
                       />
+                      <div className="text-center font-semibold">{campaignForm.duration} days</div>
                     </div>
+                  </div>
+                </div>
 
-                    <div className="space-y-3">
-                      <Label>Campaign Objective</Label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {adObjectives.map(({ value, label, icon: Icon }) => (
-                          <div
-                            key={value}
-                            className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                              campaignForm.objective === value
-                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-                                : 'border-border hover:border-blue-400'
-                            }`}
-                            onClick={() => setCampaignForm(prev => ({ ...prev, objective: value }))}
-                          >
-                            <Icon className="w-5 h-5" />
-                            <span className="text-sm font-medium">{label}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Traditional Budget (Eliminated by AI)</Label>
-                        <div className="space-y-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-red-600 line-through opacity-50">
-                              ${campaignForm.budget}
-                            </div>
-                            <div className="text-lg font-bold text-green-600">
-                              $0 (AI Elimination)
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              Zero ad spend through AI-optimized organic posting
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Duration (Days)</Label>
-                        <div className="space-y-3">
-                          <Slider
-                            value={[campaignForm.duration]}
-                            onValueChange={(value) => setCampaignForm(prev => ({ ...prev, duration: value[0] }))}
-                            max={30}
-                            min={1}
-                            step={1}
-                          />
-                          <div className="text-center font-semibold">
-                            {campaignForm.duration} days
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <Label>Personal Ad Network Platforms</Label>
-                      <p className="text-xs text-muted-foreground mb-3">
-                        Select your connected social media profiles to use as personal advertising channels
-                      </p>
-                      <div className="grid grid-cols-1 gap-3">
-                        {platforms.map(({ value, label, icon: Icon, description }) => (
-                          <div
-                            key={value}
-                            className={`flex items-start space-x-3 p-4 rounded-lg border cursor-pointer transition-colors ${
-                              campaignForm.targetAudience.platforms.includes(value)
-                                ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
-                                : 'border-border hover:border-green-400'
-                            }`}
-                            onClick={() => {
-                              setCampaignForm(prev => ({
-                                ...prev,
-                                targetAudience: {
-                                  ...prev.targetAudience,
-                                  platforms: prev.targetAudience.platforms.includes(value)
-                                    ? prev.targetAudience.platforms.filter(p => p !== value)
-                                    : [...prev.targetAudience.platforms, value]
-                                }
-                              }));
-                            }}
-                          >
-                            <Icon className="w-5 h-5 mt-0.5" />
-                            <div className="flex-1">
-                              <div className="text-sm font-medium">{label}</div>
-                              <div className="text-xs text-muted-foreground">{description}</div>
-                            </div>
-                            {campaignForm.targetAudience.platforms.includes(value) && (
-                              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <Label>Target Age Range</Label>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-sm">Min Age: {campaignForm.targetAudience.ageMin}</Label>
-                          <Slider
-                            value={[campaignForm.targetAudience.ageMin]}
-                            onValueChange={(value) => setCampaignForm(prev => ({
-                              ...prev,
-                              targetAudience: { ...prev.targetAudience, ageMin: value[0] }
-                            }))}
-                            max={65}
-                            min={13}
-                            step={1}
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-sm">Max Age: {campaignForm.targetAudience.ageMax}</Label>
-                          <Slider
-                            value={[campaignForm.targetAudience.ageMax]}
-                            onValueChange={(value) => setCampaignForm(prev => ({
-                              ...prev,
-                              targetAudience: { ...prev.targetAudience, ageMax: value[0] }
-                            }))}
-                            max={65}
-                            min={13}
-                            step={1}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <Label>Music Interests</Label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {musicInterests.map((interest) => (
-                          <div
-                            key={interest}
-                            className={`p-2 text-center rounded-lg border cursor-pointer transition-colors text-sm ${
-                              campaignForm.targetAudience.interests.includes(interest)
-                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-                                : 'border-border hover:border-blue-400'
-                            }`}
-                            onClick={() => {
-                              setCampaignForm(prev => ({
-                                ...prev,
-                                targetAudience: {
-                                  ...prev.targetAudience,
-                                  interests: prev.targetAudience.interests.includes(interest)
-                                    ? prev.targetAudience.interests.filter(i => i !== interest)
-                                    : [...prev.targetAudience.interests, interest]
-                                }
-                              }));
-                            }}
-                          >
-                            {interest}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <Label>Campaign Image (Optional)</Label>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setUploadedImage(file);
-                            const previewUrl = URL.createObjectURL(file);
-                            setImagePreviewUrl(previewUrl);
-                            uploadImageMutation.mutate(file);
-                          }
+                <div className="space-y-3">
+                  <Label>Personal Ad Network Platforms</Label>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Select your connected social media profiles to use as personal advertising
+                    channels
+                  </p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {platforms.map(({ value, label, icon: Icon, description }) => (
+                      <div
+                        key={value}
+                        className={`flex items-start space-x-3 p-4 rounded-lg border cursor-pointer transition-colors ${
+                          campaignForm.targetAudience.platforms.includes(value)
+                            ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
+                            : 'border-border hover:border-green-400'
+                        }`}
+                        onClick={() => {
+                          setCampaignForm((prev) => ({
+                            ...prev,
+                            targetAudience: {
+                              ...prev.targetAudience,
+                              platforms: prev.targetAudience.platforms.includes(value)
+                                ? prev.targetAudience.platforms.filter((p) => p !== value)
+                                : [...prev.targetAudience.platforms, value],
+                            },
+                          }));
                         }}
-                        data-testid="input-file-upload"
-                      />
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={uploadImageMutation.isPending}
-                          data-testid="button-upload-image"
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          {uploadImageMutation.isPending ? 'Uploading...' : 'Upload Campaign Image'}
-                        </Button>
-                        {uploadedImage && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setUploadedImage(null);
-                              setImagePreviewUrl(null);
-                              if (fileInputRef.current) {
-                                fileInputRef.current.value = '';
-                              }
-                            }}
-                            data-testid="button-remove-image"
-                          >
-                            <X className="w-4 h-4 mr-1" />
-                            Remove
-                          </Button>
+                      >
+                        <Icon className="w-5 h-5 mt-0.5" />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{label}</div>
+                          <div className="text-xs text-muted-foreground">{description}</div>
+                        </div>
+                        {campaignForm.targetAudience.platforms.includes(value) && (
+                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                         )}
                       </div>
-                      {imagePreviewUrl && (
-                        <div className="mt-2">
-                          <img src={imagePreviewUrl} alt="Campaign preview" className="max-h-40 rounded-lg" />
-                        </div>
-                      )}
-                    </div>
+                    ))}
+                  </div>
+                </div>
 
-                    <div className="flex justify-end space-x-3">
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsCreateCampaignOpen(false)}
-                        data-testid="button-cancel-campaign"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleCreateCampaign}
-                        disabled={createCampaignMutation.isPending}
-                        className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
-                        data-testid="button-create-campaign"
-                      >
-                        {createCampaignMutation.isPending ? 'Creating...' : 'Create Campaign'}
-                      </Button>
+                <div className="space-y-3">
+                  <Label>Target Age Range</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm">
+                        Min Age: {campaignForm.targetAudience.ageMin}
+                      </Label>
+                      <Slider
+                        value={[campaignForm.targetAudience.ageMin]}
+                        onValueChange={(value) =>
+                          setCampaignForm((prev) => ({
+                            ...prev,
+                            targetAudience: { ...prev.targetAudience, ageMin: value[0] },
+                          }))
+                        }
+                        max={65}
+                        min={13}
+                        step={1}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">
+                        Max Age: {campaignForm.targetAudience.ageMax}
+                      </Label>
+                      <Slider
+                        value={[campaignForm.targetAudience.ageMax]}
+                        onValueChange={(value) =>
+                          setCampaignForm((prev) => ({
+                            ...prev,
+                            targetAudience: { ...prev.targetAudience, ageMax: value[0] },
+                          }))
+                        }
+                        max={65}
+                        min={13}
+                        step={1}
+                      />
                     </div>
                   </div>
-                </DialogContent>
-              </Dialog>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Music Interests</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {musicInterests.map((interest) => (
+                      <div
+                        key={interest}
+                        className={`p-2 text-center rounded-lg border cursor-pointer transition-colors text-sm ${
+                          campaignForm.targetAudience.interests.includes(interest)
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                            : 'border-border hover:border-blue-400'
+                        }`}
+                        onClick={() => {
+                          setCampaignForm((prev) => ({
+                            ...prev,
+                            targetAudience: {
+                              ...prev.targetAudience,
+                              interests: prev.targetAudience.interests.includes(interest)
+                                ? prev.targetAudience.interests.filter((i) => i !== interest)
+                                : [...prev.targetAudience.interests, interest],
+                            },
+                          }));
+                        }}
+                      >
+                        {interest}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Campaign Image (Optional)</Label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setUploadedImage(file);
+                        const previewUrl = URL.createObjectURL(file);
+                        setImagePreviewUrl(previewUrl);
+                        uploadImageMutation.mutate(file);
+                      }
+                    }}
+                    data-testid="input-file-upload"
+                  />
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadImageMutation.isPending}
+                      data-testid="button-upload-image"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {uploadImageMutation.isPending ? 'Uploading...' : 'Upload Campaign Image'}
+                    </Button>
+                    {uploadedImage && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setUploadedImage(null);
+                          setImagePreviewUrl(null);
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = '';
+                          }
+                        }}
+                        data-testid="button-remove-image"
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  {imagePreviewUrl && (
+                    <div className="mt-2">
+                      <img
+                        src={imagePreviewUrl}
+                        alt="Campaign preview"
+                        className="max-h-40 rounded-lg"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsCreateCampaignOpen(false)}
+                    data-testid="button-cancel-campaign"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreateCampaign}
+                    disabled={createCampaignMutation.isPending}
+                    className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
+                    data-testid="button-create-campaign"
+                  >
+                    {createCampaignMutation.isPending ? 'Creating...' : 'Create Campaign'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Revolutionary AI Features Banner */}
+        <Card className="border-2 border-gradient-to-r from-blue-500 to-purple-600 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                🚀 Personal Ad Network System
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Transform your connected social media profiles into a powerful personal advertising
+                network for organic content distribution
+              </p>
+
+              {/* Personal Ad Network Status */}
+              <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-blue-200 dark:border-blue-800 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Your Personal Ad Network</h3>
+                </div>
+
+                {socialConnections && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {Object.entries(socialConnections).map(([platform, status]) => (
+                      <div
+                        key={platform}
+                        className={`p-3 rounded-lg border text-center ${
+                          status.connected
+                            ? 'border-green-200 bg-green-50 dark:bg-green-950/20'
+                            : 'border-gray-200 bg-gray-50 dark:bg-gray-900'
+                        }`}
+                      >
+                        <div
+                          className={`w-3 h-3 rounded-full mx-auto mb-2 ${status.connected ? 'bg-green-500' : 'bg-gray-400'}`}
+                        />
+                        <div className="text-xs font-medium capitalize">{platform}</div>
+                        <div
+                          className={`text-xs ${status.connected ? 'text-green-600' : 'text-gray-500'}`}
+                        >
+                          {status.connected ? 'Active' : 'Not Connected'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {connectionsLoading && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[...Array(8)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="p-3 rounded-lg border border-gray-200 bg-gray-50 dark:bg-gray-900 animate-pulse"
+                      >
+                        <div className="w-3 h-3 rounded-full mx-auto mb-2 bg-gray-400" />
+                        <div className="h-3 bg-gray-300 rounded mb-1" />
+                        <div className="h-2 bg-gray-200 rounded" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600">100%</div>
+                  <div className="text-sm">Cost Elimination</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600">
+                    {socialConnections
+                      ? Object.values(socialConnections).filter((s) => s.connected).length
+                      : 0}
+                  </div>
+                  <div className="text-sm">Connected Profiles</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-600">15%</div>
+                  <div className="text-sm">Viral Success Rate</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-orange-600">8</div>
+                  <div className="text-sm">Available Platforms</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="ai-revolution">AI Revolution</TabsTrigger>
+            <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="audiences">Audiences</TabsTrigger>
+            <TabsTrigger value="autopilot">
+              <Bot className="w-4 h-4 mr-1 inline" />
+              Autopilot
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="ai-revolution" className="space-y-6">
+            {/* Revolutionary Features */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="relative overflow-hidden border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10" />
+                <CardHeader className="relative">
+                  <CardTitle className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+                    <span>Complete Native Platform Replacement</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="relative space-y-3">
+                  <p className="text-muted-foreground">
+                    Organic posting to your social accounts - no paid ads required
+                  </p>
+                  <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-lg">
+                    <div className="text-sm font-semibold text-green-800 dark:text-green-200">
+                      100% Cost Reduction - $0 Ad Spend
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground italic">
+                    AI transforms your personal profiles into powerful advertising networks
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="relative overflow-hidden border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10" />
+                <CardHeader className="relative">
+                  <CardTitle className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
+                    <span>Organic Reach Expansion</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="relative space-y-3">
+                  <p className="text-muted-foreground">
+                    Expand organic reach across all platforms simultaneously
+                  </p>
+                  <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-lg">
+                    <div className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+                      Powerful Organic Reach
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground italic">
+                    Enhanced organic reach through AI-optimized content
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="relative overflow-hidden border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-violet-500/10" />
+                <CardHeader className="relative">
+                  <CardTitle className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
+                    <span>Viral Content Engineering</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="relative space-y-3">
+                  <p className="text-muted-foreground">
+                    AI creates viral content that spreads organically across all platforms
+                  </p>
+                  <div className="bg-purple-100 dark:bg-purple-900/20 p-3 rounded-lg">
+                    <div className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+                      AI-Enhanced Viral Potential
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground italic">
+                    AI optimization for better content performance
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="relative overflow-hidden border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-amber-500/10" />
+                <CardHeader className="relative">
+                  <CardTitle className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-orange-500 animate-pulse" />
+                    <span>Platform Algorithm Optimization</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="relative space-y-3">
+                  <p className="text-muted-foreground">
+                    Optimize content for platform recommendation algorithms
+                  </p>
+                  <div className="bg-orange-100 dark:bg-orange-900/20 p-3 rounded-lg">
+                    <div className="text-sm font-semibold text-orange-800 dark:text-orange-200">
+                      Enhanced Algorithmic Performance
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground italic">
+                    AI optimizes content for platform algorithms
+                  </p>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Revolutionary AI Features Banner */}
-            <Card className="border-2 border-gradient-to-r from-blue-500 to-purple-600 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
-              <CardContent className="p-6">
-                <div className="text-center space-y-4">
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    🚀 Personal Ad Network System
-                  </h2>
-                  <p className="text-lg text-muted-foreground">
-                    Transform your connected social media profiles into a powerful personal advertising network for organic content distribution
-                  </p>
-                  
-                  {/* Personal Ad Network Status */}
-                  <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-blue-200 dark:border-blue-800 mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold">Your Personal Ad Network</h3>
-                    </div>
-                    
-                    {socialConnections && (
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {Object.entries(socialConnections).map(([platform, status]) => (
-                          <div key={platform} className={`p-3 rounded-lg border text-center ${
-                            status.connected ? 'border-green-200 bg-green-50 dark:bg-green-950/20' : 'border-gray-200 bg-gray-50 dark:bg-gray-900'
-                          }`}>
-                            <div className={`w-3 h-3 rounded-full mx-auto mb-2 ${status.connected ? 'bg-green-500' : 'bg-gray-400'}`} />
-                            <div className="text-xs font-medium capitalize">{platform}</div>
-                            <div className={`text-xs ${status.connected ? 'text-green-600' : 'text-gray-500'}`}>
-                              {status.connected ? 'Active' : 'Not Connected'}
-                            </div>
-                          </div>
-                        ))}
+            {/* Platform Replacement Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Shield className="w-5 h-5 mr-2 text-green-600" />
+                  Native Platform Replacement Status
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">AI-enhanced organic marketing tools</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    {
+                      platform: 'Facebook Ads',
+                      status: 'Enhanced by Organic Group Engagement + Viral Content',
+                    },
+                    {
+                      platform: 'Google Ads',
+                      status: 'Enhanced by SEO Optimization + YouTube Algorithm Alignment',
+                    },
+                    {
+                      platform: 'TikTok Ads',
+                      status: 'Enhanced by Trend Prediction + Algorithm Optimization',
+                    },
+                    {
+                      platform: 'Instagram Ads',
+                      status: 'Enhanced by Influencer Network + Story Engagement',
+                    },
+                    {
+                      platform: 'YouTube Ads',
+                      status: 'Enhanced by Playlist Placement + Recommendation Optimization',
+                    },
+                    {
+                      platform: 'Spotify Ads',
+                      status: 'Enhanced by Playlist Strategy + Algorithm Optimization',
+                    },
+                    {
+                      platform: 'Twitter Ads',
+                      status: 'Enhanced by Trend Engagement + Community Building',
+                    },
+                    {
+                      platform: 'Snapchat Ads',
+                      status: 'Enhanced by Story Chain + Discovery Optimization',
+                    },
+                  ].map((item, index) => (
+                    <div
+                      key={index}
+                      className="bg-gradient-to-r from-red-50 to-green-50 dark:from-red-950/20 dark:to-green-950/20 p-4 rounded-lg border-l-4 border-green-500"
+                    >
+                      <div className="font-semibold text-lg flex items-center">
+                        <span className="text-gray-500 mr-2">{item.platform}</span>
+                        <Badge className="bg-green-100 text-green-800 text-xs">ENHANCED</Badge>
                       </div>
-                    )}
-                    
-                    {connectionsLoading && (
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {[...Array(8)].map((_, i) => (
-                          <div key={i} className="p-3 rounded-lg border border-gray-200 bg-gray-50 dark:bg-gray-900 animate-pulse">
-                            <div className="w-3 h-3 rounded-full mx-auto mb-2 bg-gray-400" />
-                            <div className="h-3 bg-gray-300 rounded mb-1" />
-                            <div className="h-2 bg-gray-200 rounded" />
-                          </div>
-                        ))}
+                      <div className="text-sm text-green-600 dark:text-green-400 font-medium mt-1">
+                        {item.status}
                       </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-green-600">100%</div>
-                      <div className="text-sm">Cost Elimination</div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-600">
-                        {socialConnections ? Object.values(socialConnections).filter(s => s.connected).length : 0}
-                      </div>
-                      <div className="text-sm">Connected Profiles</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-purple-600">15%</div>
-                      <div className="text-sm">Viral Success Rate</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-orange-600">8</div>
-                      <div className="text-sm">Available Platforms</div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
 
-            <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="ai-revolution">AI Revolution</TabsTrigger>
-                <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-                <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                <TabsTrigger value="audiences">Audiences</TabsTrigger>
-                <TabsTrigger value="autopilot">
-                  <Bot className="w-4 h-4 mr-1 inline" />
-                  Autopilot
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="ai-revolution" className="space-y-6">
-                {/* Revolutionary Features */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card className="relative overflow-hidden border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
-                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10" />
-                    <CardHeader className="relative">
-                      <CardTitle className="flex items-center space-x-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-                        <span>Complete Native Platform Replacement</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="relative space-y-3">
-                      <p className="text-muted-foreground">Organic posting to your social accounts - no paid ads required</p>
-                      <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-lg">
-                        <div className="text-sm font-semibold text-green-800 dark:text-green-200">
-                          100% Cost Reduction - $0 Ad Spend
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground italic">AI transforms your personal profiles into powerful advertising networks</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="relative overflow-hidden border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10" />
-                    <CardHeader className="relative">
-                      <CardTitle className="flex items-center space-x-2">
-                        <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
-                        <span>Organic Reach Expansion</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="relative space-y-3">
-                      <p className="text-muted-foreground">Expand organic reach across all platforms simultaneously</p>
-                      <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-lg">
-                        <div className="text-sm font-semibold text-blue-800 dark:text-blue-200">
-                          Powerful Organic Reach
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground italic">Enhanced organic reach through AI-optimized content</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="relative overflow-hidden border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-violet-500/10" />
-                    <CardHeader className="relative">
-                      <CardTitle className="flex items-center space-x-2">
-                        <div className="w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
-                        <span>Viral Content Engineering</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="relative space-y-3">
-                      <p className="text-muted-foreground">AI creates viral content that spreads organically across all platforms</p>
-                      <div className="bg-purple-100 dark:bg-purple-900/20 p-3 rounded-lg">
-                        <div className="text-sm font-semibold text-purple-800 dark:text-purple-200">
-                          AI-Enhanced Viral Potential
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground italic">AI optimization for better content performance</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="relative overflow-hidden border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20">
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-amber-500/10" />
-                    <CardHeader className="relative">
-                      <CardTitle className="flex items-center space-x-2">
-                        <div className="w-3 h-3 rounded-full bg-orange-500 animate-pulse" />
-                        <span>Platform Algorithm Optimization</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="relative space-y-3">
-                      <p className="text-muted-foreground">Optimize content for platform recommendation algorithms</p>
-                      <div className="bg-orange-100 dark:bg-orange-900/20 p-3 rounded-lg">
-                        <div className="text-sm font-semibold text-orange-800 dark:text-orange-200">
-                          Enhanced Algorithmic Performance
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground italic">AI optimizes content for platform algorithms</p>
-                    </CardContent>
-                  </Card>
+            {/* Revolutionary Capabilities */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Crown className="w-5 h-5 mr-2 text-purple-600" />
+                  Revolutionary Replacement Capabilities
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Advanced AI tools for organic social media marketing
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {[
+                    'Zero-Cost Viral Amplification',
+                    'Cross-Platform Algorithm Optimization',
+                    'Personal Network Enhancement',
+                    'Organic Reach Multiplication',
+                    'Viral Content Engineering',
+                    'Trend Prediction & Analysis',
+                    'Community Building Automation',
+                    'Influencer Network Creation',
+                    'SEO Optimization',
+                    'Playlist Strategy',
+                    'Story Chain Amplification',
+                    'Recommendation Optimization',
+                  ].map((capability, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center space-x-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-lg border border-purple-200 dark:border-purple-800"
+                    >
+                      <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                      <span className="text-sm font-medium">{capability}</span>
+                    </div>
+                  ))}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                {/* Platform Replacement Status */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Shield className="w-5 h-5 mr-2 text-green-600" />
-                      Native Platform Replacement Status
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      AI-enhanced organic marketing tools
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {[
-                        { platform: 'Facebook Ads', status: 'Enhanced by Organic Group Engagement + Viral Content' },
-                        { platform: 'Google Ads', status: 'Enhanced by SEO Optimization + YouTube Algorithm Alignment' },
-                        { platform: 'TikTok Ads', status: 'Enhanced by Trend Prediction + Algorithm Optimization' },
-                        { platform: 'Instagram Ads', status: 'Enhanced by Influencer Network + Story Engagement' },
-                        { platform: 'YouTube Ads', status: 'Enhanced by Playlist Placement + Recommendation Optimization' },
-                        { platform: 'Spotify Ads', status: 'Enhanced by Playlist Strategy + Algorithm Optimization' },
-                        { platform: 'Twitter Ads', status: 'Enhanced by Trend Engagement + Community Building' },
-                        { platform: 'Snapchat Ads', status: 'Enhanced by Story Chain + Discovery Optimization' }
-                      ].map((item, index) => (
-                        <div key={index} className="bg-gradient-to-r from-red-50 to-green-50 dark:from-red-950/20 dark:to-green-950/20 p-4 rounded-lg border-l-4 border-green-500">
-                          <div className="font-semibold text-lg flex items-center">
-                            <span className="text-gray-500 mr-2">{item.platform}</span>
-                            <Badge className="bg-green-100 text-green-800 text-xs">ENHANCED</Badge>
-                          </div>
-                          <div className="text-sm text-green-600 dark:text-green-400 font-medium mt-1">{item.status}</div>
-                        </div>
-                      ))}
+          <TabsContent value="overview" className="space-y-6">
+            {/* Performance Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="w-5 h-5 text-green-500" />
+                    <span className="text-sm font-medium">Total Spent</span>
+                  </div>
+                  <div className="mt-2">
+                    <div className="text-2xl font-bold text-green-600">$0</div>
+                    <div className="text-sm text-muted-foreground">AI eliminates all costs</div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-2">
+                    <Eye className="w-5 h-5 text-blue-500" />
+                    <span className="text-sm font-medium">Impressions</span>
+                  </div>
+                  <div className="mt-2">
+                    <div className="text-2xl font-bold">{totalImpressions.toLocaleString()}</div>
+                    <div className="text-sm text-green-600">Organic reach</div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-2">
+                    <MousePointerClick className="w-5 h-5 text-purple-500" />
+                    <span className="text-sm font-medium">Clicks</span>
+                  </div>
+                  <div className="mt-2">
+                    <div className="text-2xl font-bold">{totalClicks.toLocaleString()}</div>
+                    <div className="text-sm text-green-600">From organic posts</div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-2">
+                    <Target className="w-5 h-5 text-orange-500" />
+                    <span className="text-sm font-medium">Viral Rate</span>
+                  </div>
+                  <div className="mt-2">
+                    <div className="text-2xl font-bold">15%</div>
+                    <div className="text-sm text-green-600">Engagement rate</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Setup */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Rocket className="w-5 h-5 mr-2 text-blue-600" />
+                  AI Campaign Templates
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Get started with pre-configured AI campaign templates
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 border rounded-lg hover:border-blue-500 transition-colors cursor-pointer bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <Music className="w-6 h-6 text-blue-500" />
+                      <h4 className="font-semibold">Viral Release Campaign</h4>
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* Revolutionary Capabilities */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Crown className="w-5 h-5 mr-2 text-purple-600" />
-                      Revolutionary Replacement Capabilities
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Advanced AI tools for organic social media marketing
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Reach all platforms with AI-powered release strategy
                     </p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {[
-                        'Zero-Cost Viral Amplification',
-                        'Cross-Platform Algorithm Optimization',
-                        'Personal Network Enhancement',
-                        'Organic Reach Multiplication',
-                        'Viral Content Engineering',
-                        'Trend Prediction & Analysis',
-                        'Community Building Automation',
-                        'Influencer Network Creation',
-                        'SEO Optimization',
-                        'Playlist Strategy',
-                        'Story Chain Amplification',
-                        'Recommendation Optimization'
-                      ].map((capability, index) => (
-                        <div key={index} className="flex items-center space-x-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                          <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
-                          <span className="text-sm font-medium">{capability}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-blue-200 text-blue-600 hover:bg-blue-50"
+                    >
+                      Start Campaign
+                    </Button>
+                  </div>
 
-              <TabsContent value="overview" className="space-y-6">
-                {/* Performance Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center space-x-2">
-                        <DollarSign className="w-5 h-5 text-green-500" />
-                        <span className="text-sm font-medium">Total Spent</span>
-                      </div>
-                      <div className="mt-2">
-                        <div className="text-2xl font-bold text-green-600">$0</div>
-                        <div className="text-sm text-muted-foreground">AI eliminates all costs</div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center space-x-2">
-                        <Eye className="w-5 h-5 text-blue-500" />
-                        <span className="text-sm font-medium">Impressions</span>
-                      </div>
-                      <div className="mt-2">
-                        <div className="text-2xl font-bold">{totalImpressions.toLocaleString()}</div>
-                        <div className="text-sm text-green-600">Organic reach</div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center space-x-2">
-                        <MousePointerClick className="w-5 h-5 text-purple-500" />
-                        <span className="text-sm font-medium">Clicks</span>
-                      </div>
-                      <div className="mt-2">
-                        <div className="text-2xl font-bold">{totalClicks.toLocaleString()}</div>
-                        <div className="text-sm text-green-600">From organic posts</div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center space-x-2">
-                        <Target className="w-5 h-5 text-orange-500" />
-                        <span className="text-sm font-medium">Viral Rate</span>
-                      </div>
-                      <div className="mt-2">
-                        <div className="text-2xl font-bold">15%</div>
-                        <div className="text-sm text-green-600">Engagement rate</div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div className="p-4 border rounded-lg hover:border-green-500 transition-colors cursor-pointer bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <Users className="w-6 h-6 text-green-500" />
+                      <h4 className="font-semibold">Fan Base Explosion</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Explode your fan base with AI-powered community building
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-green-200 text-green-600 hover:bg-green-50"
+                    >
+                      Activate AI Growth
+                    </Button>
+                  </div>
+
+                  <div className="p-4 border rounded-lg hover:border-purple-500 transition-colors cursor-pointer bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <Play className="w-6 h-6 text-purple-500" />
+                      <h4 className="font-semibold">Stream Enhancement</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Reach streaming platforms with AI-optimized content
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-purple-200 text-purple-600 hover:bg-purple-50"
+                    >
+                      Activate AI Streaming
+                    </Button>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                {/* Quick Setup */}
+          <TabsContent value="campaigns" className="space-y-6">
+            <div className="space-y-4">
+              {campaignsLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-4 bg-muted rounded w-1/3 mb-4" />
+                      <div className="grid grid-cols-4 gap-4">
+                        <div className="h-6 bg-muted rounded" />
+                        <div className="h-6 bg-muted rounded" />
+                        <div className="h-6 bg-muted rounded" />
+                        <div className="h-6 bg-muted rounded" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : campaigns.length === 0 ? (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Rocket className="w-5 h-5 mr-2 text-blue-600" />
-                      AI Campaign Templates
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Get started with pre-configured AI campaign templates
+                  <CardContent className="p-12 text-center">
+                    <Rocket className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No AI campaigns yet</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Create your first AI-enhanced organic advertising campaign
                     </p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="p-4 border rounded-lg hover:border-blue-500 transition-colors cursor-pointer bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <Music className="w-6 h-6 text-blue-500" />
-                          <h4 className="font-semibold">Viral Release Campaign</h4>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Reach all platforms with AI-powered release strategy
-                        </p>
-                        <Button variant="outline" size="sm" className="w-full border-blue-200 text-blue-600 hover:bg-blue-50">
-                          Start Campaign
-                        </Button>
-                      </div>
-                      
-                      <div className="p-4 border rounded-lg hover:border-green-500 transition-colors cursor-pointer bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <Users className="w-6 h-6 text-green-500" />
-                          <h4 className="font-semibold">Fan Base Explosion</h4>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Explode your fan base with AI-powered community building
-                        </p>
-                        <Button variant="outline" size="sm" className="w-full border-green-200 text-green-600 hover:bg-green-50">
-                          Activate AI Growth
-                        </Button>
-                      </div>
-                      
-                      <div className="p-4 border rounded-lg hover:border-purple-500 transition-colors cursor-pointer bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <Play className="w-6 h-6 text-purple-500" />
-                          <h4 className="font-semibold">Stream Enhancement</h4>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Reach streaming platforms with AI-optimized content
-                        </p>
-                        <Button variant="outline" size="sm" className="w-full border-purple-200 text-purple-600 hover:bg-purple-50">
-                          Activate AI Streaming
-                        </Button>
-                      </div>
-                    </div>
+                    <Button
+                      onClick={() => setIsCreateCampaignOpen(true)}
+                      className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
+                    >
+                      <Rocket className="w-4 h-4 mr-2" />
+                      Create Campaign
+                    </Button>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              ) : (
+                campaigns.map((campaign: AdCampaign) => (
+                  <Card
+                    key={campaign.id}
+                    className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20"
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold">{campaign.name}</h3>
+                          <p className="text-sm text-muted-foreground">{campaign.objective}</p>
+                        </div>
+                        <Badge className="bg-green-100 text-green-800 border-green-300">
+                          AI Enhanced
+                        </Badge>
+                      </div>
 
-              <TabsContent value="campaigns" className="space-y-6">
-                <div className="space-y-4">
-                  {campaignsLoading ? (
-                    Array.from({ length: 3 }).map((_, i) => (
-                      <Card key={i} className="animate-pulse">
-                        <CardContent className="p-6">
-                          <div className="h-4 bg-muted rounded w-1/3 mb-4" />
-                          <div className="grid grid-cols-4 gap-4">
-                            <div className="h-6 bg-muted rounded" />
-                            <div className="h-6 bg-muted rounded" />
-                            <div className="h-6 bg-muted rounded" />
-                            <div className="h-6 bg-muted rounded" />
+                      {/* AI Optimization Badge */}
+                      <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-sm font-semibold text-green-800 dark:text-green-200">
+                            AI AUTOPILOT ACTIVE
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                          <div>
+                            <span className="text-muted-foreground">Performance:</span>
+                            <div className="font-semibold text-green-600">Optimized</div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : campaigns.length === 0 ? (
-                    <Card>
-                      <CardContent className="p-12 text-center">
-                        <Rocket className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">No AI campaigns yet</h3>
-                        <p className="text-muted-foreground mb-6">
-                          Create your first AI-enhanced organic advertising campaign
-                        </p>
-                        <Button 
-                          onClick={() => setIsCreateCampaignOpen(true)}
-                          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
-                        >
-                          <Rocket className="w-4 h-4 mr-2" />
-                          Create Campaign
+                          <div>
+                            <span className="text-muted-foreground">Cost:</span>
+                            <div className="font-semibold text-green-600">$0 (Organic)</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Engagement:</span>
+                            <div className="font-semibold text-purple-600">15%</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">AI Status:</span>
+                            <div className="font-semibold text-blue-600">Active</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                          <div className="text-sm text-muted-foreground">Budget</div>
+                          <div className="font-semibold text-green-600">$0 (AI Eliminated)</div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-muted-foreground">Spent</div>
+                          <div className="font-semibold text-green-600">$0 (Zero Cost)</div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-muted-foreground">Impressions</div>
+                          <div className="font-semibold">
+                            {campaign.impressions.toLocaleString()}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-muted-foreground">Clicks</div>
+                          <div className="font-semibold">{campaign.clicks.toLocaleString()}</div>
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>AI Optimization Progress</span>
+                          <span className="text-green-600">100% (Complete)</span>
+                        </div>
+                        <Progress value={100} className="h-2" />
+                      </div>
+
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" size="sm">
+                          View AI Analytics
                         </Button>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    campaigns.map((campaign: AdCampaign) => (
-                      <Card key={campaign.id} className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20">
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold">{campaign.name}</h3>
-                              <p className="text-sm text-muted-foreground">{campaign.objective}</p>
-                            </div>
-                            <Badge className="bg-green-100 text-green-800 border-green-300">
-                              AI Enhanced
-                            </Badge>
-                          </div>
-                          
-                          {/* AI Optimization Badge */}
-                          <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                              <span className="text-sm font-semibold text-green-800 dark:text-green-200">AI AUTOPILOT ACTIVE</span>
-                            </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                              <div>
-                                <span className="text-muted-foreground">Performance:</span>
-                                <div className="font-semibold text-green-600">Optimized</div>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">Cost:</span>
-                                <div className="font-semibold text-green-600">$0 (Organic)</div>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">Engagement:</span>
-                                <div className="font-semibold text-purple-600">15%</div>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">AI Status:</span>
-                                <div className="font-semibold text-blue-600">Active</div>
-                              </div>
-                            </div>
-                          </div>
+                        <Button variant="outline" size="sm">
+                          Edit Campaign
+                        </Button>
+                        <Button variant="destructive" size="sm">
+                          Stop AI
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
 
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                            <div>
-                              <div className="text-sm text-muted-foreground">Budget</div>
-                              <div className="font-semibold text-green-600">$0 (AI Eliminated)</div>
-                            </div>
-                            <div>
-                              <div className="text-sm text-muted-foreground">Spent</div>
-                              <div className="font-semibold text-green-600">$0 (Zero Cost)</div>
-                            </div>
-                            <div>
-                              <div className="text-sm text-muted-foreground">Impressions</div>
-                              <div className="font-semibold">{campaign.impressions.toLocaleString()}</div>
-                            </div>
-                            <div>
-                              <div className="text-sm text-muted-foreground">Clicks</div>
-                              <div className="font-semibold">{campaign.clicks.toLocaleString()}</div>
-                            </div>
-                          </div>
-                          
-                          <div className="mb-4">
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>AI Optimization Progress</span>
-                              <span className="text-green-600">100% (Complete)</span>
-                            </div>
-                            <Progress value={100} className="h-2" />
-                          </div>
-                          
-                          <div className="flex justify-end space-x-2">
-                            <Button variant="outline" size="sm">
-                              View AI Analytics
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              Edit Campaign
-                            </Button>
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                            >
-                              Stop AI
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )}
+          <TabsContent value="analytics" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
+                  AI Performance Analytics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 flex items-center justify-center text-muted-foreground">
+                  <div className="text-center">
+                    <Brain className="w-16 h-16 mx-auto mb-4 text-blue-500" />
+                    <h3 className="text-lg font-semibold mb-2">AI Analytics Dashboard</h3>
+                    <p className="text-sm">
+                      Real-time AI performance metrics will be available once you activate your
+                      first campaign
+                    </p>
+                  </div>
                 </div>
-              </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              <TabsContent value="analytics" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
-                      AI Performance Analytics
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64 flex items-center justify-center text-muted-foreground">
-                      <div className="text-center">
-                        <Brain className="w-16 h-16 mx-auto mb-4 text-blue-500" />
-                        <h3 className="text-lg font-semibold mb-2">AI Analytics Dashboard</h3>
-                        <p className="text-sm">Real-time AI performance metrics will be available once you activate your first campaign</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+          <TabsContent value="audiences" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Target className="w-5 h-5 mr-2 text-purple-600" />
+                  AI Target Audiences
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Create and manage AI-optimized audiences for maximum viral potential
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No AI audiences yet</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Create AI-optimized audiences based on viral potential and engagement patterns
+                  </p>
+                  <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white">
+                    <Brain className="w-4 h-4 mr-2" />
+                    Create AI Audience
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              <TabsContent value="audiences" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Target className="w-5 h-5 mr-2 text-purple-600" />
-                      AI Target Audiences
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Create and manage AI-optimized audiences for maximum viral potential
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-12">
-                      <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No AI audiences yet</h3>
-                      <p className="text-muted-foreground mb-6">
-                        Create AI-optimized audiences based on viral potential and engagement patterns
-                      </p>
-                      <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white">
-                        <Brain className="w-4 h-4 mr-2" />
-                        Create AI Audience
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Autopilot Tab */}
-              <TabsContent value="autopilot" className="space-y-6">
-                <AutonomousDashboard />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </AppLayout>
+          {/* Autopilot Tab */}
+          <TabsContent value="autopilot" className="space-y-6">
+            <AutonomousDashboard />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AppLayout>
   );
 }

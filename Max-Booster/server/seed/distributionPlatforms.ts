@@ -1,6 +1,7 @@
 import { db } from '../db';
 import { distroProviders } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { logger } from '../logger.js';
 
 export const DISTRIBUTION_PLATFORMS = [
   {
@@ -13,7 +14,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'Apple Music',
@@ -25,7 +31,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'Amazon Music',
@@ -37,7 +48,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'Amazon MP3',
@@ -49,7 +65,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'store',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'YouTube Music',
@@ -61,7 +82,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: false, metadata: ['title', 'artist'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: true,
+      upc: false,
+      metadata: ['title', 'artist'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Deezer',
@@ -73,7 +99,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'Tidal',
@@ -85,7 +116,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'Pandora',
@@ -97,7 +133,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'north_america',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: false, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: true,
+      upc: false,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'iHeartRadio',
@@ -109,7 +150,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'north_america',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: false, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: true,
+      upc: false,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'SoundCloud',
@@ -121,7 +167,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: false, upc: false, metadata: ['title', 'artist'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: false,
+      upc: false,
+      metadata: ['title', 'artist'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Napster',
@@ -133,7 +184,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'TikTok',
@@ -145,7 +201,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'social',
     status: 'active',
-    requirements: { isrc: false, upc: false, metadata: ['title', 'artist'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: false,
+      upc: false,
+      metadata: ['title', 'artist'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Instagram',
@@ -157,7 +218,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'social',
     status: 'active',
-    requirements: { isrc: false, upc: false, metadata: ['title', 'artist'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: false,
+      upc: false,
+      metadata: ['title', 'artist'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Facebook',
@@ -169,7 +235,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'social',
     status: 'active',
-    requirements: { isrc: false, upc: false, metadata: ['title', 'artist'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: false,
+      upc: false,
+      metadata: ['title', 'artist'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Snapchat',
@@ -181,7 +252,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'social',
     status: 'active',
-    requirements: { isrc: false, upc: false, metadata: ['title', 'artist'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: false,
+      upc: false,
+      metadata: ['title', 'artist'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Tencent Music',
@@ -193,7 +269,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'china',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'NetEase Cloud Music',
@@ -205,7 +286,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'china',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'JioSaavn',
@@ -217,7 +303,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'india',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: false, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: true,
+      upc: false,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Gaana',
@@ -229,7 +320,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'india',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: false, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: true,
+      upc: false,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Anghami',
@@ -241,7 +337,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'middle_east',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'Boomplay',
@@ -253,7 +354,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'africa',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: false, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: true,
+      upc: false,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Yandex Music',
@@ -265,7 +371,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'russia',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'Melon',
@@ -277,7 +388,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'korea',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'KKBOX',
@@ -289,7 +405,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'taiwan',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'VK Music',
@@ -301,7 +422,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'russia',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: false, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: true,
+      upc: false,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Joox',
@@ -313,7 +439,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'asia',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: false, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: true,
+      upc: false,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: '7digital',
@@ -325,7 +456,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'store',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'Qobuz',
@@ -337,7 +473,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'europe',
     category: 'store',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'MediaNet',
@@ -349,7 +490,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'store',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'Gracenote',
@@ -361,7 +507,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'metadata',
     status: 'active',
-    requirements: { isrc: true, upc: true, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'FLAC'] }
+    requirements: {
+      isrc: true,
+      upc: true,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'FLAC'],
+    },
   },
   {
     name: 'Shazam',
@@ -373,7 +524,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'discovery',
     status: 'active',
-    requirements: { isrc: true, upc: false, metadata: ['title', 'artist'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: true,
+      upc: false,
+      metadata: ['title', 'artist'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Trebel',
@@ -385,7 +541,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'latin_america',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: false, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: true,
+      upc: false,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Audiomack',
@@ -397,7 +558,12 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'global',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: false, upc: false, metadata: ['title', 'artist'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: false,
+      upc: false,
+      metadata: ['title', 'artist'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
   {
     name: 'Claro Música',
@@ -409,13 +575,21 @@ export const DISTRIBUTION_PLATFORMS = [
     region: 'latin_america',
     category: 'streaming',
     status: 'active',
-    requirements: { isrc: true, upc: false, metadata: ['title', 'artist', 'album'], audioFormats: ['WAV', 'MP3'] }
+    requirements: {
+      isrc: true,
+      upc: false,
+      metadata: ['title', 'artist', 'album'],
+      audioFormats: ['WAV', 'MP3'],
+    },
   },
 ];
 
+/**
+ * TODO: Add function documentation
+ */
 export async function seedDistributionPlatforms() {
-  console.log('🌱 Seeding distribution platforms...');
-  
+  logger.info('🌱 Seeding distribution platforms...');
+
   try {
     for (const platform of DISTRIBUTION_PLATFORMS) {
       const [existing] = await db
@@ -426,15 +600,17 @@ export async function seedDistributionPlatforms() {
 
       if (!existing) {
         await db.insert(distroProviders).values(platform);
-        console.log(`  ✅ Added platform: ${platform.name}`);
+        logger.info(`  ✅ Added platform: ${platform.name}`);
       } else {
-        console.log(`  ⏭️  Platform exists: ${platform.name}`);
+        logger.info(`  ⏭️  Platform exists: ${platform.name}`);
       }
     }
 
-    console.log(`✅ Distribution platform seeding complete! ${DISTRIBUTION_PLATFORMS.length} platforms available.`);
-  } catch (error) {
-    console.error('❌ Error seeding distribution platforms:', error);
+    logger.info(
+      `✅ Distribution platform seeding complete! ${DISTRIBUTION_PLATFORMS.length} platforms available.`
+    );
+  } catch (error: unknown) {
+    logger.error('❌ Error seeding distribution platforms:', error);
     throw error;
   }
 }

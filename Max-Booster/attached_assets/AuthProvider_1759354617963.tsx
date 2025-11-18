@@ -6,7 +6,12 @@ import type { User } from '@shared/schema';
 interface AuthContextType {
   user: User | null;
   login: (credentials: { username: string; password: string }) => Promise<void>;
-  register: (data: { username: string; email: string; password: string; confirmPassword: string }) => Promise<void>;
+  register: (data: {
+    username: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
 }
@@ -35,7 +40,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
   };
 
-  const register = async (data: { username: string; email: string; password: string; confirmPassword: string }) => {
+  const register = async (data: {
+    username: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }) => {
     const response = await apiRequest('POST', '/api/auth/register', data);
     const result = await response.json();
     setUser(result.user);

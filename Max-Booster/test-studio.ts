@@ -15,12 +15,12 @@ async function testStudio() {
     console.log('Step 1: Logging in as test user...');
     const loginRes = await axios.post(`${API_BASE}/auth/login`, {
       username: 'test.monthly@maxbooster.com',
-      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#'
+      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#',
     });
-    
+
     const sessionCookie = loginRes.headers['set-cookie']?.[0];
     if (!sessionCookie) throw new Error('Failed to get session cookie');
-    
+
     console.log('✅ Logged in successfully\n');
 
     // Step 2: Create a project
@@ -33,7 +33,7 @@ async function testStudio() {
         bpm: 128,
         key: 'C',
         timeSignature: '4/4',
-        genre: 'Electronic'
+        genre: 'Electronic',
       },
       { headers: { Cookie: sessionCookie } }
     );
@@ -42,7 +42,7 @@ async function testStudio() {
     // Step 3: Get user's projects
     console.log('\nStep 3: Fetching user projects...');
     const projectsRes = await axios.get(`${API_BASE}/studio/projects`, {
-      headers: { Cookie: sessionCookie }
+      headers: { Cookie: sessionCookie },
     });
     console.log('✅ User Projects:', projectsRes.data);
 
@@ -58,7 +58,7 @@ async function testStudio() {
         volume: 0.8,
         pan: 0,
         muted: false,
-        solo: false
+        solo: false,
       },
       { headers: { Cookie: sessionCookie } }
     );
@@ -67,7 +67,7 @@ async function testStudio() {
     // Step 5: Get available plugins
     console.log('\nStep 5: Fetching available plugins...');
     const pluginsRes = await axios.get(`${API_BASE}/studio/plugins`, {
-      headers: { Cookie: sessionCookie }
+      headers: { Cookie: sessionCookie },
     });
     console.log('✅ Available Plugins:', pluginsRes.data);
 
@@ -78,7 +78,7 @@ async function testStudio() {
       {
         projectId: projectRes.data.id,
         style: 'modern-edm',
-        intensity: 'medium'
+        intensity: 'medium',
       },
       { headers: { Cookie: sessionCookie } }
     );
@@ -91,7 +91,7 @@ async function testStudio() {
       {
         trackId: trackRes.data.id,
         targetLoudness: -14, // LUFS
-        style: 'streaming-optimized'
+        style: 'streaming-optimized',
       },
       { headers: { Cookie: sessionCookie } }
     );
@@ -103,7 +103,7 @@ async function testStudio() {
       `${API_BASE}/audio/separate-stems`,
       {
         audioUrl: '/uploads/full-mix.wav',
-        outputFormat: 'wav'
+        outputFormat: 'wav',
       },
       { headers: { Cookie: sessionCookie } }
     );
@@ -117,7 +117,7 @@ async function testStudio() {
         key: 'C',
         scale: 'major',
         mood: 'uplifting',
-        duration: 16 // bars
+        duration: 16, // bars
       },
       { headers: { Cookie: sessionCookie } }
     );
@@ -131,7 +131,7 @@ async function testStudio() {
         format: 'wav',
         quality: 'high',
         sampleRate: 44100,
-        bitDepth: 24
+        bitDepth: 24,
       },
       { headers: { Cookie: sessionCookie } }
     );
@@ -147,26 +147,25 @@ async function testStudio() {
 
     console.log('\n🎉 Studio test completed successfully!');
     console.log('DAW and audio processing system is working correctly.');
-    
+
     return {
       success: true,
       project: projectRes.data,
       track: trackRes.data,
-      aiMixing: mixRes.data
+      aiMixing: mixRes.data,
     };
-
   } catch (error: any) {
     console.error('\n❌ Studio test failed:', error.response?.data || error.message);
     console.error('Details:', error.response?.status, error.response?.statusText);
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 }
 
 // Run the test
-testStudio().then(result => {
+testStudio().then((result) => {
   console.log('\n📊 Test Summary:', result);
   process.exit(result.success ? 0 : 1);
 });

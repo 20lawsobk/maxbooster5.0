@@ -1,6 +1,14 @@
 import { db } from '../db.js';
-import { systemMetrics, alertRules, alertIncidents, type InsertSystemMetric, type InsertAlertRule, type InsertAlertIncident } from '@shared/schema';
+import {
+  systemMetrics,
+  alertRules,
+  alertIncidents,
+  type InsertSystemMetric,
+  type InsertAlertRule,
+  type InsertAlertIncident,
+} from '@shared/schema';
 import { eq, desc, and, gte, lte, sql } from 'drizzle-orm';
+import { logger } from '../logger.js';
 
 export class MetricsService {
   /**
@@ -30,7 +38,12 @@ export class MetricsService {
           sampleCount: 1,
         })
         .onConflictDoUpdate({
-          target: [systemMetrics.metricName, systemMetrics.source, systemMetrics.bucketStart, systemMetrics.resolutionSecs],
+          target: [
+            systemMetrics.metricName,
+            systemMetrics.source,
+            systemMetrics.bucketStart,
+            systemMetrics.resolutionSecs,
+          ],
           set: {
             avgValue: sql`((${systemMetrics.avgValue}::numeric * ${systemMetrics.sampleCount}::numeric + ${value}::numeric) / (${systemMetrics.sampleCount}::numeric + 1))::text`,
             minValue: sql`LEAST(${systemMetrics.minValue}::numeric, ${value}::numeric)::text`,
@@ -38,8 +51,8 @@ export class MetricsService {
             sampleCount: sql`${systemMetrics.sampleCount} + 1`,
           },
         });
-    } catch (error) {
-      console.error('Failed to record metric:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to record metric:', error);
     }
   }
 
@@ -80,8 +93,8 @@ export class MetricsService {
         minValue: parseFloat(r.minValue || '0'),
         maxValue: parseFloat(r.maxValue || '0'),
       }));
-    } catch (error) {
-      console.error('Failed to get metrics:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to get metrics:', error);
       return [];
     }
   }
@@ -92,8 +105,8 @@ export class MetricsService {
   async createAlertRule(data: InsertAlertRule): Promise<void> {
     try {
       await db.insert(alertRules).values(data);
-    } catch (error) {
-      console.error('Failed to create alert rule:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to create alert rule:', error);
       throw error;
     }
   }
@@ -103,17 +116,14 @@ export class MetricsService {
    */
   async evaluateAlerts(): Promise<void> {
     try {
-      const activeRules = await db
-        .select()
-        .from(alertRules)
-        .where(eq(alertRules.isActive, true));
+      const activeRules = await db.select().from(alertRules).where(eq(alertRules.isActive, true));
 
       for (const rule of activeRules) {
         const endTime = new Date();
         const startTime = new Date(endTime.getTime() - (rule.durationSecs || 300) * 1000);
 
         const metrics = await this.getMetrics(rule.metricName, startTime, endTime);
-        
+
         if (metrics.length === 0) continue;
 
         const latestValue = metrics[metrics.length - 1].avgValue;
@@ -154,7 +164,9 @@ export class MetricsService {
               },
             });
 
-            console.log(`Alert triggered: ${rule.name} (${latestValue} ${rule.condition} ${threshold})`);
+            logger.info(
+              `Alert triggered: ${rule.name} (${latestValue} ${rule.condition} ${threshold})`
+            );
           }
         } else {
           await db
@@ -166,8 +178,8 @@ export class MetricsService {
             .where(and(eq(alertIncidents.ruleId, rule.id), eq(alertIncidents.status, 'triggered')));
         }
       }
-    } catch (error) {
-      console.error('Failed to evaluate alerts:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to evaluate alerts:', error);
     }
   }
 
@@ -187,8 +199,8 @@ export class MetricsService {
         .orderBy(desc(alertIncidents.triggeredAt));
 
       return incidents;
-    } catch (error) {
-      console.error('Failed to get active incidents:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to get active incidents:', error);
       return [];
     }
   }

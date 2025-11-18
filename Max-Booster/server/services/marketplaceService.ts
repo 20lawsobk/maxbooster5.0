@@ -1,13 +1,14 @@
-import { storage } from "../storage";
-import { db } from "../db";
-import { nanoid } from "nanoid";
-import Stripe from "stripe";
-import { type Order as DBOrder } from "@shared/schema";
-import { instantPayoutService } from "./instantPayoutService";
+import { storage } from '../storage';
+import { db } from '../db';
+import { nanoid } from 'nanoid';
+import Stripe from 'stripe';
+import { type Order as DBOrder } from '@shared/schema';
+import { instantPayoutService } from './instantPayoutService';
+import { logger } from '../logger.js';
 
 // Initialize Stripe
 const stripe = process.env.STRIPE_SECRET_KEY?.startsWith('sk_')
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-08-27.basil" })
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-08-27.basil' })
   : null;
 
 export interface BeatListing {
@@ -36,13 +37,13 @@ export interface BeatLicense {
 // Service-layer Order type (domain model)
 export interface Order {
   id: string;
-  beatId: string;  // Maps to listingId in database
+  beatId: string; // Maps to listingId in database
   buyerId: string;
   sellerId: string;
   licenseType: string;
-  amount: number;  // Maps to amountCents / 100 in database
+  amount: number; // Maps to amountCents / 100 in database
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
-  paymentIntentId?: string;  // Maps to stripePaymentIntentId in database
+  paymentIntentId?: string; // Maps to stripePaymentIntentId in database
   licenseDocumentUrl?: string;
   createdAt: Date;
 }
@@ -63,19 +64,23 @@ function toServiceOrder(dbOrder: DBOrder): Order {
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function toDBOrder(serviceOrder: Partial<Order>): Partial<DBOrder> {
   const dbOrder: Partial<DBOrder> = {};
-  
+
   if (serviceOrder.id) dbOrder.id = serviceOrder.id;
   if (serviceOrder.beatId) dbOrder.listingId = serviceOrder.beatId;
   if (serviceOrder.buyerId) dbOrder.buyerId = serviceOrder.buyerId;
   if (serviceOrder.sellerId) dbOrder.sellerId = serviceOrder.sellerId;
   if (serviceOrder.licenseType) dbOrder.licenseType = serviceOrder.licenseType;
-  if (serviceOrder.amount !== undefined) dbOrder.amountCents = Math.round(serviceOrder.amount * 100);
+  if (serviceOrder.amount !== undefined)
+    dbOrder.amountCents = Math.round(serviceOrder.amount * 100);
   if (serviceOrder.status) dbOrder.status = serviceOrder.status;
   if (serviceOrder.paymentIntentId) dbOrder.stripePaymentIntentId = serviceOrder.paymentIntentId;
   if (serviceOrder.licenseDocumentUrl) dbOrder.licenseDocumentUrl = serviceOrder.licenseDocumentUrl;
-  
+
   return dbOrder;
 }
 
@@ -121,7 +126,7 @@ export class MarketplaceService {
       const createdListing = await storage.createListing(dbListing);
 
       // Map database result back to service format
-      const metadata = createdListing.metadata as any || {};
+      const metadata = (createdListing.metadata as any) || {};
       return {
         id: createdListing.id,
         userId: createdListing.ownerId,
@@ -133,14 +138,14 @@ export class MarketplaceService {
         price: createdListing.priceCents / 100,
         audioUrl: createdListing.previewUrl || createdListing.downloadUrl || '',
         artworkUrl: createdListing.coverArtUrl || undefined,
-        tags: Array.isArray(createdListing.tags) ? createdListing.tags as string[] : [],
+        tags: Array.isArray(createdListing.tags) ? (createdListing.tags as string[]) : [],
         licenses: metadata.licenses || data.licenses,
         status: createdListing.isPublished ? 'active' : 'inactive',
         createdAt: createdListing.createdAt || new Date(),
       };
-    } catch (error) {
-      console.error("Error creating listing:", error);
-      throw new Error("Failed to create beat listing");
+    } catch (error: unknown) {
+      logger.error('Error creating listing:', error);
+      throw new Error('Failed to create beat listing');
     }
   }
 
@@ -151,9 +156,9 @@ export class MarketplaceService {
     try {
       const listing = await storage.getBeatListing(listingId);
       return listing;
-    } catch (error) {
-      console.error("Error fetching listing:", error);
-      throw new Error("Failed to fetch listing");
+    } catch (error: unknown) {
+      logger.error('Error fetching listing:', error);
+      throw new Error('Failed to fetch listing');
     }
   }
 
@@ -174,9 +179,9 @@ export class MarketplaceService {
     try {
       const listings = await storage.getBeatListings(filters);
       return listings;
-    } catch (error) {
-      console.error("Error browsing listings:", error);
-      throw new Error("Failed to browse listings");
+    } catch (error: unknown) {
+      logger.error('Error browsing listings:', error);
+      throw new Error('Failed to browse listings');
     }
   }
 
@@ -192,13 +197,13 @@ export class MarketplaceService {
       // Get beat details
       const beat = await this.getListing(data.beatId);
       if (!beat) {
-        throw new Error("Beat not found");
+        throw new Error('Beat not found');
       }
 
       // Find the license price
-      const license = beat.licenses.find(l => l.type === data.licenseType);
+      const license = beat.licenses.find((l) => l.type === data.licenseType);
       if (!license) {
-        throw new Error("Invalid license type");
+        throw new Error('Invalid license type');
       }
 
       // Map service data to database schema
@@ -217,9 +222,9 @@ export class MarketplaceService {
 
       // Convert database order to service order
       return toServiceOrder(createdOrder);
-    } catch (error) {
-      console.error("Error creating order:", error);
-      throw new Error("Failed to create order");
+    } catch (error: unknown) {
+      logger.error('Error creating order:', error);
+      throw new Error('Failed to create order');
     }
   }
 
@@ -229,20 +234,20 @@ export class MarketplaceService {
   async processPayment(orderId: string, paymentIntentId: string): Promise<Order> {
     try {
       if (!stripe) {
-        throw new Error("Stripe not configured");
+        throw new Error('Stripe not configured');
       }
 
       // Get existing order from database
       const dbOrder = await storage.getOrder(orderId);
       if (!dbOrder) {
-        throw new Error("Order not found");
+        throw new Error('Order not found');
       }
 
       // Retrieve payment intent
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
       if (paymentIntent.status !== 'succeeded') {
-        throw new Error("Payment not successful");
+        throw new Error('Payment not successful');
       }
 
       // Update order status to completed
@@ -256,7 +261,9 @@ export class MarketplaceService {
         const totalAmount = dbOrder.amountCents / 100;
         const platformFeePercentage = Number(process.env.PLATFORM_FEE_PERCENTAGE) || 10;
 
-        console.log(`Initiating instant payout for order ${orderId}: $${totalAmount} to seller ${dbOrder.sellerId}`);
+        logger.info(
+          `Initiating instant payout for order ${orderId}: $${totalAmount} to seller ${dbOrder.sellerId}`
+        );
 
         // Create instant transfer to seller's connected account
         const payoutResult = await instantPayoutService.createInstantTransfer(
@@ -267,9 +274,11 @@ export class MarketplaceService {
         );
 
         if (payoutResult.success) {
-          console.log(`✅ Instant payout successful: $${payoutResult.amount} transferred to seller ${dbOrder.sellerId}`);
+          logger.info(
+            `✅ Instant payout successful: $${payoutResult.amount} transferred to seller ${dbOrder.sellerId}`
+          );
         } else {
-          console.warn(`⚠️ Instant payout failed for order ${orderId}: ${payoutResult.error}`);
+          logger.warn(`⚠️ Instant payout failed for order ${orderId}: ${payoutResult.error}`);
           // Payout failed but order still completes - seller can withdraw manually later
         }
       }
@@ -282,9 +291,9 @@ export class MarketplaceService {
 
       // Convert database order to service order
       return toServiceOrder(updatedDBOrder);
-    } catch (error) {
-      console.error("Error processing payment:", error);
-      throw new Error("Failed to process payment");
+    } catch (error: unknown) {
+      logger.error('Error processing payment:', error);
+      throw new Error('Failed to process payment');
     }
   }
 
@@ -294,7 +303,7 @@ export class MarketplaceService {
   async distributeSplits(orderId: string): Promise<{ success: boolean }> {
     try {
       if (!stripe) {
-        throw new Error("Stripe not configured");
+        throw new Error('Stripe not configured');
       }
 
       // In production:
@@ -304,9 +313,9 @@ export class MarketplaceService {
       // 4. Record distribution in database
 
       return { success: true };
-    } catch (error) {
-      console.error("Error distributing splits:", error);
-      throw new Error("Failed to distribute royalty splits");
+    } catch (error: unknown) {
+      logger.error('Error distributing splits:', error);
+      throw new Error('Failed to distribute royalty splits');
     }
   }
 
@@ -322,11 +331,11 @@ export class MarketplaceService {
       // 4. Return download URL
 
       const licenseUrl = `/licenses/${orderId}.pdf`;
-      
+
       return { licenseUrl };
-    } catch (error) {
-      console.error("Error generating license:", error);
-      throw new Error("Failed to generate license");
+    } catch (error: unknown) {
+      logger.error('Error generating license:', error);
+      throw new Error('Failed to generate license');
     }
   }
 
@@ -342,17 +351,17 @@ export class MarketplaceService {
   }): Promise<{ sessionId: string; url: string }> {
     try {
       if (!stripe) {
-        throw new Error("Stripe not configured");
+        throw new Error('Stripe not configured');
       }
 
       const beat = await this.getListing(data.beatId);
       if (!beat) {
-        throw new Error("Beat not found");
+        throw new Error('Beat not found');
       }
 
-      const license = beat.licenses.find(l => l.type === data.licenseType);
+      const license = beat.licenses.find((l) => l.type === data.licenseType);
       if (!license) {
-        throw new Error("Invalid license type");
+        throw new Error('Invalid license type');
       }
 
       const session = await stripe.checkout.sessions.create({
@@ -384,9 +393,9 @@ export class MarketplaceService {
         sessionId: session.id,
         url: session.url!,
       };
-    } catch (error) {
-      console.error("Error creating checkout session:", error);
-      throw new Error("Failed to create checkout session");
+    } catch (error: unknown) {
+      logger.error('Error creating checkout session:', error);
+      throw new Error('Failed to create checkout session');
     }
   }
 
@@ -397,9 +406,9 @@ export class MarketplaceService {
     try {
       const dbOrders = await storage.getUserOrders(userId);
       return dbOrders.map(toServiceOrder);
-    } catch (error) {
-      console.error("Error fetching user orders:", error);
-      throw new Error("Failed to fetch user orders");
+    } catch (error: unknown) {
+      logger.error('Error fetching user orders:', error);
+      throw new Error('Failed to fetch user orders');
     }
   }
 
@@ -411,25 +420,29 @@ export class MarketplaceService {
       // Query orders where user is the seller
       const dbOrders = await storage.getSellerOrders(userId);
       return dbOrders.map(toServiceOrder);
-    } catch (error) {
-      console.error("Error fetching user sales:", error);
-      throw new Error("Failed to fetch user sales");
+    } catch (error: unknown) {
+      logger.error('Error fetching user sales:', error);
+      throw new Error('Failed to fetch user sales');
     }
   }
 
   /**
    * Setup Stripe Connect for sellers
    */
-  async setupStripeConnect(userId: string, returnUrl: string, refreshUrl: string): Promise<{ url: string }> {
+  async setupStripeConnect(
+    userId: string,
+    returnUrl: string,
+    refreshUrl: string
+  ): Promise<{ url: string }> {
     try {
       if (!stripe) {
-        throw new Error("Stripe not configured");
+        throw new Error('Stripe not configured');
       }
 
       // Check if user already has a Connect account
       const user = await storage.getUser(userId);
       if (!user) {
-        throw new Error("User not found");
+        throw new Error('User not found');
       }
 
       let accountId = user.stripeCustomerId;
@@ -455,9 +468,9 @@ export class MarketplaceService {
       });
 
       return { url: accountLink.url };
-    } catch (error) {
-      console.error("Error setting up Stripe Connect:", error);
-      throw new Error("Failed to setup Stripe Connect");
+    } catch (error: unknown) {
+      logger.error('Error setting up Stripe Connect:', error);
+      throw new Error('Failed to setup Stripe Connect');
     }
   }
 }

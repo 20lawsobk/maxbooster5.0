@@ -1,12 +1,12 @@
 /**
  * Query Result Caching Layer
- * 
+ *
  * Caches frequently-run queries to reduce database load.
  * Particularly effective for:
  * - Health check queries (every 60s)
  * - Analytics summaries (every 5min)
  * - Monitoring metrics (various intervals)
- * 
+ *
  * Uses Redis when available, falls back to in-memory cache.
  */
 
@@ -36,7 +36,7 @@ class QueryCache {
           return JSON.parse(cached) as T;
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Fall through to memory cache
     }
 
@@ -68,7 +68,7 @@ class QueryCache {
         await redis.setex(`qcache:${key}`, ttl, JSON.stringify(data));
         return; // Success - don't also cache in memory
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Fall through to memory cache
     }
 
@@ -91,11 +91,7 @@ class QueryCache {
   /**
    * Get or compute: fetch from cache or execute query and cache result
    */
-  async getOrCompute<T>(
-    key: string,
-    computeFn: () => Promise<T>,
-    ttlSeconds?: number
-  ): Promise<T> {
+  async getOrCompute<T>(key: string, computeFn: () => Promise<T>, ttlSeconds?: number): Promise<T> {
     // Try to get from cache first
     const cached = await this.get<T>(key);
     if (cached !== null) {
@@ -104,10 +100,10 @@ class QueryCache {
 
     // Cache miss - compute the result
     const result = await computeFn();
-    
+
     // Cache the result
     await this.set(key, result, ttlSeconds);
-    
+
     return result;
   }
 
@@ -120,7 +116,7 @@ class QueryCache {
       if (redis) {
         await redis.del(`qcache:${key}`);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Fall through
     }
 
@@ -139,7 +135,7 @@ class QueryCache {
           await redis.del(...keys);
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Fall through
     }
 
@@ -163,7 +159,7 @@ class QueryCache {
           await redis.del(...keys);
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Fall through
     }
 
@@ -187,6 +183,9 @@ export const queryCache = new QueryCache();
 
 /**
  * Helper: Create cache key from query components
+ */
+/**
+ * TODO: Add function documentation
  */
 export function createCacheKey(prefix: string, ...parts: (string | number)[]): string {
   return `${prefix}:${parts.join(':')}`;

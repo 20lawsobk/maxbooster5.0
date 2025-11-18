@@ -15,11 +15,11 @@ export class PluginHost {
   private context: AudioContext;
   private plugins: Map<string, BasePlugin> = new Map();
   private chains: Map<string, PluginChain> = new Map();
-  
+
   constructor(context: AudioContext) {
     this.context = context;
   }
-  
+
   /**
    * Available plugin types
    */
@@ -35,7 +35,7 @@ export class PluginHost {
       { type: 'phaser', name: 'Phaser', category: 'modulation' },
     ];
   }
-  
+
   /**
    * Create a plugin instance
    */
@@ -61,7 +61,7 @@ export class PluginHost {
         return null;
     }
   }
-  
+
   /**
    * Create a plugin chain for a track
    */
@@ -70,28 +70,28 @@ export class PluginHost {
     this.chains.set(trackId, chain);
     return chain;
   }
-  
+
   /**
    * Get chain for track
    */
   getChain(trackId: string): PluginChain | undefined {
     return this.chains.get(trackId);
   }
-  
+
   /**
    * Add plugin to chain
    */
   addPluginToChain(trackId: string, pluginType: string, position?: number): BasePlugin | null {
     const chain = this.chains.get(trackId);
     if (!chain) return null;
-    
+
     const plugin = this.createPlugin(pluginType);
     if (!plugin) return null;
-    
+
     chain.addPlugin(plugin, position);
     return plugin;
   }
-  
+
   /**
    * Remove all chains and plugins
    */
@@ -113,7 +113,7 @@ export class PluginChain {
   private input: GainNode;
   private output: GainNode;
   private plugins: BasePlugin[] = [];
-  
+
   constructor(context: AudioContext, trackId: string) {
     this.context = context;
     this.trackId = trackId;
@@ -121,7 +121,7 @@ export class PluginChain {
     this.output = context.createGain();
     this.input.connect(this.output);
   }
-  
+
   /**
    * Connect chain between source and destination
    */
@@ -129,25 +129,25 @@ export class PluginChain {
     source.connect(this.input);
     this.output.connect(destination);
   }
-  
+
   /**
    * Add plugin to chain
    */
   addPlugin(plugin: BasePlugin, position?: number): void {
     // Disconnect current chain
     this.reconnectChain();
-    
+
     // Add plugin at position
     if (position !== undefined && position >= 0 && position < this.plugins.length) {
       this.plugins.splice(position, 0, plugin);
     } else {
       this.plugins.push(plugin);
     }
-    
+
     // Reconnect with new plugin
     this.reconnectChain();
   }
-  
+
   /**
    * Remove plugin from chain
    */
@@ -159,7 +159,7 @@ export class PluginChain {
       this.reconnectChain();
     }
   }
-  
+
   /**
    * Move plugin in chain
    */
@@ -171,14 +171,14 @@ export class PluginChain {
       this.reconnectChain();
     }
   }
-  
+
   /**
    * Get all plugins in chain
    */
   getPlugins(): BasePlugin[] {
     return [...this.plugins];
   }
-  
+
   /**
    * Reconnect audio chain with current plugins
    */
@@ -189,7 +189,7 @@ export class PluginChain {
       plugin.disconnect();
     }
     this.output.disconnect();
-    
+
     // Reconnect chain
     if (this.plugins.length === 0) {
       // Direct connection if no plugins
@@ -197,16 +197,16 @@ export class PluginChain {
     } else {
       // Connect through plugin chain
       let previousNode: AudioNode = this.input;
-      
+
       for (const plugin of this.plugins) {
         previousNode.connect(plugin.getInput());
         previousNode = plugin.getOutput();
       }
-      
+
       previousNode.connect(this.output);
     }
   }
-  
+
   /**
    * Bypass all plugins
    */
@@ -215,20 +215,20 @@ export class PluginChain {
       plugin.setBypass(bypass);
     }
   }
-  
+
   /**
    * Get chain state for saving
    */
   getState(): PluginChainState {
     return {
       trackId: this.trackId,
-      plugins: this.plugins.map(plugin => ({
+      plugins: this.plugins.map((plugin) => ({
         name: plugin.getName(),
-        parameters: plugin.getParameters()
-      }))
+        parameters: plugin.getParameters(),
+      })),
     };
   }
-  
+
   /**
    * Load chain state
    */
@@ -238,12 +238,12 @@ export class PluginChain {
       plugin.destroy();
     }
     this.plugins = [];
-    
+
     // Recreate plugins from state
     // Would need plugin factory here
     this.reconnectChain();
   }
-  
+
   /**
    * Cleanup
    */

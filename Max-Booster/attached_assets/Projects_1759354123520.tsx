@@ -10,8 +10,20 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -26,14 +38,14 @@ import {
   TrendingUp,
   Calendar,
   Clock,
-  FileAudio
+  FileAudio,
 } from 'lucide-react';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
 export default function Projects() {
@@ -43,7 +55,7 @@ export default function Projects() {
     title: '',
     description: '',
     genre: '',
-    file: null as File | null
+    file: null as File | null,
   });
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
@@ -62,19 +74,19 @@ export default function Projects() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
       toast({
-        title: "Success!",
-        description: "Your project has been uploaded successfully.",
+        title: 'Success!',
+        description: 'Your project has been uploaded successfully.',
       });
       setIsUploadOpen(false);
       setUploadForm({ title: '', description: '', genre: '', file: null });
     },
     onError: (error: any) => {
       toast({
-        title: "Upload Failed",
-        description: error.message || "Failed to upload project. Please try again.",
-        variant: "destructive",
+        title: 'Upload Failed',
+        description: error.message || 'Failed to upload project. Please try again.',
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   const deleteMutation = useMutation({
@@ -84,27 +96,27 @@ export default function Projects() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
       toast({
-        title: "Project Deleted",
-        description: "The project has been removed successfully.",
+        title: 'Project Deleted',
+        description: 'The project has been removed successfully.',
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Delete Failed",
-        description: error.message || "Failed to delete project. Please try again.",
-        variant: "destructive",
+        title: 'Delete Failed',
+        description: error.message || 'Failed to delete project. Please try again.',
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!uploadForm.file || !uploadForm.title.trim()) {
       toast({
-        title: "Missing Information",
-        description: "Please provide a title and select an audio file.",
-        variant: "destructive",
+        title: 'Missing Information',
+        description: 'Please provide a title and select an audio file.',
+        variant: 'destructive',
       });
       return;
     }
@@ -123,21 +135,30 @@ export default function Projects() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800 border-green-200';
-      case 'in_progress': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'mastering': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'draft': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'completed':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'mastering':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'draft':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getProgressValue = (status: string, progress?: number) => {
     if (progress) return progress;
     switch (status) {
-      case 'completed': return 100;
-      case 'mastering': return 90;
-      case 'in_progress': return 50;
-      default: return 25;
+      case 'completed':
+        return 100;
+      case 'mastering':
+        return 90;
+      case 'in_progress':
+        return 50;
+      default:
+        return 25;
     }
   };
 
@@ -145,7 +166,7 @@ export default function Projects() {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     if (bytes === 0) return '0 Bytes';
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   const formatDuration = (seconds: number) => {
@@ -165,20 +186,21 @@ export default function Projects() {
   return (
     <div className="min-h-screen flex bg-gray-50">
       <Sidebar />
-      
+
       <main className="flex-1">
         <TopBar title="Projects" subtitle="Manage your music projects" />
-        
+
         <div className="p-6">
           {/* Header Actions */}
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Your Projects</h1>
               <p className="text-gray-500">
-                {(projects as any)?.length || 0} project{((projects as any)?.length || 0) !== 1 ? 's' : ''} total
+                {(projects as any)?.length || 0} project
+                {((projects as any)?.length || 0) !== 1 ? 's' : ''} total
               </p>
             </div>
-            
+
             <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
               <DialogTrigger asChild>
                 <Button className="gradient-bg">
@@ -190,33 +212,42 @@ export default function Projects() {
                 <DialogHeader>
                   <DialogTitle>Upload New Project</DialogTitle>
                 </DialogHeader>
-                
+
                 <form onSubmit={handleUpload} className="space-y-4">
                   <div>
                     <Label htmlFor="title">Project Title</Label>
                     <Input
                       id="title"
                       value={uploadForm.title}
-                      onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
+                      onChange={(e) =>
+                        setUploadForm((prev) => ({ ...prev, title: e.target.value }))
+                      }
                       placeholder="Enter project title"
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="description">Description (Optional)</Label>
                     <Textarea
                       id="description"
                       value={uploadForm.description}
-                      onChange={(e) => setUploadForm(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setUploadForm((prev) => ({ ...prev, description: e.target.value }))
+                      }
                       placeholder="Describe your project"
                       rows={3}
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="genre">Genre</Label>
-                    <Select value={uploadForm.genre} onValueChange={(value) => setUploadForm(prev => ({ ...prev, genre: value }))}>
+                    <Select
+                      value={uploadForm.genre}
+                      onValueChange={(value) =>
+                        setUploadForm((prev) => ({ ...prev, genre: value }))
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select genre" />
                       </SelectTrigger>
@@ -234,7 +265,7 @@ export default function Projects() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="file">Audio File</Label>
                     <Input
@@ -243,7 +274,7 @@ export default function Projects() {
                       accept="audio/*"
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
-                        setUploadForm(prev => ({ ...prev, file }));
+                        setUploadForm((prev) => ({ ...prev, file }));
                       }}
                       required
                     />
@@ -251,13 +282,13 @@ export default function Projects() {
                       Supported formats: MP3, WAV, FLAC, OGG (Max 100MB)
                     </p>
                   </div>
-                  
+
                   <div className="flex justify-end space-x-2 pt-4">
                     <Button type="button" variant="outline" onClick={() => setIsUploadOpen(false)}>
                       Cancel
                     </Button>
                     <Button type="submit" disabled={isUploading}>
-                      {isUploading ? "Uploading..." : "Upload Project"}
+                      {isUploading ? 'Uploading...' : 'Upload Project'}
                     </Button>
                   </div>
                 </form>
@@ -294,12 +325,10 @@ export default function Projects() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No projects yet</h3>
               <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                Upload your first audio project to get started with AI-powered music tools and analytics.
+                Upload your first audio project to get started with AI-powered music tools and
+                analytics.
               </p>
-              <Button 
-                onClick={() => setIsUploadOpen(true)}
-                className="gradient-bg"
-              >
+              <Button onClick={() => setIsUploadOpen(true)} className="gradient-bg">
                 <Upload className="h-4 w-4 mr-2" />
                 Upload Your First Project
               </Button>
@@ -326,7 +355,7 @@ export default function Projects() {
                           </p>
                         </div>
                       </div>
-                      
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm">
@@ -347,7 +376,7 @@ export default function Projects() {
                             Analytics
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-red-600"
                             onClick={() => deleteMutation.mutate(project.id)}
                           >
@@ -368,7 +397,10 @@ export default function Projects() {
                           {getProgressValue(project.status, project.progress)}% Complete
                         </span>
                       </div>
-                      <Progress value={getProgressValue(project.status, project.progress)} className="h-2" />
+                      <Progress
+                        value={getProgressValue(project.status, project.progress)}
+                        className="h-2"
+                      />
                     </div>
 
                     {/* Project Details */}

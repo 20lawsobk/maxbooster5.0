@@ -16,8 +16,12 @@ const googleMyBusiness = google.mybusinessbusinessinformation({
 // Initialize Twitter API (with fallback for missing credentials)
 let twitterClient: TwitterApi | null = null;
 try {
-  if (process.env.TWITTER_API_KEY && process.env.TWITTER_API_SECRET && 
-      process.env.TWITTER_ACCESS_TOKEN && process.env.TWITTER_ACCESS_TOKEN_SECRET) {
+  if (
+    process.env.TWITTER_API_KEY &&
+    process.env.TWITTER_API_SECRET &&
+    process.env.TWITTER_ACCESS_TOKEN &&
+    process.env.TWITTER_ACCESS_TOKEN_SECRET
+  ) {
     twitterClient = new TwitterApi({
       appKey: process.env.TWITTER_API_KEY,
       appSecret: process.env.TWITTER_API_SECRET,
@@ -58,8 +62,8 @@ export class SocialMediaService {
       const response = await axios.get(`https://graph.facebook.com/v18.0/me/accounts`, {
         params: {
           access_token: accessToken,
-          fields: 'name,fan_count,talking_about_count'
-        }
+          fields: 'name,fan_count,talking_about_count',
+        },
       });
 
       const pageData = response.data.data[0];
@@ -69,7 +73,7 @@ export class SocialMediaService {
         platform: 'Facebook',
         followers: pageData.fan_count || 0,
         engagement: ((pageData.talking_about_count || 0) / (pageData.fan_count || 1)) * 100,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
     } catch (error) {
       console.error('Facebook API error:', error);
@@ -87,8 +91,8 @@ export class SocialMediaService {
       const response = await axios.get(`https://graph.instagram.com/me`, {
         params: {
           fields: 'account_type,media_count,followers_count',
-          access_token: process.env.INSTAGRAM_ACCESS_TOKEN
-        }
+          access_token: process.env.INSTAGRAM_ACCESS_TOKEN,
+        },
       });
 
       const data = response.data;
@@ -96,7 +100,7 @@ export class SocialMediaService {
         platform: 'Instagram',
         followers: data.followers_count || 0,
         posts: data.media_count || 0,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
     } catch (error) {
       console.error('Instagram API error:', error);
@@ -113,7 +117,7 @@ export class SocialMediaService {
       }
 
       const me = await twitterClient.v2.me({
-        'user.fields': ['public_metrics']
+        'user.fields': ['public_metrics'],
       });
 
       if (!me.data) return null;
@@ -124,7 +128,7 @@ export class SocialMediaService {
         followers: metrics?.followers_count || 0,
         posts: metrics?.tweet_count || 0,
         reach: metrics?.listed_count || 0,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
     } catch (error) {
       console.error('Twitter API error:', error);
@@ -148,7 +152,7 @@ export class SocialMediaService {
         posts: 0,
         engagement: 0,
         reach: 0,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
     } catch (error) {
       console.error('TikTok API error:', error);
@@ -172,7 +176,7 @@ export class SocialMediaService {
         posts: 0,
         engagement: 0,
         reach: 0,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
     } catch (error) {
       console.error('LinkedIn API error:', error);
@@ -195,7 +199,7 @@ export class SocialMediaService {
         posts: 0,
         engagement: 0,
         reach: 0,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
     } catch (error) {
       console.error('Google My Business API error:', error);
@@ -215,17 +219,20 @@ export class SocialMediaService {
       const response = await axios.get(`https://graph.threads.net/v1.0/me`, {
         params: {
           fields: 'id,username,threads_profile_picture_url,threads_biography',
-          access_token: process.env.THREADS_ACCESS_TOKEN
-        }
+          access_token: process.env.THREADS_ACCESS_TOKEN,
+        },
       });
 
       // Fetch Threads insights (follower count, engagement)
-      const insightsResponse = await axios.get(`https://graph.threads.net/v1.0/me/threads_insights`, {
-        params: {
-          metric: 'followers_count,profile_views,likes,replies,reposts',
-          access_token: process.env.THREADS_ACCESS_TOKEN
+      const insightsResponse = await axios.get(
+        `https://graph.threads.net/v1.0/me/threads_insights`,
+        {
+          params: {
+            metric: 'followers_count,profile_views,likes,replies,reposts',
+            access_token: process.env.THREADS_ACCESS_TOKEN,
+          },
         }
-      });
+      );
 
       const insights = insightsResponse.data.data || [];
       const followersMetric = insights.find((m: any) => m.name === 'followers_count');
@@ -237,7 +244,7 @@ export class SocialMediaService {
         posts: 0, // Will be fetched from threads media endpoint
         engagement: likesMetric?.values?.[0]?.value || 0,
         reach: 0,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
     } catch (error) {
       console.error('Threads API error:', error);
@@ -306,10 +313,12 @@ export class SocialMediaService {
       });
 
       const videoId = response.data.id;
-      return videoId ? {
-        videoId,
-        url: `https://www.youtube.com/watch?v=${videoId}`,
-      } : null;
+      return videoId
+        ? {
+            videoId,
+            url: `https://www.youtube.com/watch?v=${videoId}`,
+          }
+        : null;
     } catch (error) {
       console.error('YouTube upload error:', error);
       return null;
@@ -330,7 +339,7 @@ export class SocialMediaService {
         tiktokData,
         threadsData,
         googleBusinessData,
-        linkedinData
+        linkedinData,
       ] = await Promise.allSettled([
         this.getFacebookMetrics(),
         this.getInstagramMetrics(),
@@ -339,7 +348,7 @@ export class SocialMediaService {
         this.getTikTokMetrics(),
         this.getThreadsMetrics(),
         this.getGoogleBusinessMetrics(),
-        this.getLinkedInMetrics()
+        this.getLinkedInMetrics(),
       ]);
 
       // Process Facebook data
@@ -350,7 +359,7 @@ export class SocialMediaService {
           engagement: facebookData.value.engagement || 0,
           posts: facebookData.value.posts || 0,
           reach: facebookData.value.reach || 0,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         });
       }
 
@@ -362,7 +371,7 @@ export class SocialMediaService {
           engagement: instagramData.value.engagement || 0,
           posts: instagramData.value.posts || 0,
           reach: instagramData.value.reach || 0,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         });
       }
 
@@ -374,7 +383,7 @@ export class SocialMediaService {
           engagement: twitterData.value.engagement || 0,
           posts: twitterData.value.posts || 0,
           reach: twitterData.value.reach || 0,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         });
       }
 
@@ -386,7 +395,7 @@ export class SocialMediaService {
           engagement: 0, // Calculate from views/subscribers
           posts: youtubeData.value.videoCount || 0,
           reach: youtubeData.value.viewCount || 0,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         });
       }
 
@@ -395,7 +404,7 @@ export class SocialMediaService {
         { data: tiktokData, platform: 'TikTok' },
         { data: threadsData, platform: 'Threads' },
         { data: googleBusinessData, platform: 'GoogleBusiness' },
-        { data: linkedinData, platform: 'LinkedIn' }
+        { data: linkedinData, platform: 'LinkedIn' },
       ];
 
       otherPlatforms.forEach(({ data, platform }) => {
@@ -406,7 +415,7 @@ export class SocialMediaService {
             engagement: data.value.engagement || 0,
             posts: data.value.posts || 0,
             reach: data.value.reach || 0,
-            lastUpdated: new Date()
+            lastUpdated: new Date(),
           });
         }
       });
@@ -432,7 +441,7 @@ export class SocialMediaService {
         subscriberCount: 0,
         videoCount: 0,
         viewCount: 0,
-        channelId: ''
+        channelId: '',
       };
     } catch (error) {
       console.error('YouTube API error:', error);
@@ -450,7 +459,7 @@ export class SocialMediaService {
     const results: { success: boolean; platforms: string[]; errors?: string[] } = {
       success: true,
       platforms: [],
-      errors: []
+      errors: [],
     };
 
     for (const platform of platforms) {
@@ -500,11 +509,11 @@ export class SocialMediaService {
     }
 
     const accessToken = `${process.env.FACEBOOK_APP_ID}|${process.env.FACEBOOK_APP_SECRET}`;
-    
+
     await axios.post(`https://graph.facebook.com/v18.0/me/feed`, {
       message: content,
       link: mediaUrl,
-      access_token: accessToken
+      access_token: accessToken,
     });
   }
 
@@ -521,13 +530,13 @@ export class SocialMediaService {
     const mediaResponse = await axios.post(`https://graph.instagram.com/me/media`, {
       image_url: mediaUrl,
       caption: content,
-      access_token: process.env.INSTAGRAM_ACCESS_TOKEN
+      access_token: process.env.INSTAGRAM_ACCESS_TOKEN,
     });
 
     // Publish media
     await axios.post(`https://graph.instagram.com/me/media_publish`, {
       creation_id: mediaResponse.data.id,
-      access_token: process.env.INSTAGRAM_ACCESS_TOKEN
+      access_token: process.env.INSTAGRAM_ACCESS_TOKEN,
     });
   }
 
@@ -541,7 +550,7 @@ export class SocialMediaService {
       const mediaUpload = await twitterClient.v1.uploadMedia(mediaUrl);
       await twitterClient.v2.tweet({
         text: content,
-        media: { media_ids: [mediaUpload] }
+        media: { media_ids: [mediaUpload] },
       });
     } else {
       await twitterClient.v2.tweet({ text: content });
@@ -569,30 +578,32 @@ export class SocialMediaService {
           media_type: 'IMAGE', // or VIDEO based on mediaUrl type
           image_url: mediaUrl,
           text: content,
-          access_token: process.env.THREADS_ACCESS_TOKEN
+          access_token: process.env.THREADS_ACCESS_TOKEN,
         });
 
         // Publish the Threads post
         await axios.post(`https://graph.threads.net/v1.0/me/threads_publish`, {
           creation_id: mediaResponse.data.id,
-          access_token: process.env.THREADS_ACCESS_TOKEN
+          access_token: process.env.THREADS_ACCESS_TOKEN,
         });
       } else {
         // Create text-only Threads post
         const textResponse = await axios.post(`https://graph.threads.net/v1.0/me/threads`, {
           media_type: 'TEXT',
           text: content,
-          access_token: process.env.THREADS_ACCESS_TOKEN
+          access_token: process.env.THREADS_ACCESS_TOKEN,
         });
 
         // Publish the Threads post
         await axios.post(`https://graph.threads.net/v1.0/me/threads_publish`, {
           creation_id: textResponse.data.id,
-          access_token: process.env.THREADS_ACCESS_TOKEN
+          access_token: process.env.THREADS_ACCESS_TOKEN,
         });
       }
     } catch (error: any) {
-      throw new Error(`Failed to post to Threads: ${error.response?.data?.error?.message || error.message}`);
+      throw new Error(
+        `Failed to post to Threads: ${error.response?.data?.error?.message || error.message}`
+      );
     }
   }
 }

@@ -1,14 +1,15 @@
 /**
  * Graceful Redis Client Wrapper
- * 
+ *
  * Provides a Redis client that gracefully handles connection failures in development,
  * falling back to in-memory storage while logging minimal warnings.
- * 
+ *
  * In production, Redis is required and failures will be logged as errors.
  */
 
 import { type RedisClientType } from 'redis';
 import { config } from '../config/defaults.js';
+import { logger } from '../logger.js';
 
 interface RedisClientWrapper {
   client: RedisClientType | null;
@@ -88,6 +89,9 @@ class InMemoryFallback {
   }
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function createGracefulRedisClient(serviceName: string): RedisClientWrapper {
   const isDevelopment = config.nodeEnv === 'development';
   let redisClient: RedisClientType | null = null;
@@ -98,7 +102,9 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
   // Use in-memory fallback - Redis is handled by redisConnectionFactory
   // This service is deprecated and only used by legacy queue services
   if (!hasLoggedWarning) {
-    console.warn(`⚠️  ${serviceName}: Using in-memory fallback (Redis managed by redisConnectionFactory)`);
+    logger.warn(
+      `⚠️  ${serviceName}: Using in-memory fallback (Redis managed by redisConnectionFactory)`
+    );
     hasLoggedWarning = true;
   }
   fallback = new InMemoryFallback();
@@ -112,7 +118,7 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
     // This allows the app to run without Redis in any environment
     if (!fallback) {
       if (!hasLoggedWarning) {
-        console.warn(`⚠️  ${serviceName}: Redis unavailable, using in-memory fallback`);
+        logger.warn(`⚠️  ${serviceName}: Redis unavailable, using in-memory fallback`);
         hasLoggedWarning = true;
       }
       fallback = new InMemoryFallback();
@@ -129,13 +135,13 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
     async get(key: string): Promise<string | null> {
       const client = getClient();
       if (!client) return null;
-      
+
       try {
         if (client instanceof InMemoryFallback) {
           return await client.get(key);
         }
         return await client.get(key);
-      } catch (err) {
+      } catch (err: unknown) {
         if (isDevelopment && fallback) {
           return await fallback.get(key);
         }
@@ -155,7 +161,7 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
         } else {
           await client.set(key, value);
         }
-      } catch (err) {
+      } catch (err: unknown) {
         if (isDevelopment && fallback) {
           await fallback.set(key, value, ttl);
         }
@@ -172,7 +178,7 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
         } else {
           await client.del(key);
         }
-      } catch (err) {
+      } catch (err: unknown) {
         if (isDevelopment && fallback) {
           await fallback.del(key);
         }
@@ -189,7 +195,7 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
         }
         const result = await client.exists(key);
         return result === 1;
-      } catch (err) {
+      } catch (err: unknown) {
         if (isDevelopment && fallback) {
           return await fallback.exists(key);
         }
@@ -206,7 +212,7 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
           return await client.incr(key);
         }
         return await client.incr(key);
-      } catch (err) {
+      } catch (err: unknown) {
         if (isDevelopment && fallback) {
           return await fallback.incr(key);
         }
@@ -224,7 +230,7 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
         } else {
           await client.expire(key, seconds);
         }
-      } catch (err) {
+      } catch (err: unknown) {
         if (isDevelopment && fallback) {
           await fallback.expire(key, seconds);
         }
@@ -233,15 +239,24 @@ export function createGracefulRedisClient(serviceName: string): RedisClientWrapp
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function createLegacyGracefulRedisClient(serviceName: string): RedisClientType {
   // This function is deprecated - queue services should use redisConnectionFactory
   // Returning a dummy client for backwards compatibility
-  console.warn(`⚠️  ${serviceName}: createLegacyGracefulRedisClient is deprecated, use redisConnectionFactory instead`);
-  
+  logger.warn(
+    `⚠️  ${serviceName}: createLegacyGracefulRedisClient is deprecated, use redisConnectionFactory instead`
+  );
+
   // Return a minimal client that throws on use
   return {
     isOpen: false,
-    get: async () => { throw new Error('Legacy Redis client not available, use redisConnectionFactory'); },
-    set: async () => { throw new Error('Legacy Redis client not available, use redisConnectionFactory'); },
+    get: async () => {
+      throw new Error('Legacy Redis client not available, use redisConnectionFactory');
+    },
+    set: async () => {
+      throw new Error('Legacy Redis client not available, use redisConnectionFactory');
+    },
   } as any as RedisClientType;
 }

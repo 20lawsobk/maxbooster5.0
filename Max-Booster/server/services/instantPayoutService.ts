@@ -1,11 +1,12 @@
-import Stripe from "stripe";
-import { db } from "../db";
-import { users, orders, instantPayouts, notifications } from "@shared/schema";
-import { eq, and, sql, sum } from "drizzle-orm";
+import Stripe from 'stripe';
+import { db } from '../db';
+import { users, orders, instantPayouts, notifications } from '@shared/schema';
+import { eq, and, sql, sum } from 'drizzle-orm';
+import { logger } from '../logger.js';
 
 // Initialize Stripe
 const stripe = process.env.STRIPE_SECRET_KEY?.startsWith('sk_')
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-08-27.basil" })
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-08-27.basil' })
   : null;
 
 export interface PayoutBalance {
@@ -37,12 +38,7 @@ export class InstantPayoutService {
           count: sql<number>`count(*)`,
         })
         .from(orders)
-        .where(
-          and(
-            eq(orders.sellerId, userId),
-            eq(orders.status, 'completed')
-          )
-        )
+        .where(and(eq(orders.sellerId, userId), eq(orders.status, 'completed')))
         .execute();
 
       const totalEarningsCents = Number(result[0]?.totalEarnings || 0);
@@ -74,8 +70,8 @@ export class InstantPayoutService {
         totalEarnings,
         currency: 'usd',
       };
-    } catch (error) {
-      console.error('Error calculating available balance:', error);
+    } catch (error: unknown) {
+      logger.error('Error calculating available balance:', error);
       throw new Error('Failed to calculate available balance');
     }
   }
@@ -92,8 +88,8 @@ export class InstantPayoutService {
           updatedAt: new Date(),
         })
         .where(eq(users.id, userId));
-    } catch (error) {
-      console.error('Error updating available balance:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating available balance:', error);
       throw new Error('Failed to update available balance');
     }
   }
@@ -152,8 +148,8 @@ export class InstantPayoutService {
         accountId: user.stripeConnectedAccountId,
         requiresOnboarding: false,
       };
-    } catch (error: any) {
-      console.error('Error verifying Stripe account:', error);
+    } catch (error: unknown) {
+      logger.error('Error verifying Stripe account:', error);
       return {
         verified: false,
         error: error.message || 'Failed to verify Stripe account',
@@ -225,8 +221,8 @@ export class InstantPayoutService {
       });
 
       return accountLink.url;
-    } catch (error: any) {
-      console.error('Error creating account link:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating account link:', error);
       throw new Error(error.message || 'Failed to create account link');
     }
   }
@@ -254,8 +250,8 @@ export class InstantPayoutService {
       const accountVerification = await this.verifyStripeAccount(userId);
       if (!accountVerification.verified) {
         // Seller not onboarded - store payout as pending
-        console.warn(`Seller ${userId} not onboarded to Stripe Connect. Payout delayed.`);
-        
+        logger.warn(`Seller ${userId} not onboarded to Stripe Connect. Payout delayed.`);
+
         await db.insert(notifications).values({
           userId,
           type: 'payout',
@@ -356,7 +352,7 @@ export class InstantPayoutService {
           stripePayoutId: transfer.id,
           amount: sellerAmount,
         };
-      } catch (stripeError: any) {
+      } catch (stripeError: unknown) {
         // Update payout record as failed
         await db
           .update(instantPayouts)
@@ -384,8 +380,8 @@ export class InstantPayoutService {
           error: stripeError.message || 'Transfer failed',
         };
       }
-    } catch (error: any) {
-      console.error('Error creating instant transfer:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating instant transfer:', error);
       return {
         success: false,
         error: error.message || 'Failed to create transfer',
@@ -499,7 +495,7 @@ export class InstantPayoutService {
           amount,
           estimatedArrival: new Date(payout.arrival_date * 1000),
         };
-      } catch (stripeError: any) {
+      } catch (stripeError: unknown) {
         // Update payout record as failed
         await db
           .update(instantPayouts)
@@ -526,8 +522,8 @@ export class InstantPayoutService {
           error: stripeError.message || 'Payout failed',
         };
       }
-    } catch (error: any) {
-      console.error('Error requesting instant payout:', error);
+    } catch (error: unknown) {
+      logger.error('Error requesting instant payout:', error);
       return {
         success: false,
         error: error.message || 'Failed to request payout',
@@ -549,8 +545,8 @@ export class InstantPayoutService {
         .offset(offset);
 
       return payouts;
-    } catch (error) {
-      console.error('Error fetching payout history:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching payout history:', error);
       throw new Error('Failed to fetch payout history');
     }
   }
@@ -580,10 +576,9 @@ export class InstantPayoutService {
             .limit(1);
 
           if (user?.stripeConnectedAccountId) {
-            const stripePayout = await stripe.payouts.retrieve(
-              payout.stripePayoutId,
-              { stripeAccount: user.stripeConnectedAccountId }
-            );
+            const stripePayout = await stripe.payouts.retrieve(payout.stripePayoutId, {
+              stripeAccount: user.stripeConnectedAccountId,
+            });
 
             // Update status if changed
             if (stripePayout.status !== payout.status) {
@@ -602,14 +597,14 @@ export class InstantPayoutService {
               }
             }
           }
-        } catch (stripeError) {
-          console.error('Error checking Stripe payout status:', stripeError);
+        } catch (stripeError: unknown) {
+          logger.error('Error checking Stripe payout status:', stripeError);
         }
       }
 
       return payout;
-    } catch (error) {
-      console.error('Error fetching payout status:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching payout status:', error);
       throw new Error('Failed to fetch payout status');
     }
   }
@@ -629,7 +624,7 @@ export class InstantPayoutService {
         .limit(1);
 
       if (!payoutRecord) {
-        console.log('Payout record not found for transfer webhook:', transfer.id);
+        logger.info('Payout record not found for transfer webhook:', transfer.id);
         return;
       }
 
@@ -641,13 +636,13 @@ export class InstantPayoutService {
       switch (event.type) {
         case 'transfer.created':
           status = 'in_transit';
-          console.log('Transfer created:', transfer.id);
+          logger.info('Transfer created:', transfer.id);
           break;
 
         case 'transfer.paid':
           status = 'completed';
           completedAt = new Date();
-          
+
           // Send success notification
           await db.insert(notifications).values({
             userId: payoutRecord.userId,
@@ -665,7 +660,7 @@ export class InstantPayoutService {
         case 'transfer.failed':
           status = 'failed';
           failureReason = transfer.failure_message || 'Transfer failed';
-          
+
           // Reverse the transfer - add back to seller's available balance
           await db
             .update(users)
@@ -691,7 +686,7 @@ export class InstantPayoutService {
 
         case 'transfer.reversed':
           status = 'refunded';
-          
+
           // Add back to seller's available balance
           await db
             .update(users)
@@ -725,8 +720,8 @@ export class InstantPayoutService {
           failureReason,
         })
         .where(eq(instantPayouts.id, payoutRecord.id));
-    } catch (error) {
-      console.error('Error handling transfer webhook:', error);
+    } catch (error: unknown) {
+      logger.error('Error handling transfer webhook:', error);
       throw error;
     }
   }
@@ -746,7 +741,7 @@ export class InstantPayoutService {
         .limit(1);
 
       if (!user) {
-        console.log('User not found for account webhook:', account.id);
+        logger.info('User not found for account webhook:', account.id);
         return;
       }
 
@@ -754,7 +749,7 @@ export class InstantPayoutService {
         case 'account.updated':
           // Check if account is now verified and can receive payouts
           const canReceivePayouts = account.payouts_enabled && account.charges_enabled;
-          
+
           if (canReceivePayouts && account.details_submitted) {
             // Send success notification
             await db.insert(notifications).values({
@@ -804,8 +799,8 @@ export class InstantPayoutService {
           });
           break;
       }
-    } catch (error) {
-      console.error('Error handling account webhook:', error);
+    } catch (error: unknown) {
+      logger.error('Error handling account webhook:', error);
       throw error;
     }
   }
@@ -825,7 +820,7 @@ export class InstantPayoutService {
         .limit(1);
 
       if (!payoutRecord) {
-        console.log('Payout record not found for webhook:', payout.id);
+        logger.info('Payout record not found for webhook:', payout.id);
         return;
       }
 
@@ -838,7 +833,7 @@ export class InstantPayoutService {
         case 'payout.paid':
           status = 'completed';
           completedAt = new Date();
-          
+
           // Send success notification
           await db.insert(notifications).values({
             userId: payoutRecord.userId,
@@ -855,7 +850,7 @@ export class InstantPayoutService {
         case 'payout.failed':
           status = 'failed';
           failureReason = payout.failure_message || 'Unknown error';
-          
+
           // Refund balance to user
           await db
             .update(users)
@@ -881,7 +876,7 @@ export class InstantPayoutService {
 
         case 'payout.canceled':
           status = 'cancelled';
-          
+
           // Refund balance to user
           await db
             .update(users)
@@ -903,8 +898,8 @@ export class InstantPayoutService {
           failureReason,
         })
         .where(eq(instantPayouts.id, payoutRecord.id));
-    } catch (error) {
-      console.error('Error handling payout webhook:', error);
+    } catch (error: unknown) {
+      logger.error('Error handling payout webhook:', error);
       throw error;
     }
   }

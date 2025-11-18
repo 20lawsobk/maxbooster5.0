@@ -1,7 +1,8 @@
-import { storage } from "../storage";
-import { aiContentService } from "./aiContentService";
-import { nanoid } from "nanoid";
-import type { InsertAdCampaign, AdCampaign } from "@shared/schema";
+import { storage } from '../storage';
+import { aiContentService } from './aiContentService';
+import { nanoid } from 'nanoid';
+import type { InsertAdCampaign, AdCampaign } from '@shared/schema';
+import { logger } from '../logger.js';
 
 export interface SocialPost {
   id: string;
@@ -27,7 +28,7 @@ export interface Campaign {
   name: string;
   platforms: string[];
   content: any;
-  variants?: any[];
+  variants?: unknown[];
   schedule?: any;
   status: 'draft' | 'active' | 'paused' | 'completed';
   metrics?: any;
@@ -42,9 +43,9 @@ export class SocialService {
     try {
       const campaign = await storage.createAdCampaign(data);
       return campaign;
-    } catch (error) {
-      console.error("Error creating campaign:", error);
-      throw new Error("Failed to create campaign");
+    } catch (error: unknown) {
+      logger.error('Error creating campaign:', error);
+      throw new Error('Failed to create campaign');
     }
   }
 
@@ -54,9 +55,9 @@ export class SocialService {
   async getUserCampaigns(userId: string): Promise<AdCampaign[]> {
     try {
       return await storage.getUserAdCampaigns(userId);
-    } catch (error) {
-      console.error("Error fetching campaigns:", error);
-      throw new Error("Failed to fetch campaigns");
+    } catch (error: unknown) {
+      logger.error('Error fetching campaigns:', error);
+      throw new Error('Failed to fetch campaigns');
     }
   }
 
@@ -66,28 +67,31 @@ export class SocialService {
   async getCampaign(campaignId: number, userId: string): Promise<AdCampaign | undefined> {
     try {
       const campaign = await storage.getAdCampaign(campaignId);
-      
+
       if (campaign && campaign.userId !== userId) {
-        throw new Error("Unauthorized access to campaign");
+        throw new Error('Unauthorized access to campaign');
       }
 
       return campaign;
-    } catch (error) {
-      console.error("Error fetching campaign:", error);
-      throw new Error("Failed to fetch campaign");
+    } catch (error: unknown) {
+      logger.error('Error fetching campaign:', error);
+      throw new Error('Failed to fetch campaign');
     }
   }
 
   /**
    * Generate A/B test variants for campaign
    */
-  async generateVariants(campaignId: number, platforms: string[]): Promise<{
+  async generateVariants(
+    campaignId: number,
+    platforms: string[]
+  ): Promise<{
     variants: Array<{ platform: string; content: string[] }>;
   }> {
     try {
       const campaign = await storage.getAdCampaign(campaignId);
       if (!campaign) {
-        throw new Error("Campaign not found");
+        throw new Error('Campaign not found');
       }
 
       const variants: Array<{ platform: string; content: string[] }> = [];
@@ -109,9 +113,9 @@ export class SocialService {
       await storage.updateAdCampaign(campaignId, { variants });
 
       return { variants };
-    } catch (error) {
-      console.error("Error generating variants:", error);
-      throw new Error("Failed to generate variants");
+    } catch (error: unknown) {
+      logger.error('Error generating variants:', error);
+      throw new Error('Failed to generate variants');
     }
   }
 
@@ -125,29 +129,32 @@ export class SocialService {
     try {
       const campaign = await storage.getAdCampaign(campaignId);
       if (!campaign) {
-        throw new Error("Campaign not found");
+        throw new Error('Campaign not found');
       }
 
       // Store schedule in campaign
       const existingSchedule = (campaign.schedule as any[]) || [];
       const newSchedule = [...existingSchedule, ...schedule];
-      
+
       await storage.updateAdCampaign(campaignId, { schedule: newSchedule });
 
       return {
         success: true,
         scheduled: schedule.length,
       };
-    } catch (error) {
-      console.error("Error scheduling posts:", error);
-      throw new Error("Failed to schedule posts");
+    } catch (error: unknown) {
+      logger.error('Error scheduling posts:', error);
+      throw new Error('Failed to schedule posts');
     }
   }
 
   /**
    * Publish post to platform
    */
-  async publishPost(postId: string, userId: string): Promise<{ success: boolean; publishedAt: Date }> {
+  async publishPost(
+    postId: string,
+    userId: string
+  ): Promise<{ success: boolean; publishedAt: Date }> {
     try {
       // In production:
       // 1. Get post details
@@ -159,9 +166,9 @@ export class SocialService {
         success: true,
         publishedAt: new Date(),
       };
-    } catch (error) {
-      console.error("Post publishing error:", error);
-      throw new Error("Failed to publish post");
+    } catch (error: unknown) {
+      logger.error('Post publishing error:', error);
+      throw new Error('Failed to publish post');
     }
   }
 
@@ -184,9 +191,9 @@ export class SocialService {
         reach: 0,
         engagement: 0,
       };
-    } catch (error) {
-      console.error("Error tracking metrics:", error);
-      throw new Error("Failed to track metrics");
+    } catch (error: unknown) {
+      logger.error('Error tracking metrics:', error);
+      throw new Error('Failed to track metrics');
     }
   }
 
@@ -200,11 +207,11 @@ export class SocialService {
     try {
       const campaign = await storage.getAdCampaign(campaignId);
       if (!campaign) {
-        throw new Error("Campaign not found");
+        throw new Error('Campaign not found');
       }
 
       const variants = (campaign.variants as any[]) || [];
-      
+
       // In production:
       // 1. Get metrics for each variant
       // 2. Calculate performance scores
@@ -219,16 +226,20 @@ export class SocialService {
           conversionRate: 0,
         },
       };
-    } catch (error) {
-      console.error("Error optimizing variant:", error);
-      throw new Error("Failed to optimize variant");
+    } catch (error: unknown) {
+      logger.error('Error optimizing variant:', error);
+      throw new Error('Failed to optimize variant');
     }
   }
 
   /**
    * Connect social media platform via OAuth
    */
-  async connectPlatform(userId: string, platform: string, authCode: string): Promise<{
+  async connectPlatform(
+    userId: string,
+    platform: string,
+    authCode: string
+  ): Promise<{
     success: boolean;
     accountId: string;
   }> {
@@ -238,7 +249,7 @@ export class SocialService {
         case 'twitter':
           // Twitter API v2 OAuth
           break;
-        case 'instagram': 
+        case 'instagram':
           // Instagram Basic Display API
           break;
         case 'youtube':
@@ -256,9 +267,9 @@ export class SocialService {
       }
 
       return { success: true, accountId: `${platform}_${userId}` };
-    } catch (error) {
-      console.error("Platform connection error:", error);
-      throw new Error("Failed to connect platform");
+    } catch (error: unknown) {
+      logger.error('Platform connection error:', error);
+      throw new Error('Failed to connect platform');
     }
   }
 
@@ -269,7 +280,7 @@ export class SocialService {
     totalFollowers: number;
     totalReach: number;
     engagementRate: number;
-    topPosts: any[];
+    topPosts: unknown[];
   }> {
     try {
       // Fetch analytics from social platforms
@@ -277,18 +288,21 @@ export class SocialService {
         totalFollowers: 0,
         totalReach: 0,
         engagementRate: 0,
-        topPosts: []
+        topPosts: [],
       };
-    } catch (error) {
-      console.error("Social analytics error:", error);
-      throw new Error("Failed to fetch social analytics");
+    } catch (error: unknown) {
+      logger.error('Social analytics error:', error);
+      throw new Error('Failed to fetch social analytics');
     }
   }
 
   /**
    * AI-powered post amplification
    */
-  async amplifyPost(postId: string, userId: string): Promise<{
+  async amplifyPost(
+    postId: string,
+    userId: string
+  ): Promise<{
     success: boolean;
     amplificationId: string;
     projectedReachIncrease: number;
@@ -297,35 +311,38 @@ export class SocialService {
     try {
       // AI-powered optimization strategies:
       // - Optimal posting times
-      // - Hashtag optimization  
+      // - Hashtag optimization
       // - Cross-platform syndication
       // - Engagement pattern analysis
-      
+
       return {
         success: true,
         amplificationId: `amp_${postId}`,
         projectedReachIncrease: 45,
-        projectedEngagementIncrease: 28
+        projectedEngagementIncrease: 28,
       };
-    } catch (error) {
-      console.error("Post amplification error:", error);
-      throw new Error("Failed to amplify post");
+    } catch (error: unknown) {
+      logger.error('Post amplification error:', error);
+      throw new Error('Failed to amplify post');
     }
   }
 
   /**
    * Get campaign metrics
    */
-  async getCampaignMetrics(campaignId: number, userId: string): Promise<{
+  async getCampaignMetrics(
+    campaignId: number,
+    userId: string
+  ): Promise<{
     totalReach: number;
     totalEngagement: number;
     platforms: Record<string, any>;
-    timeline: any[];
+    timeline: unknown[];
   }> {
     try {
       const campaign = await this.getCampaign(campaignId, userId);
       if (!campaign) {
-        throw new Error("Campaign not found");
+        throw new Error('Campaign not found');
       }
 
       // In production: Aggregate metrics from all posts
@@ -335,9 +352,9 @@ export class SocialService {
         platforms: {},
         timeline: [],
       };
-    } catch (error) {
-      console.error("Error fetching campaign metrics:", error);
-      throw new Error("Failed to fetch campaign metrics");
+    } catch (error: unknown) {
+      logger.error('Error fetching campaign metrics:', error);
+      throw new Error('Failed to fetch campaign metrics');
     }
   }
 }

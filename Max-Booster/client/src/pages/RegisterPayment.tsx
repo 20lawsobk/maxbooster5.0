@@ -28,8 +28,8 @@ const plans = {
       'Custom Branding & White-label',
       'Cloud Storage (100GB)',
       'Priority Email & Chat Support',
-      'Early Access to New Features'
-    ]
+      'Early Access to New Features',
+    ],
   },
   yearly: {
     id: 'yearly',
@@ -54,8 +54,8 @@ const plans = {
       'Priority Email & Chat Support',
       'Early Access to New Features',
       'API Access & Integrations',
-      'Premium Content Library'
-    ]
+      'Premium Content Library',
+    ],
   },
   lifetime: {
     id: 'lifetime',
@@ -79,9 +79,9 @@ const plans = {
       'API Access & Integrations',
       'Premium Content Library',
       'Personal Account Manager',
-      'Custom Enterprise Integrations'
-    ]
-  }
+      'Custom Enterprise Integrations',
+    ],
+  },
 };
 
 export default function RegisterPayment() {
@@ -89,7 +89,7 @@ export default function RegisterPayment() {
   const [, navigate] = useLocation();
   const [formData, setFormData] = useState({
     username: '',
-    email: ''
+    email: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -130,7 +130,7 @@ export default function RegisterPayment() {
       const response = await apiRequest('POST', '/api/create-checkout-session', {
         tier: plan.id,
         userEmail: formData.email,
-        username: formData.username
+        username: formData.username,
       });
 
       const data = await response.json();
@@ -141,20 +141,20 @@ export default function RegisterPayment() {
       } else {
         throw new Error('Failed to create checkout session');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Error",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Something went wrong. Please try again.',
+        variant: 'destructive',
       });
       setIsLoading(false);
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
@@ -165,14 +165,20 @@ export default function RegisterPayment() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/pricing">
-              <Button variant="ghost" className="flex items-center space-x-2" data-testid="button-back-navigation">
+              <Button
+                variant="ghost"
+                className="flex items-center space-x-2"
+                data-testid="button-back-navigation"
+              >
                 <ArrowLeft className="h-4 w-4" />
                 <Logo size="sm" />
               </Button>
             </Link>
             <div className="flex items-center space-x-4">
               <Link href="/login">
-                <Button variant="ghost" data-testid="button-sign-in">Sign In</Button>
+                <Button variant="ghost" data-testid="button-sign-in">
+                  Sign In
+                </Button>
               </Link>
             </div>
           </div>
@@ -192,17 +198,16 @@ export default function RegisterPayment() {
                     </span>
                   </div>
                 )}
-                <CardTitle className="text-2xl font-bold text-gray-900">
-                  {plan.name}
-                </CardTitle>
+                <CardTitle className="text-2xl font-bold text-gray-900">{plan.name}</CardTitle>
                 <div className="mt-4">
                   <div className="flex items-baseline justify-center">
-                    <span className="text-4xl font-bold text-gray-900" data-testid={`text-price-${plan.id}`}>
+                    <span
+                      className="text-4xl font-bold text-gray-900"
+                      data-testid={`text-price-${plan.id}`}
+                    >
                       ${plan.price}
                     </span>
-                    <span className="text-gray-500 ml-2">
-                      /{plan.period}
-                    </span>
+                    <span className="text-gray-500 ml-2">/{plan.period}</span>
                   </div>
                   {plan.originalPrice && (
                     <div className="text-sm text-gray-500 mt-1">
@@ -231,14 +236,15 @@ export default function RegisterPayment() {
                     </li>
                   ))}
                 </ul>
-                
+
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <div className="flex items-center space-x-2 text-blue-800">
                     <Shield className="h-5 w-5" />
                     <span className="font-medium">90-Day Money-Back Guarantee</span>
                   </div>
                   <p className="text-blue-700 text-sm mt-1">
-                    If you're not completely satisfied, we'll refund your entire payment, no questions asked.
+                    If you're not completely satisfied, we'll refund your entire payment, no
+                    questions asked.
                   </p>
                 </div>
               </CardContent>
@@ -253,9 +259,7 @@ export default function RegisterPayment() {
                   <CreditCard className="h-7 w-7 text-white" />
                 </div>
                 <CardTitle className="text-2xl font-bold">Complete Your Purchase</CardTitle>
-                <CardDescription>
-                  Enter your details to continue to secure payment
-                </CardDescription>
+                <CardDescription>Enter your details to continue to secure payment</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -272,7 +276,7 @@ export default function RegisterPayment() {
                       data-testid="input-username"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
                     <Input
@@ -287,8 +291,8 @@ export default function RegisterPayment() {
                     />
                   </div>
 
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full py-3 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
                     size="lg"
                     disabled={isLoading}
@@ -310,9 +314,7 @@ export default function RegisterPayment() {
 
                 <div className="text-center text-xs text-gray-500 space-y-2">
                   <p>Secure payment powered by Stripe</p>
-                  <p>
-                    By continuing, you agree to our Terms of Service and Privacy Policy
-                  </p>
+                  <p>By continuing, you agree to our Terms of Service and Privacy Policy</p>
                 </div>
               </CardContent>
             </Card>

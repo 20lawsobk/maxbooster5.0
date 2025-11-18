@@ -1,11 +1,19 @@
-import { db } from "../db";
-import { storefronts, storefrontTemplates, membershipTiers, customerMemberships, listings, users } from "@shared/schema";
-import { eq, and, desc, sql, count } from "drizzle-orm";
-import Stripe from "stripe";
-import { nanoid } from "nanoid";
+import { db } from '../db';
+import {
+  storefronts,
+  storefrontTemplates,
+  membershipTiers,
+  customerMemberships,
+  listings,
+  users,
+} from '@shared/schema';
+import { eq, and, desc, sql, count } from 'drizzle-orm';
+import Stripe from 'stripe';
+import { nanoid } from 'nanoid';
+import { logger } from '../logger.js';
 
 const stripe = process.env.STRIPE_SECRET_KEY?.startsWith('sk_')
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-08-27.basil" })
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-08-27.basil' })
   : null;
 
 export interface CreateStorefrontInput {
@@ -82,8 +90,8 @@ export class StorefrontService {
         .returning();
 
       return storefront;
-    } catch (error) {
-      console.error('Error creating storefront:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating storefront:', error);
       throw error;
     }
   }
@@ -123,10 +131,7 @@ export class StorefrontService {
 
       const [userListings, tiers, template] = await Promise.all([
         db.query.listings.findMany({
-          where: and(
-            eq(listings.ownerId, storefront.userId),
-            eq(listings.isPublished, true)
-          ),
+          where: and(eq(listings.ownerId, storefront.userId), eq(listings.isPublished, true)),
           orderBy: [desc(listings.createdAt)],
           limit: 50,
         }),
@@ -150,8 +155,8 @@ export class StorefrontService {
         membershipTiers: tiers,
         template,
       };
-    } catch (error) {
-      console.error('Error fetching storefront:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching storefront:', error);
       throw error;
     }
   }
@@ -170,8 +175,8 @@ export class StorefrontService {
       });
 
       return userStorefronts;
-    } catch (error) {
-      console.error('Error fetching user storefronts:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching user storefronts:', error);
       throw error;
     }
   }
@@ -213,8 +218,8 @@ export class StorefrontService {
         .returning();
 
       return updatedStorefront;
-    } catch (error) {
-      console.error('Error updating storefront:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating storefront:', error);
       throw error;
     }
   }
@@ -239,8 +244,8 @@ export class StorefrontService {
       await db.delete(storefronts).where(eq(storefronts.id, storefrontId));
 
       return { success: true };
-    } catch (error) {
-      console.error('Error deleting storefront:', error);
+    } catch (error: unknown) {
+      logger.error('Error deleting storefront:', error);
       throw error;
     }
   }
@@ -256,8 +261,8 @@ export class StorefrontService {
       });
 
       return templates;
-    } catch (error) {
-      console.error('Error fetching templates:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching templates:', error);
       throw error;
     }
   }
@@ -296,8 +301,8 @@ export class StorefrontService {
           });
 
           stripePriceId = price.id;
-        } catch (stripeError) {
-          console.error('Error creating Stripe price:', stripeError);
+        } catch (stripeError: unknown) {
+          logger.error('Error creating Stripe price:', stripeError);
         }
       }
 
@@ -324,8 +329,8 @@ export class StorefrontService {
         .returning();
 
       return tier;
-    } catch (error) {
-      console.error('Error creating membership tier:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating membership tier:', error);
       throw error;
     }
   }
@@ -364,8 +369,8 @@ export class StorefrontService {
         .returning();
 
       return updatedTier;
-    } catch (error) {
-      console.error('Error updating membership tier:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating membership tier:', error);
       throw error;
     }
   }
@@ -404,8 +409,8 @@ export class StorefrontService {
       await db.delete(membershipTiers).where(eq(membershipTiers.id, tierId));
 
       return { success: true };
-    } catch (error) {
-      console.error('Error deleting membership tier:', error);
+    } catch (error: unknown) {
+      logger.error('Error deleting membership tier:', error);
       throw error;
     }
   }
@@ -470,10 +475,7 @@ export class StorefrontService {
 
         stripeCustomerId = customer.id;
 
-        await db
-          .update(users)
-          .set({ stripeCustomerId })
-          .where(eq(users.id, customerId));
+        await db.update(users).set({ stripeCustomerId }).where(eq(users.id, customerId));
       }
 
       if (!tier.stripePriceId) {
@@ -513,8 +515,8 @@ export class StorefrontService {
         membership,
         subscription,
       };
-    } catch (error) {
-      console.error('Error subscribing to membership tier:', error);
+    } catch (error: unknown) {
+      logger.error('Error subscribing to membership tier:', error);
       throw error;
     }
   }
@@ -557,8 +559,8 @@ export class StorefrontService {
         .returning();
 
       return updatedMembership;
-    } catch (error) {
-      console.error('Error canceling membership:', error);
+    } catch (error: unknown) {
+      logger.error('Error canceling membership:', error);
       throw error;
     }
   }
@@ -589,8 +591,8 @@ export class StorefrontService {
       });
 
       return memberships;
-    } catch (error) {
-      console.error('Error fetching customer memberships:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching customer memberships:', error);
       throw error;
     }
   }

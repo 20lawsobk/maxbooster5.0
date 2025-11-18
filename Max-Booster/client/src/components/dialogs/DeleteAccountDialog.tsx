@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,21 +29,21 @@ export default function DeleteAccountDialog({ open, onOpenChange }: DeleteAccoun
 
   const handleDelete = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (confirmation !== 'DELETE') {
       toast({
-        title: "Error",
-        description: "Please type DELETE to confirm",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please type DELETE to confirm',
+        variant: 'destructive',
       });
       return;
     }
 
     if (!password) {
       toast({
-        title: "Error",
-        description: "Please enter your password",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please enter your password',
+        variant: 'destructive',
       });
       return;
     }
@@ -45,21 +51,20 @@ export default function DeleteAccountDialog({ open, onOpenChange }: DeleteAccoun
     setLoading(true);
     try {
       await apiRequest('DELETE', '/api/auth/account', { password });
-      
+
       toast({
-        title: "Account Deleted",
-        description: "Your account has been permanently deleted",
+        title: 'Account Deleted',
+        description: 'Your account has been permanently deleted',
       });
-      
+
       setTimeout(() => {
         logout();
       }, 1500);
-      
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete account",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to delete account',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -77,10 +82,11 @@ export default function DeleteAccountDialog({ open, onOpenChange }: DeleteAccoun
             </div>
           </DialogTitle>
           <DialogDescription>
-            This action cannot be undone. This will permanently delete your account and all associated data.
+            This action cannot be undone. This will permanently delete your account and all
+            associated data.
           </DialogDescription>
         </DialogHeader>
-        
+
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>

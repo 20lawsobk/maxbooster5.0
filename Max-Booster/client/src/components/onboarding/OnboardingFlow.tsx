@@ -112,11 +112,11 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
     onSuccess: () => {
       toast({
         title: '✨ Welcome to Max Booster!',
-        description: 'Your account setup is complete. Let\'s boost your music career!',
+        description: "Your account setup is complete. Let's boost your music career!",
       });
       onComplete();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Setup Failed',
         description: error.message || 'Failed to save onboarding data. Please try again.',
@@ -160,7 +160,7 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
     setFormData({
       ...formData,
       goals: formData.goals.includes(goal)
-        ? formData.goals.filter(g => g !== goal)
+        ? formData.goals.filter((g) => g !== goal)
         : [...formData.goals, goal],
     });
   };
@@ -214,7 +214,9 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
                         }`}
                       >
                         <div className="flex items-start space-x-3">
-                          <Icon className={`w-6 h-6 mt-0.5 ${formData.accountType === type.value ? 'text-primary' : 'text-gray-400'}`} />
+                          <Icon
+                            className={`w-6 h-6 mt-0.5 ${formData.accountType === type.value ? 'text-primary' : 'text-gray-400'}`}
+                          />
                           <div className="flex-1 space-y-1">
                             <div className="font-semibold">{type.label}</div>
                             <div className="text-sm text-muted-foreground">{type.description}</div>
@@ -239,7 +241,10 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
 
               <div className="space-y-4">
                 {goals.map((goal) => (
-                  <div key={goal.value} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <div
+                    key={goal.value}
+                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
                     <Checkbox
                       id={goal.value}
                       checked={formData.goals.includes(goal.value)}
@@ -281,10 +286,14 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
                       </div>
                       <div
                         className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          formData.userLevel === level.value ? 'border-primary bg-primary' : 'border-gray-300'
+                          formData.userLevel === level.value
+                            ? 'border-primary bg-primary'
+                            : 'border-gray-300'
                         }`}
                       >
-                        {formData.userLevel === level.value && <Check className="w-3 h-3 text-white" />}
+                        {formData.userLevel === level.value && (
+                          <Check className="w-3 h-3 text-white" />
+                        )}
                       </div>
                     </div>
                   </button>
@@ -311,13 +320,18 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
                       onCheckedChange={(checked) =>
                         setFormData({
                           ...formData,
-                          connectedAccounts: { ...formData.connectedAccounts, streaming: !!checked },
+                          connectedAccounts: {
+                            ...formData.connectedAccounts,
+                            streaming: !!checked,
+                          },
                         })
                       }
                     />
                     <Label htmlFor="streaming" className="flex-1 cursor-pointer">
                       <div className="font-semibold">Connect Streaming Account</div>
-                      <div className="text-sm text-muted-foreground">Spotify, Apple Music, etc.</div>
+                      <div className="text-sm text-muted-foreground">
+                        Spotify, Apple Music, etc.
+                      </div>
                     </Label>
                   </div>
                 </div>
@@ -336,7 +350,9 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
                     />
                     <Label htmlFor="social" className="flex-1 cursor-pointer">
                       <div className="font-semibold">Link Social Media</div>
-                      <div className="text-sm text-muted-foreground">Facebook, Instagram, Twitter</div>
+                      <div className="text-sm text-muted-foreground">
+                        Facebook, Instagram, Twitter
+                      </div>
                     </Label>
                   </div>
                 </div>
@@ -360,11 +376,7 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
             </Button>
 
             {currentStep < 4 ? (
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className="min-w-[100px]"
-              >
+              <Button onClick={handleNext} disabled={!canProceed()} className="min-w-[100px]">
                 Next
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>

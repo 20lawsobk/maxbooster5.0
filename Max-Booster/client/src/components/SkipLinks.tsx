@@ -16,6 +16,9 @@ interface SkipLinksProps {
   links?: SkipLink[];
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function SkipLinks({ links = defaultLinks }: SkipLinksProps) {
   const [focused, setFocused] = useState(false);
 

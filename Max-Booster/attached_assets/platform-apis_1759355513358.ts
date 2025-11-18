@@ -11,7 +11,7 @@ export const platformAPI = {
     const base = apiBase();
     if (!base) {
       // Simulate success in absence of external API
-      return platforms.map(p => ({ platform: p, success: true, postId: `${p}-${Date.now()}` }));
+      return platforms.map((p) => ({ platform: p, success: true, postId: `${p}-${Date.now()}` }));
     }
 
     const results: PublishResult[] = [];
@@ -20,7 +20,7 @@ export const platformAPI = {
         const res = await fetch(`${base}/platforms/${p}/publish`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content })
+          body: JSON.stringify({ content }),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
@@ -42,14 +42,11 @@ export const platformAPI = {
         comments: Math.floor(Math.random() * 80),
         views: Math.floor(Math.random() * 10000),
         reach: Math.floor(Math.random() * 20000),
-        engagementRate: Number((Math.random() * 0.08).toFixed(4))
+        engagementRate: Number((Math.random() * 0.08).toFixed(4)),
       };
     }
     const res = await fetch(`${base}/platforms/${platform}/engagement/${postId}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();
-  }
+  },
 };
-
-
-

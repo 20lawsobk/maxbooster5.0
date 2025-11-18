@@ -3,19 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Music, 
-  TrendingUp, 
-  Share2, 
-  Target, 
-  BarChart3, 
+import {
+  Music,
+  TrendingUp,
+  Share2,
+  Target,
+  BarChart3,
   Settings,
   CheckCircle,
   ArrowRight,
   ArrowLeft,
   Sparkles,
   Zap,
-  Crown
+  Crown,
 } from 'lucide-react';
 
 interface OnboardingStep {
@@ -35,10 +35,14 @@ const onboardingSteps: OnboardingStep[] = [
     title: 'Welcome to Max Booster',
     description: 'Your AI-powered music career management platform',
     icon: <Sparkles className="w-8 h-8 text-blue-500" />,
-    features: ['Complete music career management', 'AI-powered optimization', 'Cross-platform distribution'],
+    features: [
+      'Complete music career management',
+      'AI-powered optimization',
+      'Cross-platform distribution',
+    ],
     benefits: ['Save 10+ hours per week', 'Increase earnings by 300%', 'Professional-grade tools'],
     estimatedTime: '2 minutes',
-    difficulty: 'beginner'
+    difficulty: 'beginner',
   },
   {
     id: 'studio',
@@ -48,7 +52,7 @@ const onboardingSteps: OnboardingStep[] = [
     features: ['AI-powered mixing', 'Professional mastering', 'Real-time collaboration'],
     benefits: ['Studio-quality results', 'Save $1000s in studio costs', 'Learn from AI'],
     estimatedTime: '5 minutes',
-    difficulty: 'intermediate'
+    difficulty: 'intermediate',
   },
   {
     id: 'distribution',
@@ -58,7 +62,7 @@ const onboardingSteps: OnboardingStep[] = [
     features: ['150+ platforms', 'Automated royalty collection', 'HyperFollow campaigns'],
     benefits: ['Global reach', 'Maximize earnings', 'Professional distribution'],
     estimatedTime: '3 minutes',
-    difficulty: 'beginner'
+    difficulty: 'beginner',
   },
   {
     id: 'advertising',
@@ -68,7 +72,7 @@ const onboardingSteps: OnboardingStep[] = [
     features: ['Zero ad spend', '1000% better performance', 'Viral amplification'],
     benefits: ['Eliminate advertising costs', '15% viral success rate', 'Algorithm domination'],
     estimatedTime: '4 minutes',
-    difficulty: 'advanced'
+    difficulty: 'advanced',
   },
   {
     id: 'social',
@@ -78,7 +82,7 @@ const onboardingSteps: OnboardingStep[] = [
     features: ['8 platform integration', 'AI content generation', 'Automated scheduling'],
     benefits: ['10x engagement', 'Save 5+ hours weekly', 'Professional presence'],
     estimatedTime: '3 minutes',
-    difficulty: 'intermediate'
+    difficulty: 'intermediate',
   },
   {
     id: 'analytics',
@@ -88,7 +92,7 @@ const onboardingSteps: OnboardingStep[] = [
     features: ['50+ analytics categories', 'AI predictions', 'Growth optimization'],
     benefits: ['Data-driven decisions', 'Predict trends', 'Maximize performance'],
     estimatedTime: '2 minutes',
-    difficulty: 'intermediate'
+    difficulty: 'intermediate',
   },
   {
     id: 'marketplace',
@@ -98,7 +102,7 @@ const onboardingSteps: OnboardingStep[] = [
     features: ['Beat sales', 'Collaboration tools', 'Secure transactions'],
     benefits: ['Monetize beats', 'Find collaborators', 'Build network'],
     estimatedTime: '3 minutes',
-    difficulty: 'beginner'
+    difficulty: 'beginner',
   },
   {
     id: 'setup',
@@ -108,8 +112,8 @@ const onboardingSteps: OnboardingStep[] = [
     features: ['Profile setup', 'Payment configuration', 'Platform connections'],
     benefits: ['Ready to create', 'Optimized settings', 'Full access'],
     estimatedTime: '5 minutes',
-    difficulty: 'beginner'
-  }
+    difficulty: 'beginner',
+  },
 ];
 
 interface OnboardingFlowProps {
@@ -127,10 +131,10 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
 
   const handleNext = () => {
     const currentStepData = onboardingSteps[currentStep];
-    setCompletedSteps(prev => [...prev, currentStepData.id]);
-    
+    setCompletedSteps((prev) => [...prev, currentStepData.id]);
+
     if (currentStep < onboardingSteps.length - 1) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev) => prev + 1);
     } else {
       onComplete();
     }
@@ -138,7 +142,7 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
 
   const handlePrevious = () => {
     if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+      setCurrentStep((prev) => prev - 1);
     }
   };
 
@@ -148,10 +152,14 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner': return 'bg-green-100 text-green-800';
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800';
-      case 'advanced': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'beginner':
+        return 'bg-green-100 text-green-800';
+      case 'intermediate':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'advanced':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -172,10 +180,12 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
               Skip Setup
             </Button>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-gray-600">
-              <span>Step {currentStep + 1} of {onboardingSteps.length}</span>
+              <span>
+                Step {currentStep + 1} of {onboardingSteps.length}
+              </span>
               <span>{Math.round(progress)}% Complete</span>
             </div>
             <Progress value={progress} className="h-2" />
@@ -189,16 +199,14 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
             <Card className="h-full">
               <CardHeader>
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    {currentStepData.icon}
-                  </div>
+                  <div className="p-3 bg-blue-50 rounded-lg">{currentStepData.icon}</div>
                   <div>
                     <CardTitle className="text-2xl">{currentStepData.title}</CardTitle>
                     <p className="text-gray-600 mt-2">{currentStepData.description}</p>
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="space-y-6">
                 {/* Features */}
                 <div>
@@ -303,21 +311,13 @@ export default function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowPro
             <Card>
               <CardContent className="pt-6">
                 <div className="space-y-3">
-                  <Button 
-                    onClick={handleNext} 
-                    className="w-full"
-                    size="lg"
-                  >
+                  <Button onClick={handleNext} className="w-full" size="lg">
                     {isLastStep ? 'Complete Setup' : 'Next Step'}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
-                  
+
                   {currentStep > 0 && (
-                    <Button 
-                      variant="outline" 
-                      onClick={handlePrevious}
-                      className="w-full"
-                    >
+                    <Button variant="outline" onClick={handlePrevious} className="w-full">
                       <ArrowLeft className="w-4 h-4 mr-2" />
                       Previous
                     </Button>

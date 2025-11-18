@@ -1,7 +1,8 @@
-import { Router } from "express";
-import { instantPayoutService } from "../services/instantPayoutService";
-import { requestInstantPayoutSchema } from "@shared/schema";
-import { z } from "zod";
+import { Router } from 'express';
+import { instantPayoutService } from '../services/instantPayoutService';
+import { requestInstantPayoutSchema } from '@shared/schema';
+import { z } from 'zod';
+import { logger } from '../logger.js';
 
 const router = Router();
 
@@ -9,17 +10,17 @@ const router = Router();
  * GET /api/payouts/balance
  * Get user's available balance for payouts
  */
-router.get("/balance", async (req, res) => {
+router.get('/balance', async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const balance = await instantPayoutService.calculateAvailableBalance(req.user.id);
     res.json(balance);
-  } catch (error: any) {
-    console.error("Error fetching payout balance:", error);
-    res.status(500).json({ error: error.message || "Failed to fetch balance" });
+  } catch (error: unknown) {
+    logger.error('Error fetching payout balance:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch balance' });
   }
 });
 
@@ -27,10 +28,10 @@ router.get("/balance", async (req, res) => {
  * POST /api/payouts/instant
  * Request instant payout (T+0 settlement)
  */
-router.post("/instant", async (req, res) => {
+router.post('/instant', async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     // Validate request body
@@ -52,19 +53,19 @@ router.post("/instant", async (req, res) => {
       payoutId: result.payoutId,
       amount: result.amount,
       estimatedArrival: result.estimatedArrival,
-      message: "Payout initiated successfully. Funds will arrive within minutes.",
+      message: 'Payout initiated successfully. Funds will arrive within minutes.',
     });
-  } catch (error: any) {
-    console.error("Error requesting instant payout:", error);
-    
+  } catch (error: unknown) {
+    logger.error('Error requesting instant payout:', error);
+
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        error: "Invalid request data",
-        details: error.errors 
+      return res.status(400).json({
+        error: 'Invalid request data',
+        details: error.errors,
       });
     }
 
-    res.status(500).json({ error: error.message || "Failed to request payout" });
+    res.status(500).json({ error: error.message || 'Failed to request payout' });
   }
 });
 
@@ -72,20 +73,16 @@ router.post("/instant", async (req, res) => {
  * GET /api/payouts/history
  * Get user's payout history
  */
-router.get("/history", async (req, res) => {
+router.get('/history', async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
 
-    const payouts = await instantPayoutService.getPayoutHistory(
-      req.user.id,
-      limit,
-      offset
-    );
+    const payouts = await instantPayoutService.getPayoutHistory(req.user.id, limit, offset);
 
     res.json({
       payouts,
@@ -95,9 +92,9 @@ router.get("/history", async (req, res) => {
         total: payouts.length,
       },
     });
-  } catch (error: any) {
-    console.error("Error fetching payout history:", error);
-    res.status(500).json({ error: error.message || "Failed to fetch payout history" });
+  } catch (error: unknown) {
+    logger.error('Error fetching payout history:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch payout history' });
   }
 });
 
@@ -105,10 +102,10 @@ router.get("/history", async (req, res) => {
  * GET /api/payouts/status/:payoutId
  * Check payout status by ID
  */
-router.get("/status/:payoutId", async (req, res) => {
+router.get('/status/:payoutId', async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const { payoutId } = req.params;
@@ -117,18 +114,18 @@ router.get("/status/:payoutId", async (req, res) => {
 
     // Verify the payout belongs to the requesting user
     if (payout.userId !== req.user.id) {
-      return res.status(403).json({ error: "Forbidden" });
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     res.json(payout);
-  } catch (error: any) {
-    console.error("Error fetching payout status:", error);
-    
-    if (error.message === "Payout not found") {
-      return res.status(404).json({ error: "Payout not found" });
+  } catch (error: unknown) {
+    logger.error('Error fetching payout status:', error);
+
+    if (error.message === 'Payout not found') {
+      return res.status(404).json({ error: 'Payout not found' });
     }
 
-    res.status(500).json({ error: error.message || "Failed to fetch payout status" });
+    res.status(500).json({ error: error.message || 'Failed to fetch payout status' });
   }
 });
 
@@ -136,13 +133,13 @@ router.get("/status/:payoutId", async (req, res) => {
  * POST /api/payouts/setup
  * Complete Stripe Connect Express onboarding
  */
-router.post("/setup", async (req, res) => {
+router.post('/setup', async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN
       ? `https://${process.env.REPLIT_DEV_DOMAIN}`
       : `http://localhost:${process.env.PORT || 5000}`;
 
@@ -157,9 +154,9 @@ router.post("/setup", async (req, res) => {
     );
 
     res.json({ url: accountLinkUrl });
-  } catch (error: any) {
-    console.error("Error setting up payout account:", error);
-    res.status(500).json({ error: error.message || "Failed to setup payout account" });
+  } catch (error: unknown) {
+    logger.error('Error setting up payout account:', error);
+    res.status(500).json({ error: error.message || 'Failed to setup payout account' });
   }
 });
 
@@ -167,17 +164,17 @@ router.post("/setup", async (req, res) => {
  * GET /api/payouts/verify
  * Verify Stripe Connect account status
  */
-router.get("/verify", async (req, res) => {
+router.get('/verify', async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const verification = await instantPayoutService.verifyStripeAccount(req.user.id);
     res.json(verification);
-  } catch (error: any) {
-    console.error("Error verifying payout account:", error);
-    res.status(500).json({ error: error.message || "Failed to verify account" });
+  } catch (error: unknown) {
+    logger.error('Error verifying payout account:', error);
+    res.status(500).json({ error: error.message || 'Failed to verify account' });
   }
 });
 

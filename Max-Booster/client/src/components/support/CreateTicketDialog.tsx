@@ -1,10 +1,23 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
 interface CreateTicketDialogProps {
@@ -13,6 +26,9 @@ interface CreateTicketDialogProps {
   onSuccess?: () => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function CreateTicketDialog({ open, onOpenChange, onSuccess }: CreateTicketDialogProps) {
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
@@ -22,7 +38,7 @@ export function CreateTicketDialog({ open, onOpenChange, onSuccess }: CreateTick
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!subject.trim() || !description.trim()) {
       toast({
         title: 'Missing information',
@@ -60,8 +76,8 @@ export function CreateTicketDialog({ open, onOpenChange, onSuccess }: CreateTick
       setPriority('medium');
       onOpenChange(false);
       onSuccess?.();
-    } catch (error) {
-      console.error('Error creating ticket:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating ticket:', error);
       toast({
         title: 'Error',
         description: 'Failed to create support ticket. Please try again.',
@@ -95,7 +111,7 @@ export function CreateTicketDialog({ open, onOpenChange, onSuccess }: CreateTick
             </div>
             <div className="grid gap-2">
               <Label htmlFor="priority">Priority</Label>
-              <Select value={priority} onValueChange={(value: any) => setPriority(value)}>
+              <Select value={priority} onValueChange={(value: unknown) => setPriority(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

@@ -24,6 +24,9 @@ interface StudioInspectorProps {
   onTrackUpdate: (trackId: string, updates: Partial<StudioTrack>) => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function StudioInspector({
   collapsed,
   onToggleCollapse,
@@ -33,7 +36,10 @@ export function StudioInspector({
 }: StudioInspectorProps) {
   if (collapsed) {
     return (
-      <div className="h-full flex flex-col items-center py-4" style={{ backgroundColor: 'var(--studio-inspector)' }}>
+      <div
+        className="h-full flex flex-col items-center py-4"
+        style={{ backgroundColor: 'var(--studio-inspector)' }}
+      >
         <Button
           size="sm"
           variant="ghost"
@@ -44,9 +50,9 @@ export function StudioInspector({
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
-        <div 
+        <div
           className="text-xs font-medium rotate-180 mb-auto mt-4"
-          style={{ 
+          style={{
             writingMode: 'vertical-rl',
             color: 'var(--studio-text-muted)',
           }}
@@ -60,7 +66,10 @@ export function StudioInspector({
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--studio-inspector)' }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b" style={{ borderColor: 'var(--studio-border)' }}>
+      <div
+        className="flex items-center justify-between p-3 border-b"
+        style={{ borderColor: 'var(--studio-border)' }}
+      >
         <h3 className="text-sm font-semibold" style={{ color: 'var(--studio-text)' }}>
           Inspector
         </h3>

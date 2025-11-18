@@ -55,6 +55,9 @@ interface CreateCampaignData {
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function useAdvertisement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -90,7 +93,7 @@ export function useAdvertisement() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/advertising/campaigns'] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Failed to Create Campaign',
         description: error.message,
@@ -112,7 +115,7 @@ export function useAdvertisement() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/advertising/campaigns'] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Failed to Update Campaign',
         description: error.message,
@@ -134,7 +137,7 @@ export function useAdvertisement() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/advertising/campaigns'] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Failed to Delete Campaign',
         description: error.message,
@@ -158,7 +161,7 @@ export function useAdvertisement() {
         description: 'AI has generated optimized content for your campaign.',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Failed to Generate AI Content',
         description: error.message,
@@ -182,7 +185,7 @@ export function useAdvertisement() {
         description: 'AI has optimized your campaign for maximum performance.',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Failed to Optimize Campaign',
         description: error.message,
@@ -204,11 +207,11 @@ export function useAdvertisement() {
     return deleteAdMutation.mutate(id);
   };
 
-  const generateAIContent = (musicData: any, targetAudience: any) => {
+  const generateAIContent = (musicData: unknown, targetAudience: unknown) => {
     return generateAIContentMutation.mutate({ musicData, targetAudience });
   };
 
-  const optimizeCampaign = (campaignId: string, performance: any) => {
+  const optimizeCampaign = (campaignId: string, performance: unknown) => {
     return optimizeCampaignMutation.mutate({ campaignId, performance });
   };
 
@@ -216,18 +219,18 @@ export function useAdvertisement() {
     // Data
     ads,
     aiInsights,
-    
+
     // Loading states
     isLoadingAds,
     isLoadingInsights,
-    
+
     // Mutations
     createCampaign,
     updateAd,
     deleteAd,
     generateAIContent,
     optimizeCampaign,
-    
+
     // Mutation states
     isCreating: createCampaignMutation.isPending,
     isUpdating: updateAdMutation.isPending,

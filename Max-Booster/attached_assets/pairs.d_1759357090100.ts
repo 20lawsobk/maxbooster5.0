@@ -5,6 +5,13 @@ import { YAMLMap } from '../../nodes/YAMLMap.js';
 import { YAMLSeq } from '../../nodes/YAMLSeq.js';
 import type { Schema } from '../../schema/Schema.js';
 import type { CollectionTag } from '../types.js';
-export declare function resolvePairs(seq: YAMLSeq.Parsed<ParsedNode | Pair<ParsedNode, ParsedNode | null>> | YAMLMap.Parsed, onError: (message: string) => void): YAMLSeq.Parsed<Pair<ParsedNode, ParsedNode | null>>;
-export declare function createPairs(schema: Schema, iterable: unknown, ctx: CreateNodeContext): YAMLSeq<unknown>;
+export declare function resolvePairs(
+  seq: YAMLSeq.Parsed<ParsedNode | Pair<ParsedNode, ParsedNode | null>> | YAMLMap.Parsed,
+  onError: (message: string) => void
+): YAMLSeq.Parsed<Pair<ParsedNode, ParsedNode | null>>;
+export declare function createPairs(
+  schema: Schema,
+  iterable: unknown,
+  ctx: CreateNodeContext
+): YAMLSeq<unknown>;
 export declare const pairs: CollectionTag;

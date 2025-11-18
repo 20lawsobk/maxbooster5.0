@@ -1,14 +1,8 @@
-import { useState, useRef, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Scissors, 
-  Copy, 
-  Move,
-  Zap,
-  Play
-} from "lucide-react";
+import { useState, useRef, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Scissors, Copy, Move, Zap, Play } from 'lucide-react';
 
 interface Track {
   id: string;
@@ -27,13 +21,13 @@ interface TimelineProps {
   collaborators?: any[];
 }
 
-export default function Timeline({ 
-  project, 
-  tracks, 
-  playbackPosition, 
-  onPositionChange, 
+export default function Timeline({
+  project,
+  tracks,
+  playbackPosition,
+  onPositionChange,
   isPlaying,
-  collaborators = []
+  collaborators = [],
 }: TimelineProps) {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
@@ -51,7 +45,7 @@ export default function Timeline({
     timeMarkers.push({
       time: i,
       label: `${minutes}:${seconds.toString().padStart(2, '0')}`,
-      position: i * pixelsPerSecond
+      position: i * pixelsPerSecond,
     });
   }
 
@@ -72,15 +66,15 @@ export default function Timeline({
       start: 0,
       end: 60,
       name: 'Verse 1',
-      color: 'from-primary/60 to-primary/80'
+      color: 'from-primary/60 to-primary/80',
     },
     {
-      id: 'region-2', 
+      id: 'region-2',
       trackId: tracks[0]?.id,
       start: 75,
       end: 105,
       name: 'Chorus',
-      color: 'from-secondary/60 to-secondary/80'
+      color: 'from-secondary/60 to-secondary/80',
     },
     {
       id: 'region-3',
@@ -88,7 +82,7 @@ export default function Timeline({
       start: 15,
       end: 180,
       name: 'Synth Lead',
-      color: 'from-accent/60 to-accent/80'
+      color: 'from-accent/60 to-accent/80',
     },
     {
       id: 'region-4',
@@ -96,8 +90,8 @@ export default function Timeline({
       start: 0,
       end: 200,
       name: 'Drum Pattern',
-      color: 'from-muted/60 to-muted/80'
-    }
+      color: 'from-muted/60 to-muted/80',
+    },
   ];
 
   return (
@@ -107,10 +101,10 @@ export default function Timeline({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <h3 className="font-semibold">Timeline</h3>
-            <Badge variant="outline">{project?.keySignature || "C Major"}</Badge>
+            <Badge variant="outline">{project?.keySignature || 'C Major'}</Badge>
             <Badge variant="outline">{project?.bpm || 120} BPM</Badge>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             {/* Timeline Tools */}
             <div className="flex items-center space-x-1 bg-muted/20 rounded-lg p-1">
@@ -169,12 +163,12 @@ export default function Timeline({
         {/* Timeline Container */}
         <div className="flex-1 overflow-hidden">
           <div className="h-full overflow-auto">
-            <div 
+            <div
               ref={timelineRef}
               className="relative bg-background rounded border"
-              style={{ 
+              style={{
                 width: totalDuration * pixelsPerSecond,
-                minWidth: '100%'
+                minWidth: '100%',
               }}
               onClick={handleTimelineClick}
             >
@@ -192,12 +186,12 @@ export default function Timeline({
                     </span>
                   </div>
                 ))}
-                
+
                 {/* Playhead */}
                 <div
                   className="absolute top-0 w-px h-full bg-destructive z-20"
-                  style={{ 
-                    left: (playbackPosition / 100) * totalDuration * pixelsPerSecond 
+                  style={{
+                    left: (playbackPosition / 100) * totalDuration * pixelsPerSecond,
                   }}
                 >
                   <div className="w-3 h-3 bg-destructive rounded-full -ml-1.5 -mt-1" />
@@ -207,8 +201,8 @@ export default function Timeline({
               {/* Track Lanes */}
               <div className="relative">
                 {tracks.map((track, index) => {
-                  const trackRegions = audioRegions.filter(r => r.trackId === track.id);
-                  
+                  const trackRegions = audioRegions.filter((r) => r.trackId === track.id);
+
                   return (
                     <div
                       key={track.id}
@@ -229,7 +223,7 @@ export default function Timeline({
                           className={`absolute top-2 bottom-2 bg-gradient-to-r ${region.color} rounded border timeline-track cursor-pointer transition-all hover:scale-y-105`}
                           style={{
                             left: region.start * pixelsPerSecond,
-                            width: (region.end - region.start) * pixelsPerSecond
+                            width: (region.end - region.start) * pixelsPerSecond,
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -242,7 +236,7 @@ export default function Timeline({
                               {region.name}
                             </span>
                           </div>
-                          
+
                           {/* Resize Handles */}
                           <div className="absolute left-0 top-0 bottom-0 w-2 cursor-w-resize bg-white/20" />
                           <div className="absolute right-0 top-0 bottom-0 w-2 cursor-e-resize bg-white/20" />
@@ -254,8 +248,8 @@ export default function Timeline({
                         <div
                           key={collaborator.userId}
                           className="absolute top-0 bottom-0 w-px bg-accent z-10"
-                          style={{ 
-                            left: (collaborator.cursorPosition || 0) * pixelsPerSecond 
+                          style={{
+                            left: (collaborator.cursorPosition || 0) * pixelsPerSecond,
                           }}
                         >
                           <div className="bg-accent text-accent-foreground text-xs px-1 rounded -mt-6 whitespace-nowrap">
@@ -286,13 +280,15 @@ export default function Timeline({
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
             <span>
-              Position: {Math.floor((playbackPosition / 100) * totalDuration / 60)}:
-              {Math.floor((playbackPosition / 100) * totalDuration % 60).toString().padStart(2, '0')}
+              Position: {Math.floor(((playbackPosition / 100) * totalDuration) / 60)}:
+              {Math.floor(((playbackPosition / 100) * totalDuration) % 60)
+                .toString()
+                .padStart(2, '0')}
             </span>
             <span>Duration: {Math.floor(totalDuration / 60)}:00</span>
             <span>Zoom: {zoom}%</span>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             {selectedRegion && (
               <div className="flex items-center space-x-2">

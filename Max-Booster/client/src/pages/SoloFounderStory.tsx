@@ -38,9 +38,7 @@ export default function SoloFounderStory() {
               For Musicians
             </span>
           </h1>
-          <p className="text-xl text-gray-600">
-            The story of how frustration became innovation
-          </p>
+          <p className="text-xl text-gray-600">The story of how frustration became innovation</p>
         </div>
       </section>
 
@@ -55,13 +53,15 @@ export default function SoloFounderStory() {
                   <h2 className="text-2xl font-bold text-gray-900">The Problem</h2>
                 </div>
                 <p className="text-gray-700 leading-relaxed">
-                  As an independent artist, I spent years juggling multiple expensive platforms just to manage my music career. 
-                  DistroKid for distribution, BeatStars for selling beats, Hootsuite for social media, expensive DAWs for production, 
-                  and countless ad platforms for promotion. The costs added up to over $500/month, and nothing talked to each other.
+                  As an independent artist, I spent years juggling multiple expensive platforms just
+                  to manage my music career. DistroKid for distribution, BeatStars for selling
+                  beats, Hootsuite for social media, expensive DAWs for production, and countless ad
+                  platforms for promotion. The costs added up to over $500/month, and nothing talked
+                  to each other.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  I watched talented artists give up not because they lacked skill, but because they couldn't afford the tools 
-                  to compete. The music industry gatekeepers were winning.
+                  I watched talented artists give up not because they lacked skill, but because they
+                  couldn't afford the tools to compete. The music industry gatekeepers were winning.
                 </p>
               </CardContent>
             </Card>
@@ -73,13 +73,15 @@ export default function SoloFounderStory() {
                   <h2 className="text-2xl font-bold text-gray-900">The Solution</h2>
                 </div>
                 <p className="text-gray-700 leading-relaxed">
-                  I decided to build what I wished existed: One platform that does everything. I spent 2 years learning to code, 
-                  understanding AI, and building connections with DSPs. Max Booster was born from countless late nights, 
-                  fueled by coffee and the belief that artists deserve better.
+                  I decided to build what I wished existed: One platform that does everything. I
+                  spent 2 years learning to code, understanding AI, and building connections with
+                  DSPs. Max Booster was born from countless late nights, fueled by coffee and the
+                  belief that artists deserve better.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  Instead of paying $500/month for multiple platforms, artists now pay $49/month for everything. 
-                  The AI features aren't just buzzwords—they're tools I actually use for my own music.
+                  Instead of paying $500/month for multiple platforms, artists now pay $49/month for
+                  everything. The AI features aren't just buzzwords—they're tools I actually use for
+                  my own music.
                 </p>
               </CardContent>
             </Card>
@@ -91,18 +93,19 @@ export default function SoloFounderStory() {
                   <h2 className="text-2xl font-bold text-gray-900">The Mission</h2>
                 </div>
                 <p className="text-gray-700 leading-relaxed">
-                  Max Booster isn't backed by venture capital. There are no investors pushing for quick profits. 
-                  It's just me, working directly with artists, continuously improving the platform based on real feedback.
+                  Max Booster isn't backed by venture capital. There are no investors pushing for
+                  quick profits. It's just me, working directly with artists, continuously improving
+                  the platform based on real feedback.
                 </p>
                 <p className="text-gray-700 leading-relaxed mt-4">
-                  Every feature request gets read. Every bug report gets fixed. Every artist matters. 
-                  This is the platform I needed when I started, and now it's here for you.
+                  Every feature request gets read. Every bug report gets fixed. Every artist
+                  matters. This is the platform I needed when I started, and now it's here for you.
                 </p>
                 <div className="bg-blue-50 p-6 rounded-lg mt-6">
                   <p className="text-gray-800 font-medium mb-2">90-Day Money-Back Guarantee</p>
                   <p className="text-gray-700 text-sm">
-                    I'm so confident Max Booster will transform your career that I offer a full 90-day refund, 
-                    no questions asked. Try it risk-free.
+                    I'm so confident Max Booster will transform your career that I offer a full
+                    90-day refund, no questions asked. Try it risk-free.
                   </p>
                 </div>
               </CardContent>

@@ -10,6 +10,7 @@ import { storageService } from './storageService.js';
 import os from 'os';
 import { randomUUID } from 'crypto';
 import { labelGridService } from './labelgrid-service.js';
+import { logger } from '../logger.js';
 
 export interface DSPProvider {
   id: string;
@@ -35,8 +36,8 @@ export class DistributionService {
     try {
       const release = await storage.createRelease(data);
       return release;
-    } catch (error) {
-      console.error("Error creating release:", error);
+    } catch (error: unknown) {
+      logger.error("Error creating release:", error);
       throw new Error("Failed to create release");
     }
   }
@@ -47,8 +48,8 @@ export class DistributionService {
   async getUserReleases(userId: string): Promise<Release[]> {
     try {
       return await storage.getUserReleases(userId);
-    } catch (error) {
-      console.error("Error fetching releases:", error);
+    } catch (error: unknown) {
+      logger.error("Error fetching releases:", error);
       throw new Error("Failed to fetch releases");
     }
   }
@@ -60,8 +61,8 @@ export class DistributionService {
     try {
       const releases = await storage.getUserReleases(userId);
       return releases.find(r => r.id === releaseId);
-    } catch (error) {
-      console.error("Error fetching release:", error);
+    } catch (error: unknown) {
+      logger.error("Error fetching release:", error);
       throw new Error("Failed to fetch release");
     }
   }
@@ -107,14 +108,14 @@ export class DistributionService {
             dispatchId: result.releaseId,
             estimatedLiveDate: result.estimatedLiveDate ? new Date(result.estimatedLiveDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           };
-        } catch (error) {
-          console.error("LabelGrid distribution failed:", error);
+        } catch (error: unknown) {
+          logger.error("LabelGrid distribution failed:", error);
           throw error;
         }
       } else {
         // DEVELOPMENT/DEMO MODE: Simulated distribution (no real API calls)
-        console.warn('⚠️  LabelGrid API token not configured - using demo mode');
-        console.warn('   Set LABELGRID_API_TOKEN in environment to enable real distribution');
+        logger.warn('⚠️  LabelGrid API token not configured - using demo mode');
+        logger.warn('   Set LABELGRID_API_TOKEN in environment to enable real distribution');
 
         const dispatchId = `demo_dispatch_${nanoid()}`;
         const estimatedLiveDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -137,8 +138,8 @@ export class DistributionService {
           estimatedLiveDate,
         };
       }
-    } catch (error) {
-      console.error("Error submitting to provider:", error);
+    } catch (error: unknown) {
+      logger.error("Error submitting to provider:", error);
       throw new Error("Failed to submit to provider");
     }
   }
@@ -162,8 +163,8 @@ export class DistributionService {
         liveDate: p.liveDate ? new Date(p.liveDate) : undefined,
         errorMessage: p.errorMessage,
       }));
-    } catch (error) {
-      console.error("Error tracking dispatch status:", error);
+    } catch (error: unknown) {
+      logger.error("Error tracking dispatch status:", error);
       throw new Error("Failed to track dispatch status");
     }
   }
@@ -185,9 +186,9 @@ export class DistributionService {
       // 3. Update platform status
       // 4. Notify user of status change
 
-      console.log("DSP Webhook received:", payload);
-    } catch (error) {
-      console.error("Error handling DSP webhook:", error);
+      logger.info("DSP Webhook received:", payload);
+    } catch (error: unknown) {
+      logger.error("Error handling DSP webhook:", error);
       throw new Error("Failed to handle DSP webhook");
     }
   }
@@ -240,8 +241,8 @@ export class DistributionService {
         distributionId: `dist_${releaseId}`,
         platforms: distributionResults
       };
-    } catch (error) {
-      console.error("Distribution error:", error);
+    } catch (error: unknown) {
+      logger.error("Distribution error:", error);
       throw new Error("Failed to distribute release");
     }
   }
@@ -259,8 +260,8 @@ export class DistributionService {
         demographics: {},
         timeline: []
       };
-    } catch (error) {
-      console.error("Analytics error:", error);
+    } catch (error: unknown) {
+      logger.error("Analytics error:", error);
       throw new Error("Failed to fetch analytics");
     }
   }
@@ -278,8 +279,8 @@ export class DistributionService {
 
       // In production: Integrate with Stripe Connect for automatic royalty splits
       return { success: true, splitId: `split_${releaseId}` };
-    } catch (error) {
-      console.error("Royalty split error:", error);
+    } catch (error: unknown) {
+      logger.error("Royalty split error:", error);
       throw new Error("Failed to setup royalty split");
     }
   }
@@ -319,8 +320,8 @@ export class DistributionService {
       // In production, use sharp or similar to check dimensions
       // For now, we'll accept the file
       return { valid: true };
-    } catch (error) {
-      console.error("Artwork validation error:", error);
+    } catch (error: unknown) {
+      logger.error("Artwork validation error:", error);
       return { valid: false, error: "Failed to validate artwork" };
     }
   }
@@ -337,8 +338,8 @@ export class DistributionService {
 
       const pkg = await storage.createDistributionPackage(data);
       return pkg;
-    } catch (error) {
-      console.error("Error creating distribution package:", error);
+    } catch (error: unknown) {
+      logger.error("Error creating distribution package:", error);
       throw new Error("Failed to create distribution package");
     }
   }
@@ -387,8 +388,8 @@ export class DistributionService {
       };
 
       return metadata;
-    } catch (error) {
-      console.error("Error generating metadata JSON:", error);
+    } catch (error: unknown) {
+      logger.error("Error generating metadata JSON:", error);
       throw new Error("Failed to generate metadata JSON");
     }
   }
@@ -426,8 +427,8 @@ export class DistributionService {
       ].join("\n");
 
       return csvContent;
-    } catch (error) {
-      console.error("Error generating CSV:", error);
+    } catch (error: unknown) {
+      logger.error("Error generating CSV:", error);
       throw new Error("Failed to generate CSV");
     }
   }
@@ -449,7 +450,7 @@ export class DistributionService {
 
       await new Promise<void>((resolve, reject) => {
         output.on("close", () => {
-          console.log(`ZIP package created: ${archive.pointer()} bytes`);
+          logger.info(`ZIP package created: ${archive.pointer()} bytes`);
           resolve();
         });
 
@@ -477,7 +478,7 @@ export class DistributionService {
                 const artworkExt = path.extname(pkg.artworkUrl);
                 archive.file(artworkFilePath, { name: `artwork${artworkExt}` });
               } else {
-                console.warn(`Artwork file not found: ${artworkFilePath}`);
+                logger.warn(`Artwork file not found: ${artworkFilePath}`);
               }
             }
 
@@ -515,17 +516,17 @@ Generated: ${new Date().toISOString()}
         'application/zip'
       );
 
-      console.log(`✅ Distribution package uploaded: ${zipKey}`);
+      logger.info(`✅ Distribution package uploaded: ${zipKey}`);
       
       return zipKey;
-    } catch (error) {
-      console.error("Error packaging ZIP:", error);
+    } catch (error: unknown) {
+      logger.error("Error packaging ZIP:", error);
       throw new Error("Failed to package distribution files");
     } finally {
       // Clean up temp file
       try {
         await fsPromises.unlink(tempZipPath);
-      } catch (error) {
+      } catch (error: unknown) {
         // Ignore cleanup errors
       }
     }
@@ -537,8 +538,8 @@ Generated: ${new Date().toISOString()}
   async getDistributionPackageByProject(projectId: string): Promise<DistributionPackage | undefined> {
     try {
       return await storage.getDistributionPackage(projectId);
-    } catch (error) {
-      console.error("Error getting distribution package:", error);
+    } catch (error: unknown) {
+      logger.error("Error getting distribution package:", error);
       throw new Error("Failed to get distribution package");
     }
   }
@@ -554,8 +555,8 @@ Generated: ${new Date().toISOString()}
       }
 
       return await storage.updateDistributionPackage(packageId, updates);
-    } catch (error) {
-      console.error("Error updating distribution package:", error);
+    } catch (error: unknown) {
+      logger.error("Error updating distribution package:", error);
       throw new Error("Failed to update distribution package");
     }
   }
@@ -571,8 +572,8 @@ Generated: ${new Date().toISOString()}
       }
 
       return await storage.createDistributionTrack(track);
-    } catch (error) {
-      console.error("Error adding package track:", error);
+    } catch (error: unknown) {
+      logger.error("Error adding package track:", error);
       throw new Error("Failed to add track to package");
     }
   }
@@ -583,8 +584,8 @@ Generated: ${new Date().toISOString()}
   async getPackageTracks(packageId: string): Promise<DistributionTrack[]> {
     try {
       return await storage.getPackageTracks(packageId);
-    } catch (error) {
-      console.error("Error getting package tracks:", error);
+    } catch (error: unknown) {
+      logger.error("Error getting package tracks:", error);
       throw new Error("Failed to get package tracks");
     }
   }

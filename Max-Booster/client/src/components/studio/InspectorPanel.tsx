@@ -9,15 +9,24 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useStudioStore } from '@/lib/studioStore';
 import {
-  Settings2, ChevronDown, ChevronUp, Volume2, Sliders, Zap,
-  Music, FileAudio, GripVertical, X, Plus
+  Settings2,
+  ChevronDown,
+  ChevronUp,
+  Volume2,
+  Sliders,
+  Zap,
+  Music,
+  FileAudio,
+  GripVertical,
+  X,
+  Plus,
 } from 'lucide-react';
 
 interface InspectorPanelProps {
   selectedTrack?: any;
   selectedClip?: any;
-  onTrackUpdate?: (trackId: string, updates: any) => void;
-  onClipUpdate?: (clipId: string, updates: any) => void;
+  onTrackUpdate?: (trackId: string, updates: unknown) => void;
+  onClipUpdate?: (clipId: string, updates: unknown) => void;
 }
 
 interface CollapsibleSectionProps {
@@ -27,7 +36,15 @@ interface CollapsibleSectionProps {
   defaultExpanded?: boolean;
 }
 
-function CollapsibleSection({ title, icon, children, defaultExpanded = true }: CollapsibleSectionProps) {
+/**
+ * TODO: Add function documentation
+ */
+function CollapsibleSection({
+  title,
+  icon,
+  children,
+  defaultExpanded = true,
+}: CollapsibleSectionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
@@ -37,15 +54,8 @@ function CollapsibleSection({ title, icon, children, defaultExpanded = true }: C
         className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
       >
         <div className="flex items-center gap-2">
-          {icon && (
-            <div style={{ color: 'var(--studio-text-muted)' }}>
-              {icon}
-            </div>
-          )}
-          <span 
-            className="text-sm font-bold tracking-wide" 
-            style={{ color: 'var(--studio-text)' }}
-          >
+          {icon && <div style={{ color: 'var(--studio-text-muted)' }}>{icon}</div>}
+          <span className="text-sm font-bold tracking-wide" style={{ color: 'var(--studio-text)' }}>
             {title}
           </span>
         </div>
@@ -55,11 +65,7 @@ function CollapsibleSection({ title, icon, children, defaultExpanded = true }: C
           <ChevronDown className="h-4 w-4" style={{ color: 'var(--studio-text-muted)' }} />
         )}
       </button>
-      {isExpanded && (
-        <div className="px-4 pb-4">
-          {children}
-        </div>
-      )}
+      {isExpanded && <div className="px-4 pb-4">{children}</div>}
     </div>
   );
 }
@@ -74,14 +80,17 @@ interface ParameterControlProps {
   onChange: (value: number) => void;
 }
 
-function ParameterControl({ 
-  label, 
-  value, 
-  min = 0, 
-  max = 100, 
-  step = 1, 
+/**
+ * TODO: Add function documentation
+ */
+function ParameterControl({
+  label,
+  value,
+  min = 0,
+  max = 100,
+  step = 1,
   unit = '',
-  onChange 
+  onChange,
 }: ParameterControlProps) {
   return (
     <div className="space-y-2">
@@ -90,7 +99,8 @@ function ParameterControl({
           {label}
         </Label>
         <span className="text-xs font-mono" style={{ color: 'var(--studio-text)' }}>
-          {value}{unit}
+          {value}
+          {unit}
         </span>
       </div>
       <Slider
@@ -105,6 +115,9 @@ function ParameterControl({
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function InspectorPanel({
   selectedTrack,
   selectedClip,
@@ -122,39 +135,34 @@ export function InspectorPanel({
 
   if (!hasSelection) {
     return (
-      <div 
+      <div
         className="h-full flex flex-col border-l"
         style={{
           background: 'var(--studio-bg-medium)',
           borderColor: 'var(--studio-border)',
         }}
       >
-        <div 
+        <div
           className="h-12 px-4 flex items-center border-b"
           style={{ borderColor: 'var(--studio-border)' }}
         >
-          <h3 
-            className="text-sm font-bold tracking-wide"
-            style={{ color: 'var(--studio-text)' }}
-          >
+          <h3 className="text-sm font-bold tracking-wide" style={{ color: 'var(--studio-text)' }}>
             INSPECTOR
           </h3>
         </div>
-        <div 
+        <div
           className="flex-1 flex flex-col items-center justify-center gap-3 p-6"
           style={{ color: 'var(--studio-text-muted)' }}
         >
           <Settings2 className="h-16 w-16 opacity-30" />
-          <p className="text-sm text-center">
-            Select a track or clip to view properties
-          </p>
+          <p className="text-sm text-center">Select a track or clip to view properties</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div 
+    <div
       className="h-full flex flex-col border-l"
       style={{
         background: 'var(--studio-bg-medium)',
@@ -162,20 +170,17 @@ export function InspectorPanel({
       }}
     >
       {/* Header */}
-      <div 
+      <div
         className="h-12 px-4 flex items-center justify-between border-b"
         style={{ borderColor: 'var(--studio-border)' }}
       >
-        <h3 
-          className="text-sm font-bold tracking-wide"
-          style={{ color: 'var(--studio-text)' }}
-        >
+        <h3 className="text-sm font-bold tracking-wide" style={{ color: 'var(--studio-text)' }}>
           INSPECTOR
         </h3>
-        <Badge 
-          variant="outline" 
+        <Badge
+          variant="outline"
           className="text-[10px]"
-          style={{ 
+          style={{
             borderColor: 'var(--studio-accent)',
             color: 'var(--studio-accent)',
           }}
@@ -261,7 +266,7 @@ export function InspectorPanel({
                   </Label>
                   <Switch
                     checked={selectedTrack?.mute || false}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       onTrackUpdate?.(selectedTrackId, { mute: checked })
                     }
                   />
@@ -273,7 +278,7 @@ export function InspectorPanel({
                   </Label>
                   <Switch
                     checked={selectedTrack?.solo || false}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       onTrackUpdate?.(selectedTrackId, { solo: checked })
                     }
                   />
@@ -285,7 +290,7 @@ export function InspectorPanel({
                   </Label>
                   <Switch
                     checked={selectedTrack?.armed || false}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       onTrackUpdate?.(selectedTrackId, { armed: checked })
                     }
                   />
@@ -302,18 +307,20 @@ export function InspectorPanel({
                     className="flex items-center gap-2 p-2 rounded hover:bg-white/5"
                     style={{ background: 'var(--studio-bg-deep)' }}
                   >
-                    <GripVertical 
-                      className="h-4 w-4 cursor-grab" 
+                    <GripVertical
+                      className="h-4 w-4 cursor-grab"
                       style={{ color: 'var(--studio-text-subtle)' }}
                     />
-                    <Zap 
-                      className="h-4 w-4" 
-                      style={{ color: effect.bypass ? 'var(--studio-text-subtle)' : 'var(--studio-accent)' }}
+                    <Zap
+                      className="h-4 w-4"
+                      style={{
+                        color: effect.bypass ? 'var(--studio-text-subtle)' : 'var(--studio-accent)',
+                      }}
                     />
-                    <span 
-                      className="flex-1 text-sm" 
-                      style={{ 
-                        color: effect.bypass ? 'var(--studio-text-subtle)' : 'var(--studio-text)' 
+                    <span
+                      className="flex-1 text-sm"
+                      style={{
+                        color: effect.bypass ? 'var(--studio-text-subtle)' : 'var(--studio-text)',
                       }}
                     >
                       {effect.name}
@@ -346,7 +353,7 @@ export function InspectorPanel({
                   onClick={() => {
                     setEffects([
                       ...effects,
-                      { id: Date.now().toString(), name: 'New Effect', type: 'fx', bypass: false }
+                      { id: Date.now().toString(), name: 'New Effect', type: 'fx', bypass: false },
                     ]);
                   }}
                 >
@@ -365,7 +372,9 @@ export function InspectorPanel({
                   </Label>
                   <select
                     value={selectedTrack?.outputBus || 'master'}
-                    onChange={(e) => onTrackUpdate?.(selectedTrackId, { outputBus: e.target.value })}
+                    onChange={(e) =>
+                      onTrackUpdate?.(selectedTrackId, { outputBus: e.target.value })
+                    }
                     className="w-full h-8 px-2 text-sm rounded-md"
                     style={{
                       background: 'var(--studio-bg-deep)',

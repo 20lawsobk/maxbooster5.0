@@ -15,18 +15,18 @@ async function testAdvertising() {
     console.log('Step 1: Logging in as test user...');
     const loginRes = await axios.post(`${API_BASE}/auth/login`, {
       username: 'test.monthly@maxbooster.com',
-      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#'
+      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#',
     });
-    
+
     const sessionCookie = loginRes.headers['set-cookie']?.[0];
     if (!sessionCookie) throw new Error('Failed to get session cookie');
-    
+
     console.log('✅ Logged in successfully\n');
 
     // Step 2: Get available ad platforms
     console.log('Step 2: Fetching available ad platforms...');
     const platformsRes = await axios.get(`${API_BASE}/advertising/platforms`, {
-      headers: { Cookie: sessionCookie }
+      headers: { Cookie: sessionCookie },
     });
     console.log('✅ Available Platforms:', platformsRes.data);
 
@@ -42,11 +42,11 @@ async function testAdvertising() {
           demographics: {
             ageRange: { min: 18, max: 35 },
             interests: ['music', 'electronic', 'indie'],
-            locations: ['US', 'UK', 'CA']
-          }
+            locations: ['US', 'UK', 'CA'],
+          },
         },
         budget: 0, // Zero-cost organic campaign
-        duration: 14 // Required: campaign duration in days
+        duration: 14, // Required: campaign duration in days
       },
       { headers: { Cookie: sessionCookie } }
     );
@@ -68,7 +68,7 @@ async function testAdvertising() {
         campaignId: campaignRes.data.id,
         platform: 'twitter',
         tone: 'engaging',
-        includeHashtags: true
+        includeHashtags: true,
       },
       { headers: { Cookie: sessionCookie } }
     );
@@ -77,21 +77,21 @@ async function testAdvertising() {
     // Step 6: Get all campaigns
     console.log('\nStep 6: Fetching all campaigns...');
     const allCampaignsRes = await axios.get(`${API_BASE}/advertising/campaigns`, {
-      headers: { Cookie: sessionCookie }
+      headers: { Cookie: sessionCookie },
     });
     console.log('✅ All Campaigns:', allCampaignsRes.data);
 
     // Step 7: Test performance metrics
     console.log('\nStep 7: Fetching performance metrics...');
     const metricsRes = await axios.get(`${API_BASE}/advertising/metrics`, {
-      headers: { Cookie: sessionCookie }
+      headers: { Cookie: sessionCookie },
     });
     console.log('✅ Performance Metrics:', metricsRes.data);
 
     // Step 8: Test audience insights
     console.log('\nStep 8: Fetching audience insights...');
     const insightsRes = await axios.get(`${API_BASE}/advertising/audience-insights`, {
-      headers: { Cookie: sessionCookie }
+      headers: { Cookie: sessionCookie },
     });
     console.log('✅ Audience Insights:', insightsRes.data);
 
@@ -105,26 +105,25 @@ async function testAdvertising() {
 
     console.log('\n🎉 Advertising test completed successfully!');
     console.log('Zero-cost advertising system is working correctly.');
-    
+
     return {
       success: true,
       campaign: campaignRes.data,
       analytics: analyticsRes.data,
-      metrics: metricsRes.data
+      metrics: metricsRes.data,
     };
-
   } catch (error: any) {
     console.error('\n❌ Advertising test failed:', error.response?.data || error.message);
     console.error('Details:', error.response?.status, error.response?.statusText);
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 }
 
 // Run the test
-testAdvertising().then(result => {
+testAdvertising().then((result) => {
   console.log('\n📊 Test Summary:', result);
   process.exit(result.success ? 0 : 1);
 });

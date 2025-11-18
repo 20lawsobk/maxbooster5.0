@@ -4,6 +4,7 @@ import { promisify } from 'util';
 import { exec } from 'child_process';
 import cluster from 'cluster';
 import * as os from 'os';
+import { logger } from './logger.js';
 
 const execAsync = promisify(exec);
 
@@ -26,7 +27,7 @@ export class ScalabilitySystem {
     // Try to connect to Redis, but don't fail if unavailable
     this.redis = null;
     this.redisAvailable = false;
-    
+
     // Only create Redis client if URL/HOST is configured
     if (process.env.REDIS_URL || process.env.REDIS_HOST) {
       this.redis = new Redis({
@@ -46,17 +47,19 @@ export class ScalabilitySystem {
       this.redis.on('error', (err) => {
         if (isDevelopment) {
           if (!hasLoggedWarning) {
-            console.warn(`⚠️  Scalability System: Redis unavailable (${err.message}), using degraded mode`);
+            logger.warn(
+              `⚠️  Scalability System: Redis unavailable (${err.message}), using degraded mode`
+            );
             hasLoggedWarning = true;
           }
         } else {
-          console.error(`❌ Scalability System Redis Error:`, err.message);
+          logger.error(`❌ Scalability System Redis Error:`, err.message);
         }
       });
 
       this.redis.on('connect', () => {
         if (isDevelopment) {
-          console.log(`✅ Scalability System Redis connected`);
+          logger.info(`✅ Scalability System Redis connected`);
         }
       });
     }
@@ -75,7 +78,7 @@ export class ScalabilitySystem {
       throughput: 0,
       errorRate: 0,
       lastOptimization: Date.now(),
-      optimizationScore: 0
+      optimizationScore: 0,
     };
 
     this.initializeSystem();
@@ -96,14 +99,14 @@ export class ScalabilitySystem {
         try {
           await this.redis.connect();
           this.redisAvailable = true;
-          console.log('✅ Redis connected for caching');
-        } catch (redisError) {
-          console.warn('⚠️  Redis unavailable - running without caching/autoscaling:', redisError);
+          logger.info('✅ Redis connected for caching');
+        } catch (redisError: unknown) {
+          logger.warn('⚠️  Redis unavailable - running without caching/autoscaling:', redisError);
           this.redis = null;
           this.redisAvailable = false;
         }
       } else {
-        console.warn('⚠️  Redis not configured - running without caching/autoscaling');
+        logger.warn('⚠️  Redis not configured - running without caching/autoscaling');
       }
 
       // Start performance monitoring (works without Redis)
@@ -120,9 +123,12 @@ export class ScalabilitySystem {
         this.setupCluster();
       }
 
-      console.log('🚀 Scalability system initialized' + (this.redisAvailable ? ' with Redis' : ' (degraded mode)'));
-    } catch (error) {
-      console.error('❌ Failed to initialize scalability system:', error);
+      logger.info(
+        '🚀 Scalability system initialized' +
+          (this.redisAvailable ? ' with Redis' : ' (degraded mode)')
+      );
+    } catch (error: unknown) {
+      logger.error('❌ Failed to initialize scalability system:', error);
     }
   }
 
@@ -131,7 +137,7 @@ export class ScalabilitySystem {
     const numCPUs = os.cpus().length;
 
     if (cluster.isMaster) {
-      console.log(`🔄 Master process ${process.pid} is running`);
+      logger.info(`🔄 Master process ${process.pid} is running`);
 
       // Fork workers
       for (let i = 0; i < numCPUs; i++) {
@@ -139,15 +145,15 @@ export class ScalabilitySystem {
       }
 
       cluster.on('exit', (worker, code, signal) => {
-        console.log(`💀 Worker ${worker.process.pid} died`);
+        logger.info(`💀 Worker ${worker.process.pid} died`);
         cluster.fork(); // Restart worker
       });
 
       cluster.on('online', (worker) => {
-        console.log(`👷 Worker ${worker.process.pid} is online`);
+        logger.info(`👷 Worker ${worker.process.pid} is online`);
       });
     } else {
-      console.log(`👷 Worker ${process.pid} started`);
+      logger.info(`👷 Worker ${process.pid} started`);
     }
   }
 
@@ -208,18 +214,19 @@ export class ScalabilitySystem {
       if (this.redis && this.redisAvailable) {
         await this.redis.setex('scalability:metrics', 300, JSON.stringify(this.metrics));
       }
-
-    } catch (error) {
-      console.error('Error collecting metrics:', error);
+    } catch (error: unknown) {
+      logger.error('Error collecting metrics:', error);
     }
   }
 
   // Get CPU usage
   private async getCPUUsage(): Promise<number> {
     try {
-      const { stdout } = await execAsync("top -bn1 | grep 'Cpu(s)' | awk '{print $2}' | awk -F'%' '{print $1}'");
+      const { stdout } = await execAsync(
+        "top -bn1 | grep 'Cpu(s)' | awk '{print $2}' | awk -F'%' '{print $1}'"
+      );
       return parseFloat(stdout.trim()) || 0;
-    } catch (error) {
+    } catch (error: unknown) {
       return 0;
     }
   }
@@ -227,9 +234,11 @@ export class ScalabilitySystem {
   // Get memory usage
   private async getMemoryUsage(): Promise<number> {
     try {
-      const { stdout } = await execAsync("free | grep Mem | awk '{printf \"%.2f\", $3/$2 * 100.0}'");
+      const { stdout } = await execAsync(
+        'free | grep Mem | awk \'{printf "%.2f", $3/$2 * 100.0}\''
+      );
       return parseFloat(stdout.trim()) || 0;
-    } catch (error) {
+    } catch (error: unknown) {
       return 0;
     }
   }
@@ -237,9 +246,9 @@ export class ScalabilitySystem {
   // Get active connections
   private async getActiveConnections(): Promise<number> {
     try {
-      const { stdout } = await execAsync("netstat -an | grep ESTABLISHED | wc -l");
+      const { stdout } = await execAsync('netstat -an | grep ESTABLISHED | wc -l');
       return parseInt(stdout.trim()) || 0;
-    } catch (error) {
+    } catch (error: unknown) {
       return 0;
     }
   }
@@ -256,15 +265,15 @@ export class ScalabilitySystem {
       const timeWindow = 60000; // 1 minute
       const requests = await this.redis.get('scalability:requests:count');
       const lastReset = await this.redis.get('scalability:requests:last_reset');
-      
+
       if (!lastReset || currentTime - parseInt(lastReset) > timeWindow) {
         await this.redis.set('scalability:requests:count', '0');
         await this.redis.set('scalability:requests:last_reset', currentTime.toString());
         return 0;
       }
-      
+
       return parseInt(requests || '0') / (timeWindow / 1000);
-    } catch (error) {
+    } catch (error: unknown) {
       return 0;
     }
   }
@@ -278,12 +287,12 @@ export class ScalabilitySystem {
     try {
       const totalRequests = await this.redis.get('scalability:requests:total');
       const errorRequests = await this.redis.get('scalability:requests:errors');
-      
+
       const total = parseInt(totalRequests || '0');
       const errors = parseInt(errorRequests || '0');
-      
+
       return total > 0 ? (errors / total) * 100 : 0;
-    } catch (error) {
+    } catch (error: unknown) {
       return 0;
     }
   }
@@ -291,45 +300,45 @@ export class ScalabilitySystem {
   // Analyze performance
   private async analyzePerformance(): Promise<void> {
     const { cpuUsage, memoryUsage, cacheHitRate, errorRate } = this.metrics;
-    
+
     // Performance analysis
     if (cpuUsage > 80) {
-      console.log('⚠️ High CPU usage detected:', cpuUsage + '%');
+      logger.info('⚠️ High CPU usage detected:', cpuUsage + '%');
       await this.optimizeCPU();
     }
-    
+
     if (memoryUsage > 85) {
-      console.log('⚠️ High memory usage detected:', memoryUsage + '%');
+      logger.info('⚠️ High memory usage detected:', memoryUsage + '%');
       await this.optimizeMemory();
     }
-    
+
     if (cacheHitRate < 70) {
-      console.log('⚠️ Low cache hit rate detected:', cacheHitRate + '%');
+      logger.info('⚠️ Low cache hit rate detected:', cacheHitRate + '%');
       await this.optimizeCache();
     }
-    
+
     if (errorRate > 5) {
-      console.log('⚠️ High error rate detected:', errorRate + '%');
+      logger.info('⚠️ High error rate detected:', errorRate + '%');
       await this.optimizeErrorHandling();
     }
   }
 
   // Optimize performance
   private async optimizePerformance(): Promise<void> {
-    console.log('🔧 Optimizing performance...');
-    
+    logger.info('🔧 Optimizing performance...');
+
     // Optimize database connections
     await this.optimizeDatabaseConnections();
-    
+
     // Optimize cache strategy
     await this.optimizeCacheStrategy();
-    
+
     // Optimize memory usage
     await this.optimizeMemoryUsage();
-    
+
     // Optimize CPU usage
     await this.optimizeCPUUsage();
-    
+
     // Update optimization score
     this.calculateOptimizationScore();
   }
@@ -337,118 +346,118 @@ export class ScalabilitySystem {
   // Check scaling needs
   private async checkScalingNeeds(): Promise<void> {
     const { cpuUsage, memoryUsage, activeConnections, throughput } = this.metrics;
-    
+
     // Scale up conditions
     if (cpuUsage > 75 || memoryUsage > 80 || activeConnections > 1000) {
-      console.log('📈 Scaling up resources...');
+      logger.info('📈 Scaling up resources...');
       await this.scaleUp();
     }
-    
+
     // Scale down conditions
     if (cpuUsage < 30 && memoryUsage < 40 && activeConnections < 100) {
-      console.log('📉 Scaling down resources...');
+      logger.info('📉 Scaling down resources...');
       await this.scaleDown();
     }
   }
 
   // Perform optimization
   private async performOptimization(): Promise<void> {
-    console.log('🚀 Performing system optimization...');
-    
+    logger.info('🚀 Performing system optimization...');
+
     // Database optimization
     await this.optimizeDatabase();
-    
+
     // Cache optimization
     await this.optimizeCache();
-    
+
     // Network optimization
     await this.optimizeNetwork();
-    
+
     // Application optimization
     await this.optimizeApplication();
-    
+
     this.metrics.lastOptimization = Date.now();
     this.isOptimized = true;
-    
-    console.log('✅ System optimization completed');
+
+    logger.info('✅ System optimization completed');
   }
 
   // Optimization implementations
   private async optimizeCPU(): Promise<void> {
     // Implement CPU optimization
-    console.log('🔧 Optimizing CPU usage...');
+    logger.info('🔧 Optimizing CPU usage...');
   }
 
   private async optimizeMemory(): Promise<void> {
     // Implement memory optimization
-    console.log('🔧 Optimizing memory usage...');
+    logger.info('🔧 Optimizing memory usage...');
   }
 
   private async optimizeCache(): Promise<void> {
     // Implement cache optimization
-    console.log('🔧 Optimizing cache strategy...');
+    logger.info('🔧 Optimizing cache strategy...');
   }
 
   private async optimizeErrorHandling(): Promise<void> {
     // Implement error handling optimization
-    console.log('🔧 Optimizing error handling...');
+    logger.info('🔧 Optimizing error handling...');
   }
 
   private async optimizeDatabaseConnections(): Promise<void> {
     // Implement database connection optimization
-    console.log('🔧 Optimizing database connections...');
+    logger.info('🔧 Optimizing database connections...');
   }
 
   private async optimizeCacheStrategy(): Promise<void> {
     // Implement cache strategy optimization
-    console.log('🔧 Optimizing cache strategy...');
+    logger.info('🔧 Optimizing cache strategy...');
   }
 
   private async optimizeMemoryUsage(): Promise<void> {
     // Implement memory usage optimization
-    console.log('🔧 Optimizing memory usage...');
+    logger.info('🔧 Optimizing memory usage...');
   }
 
   private async optimizeCPUUsage(): Promise<void> {
     // Implement CPU usage optimization
-    console.log('🔧 Optimizing CPU usage...');
+    logger.info('🔧 Optimizing CPU usage...');
   }
 
   private async scaleUp(): Promise<void> {
     // Implement scale up logic
-    console.log('📈 Scaling up system resources...');
+    logger.info('📈 Scaling up system resources...');
   }
 
   private async scaleDown(): Promise<void> {
     // Implement scale down logic
-    console.log('📉 Scaling down system resources...');
+    logger.info('📉 Scaling down system resources...');
   }
 
   private async optimizeDatabase(): Promise<void> {
     // Implement database optimization
-    console.log('🗄️ Optimizing database...');
+    logger.info('🗄️ Optimizing database...');
   }
 
   private async optimizeNetwork(): Promise<void> {
     // Implement network optimization
-    console.log('🌐 Optimizing network...');
+    logger.info('🌐 Optimizing network...');
   }
 
   private async optimizeApplication(): Promise<void> {
     // Implement application optimization
-    console.log('⚡ Optimizing application...');
+    logger.info('⚡ Optimizing application...');
   }
 
   // Calculate optimization score
   private calculateOptimizationScore(): void {
     const { cpuUsage, memoryUsage, cacheHitRate, errorRate } = this.metrics;
-    
+
     let score = 100;
     score -= cpuUsage * 0.5; // -0.5 points per CPU %
     score -= memoryUsage * 0.3; // -0.3 points per memory %
     score += cacheHitRate * 0.2; // +0.2 points per cache hit %
     score -= errorRate * 2; // -2 points per error %
-    
+
     this.metrics.optimizationScore = Math.max(0, Math.min(100, score));
   }
 
@@ -468,28 +477,27 @@ export class ScalabilitySystem {
   // Middleware for request tracking
   public requestTrackingMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const startTime = Date.now();
-    
+
     // Track request
     this.metrics.totalRequests++;
-    
+
     // Track in Redis if available
     if (this.redis && this.redisAvailable) {
       this.redis.incr('scalability:requests:count');
       this.redis.incr('scalability:requests:total');
     }
-    
+
     // Track response time
     res.on('finish', async () => {
       const responseTime = Date.now() - startTime;
-      this.metrics.averageResponseTime = 
-        (this.metrics.averageResponseTime + responseTime) / 2;
-      
+      this.metrics.averageResponseTime = (this.metrics.averageResponseTime + responseTime) / 2;
+
       // Track errors
       if (res.statusCode >= 400 && this.redis && this.redisAvailable) {
         await this.redis.incr('scalability:requests:errors');
       }
     });
-    
+
     next();
   };
 
@@ -502,27 +510,27 @@ export class ScalabilitySystem {
       }
 
       const cacheKey = `cache:${req.method}:${req.url}`;
-      
+
       try {
         const cached = await this.redis.get(cacheKey);
         if (cached) {
           return res.json(JSON.parse(cached));
         }
-        
+
         // Store original send method
         const originalSend = res.send;
-        
+
         // Override send method to cache response
-        res.send = function(data) {
+        res.send = function (data) {
           // Cache successful responses
           if (res.statusCode === 200 && this.redis && this.redisAvailable) {
             this.redis.setex(cacheKey, ttl, data);
           }
           return originalSend.call(this, data);
         }.bind(this);
-        
+
         next();
-      } catch (error) {
+      } catch (error: unknown) {
         next();
       }
     };
@@ -538,23 +546,23 @@ export class ScalabilitySystem {
 
       const clientId = req.ip || 'unknown';
       const key = `rate_limit:${clientId}`;
-      
+
       try {
         const current = await this.redis.incr(key);
-        
+
         if (current === 1) {
           await this.redis.expire(key, Math.ceil(windowMs / 1000));
         }
-        
+
         if (current > maxRequests) {
           return res.status(429).json({
             error: 'Too many requests',
-            retryAfter: Math.ceil(windowMs / 1000)
+            retryAfter: Math.ceil(windowMs / 1000),
           });
         }
-        
+
         next();
-      } catch (error) {
+      } catch (error: unknown) {
         next();
       }
     };
@@ -572,10 +580,10 @@ class LoadBalancer {
 
   getNextServer(): Server | null {
     if (this.servers.length === 0) return null;
-    
+
     const server = this.servers[this.currentIndex];
     this.currentIndex = (this.currentIndex + 1) % this.servers.length;
-    
+
     return server;
   }
 }
@@ -603,7 +611,7 @@ class CacheManager {
         this.missCount++;
       }
       return value;
-    } catch (error) {
+    } catch (error: unknown) {
       this.missCount++;
       return null;
     }
@@ -620,8 +628,8 @@ class CacheManager {
       } else {
         await this.redis.set(key, value);
       }
-    } catch (error) {
-      console.error('Cache set error:', error);
+    } catch (error: unknown) {
+      logger.error('Cache set error:', error);
     }
   }
 
@@ -651,14 +659,14 @@ class AutoScaler {
   async scaleUp(): Promise<void> {
     if (this.currentInstances < this.maxInstances) {
       this.currentInstances++;
-      console.log(`📈 Scaled up to ${this.currentInstances} instances`);
+      logger.info(`📈 Scaled up to ${this.currentInstances} instances`);
     }
   }
 
   async scaleDown(): Promise<void> {
     if (this.currentInstances > this.minInstances) {
       this.currentInstances--;
-      console.log(`📉 Scaled down to ${this.currentInstances} instances`);
+      logger.info(`📉 Scaled down to ${this.currentInstances} instances`);
     }
   }
 }

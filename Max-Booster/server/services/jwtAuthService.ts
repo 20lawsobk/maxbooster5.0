@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { storage } from '../storage';
 import type { InsertJWTToken, InsertRefreshToken } from '@shared/schema';
+import { logger } from '../logger.js';
 
 // Use SESSION_SECRET for JWT signing to consolidate secret management
 let JWT_SECRET = process.env.SESSION_SECRET || '';
@@ -10,8 +11,10 @@ if (!JWT_SECRET) {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('SESSION_SECRET environment variable is required in production');
   }
-  
-  console.warn('⚠️  SESSION_SECRET not set - using development fallback. Set SESSION_SECRET for production!');
+
+  logger.warn(
+    '⚠️  SESSION_SECRET not set - using development fallback. Set SESSION_SECRET for production!'
+  );
   JWT_SECRET = 'dev-secret-' + crypto.createHash('sha256').update('maxbooster-dev').digest('hex');
 }
 
@@ -33,7 +36,9 @@ export class JWTAuthService {
     const refreshTokenValue = crypto.randomBytes(32).toString('hex');
 
     const accessTokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
-    const refreshTokenExpiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+    const refreshTokenExpiresAt = new Date(
+      Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000
+    );
 
     const accessToken = jwt.sign(
       {
@@ -73,7 +78,9 @@ export class JWTAuthService {
     };
   }
 
-  async verifyAccessToken(token: string): Promise<{ userId: string; role: string; jti: string } | null> {
+  async verifyAccessToken(
+    token: string
+  ): Promise<{ userId: string; role: string; jti: string } | null> {
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as { sub: string; jti: string; role: string };
 
@@ -87,14 +94,16 @@ export class JWTAuthService {
         role: decoded.role,
         jti: decoded.jti,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return null;
     }
   }
 
-  async refreshAccessToken(refreshTokenValue: string): Promise<{ accessToken: string; accessTokenId: string; expiresAt: Date } | null> {
+  async refreshAccessToken(
+    refreshTokenValue: string
+  ): Promise<{ accessToken: string; accessTokenId: string; expiresAt: Date } | null> {
     const refreshToken = await storage.getRefreshToken(refreshTokenValue);
-    
+
     if (!refreshToken || refreshToken.revoked) {
       return null;
     }

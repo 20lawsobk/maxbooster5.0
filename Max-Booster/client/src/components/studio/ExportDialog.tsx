@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Download } from 'lucide-react';
 
@@ -26,6 +32,9 @@ interface ExportDialogProps {
   isExporting: boolean;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function ExportDialog({
   open,
   onOpenChange,
@@ -60,7 +69,10 @@ export function ExportDialog({
             <div className="space-y-2">
               <Label>Export Type</Label>
               <Select value={exportType} onValueChange={setExportType}>
-                <SelectTrigger className="bg-[#1a1a1a] border-gray-700" data-testid="select-export-type">
+                <SelectTrigger
+                  className="bg-[#1a1a1a] border-gray-700"
+                  data-testid="select-export-type"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-[#252525] border-gray-700">
@@ -74,7 +86,10 @@ export function ExportDialog({
             <div className="space-y-2">
               <Label>Audio Format</Label>
               <Select value={exportFormat} onValueChange={setExportFormat}>
-                <SelectTrigger className="bg-[#1a1a1a] border-gray-700" data-testid="select-export-format">
+                <SelectTrigger
+                  className="bg-[#1a1a1a] border-gray-700"
+                  data-testid="select-export-format"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-[#252525] border-gray-700">
@@ -91,8 +106,14 @@ export function ExportDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Sample Rate</Label>
-              <Select value={exportSampleRate.toString()} onValueChange={(v) => setExportSampleRate(parseInt(v))}>
-                <SelectTrigger className="bg-[#1a1a1a] border-gray-700" data-testid="select-sample-rate">
+              <Select
+                value={exportSampleRate.toString()}
+                onValueChange={(v) => setExportSampleRate(parseInt(v))}
+              >
+                <SelectTrigger
+                  className="bg-[#1a1a1a] border-gray-700"
+                  data-testid="select-sample-rate"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-[#252525] border-gray-700">
@@ -107,8 +128,14 @@ export function ExportDialog({
             {exportFormat === 'wav' ? (
               <div className="space-y-2">
                 <Label>Bit Depth</Label>
-                <Select value={exportBitDepth.toString()} onValueChange={(v) => setExportBitDepth(parseInt(v))}>
-                  <SelectTrigger className="bg-[#1a1a1a] border-gray-700" data-testid="select-bit-depth">
+                <Select
+                  value={exportBitDepth.toString()}
+                  onValueChange={(v) => setExportBitDepth(parseInt(v))}
+                >
+                  <SelectTrigger
+                    className="bg-[#1a1a1a] border-gray-700"
+                    data-testid="select-bit-depth"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#252525] border-gray-700">
@@ -121,8 +148,14 @@ export function ExportDialog({
             ) : (
               <div className="space-y-2">
                 <Label>Bitrate</Label>
-                <Select value={exportBitrate.toString()} onValueChange={(v) => setExportBitrate(parseInt(v))}>
-                  <SelectTrigger className="bg-[#1a1a1a] border-gray-700" data-testid="select-bitrate">
+                <Select
+                  value={exportBitrate.toString()}
+                  onValueChange={(v) => setExportBitrate(parseInt(v))}
+                >
+                  <SelectTrigger
+                    className="bg-[#1a1a1a] border-gray-700"
+                    data-testid="select-bitrate"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#252525] border-gray-700">
@@ -146,7 +179,9 @@ export function ExportDialog({
                 className="rounded border-gray-600"
                 data-testid="checkbox-normalize"
               />
-              <Label htmlFor="normalize" className="cursor-pointer">Normalize to -0.1dB</Label>
+              <Label htmlFor="normalize" className="cursor-pointer">
+                Normalize to -0.1dB
+              </Label>
             </div>
             <div className="flex items-center space-x-2">
               <input
@@ -157,7 +192,9 @@ export function ExportDialog({
                 className="rounded border-gray-600"
                 data-testid="checkbox-dither"
               />
-              <Label htmlFor="dither" className="cursor-pointer">Apply dithering (for bit depth reduction)</Label>
+              <Label htmlFor="dither" className="cursor-pointer">
+                Apply dithering (for bit depth reduction)
+              </Label>
             </div>
           </div>
 

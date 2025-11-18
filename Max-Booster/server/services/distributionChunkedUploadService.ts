@@ -4,23 +4,30 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import type { InsertUploadSession } from '@shared/schema';
 import { storageService } from './storageService.js';
+import { logger } from '../logger.js';
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
 const TEMP_DIR = path.join(process.cwd(), 'tmp', 'uploads', 'sessions');
 
+/**
+ * TODO: Add function documentation
+ */
 async function ensureTempDir(sessionId: string): Promise<string> {
   const sessionDir = path.join(TEMP_DIR, sessionId);
   await fs.mkdir(sessionDir, { recursive: true });
   return sessionDir;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function initializeSession(
   userId: string,
   filename: string,
   totalSize: number
 ): Promise<{ sessionId: string; totalChunks: number; chunkSize: number }> {
   const totalChunks = Math.ceil(totalSize / CHUNK_SIZE);
-  
+
   const session = await storage.createUploadSession({
     userId,
     filename,
@@ -29,7 +36,7 @@ export async function initializeSession(
     totalChunks,
     uploadedChunks: 0,
     chunks: [],
-    status: 'pending'
+    status: 'pending',
   });
 
   await ensureTempDir(session.id);
@@ -37,10 +44,13 @@ export async function initializeSession(
   return {
     sessionId: session.id,
     totalChunks,
-    chunkSize: CHUNK_SIZE
+    chunkSize: CHUNK_SIZE,
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function uploadChunk(
   sessionId: string,
   chunkIndex: number,
@@ -48,7 +58,7 @@ export async function uploadChunk(
   chunkHash: string
 ): Promise<{ success: boolean; uploadedChunks: number; totalChunks: number }> {
   const session = await storage.getUploadSession(sessionId);
-  
+
   if (!session) {
     throw new Error('Upload session not found');
   }
@@ -64,34 +74,37 @@ export async function uploadChunk(
 
   const sessionDir = await ensureTempDir(sessionId);
   const chunkPath = path.join(sessionDir, `chunk_${chunkIndex.toString().padStart(6, '0')}`);
-  
+
   await fs.writeFile(chunkPath, chunkData);
 
   const existingChunks = session.chunks || [];
-  const chunkExists = existingChunks.some((c: any) => c.index === chunkIndex);
-  
+  const chunkExists = existingChunks.some((c: unknown) => c.index === chunkIndex);
+
   if (!chunkExists) {
     existingChunks.push({
       index: chunkIndex,
       hash: chunkHash,
       offset: chunkIndex * session.chunkSize,
-      size: chunkData.length
+      size: chunkData.length,
     });
   }
 
   const updatedSession = await storage.updateUploadSession(sessionId, {
     chunks: existingChunks,
     uploadedChunks: existingChunks.length,
-    status: 'uploading'
+    status: 'uploading',
   });
 
   return {
     success: true,
     uploadedChunks: updatedSession.uploadedChunks,
-    totalChunks: updatedSession.totalChunks
+    totalChunks: updatedSession.totalChunks,
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function getSessionStatus(sessionId: string): Promise<{
   status: string;
   uploadedChunks: number;
@@ -100,7 +113,7 @@ export async function getSessionStatus(sessionId: string): Promise<{
   filename: string;
 }> {
   const session = await storage.getUploadSession(sessionId);
-  
+
   if (!session) {
     throw new Error('Upload session not found');
   }
@@ -112,17 +125,20 @@ export async function getSessionStatus(sessionId: string): Promise<{
     uploadedChunks: session.uploadedChunks,
     totalChunks: session.totalChunks,
     progress,
-    filename: session.filename
+    filename: session.filename,
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function finalizeUpload(sessionId: string): Promise<{
   success: boolean;
   filePath: string;
   fileHash: string;
 }> {
   const session = await storage.getUploadSession(sessionId);
-  
+
   if (!session) {
     throw new Error('Upload session not found');
   }
@@ -133,8 +149,8 @@ export async function finalizeUpload(sessionId: string): Promise<{
 
   const sessionDir = path.join(TEMP_DIR, sessionId);
   const tempAssemblyPath = path.join(sessionDir, 'assembled_file');
-  
-  const chunks = [...(session.chunks || [])].sort((a: any, b: any) => a.index - b.index);
+
+  const chunks = [...(session.chunks || [])].sort((a: unknown, b: unknown) => a.index - b.index);
   const writeStream = await fs.open(tempAssemblyPath, 'w');
   const hash = crypto.createHash('sha256');
 
@@ -143,18 +159,18 @@ export async function finalizeUpload(sessionId: string): Promise<{
     for (const chunk of chunks) {
       const chunkPath = path.join(sessionDir, `chunk_${chunk.index.toString().padStart(6, '0')}`);
       const chunkData = await fs.readFile(chunkPath);
-      
+
       const chunkHash = crypto.createHash('sha256').update(chunkData).digest('hex');
       if (chunkHash !== chunk.hash) {
         throw new Error(`Chunk ${chunk.index} hash verification failed`);
       }
-      
+
       hash.update(chunkData);
       await writeStream.write(chunkData);
     }
 
     const fileHash = hash.digest('hex');
-    
+
     await writeStream.close();
 
     // Upload assembled file to storageService
@@ -164,7 +180,7 @@ export async function finalizeUpload(sessionId: string): Promise<{
     const basename = path.basename(session.filename, ext);
     const sanitizedBasename = basename.replace(/[^a-zA-Z0-9_-]/g, '_');
     const finalFilename = `${timestamp}_${sanitizedBasename}${ext}`;
-    
+
     const storageKey = await storageService.uploadFile(
       fileBuffer,
       'uploads',
@@ -176,34 +192,37 @@ export async function finalizeUpload(sessionId: string): Promise<{
       status: 'completed',
       finalPath: storageKey,
       fileHash,
-      completedAt: new Date()
+      completedAt: new Date(),
     });
 
     // Clean up session directory
     await fs.rm(sessionDir, { recursive: true, force: true });
 
-    console.log(`✅ Chunked upload completed: ${storageKey}`);
+    logger.info(`✅ Chunked upload completed: ${storageKey}`);
 
     return {
       success: true,
       filePath: storageKey,
-      fileHash
+      fileHash,
     };
-  } catch (error) {
+  } catch (error: unknown) {
     await writeStream.close();
-    
+
     await storage.updateUploadSession(sessionId, {
       status: 'failed',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
-    
+
     throw error;
   }
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function abortUpload(sessionId: string): Promise<void> {
   const session = await storage.getUploadSession(sessionId);
-  
+
   if (!session) {
     throw new Error('Upload session not found');
   }
@@ -212,17 +231,20 @@ export async function abortUpload(sessionId: string): Promise<void> {
   await fs.rm(sessionDir, { recursive: true, force: true }).catch(() => {});
 
   await storage.updateUploadSession(sessionId, {
-    status: 'aborted'
+    status: 'aborted',
   });
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function resumeUpload(sessionId: string): Promise<{
   missingChunks: number[];
   uploadedChunks: number;
   totalChunks: number;
 }> {
   const session = await storage.getUploadSession(sessionId);
-  
+
   if (!session) {
     throw new Error('Upload session not found');
   }
@@ -235,9 +257,9 @@ export async function resumeUpload(sessionId: string): Promise<{
     throw new Error('Upload session was aborted');
   }
 
-  const uploadedIndices = (session.chunks || []).map((c: any) => c.index);
+  const uploadedIndices = (session.chunks || []).map((c: unknown) => c.index);
   const missingChunks = [];
-  
+
   for (let i = 0; i < session.totalChunks; i++) {
     if (!uploadedIndices.includes(i)) {
       missingChunks.push(i);
@@ -247,6 +269,6 @@ export async function resumeUpload(sessionId: string): Promise<{
   return {
     missingChunks,
     uploadedChunks: session.uploadedChunks,
-    totalChunks: session.totalChunks
+    totalChunks: session.totalChunks,
   };
 }

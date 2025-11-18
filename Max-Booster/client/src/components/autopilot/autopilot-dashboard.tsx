@@ -1,68 +1,77 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { 
-  Play, 
-  Pause, 
-  Settings as SettingsIcon, 
-  TrendingUp, 
-  Clock, 
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  Play,
+  Pause,
+  Settings as SettingsIcon,
+  TrendingUp,
+  Clock,
   CheckCircle,
   AlertCircle,
-  Zap
-} from "lucide-react";
+  Zap,
+} from 'lucide-react';
 
+/**
+ * TODO: Add function documentation
+ */
 export function AutopilotDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isConfiguring, setIsConfiguring] = useState(false);
 
   const { data: autopilotStatus } = useQuery({
-    queryKey: ["/api/autopilot/status"],
+    queryKey: ['/api/autopilot/status'],
     refetchInterval: 30000,
   });
 
   const toggleAutopilotMutation = useMutation({
     mutationFn: async (shouldStart: boolean) => {
-      const endpoint = shouldStart ? "/api/autopilot/start" : "/api/autopilot/stop";
+      const endpoint = shouldStart ? '/api/autopilot/start' : '/api/autopilot/stop';
       const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       });
       if (!response.ok) throw new Error(`Failed to ${shouldStart ? 'start' : 'stop'} autopilot`);
       return response.json();
     },
     onSuccess: (_, shouldStart) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/autopilot/status"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/autopilot/status'] });
       toast({
-        title: "Autopilot Updated",
-        description: shouldStart ? "Autopilot activated" : "Autopilot paused",
+        title: 'Autopilot Updated',
+        description: shouldStart ? 'Autopilot activated' : 'Autopilot paused',
       });
     },
   });
 
   const updateConfigMutation = useMutation({
-    mutationFn: async (config: any) => {
-      const response = await fetch("/api/autopilot/configure", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+    mutationFn: async (config: unknown) => {
+      const response = await fetch('/api/autopilot/configure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
       });
-      if (!response.ok) throw new Error("Failed to update config");
+      if (!response.ok) throw new Error('Failed to update config');
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/autopilot/status"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/autopilot/status'] });
       toast({
-        title: "Configuration Updated",
-        description: "Autopilot settings saved successfully",
+        title: 'Configuration Updated',
+        description: 'Autopilot settings saved successfully',
       });
       setIsConfiguring(false);
     },
@@ -72,9 +81,9 @@ export function AutopilotDashboard() {
   const config = autopilotStatus?.config || {
     enabled: false,
     platforms: [],
-    postingFrequency: "daily",
-    brandVoice: "professional",
-    contentTypes: ["tips", "insights"],
+    postingFrequency: 'daily',
+    brandVoice: 'professional',
+    contentTypes: ['tips', 'insights'],
     autoPublish: false,
   };
 
@@ -93,12 +102,12 @@ export function AutopilotDashboard() {
               </CardDescription>
             </div>
             <div className="flex items-center gap-3">
-              <Badge variant={isRunning ? "default" : "secondary"}>
-                {isRunning ? "Active" : "Paused"}
+              <Badge variant={isRunning ? 'default' : 'secondary'}>
+                {isRunning ? 'Active' : 'Paused'}
               </Badge>
               <Button
                 onClick={() => toggleAutopilotMutation.mutate(!isRunning)}
-                variant={isRunning ? "destructive" : "default"}
+                variant={isRunning ? 'destructive' : 'default'}
                 disabled={toggleAutopilotMutation.isPending}
               >
                 {isRunning ? (
@@ -132,7 +141,9 @@ export function AutopilotDashboard() {
                 <CardTitle className="text-sm font-medium">Completed</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">{autopilotStatus?.completedJobs || 0}</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {autopilotStatus?.completedJobs || 0}
+                </div>
                 <p className="text-xs text-muted-foreground">Successfully executed</p>
               </CardContent>
             </Card>
@@ -142,9 +153,9 @@ export function AutopilotDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-sm font-bold">
-                  {autopilotStatus?.nextScheduledJob 
+                  {autopilotStatus?.nextScheduledJob
                     ? new Date(autopilotStatus.nextScheduledJob).toLocaleString()
-                    : "No jobs scheduled"}
+                    : 'No jobs scheduled'}
                 </div>
                 <p className="text-xs text-muted-foreground">Upcoming task</p>
               </CardContent>
@@ -159,9 +170,11 @@ export function AutopilotDashboard() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Posting Frequency</Label>
-                  <Select 
+                  <Select
                     defaultValue={config.postingFrequency}
-                    onValueChange={(value) => updateConfigMutation.mutate({ ...config, postingFrequency: value })}
+                    onValueChange={(value) =>
+                      updateConfigMutation.mutate({ ...config, postingFrequency: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -177,9 +190,11 @@ export function AutopilotDashboard() {
 
                 <div className="space-y-2">
                   <Label>Brand Voice</Label>
-                  <Select 
+                  <Select
                     defaultValue={config.brandVoice}
-                    onValueChange={(value) => updateConfigMutation.mutate({ ...config, brandVoice: value })}
+                    onValueChange={(value) =>
+                      updateConfigMutation.mutate({ ...config, brandVoice: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -198,7 +213,9 @@ export function AutopilotDashboard() {
                   <Switch
                     id="auto-publish"
                     checked={config.autoPublish}
-                    onCheckedChange={(checked) => updateConfigMutation.mutate({ ...config, autoPublish: checked })}
+                    onCheckedChange={(checked) =>
+                      updateConfigMutation.mutate({ ...config, autoPublish: checked })
+                    }
                   />
                 </div>
 
@@ -206,9 +223,7 @@ export function AutopilotDashboard() {
                   <Button onClick={() => setIsConfiguring(false)} variant="outline">
                     Cancel
                   </Button>
-                  <Button onClick={() => setIsConfiguring(false)}>
-                    Done
-                  </Button>
+                  <Button onClick={() => setIsConfiguring(false)}>Done</Button>
                 </div>
               </CardContent>
             </Card>
@@ -217,7 +232,8 @@ export function AutopilotDashboard() {
               <div>
                 <p className="font-medium">Autopilot Configuration</p>
                 <p className="text-sm text-muted-foreground">
-                  Frequency: {config.postingFrequency} • Voice: {config.brandVoice} • Auto-publish: {config.autoPublish ? "On" : "Off"}
+                  Frequency: {config.postingFrequency} • Voice: {config.brandVoice} • Auto-publish:{' '}
+                  {config.autoPublish ? 'On' : 'Off'}
                 </p>
               </div>
               <Button onClick={() => setIsConfiguring(true)} variant="outline">
@@ -234,12 +250,21 @@ export function AutopilotDashboard() {
             <CardContent>
               {autopilotStatus?.pendingJobs > 0 || autopilotStatus?.completedJobs > 0 ? (
                 <div className="space-y-3">
-                  {[...Array(Math.min(3, (autopilotStatus?.completedJobs || 0) + (autopilotStatus?.pendingJobs || 0)))].map((_, i) => (
+                  {[
+                    ...Array(
+                      Math.min(
+                        3,
+                        (autopilotStatus?.completedJobs || 0) + (autopilotStatus?.pendingJobs || 0)
+                      )
+                    ),
+                  ].map((_, i) => (
                     <div key={i} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                       <CheckCircle className="h-4 w-4 text-green-600" />
                       <div className="flex-1">
                         <p className="text-sm font-medium">Content generated and scheduled</p>
-                        <p className="text-xs text-muted-foreground">Platform optimization completed</p>
+                        <p className="text-xs text-muted-foreground">
+                          Platform optimization completed
+                        </p>
                       </div>
                       <Clock className="h-4 w-4 text-muted-foreground" />
                     </div>

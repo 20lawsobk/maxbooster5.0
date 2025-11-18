@@ -1,8 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Send, Clock, CheckCircle, XCircle, AlertCircle, Calendar } from 'lucide-react';
-import { SiFacebook, SiInstagram, SiYoutube, SiTiktok, SiLinkedin, SiThreads, SiGoogle } from 'react-icons/si';
+import {
+  Edit,
+  Trash2,
+  Send,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Calendar,
+} from 'lucide-react';
+import {
+  SiFacebook,
+  SiInstagram,
+  SiYoutube,
+  SiTiktok,
+  SiLinkedin,
+  SiThreads,
+  SiGoogle,
+} from 'react-icons/si';
 import { MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -50,15 +67,38 @@ const PLATFORM_COLORS: Record<string, string> = {
 };
 
 const STATUS_CONFIG = {
-  draft: { icon: AlertCircle, color: 'text-gray-500', bg: 'bg-gray-100 dark:bg-gray-800', label: 'Draft' },
-  scheduled: { icon: Clock, color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900', label: 'Scheduled' },
-  published: { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-100 dark:bg-green-900', label: 'Published' },
-  failed: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-100 dark:bg-red-900', label: 'Failed' },
+  draft: {
+    icon: AlertCircle,
+    color: 'text-gray-500',
+    bg: 'bg-gray-100 dark:bg-gray-800',
+    label: 'Draft',
+  },
+  scheduled: {
+    icon: Clock,
+    color: 'text-blue-500',
+    bg: 'bg-blue-100 dark:bg-blue-900',
+    label: 'Scheduled',
+  },
+  published: {
+    icon: CheckCircle,
+    color: 'text-green-500',
+    bg: 'bg-green-100 dark:bg-green-900',
+    label: 'Published',
+  },
+  failed: {
+    icon: XCircle,
+    color: 'text-red-500',
+    bg: 'bg-red-100 dark:bg-red-900',
+    label: 'Failed',
+  },
 };
 
+/**
+ * TODO: Add function documentation
+ */
 export function PostTimelineView({ posts, onEdit, onDelete, onPublish }: PostTimelineViewProps) {
-  const sortedPosts = [...posts].sort((a, b) => 
-    new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime()
+  const sortedPosts = [...posts].sort(
+    (a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime()
   );
 
   const formatDateTime = (dateString: string) => {
@@ -113,7 +153,9 @@ export function PostTimelineView({ posts, onEdit, onDelete, onPublish }: PostTim
                       <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-2">
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
-                          <span>{dateTime.date} at {dateTime.time}</span>
+                          <span>
+                            {dateTime.date} at {dateTime.time}
+                          </span>
                         </div>
                         <Badge variant="outline">{post.postType}</Badge>
                       </div>
@@ -137,7 +179,7 @@ export function PostTimelineView({ posts, onEdit, onDelete, onPublish }: PostTim
                         {post.content}
                       </p>
 
-                      {(post.hashtags && post.hashtags.length > 0) && (
+                      {post.hashtags && post.hashtags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-2">
                           {post.hashtags.map((tag, index) => (
                             <Badge key={index} variant="secondary" className="text-xs">
@@ -158,27 +200,15 @@ export function PostTimelineView({ posts, onEdit, onDelete, onPublish }: PostTim
                     <div className="flex flex-col gap-2 ml-4">
                       {(post.status === 'draft' || post.status === 'scheduled') && (
                         <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onEdit(post)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => onEdit(post)}>
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onPublish(post.id)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => onPublish(post.id)}>
                             <Send className="h-4 w-4 mr-1" />
                             Publish Now
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => onDelete(post.id)}
-                          >
+                          <Button size="sm" variant="destructive" onClick={() => onDelete(post.id)}>
                             <Trash2 className="h-4 w-4 mr-1" />
                             Delete
                           </Button>
@@ -190,11 +220,7 @@ export function PostTimelineView({ posts, onEdit, onDelete, onPublish }: PostTim
                         </div>
                       )}
                       {post.status === 'failed' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onPublish(post.id)}
-                        >
+                        <Button size="sm" variant="outline" onClick={() => onPublish(post.id)}>
                           <Send className="h-4 w-4 mr-1" />
                           Retry
                         </Button>

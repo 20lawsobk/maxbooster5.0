@@ -11,16 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { 
-  Play, 
-  Pause, 
-  Trash2, 
-  Upload, 
-  Download, 
-  DollarSign,
-  Music2,
-  FileAudio
-} from 'lucide-react';
+import { Play, Pause, Trash2, Upload, Download, DollarSign, Music2, FileAudio } from 'lucide-react';
 import { StemUploadDialog } from './StemUploadDialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -63,6 +54,9 @@ const STEM_TYPE_LABELS: Record<string, string> = {
   other: 'Other',
 };
 
+/**
+ * TODO: Add function documentation
+ */
 export function StemsManager({ listingId, isOwner }: StemsManagerProps) {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [playingStem, setPlayingStem] = useState<string | null>(null);
@@ -107,7 +101,7 @@ export function StemsManager({ listingId, isOwner }: StemsManagerProps) {
       const response = await apiRequest('POST', `/api/marketplace/stems/${stemId}/purchase`);
       return response.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: unknown) => {
       toast({
         title: 'Stem Purchased!',
         description: 'Your stem is ready for download.',
@@ -190,8 +184,8 @@ export function StemsManager({ listingId, isOwner }: StemsManagerProps) {
             <div className="text-center py-8">
               <FileAudio className="h-12 w-12 mx-auto text-gray-400 mb-3" />
               <p className="text-gray-500">
-                {isOwner 
-                  ? 'No stems uploaded yet. Upload individual stems to offer buyers more options.' 
+                {isOwner
+                  ? 'No stems uploaded yet. Upload individual stems to offer buyers more options.'
                   : 'No stems available for this listing.'}
               </p>
             </div>
@@ -230,16 +224,14 @@ export function StemsManager({ listingId, isOwner }: StemsManagerProps) {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={STEM_TYPE_COLORS[stem.stemType] || STEM_TYPE_COLORS.other}
                         >
                           {STEM_TYPE_LABELS[stem.stemType] || stem.stemType}
                         </Badge>
                       </TableCell>
-                      <TableCell className="uppercase text-xs font-mono">
-                        {stem.format}
-                      </TableCell>
+                      <TableCell className="uppercase text-xs font-mono">{stem.format}</TableCell>
                       <TableCell className="text-sm text-gray-600">
                         {formatFileSize(stem.fileSize)}
                       </TableCell>

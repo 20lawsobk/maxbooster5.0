@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../logger.js';
 import { auditLogger } from './auditLogger.js';
 
 // Custom error class for application errors
@@ -41,7 +42,7 @@ interface ErrorResponse {
 
 // Enhanced global error handler
 export function globalErrorHandler(
-  err: any,
+  err: unknown,
   req: Request,
   res: Response,
   next: NextFunction
@@ -143,7 +144,7 @@ export function globalErrorHandler(
 
   // Log critical errors for immediate attention
   if (statusCode >= 500 && !isOperational) {
-    console.error('🚨 CRITICAL ERROR:', {
+    logger.error('🚨 CRITICAL ERROR:', {
       timestamp: new Date().toISOString(),
       method: req.method,
       url: req.originalUrl,
@@ -167,8 +168,8 @@ export function asyncHandler(fn: Function) {
 }
 
 // Handle unhandled promise rejections with graceful shutdown
-export function handleUnhandledRejection(server?: any) {
-  process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
+export function handleUnhandledRejection(server?: unknown) {
+  process.on('unhandledRejection', (reason: unknown, promise: Promise<any>) => {
     // Suppress Redis connection errors in development (graceful degradation)
     const isRedisError = reason?.message?.includes('ECONNREFUSED') && 
                          (reason?.message?.includes('6379') || reason?.code === 'ECONNREFUSED') ||
@@ -180,7 +181,7 @@ export function handleUnhandledRejection(server?: any) {
       return;
     }
 
-    console.error('🚨 UNHANDLED PROMISE REJECTION:', {
+    logger.error('🚨 UNHANDLED PROMISE REJECTION:', {
       reason,
       stack: reason?.stack,
       timestamp: new Date().toISOString(),
@@ -203,16 +204,16 @@ export function handleUnhandledRejection(server?: any) {
 
     // Graceful shutdown in production
     if (process.env.NODE_ENV === 'production') {
-      console.log('💥 Starting graceful shutdown due to unhandled promise rejection...');
+      logger.info('💥 Starting graceful shutdown due to unhandled promise rejection...');
       gracefulShutdown(server, 'UNHANDLED_REJECTION');
     }
   });
 }
 
 // Handle uncaught exceptions with graceful shutdown
-export function handleUncaughtException(server?: any) {
+export function handleUncaughtException(server?: unknown) {
   process.on('uncaughtException', (error: Error) => {
-    console.error('🚨 UNCAUGHT EXCEPTION:', {
+    logger.error('🚨 UNCAUGHT EXCEPTION:', {
       error: error.message,
       stack: error.stack,
       timestamp: new Date().toISOString(),
@@ -233,27 +234,27 @@ export function handleUncaughtException(server?: any) {
       risk: 'critical'
     });
 
-    console.log('💥 Starting graceful shutdown due to uncaught exception...');
+    logger.info('💥 Starting graceful shutdown due to uncaught exception...');
     gracefulShutdown(server, 'UNCAUGHT_EXCEPTION');
   });
 }
 
 // Graceful shutdown function
-function gracefulShutdown(server: any, reason: string) {
-  console.log(`🛑 Graceful shutdown initiated (${reason})`);
+function gracefulShutdown(server: unknown, reason: string) {
+  logger.info(`🛑 Graceful shutdown initiated (${reason})`);
   
   if (server) {
     // Stop accepting new connections
-    server.close((err: any) => {
+    server.close((err: unknown) => {
       if (err) {
-        console.error('❌ Error during server shutdown:', err);
+        logger.error('❌ Error during server shutdown:', err);
       } else {
-        console.log('✅ HTTP server closed');
+        logger.info('✅ HTTP server closed');
       }
       
       // Force exit after timeout if graceful shutdown takes too long
       setTimeout(() => {
-        console.log('💥 Force exit after graceful shutdown timeout');
+        logger.info('💥 Force exit after graceful shutdown timeout');
         process.exit(1);
       }, 10000); // 10 second timeout
       
@@ -267,14 +268,14 @@ function gracefulShutdown(server: any, reason: string) {
 }
 
 // Setup graceful shutdown for SIGTERM/SIGINT
-export function setupGracefulShutdown(server: any) {
+export function setupGracefulShutdown(server: unknown) {
   process.on('SIGTERM', () => {
-    console.log('📨 SIGTERM received');
+    logger.info('📨 SIGTERM received');
     gracefulShutdown(server, 'SIGTERM');
   });
   
   process.on('SIGINT', () => {
-    console.log('📨 SIGINT received');
+    logger.info('📨 SIGINT received');
     gracefulShutdown(server, 'SIGINT');
   });
 }

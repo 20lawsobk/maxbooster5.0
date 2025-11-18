@@ -14,7 +14,7 @@ export default function Contact() {
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
   });
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
@@ -24,7 +24,7 @@ export default function Contact() {
     // In production, this would send to backend
     setSubmitted(true);
     toast({
-      title: "Message Sent!",
+      title: 'Message Sent!',
       description: "We'll get back to you within 24 hours.",
     });
   };
@@ -91,7 +91,7 @@ export default function Contact() {
                           type="text"
                           required
                           value={formData.name}
-                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           data-testid="input-contact-name"
                         />
                       </div>
@@ -102,7 +102,7 @@ export default function Contact() {
                           type="email"
                           required
                           value={formData.email}
-                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           data-testid="input-contact-email"
                         />
                       </div>
@@ -113,7 +113,7 @@ export default function Contact() {
                           type="text"
                           required
                           value={formData.subject}
-                          onChange={(e) => setFormData({...formData, subject: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                           data-testid="input-contact-subject"
                         />
                       </div>
@@ -124,7 +124,7 @@ export default function Contact() {
                           rows={6}
                           required
                           value={formData.message}
-                          onChange={(e) => setFormData({...formData, message: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                           data-testid="textarea-contact-message"
                         />
                       </div>
@@ -157,10 +157,11 @@ export default function Contact() {
                     <Mail className="h-6 w-6 text-blue-600 mr-2" />
                     <h3 className="text-lg font-semibold text-gray-900">Email Support</h3>
                   </div>
-                  <p className="text-gray-600 mb-2">
-                    For general inquiries and support:
-                  </p>
-                  <a href="mailto:support@maxbooster.com" className="text-blue-600 hover:underline font-medium">
+                  <p className="text-gray-600 mb-2">For general inquiries and support:</p>
+                  <a
+                    href="mailto:support@maxbooster.com"
+                    className="text-blue-600 hover:underline font-medium"
+                  >
                     support@maxbooster.com
                   </a>
                 </CardContent>
@@ -182,7 +183,7 @@ export default function Contact() {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Solo Founder</h3>
                   <p className="text-gray-600">
-                    Max Booster is independently operated by a passionate musician who understands 
+                    Max Booster is independently operated by a passionate musician who understands
                     your needs. Every message gets personal attention and thoughtful responses.
                   </p>
                 </CardContent>

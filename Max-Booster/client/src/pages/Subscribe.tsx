@@ -34,8 +34,8 @@ const plans = {
       'Social Media Management',
       'Email Support',
       'Cloud Storage (10GB)',
-      'Basic Distribution'
-    ]
+      'Basic Distribution',
+    ],
   },
   yearly: {
     id: 'yearly',
@@ -55,8 +55,8 @@ const plans = {
       'Cloud Storage (100GB)',
       'Advanced AI Mastering',
       'Royalty Analytics',
-      'Custom Branding'
-    ]
+      'Custom Branding',
+    ],
   },
   lifetime: {
     id: 'lifetime',
@@ -75,9 +75,9 @@ const plans = {
       'Unlimited Cloud Storage',
       'Early Access to New Features',
       'Personal Account Manager',
-      'Custom Integrations'
-    ]
-  }
+      'Custom Integrations',
+    ],
+  },
 };
 
 const SubscribeForm = ({ plan }: { plan: any }) => {
@@ -105,13 +105,13 @@ const SubscribeForm = ({ plan }: { plan: any }) => {
 
     if (error) {
       toast({
-        title: "Payment Failed",
+        title: 'Payment Failed',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     } else {
       toast({
-        title: "Payment Successful",
+        title: 'Payment Successful',
         description: `Welcome to Max Booster ${plan.name}!`,
       });
       navigate('/dashboard');
@@ -125,14 +125,14 @@ const SubscribeForm = ({ plan }: { plan: any }) => {
       <div className="bg-gray-50 p-4 rounded-lg">
         <PaymentElement />
       </div>
-      
+
       <div className="flex items-center space-x-2 text-sm text-gray-600">
         <Shield className="h-4 w-4" />
         <span>Your payment information is secure and encrypted</span>
       </div>
 
-      <Button 
-        type="submit" 
+      <Button
+        type="submit"
         className="w-full py-3 text-lg gradient-bg"
         disabled={!stripe || isProcessing}
       >
@@ -144,10 +144,9 @@ const SubscribeForm = ({ plan }: { plan: any }) => {
         ) : (
           <>
             <CreditCard className="h-5 w-5 mr-2" />
-            {plan.period === 'once' 
-              ? `Pay $${plan.price} Once` 
-              : `Subscribe for $${plan.price}/${plan.period}`
-            }
+            {plan.period === 'once'
+              ? `Pay $${plan.price} Once`
+              : `Subscribe for $${plan.price}/${plan.period}`}
           </>
         )}
       </Button>
@@ -185,15 +184,15 @@ export default function Subscribe() {
     const createSubscription = async () => {
       try {
         const response = await apiRequest('POST', '/api/create-subscription', {
-          priceId: plan.priceId
+          priceId: plan.priceId,
         });
         const data = await response.json();
         setClientSecret(data.clientSecret);
-      } catch (error: any) {
+      } catch (error: unknown) {
         toast({
-          title: "Setup Failed",
-          description: error.message || "Failed to setup payment. Please try again.",
-          variant: "destructive",
+          title: 'Setup Failed',
+          description: error.message || 'Failed to setup payment. Please try again.',
+          variant: 'destructive',
         });
         navigate('/pricing');
       } finally {
@@ -218,7 +217,9 @@ export default function Subscribe() {
         <Card className="max-w-md mx-4">
           <CardContent className="p-8 text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Plan Not Found</h1>
-            <p className="text-gray-600 mb-6">The subscription plan you're looking for doesn't exist.</p>
+            <p className="text-gray-600 mb-6">
+              The subscription plan you're looking for doesn't exist.
+            </p>
             <Link href="/pricing">
               <Button>View Available Plans</Button>
             </Link>
@@ -234,7 +235,9 @@ export default function Subscribe() {
         <Card className="max-w-md mx-4">
           <CardContent className="p-8 text-center">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Setting up your subscription...</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              Setting up your subscription...
+            </h2>
             <p className="text-gray-600">Please wait while we prepare your payment.</p>
           </CardContent>
         </Card>
@@ -248,7 +251,9 @@ export default function Subscribe() {
         <Card className="max-w-md mx-4">
           <CardContent className="p-8 text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Setup Error</h1>
-            <p className="text-gray-600 mb-6">We couldn't set up your subscription. Please try again.</p>
+            <p className="text-gray-600 mb-6">
+              We couldn't set up your subscription. Please try again.
+            </p>
             <Link href="/pricing">
               <Button>Back to Pricing</Button>
             </Link>
@@ -325,10 +330,9 @@ export default function Subscribe() {
                   <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                     <h4 className="font-medium text-blue-900 mb-2">Billing Information</h4>
                     <p className="text-sm text-blue-700">
-                      {plan.id === 'yearly' 
+                      {plan.id === 'yearly'
                         ? `You'll be charged $${plan.price * 12} today, then $${plan.price * 12} every year.`
-                        : `You'll be charged $${plan.price} today, then $${plan.price} every month.`
-                      }
+                        : `You'll be charged $${plan.price} today, then $${plan.price} every month.`}
                     </p>
                     <p className="text-xs text-blue-600 mt-2">
                       You can cancel your subscription at any time from your account settings.
@@ -362,8 +366,8 @@ export default function Subscribe() {
                 <div className="text-sm text-gray-600">
                   <h4 className="font-medium text-gray-900 mb-1">Secure Payment</h4>
                   <p>
-                    Your payment is processed securely by Stripe. We never store your credit card information.
-                    All transactions are encrypted and protected.
+                    Your payment is processed securely by Stripe. We never store your credit card
+                    information. All transactions are encrypted and protected.
                   </p>
                 </div>
               </div>

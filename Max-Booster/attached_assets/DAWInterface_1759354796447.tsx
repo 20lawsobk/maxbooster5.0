@@ -1,13 +1,13 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Sliders, Zap, Volume2, Plus } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Sliders, Zap, Volume2, Plus } from 'lucide-react';
 
 export function DAWInterface() {
   const plugins = [
-    { name: "MB EQ8", type: "Parametric EQ", icon: Sliders, active: true },
-    { name: "MB Comp", type: "Compressor", icon: Volume2, active: true },
-    { name: "MB Reverb", type: "Hall Reverb", icon: Volume2, active: true },
+    { name: 'MB EQ8', type: 'Parametric EQ', icon: Sliders, active: true },
+    { name: 'MB Comp', type: 'Compressor', icon: Volume2, active: true },
+    { name: 'MB Reverb', type: 'Hall Reverb', icon: Volume2, active: true },
   ];
 
   return (
@@ -20,7 +20,7 @@ export function DAWInterface() {
           {plugins.map((plugin, index) => {
             const Icon = plugin.icon;
             return (
-              <div 
+              <div
                 key={index}
                 className="bg-muted/20 rounded p-3 text-center hover:bg-muted/30 transition-colors cursor-pointer"
                 data-testid={`plugin-${index}`}
@@ -38,9 +38,12 @@ export function DAWInterface() {
               </div>
             );
           })}
-          
+
           {/* Add Plugin Slot */}
-          <div className="border-2 border-dashed border-muted rounded p-3 text-center opacity-50 hover:opacity-75 transition-opacity cursor-pointer" data-testid="add-plugin-slot">
+          <div
+            className="border-2 border-dashed border-muted rounded p-3 text-center opacity-50 hover:opacity-75 transition-opacity cursor-pointer"
+            data-testid="add-plugin-slot"
+          >
             <div className="w-8 h-8 bg-muted/20 rounded mx-auto mb-2 flex items-center justify-center">
               <Plus className="text-muted-foreground text-xs" />
             </div>
@@ -55,20 +58,40 @@ export function DAWInterface() {
             <span className="text-sm font-medium">AI Assistant</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Button size="sm" variant="outline" className="bg-primary/10 text-primary hover:bg-primary/20" data-testid="button-auto-eq">
+            <Button
+              size="sm"
+              variant="outline"
+              className="bg-primary/10 text-primary hover:bg-primary/20"
+              data-testid="button-auto-eq"
+            >
               Auto EQ
             </Button>
-            <Button size="sm" variant="outline" className="bg-secondary/10 text-secondary hover:bg-secondary/20" data-testid="button-smart-compress">
+            <Button
+              size="sm"
+              variant="outline"
+              className="bg-secondary/10 text-secondary hover:bg-secondary/20"
+              data-testid="button-smart-compress"
+            >
               Smart Compress
             </Button>
-            <Button size="sm" variant="outline" className="bg-accent/10 text-accent hover:bg-accent/20" data-testid="button-enhance-vocals">
+            <Button
+              size="sm"
+              variant="outline"
+              className="bg-accent/10 text-accent hover:bg-accent/20"
+              data-testid="button-enhance-vocals"
+            >
               Enhance Vocals
             </Button>
-            <Button size="sm" variant="outline" className="bg-muted/20 text-muted-foreground hover:bg-muted/30" data-testid="button-analyze-mix">
+            <Button
+              size="sm"
+              variant="outline"
+              className="bg-muted/20 text-muted-foreground hover:bg-muted/30"
+              data-testid="button-analyze-mix"
+            >
               Analyze Mix
             </Button>
           </div>
-          
+
           {/* AI Status */}
           <div className="mt-4 p-3 bg-card/50 rounded border border-border" data-testid="ai-status">
             <div className="flex items-center space-x-2 mb-2">

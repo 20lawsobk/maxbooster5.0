@@ -33,13 +33,14 @@ class AuditLogger {
   }
 
   public log(event: AuditEvent) {
-    const logEntry = JSON.stringify({
-      ...event,
-      timestamp: new Date().toISOString(),
-    }) + '\n';
+    const logEntry =
+      JSON.stringify({
+        ...event,
+        timestamp: new Date().toISOString(),
+      }) + '\n';
 
     this.logStream.write(logEntry);
-    
+
     // Log high-risk events to security log as well
     if (event.risk === 'high' || event.risk === 'critical') {
       this.securityStream.write(logEntry);
@@ -56,10 +57,10 @@ class AuditLogger {
       userAgent: req.get('user-agent') || 'unknown',
       action: 'LOGIN',
       resource: 'auth',
-      details: { 
+      details: {
         method: 'local',
         success,
-        attemptedEmail: userEmail 
+        attemptedEmail: userEmail,
       },
       result: success ? 'success' : 'failure',
       risk: success ? 'low' : 'medium',
@@ -92,9 +93,9 @@ class AuditLogger {
       userAgent: req.get('user-agent') || 'unknown',
       action: 'REGISTER',
       resource: 'auth',
-      details: { 
+      details: {
         success,
-        hasPayment: true // Max Booster requires payment before account
+        hasPayment: true, // Max Booster requires payment before account
       },
       result: success ? 'success' : 'failure',
       risk: 'medium',
@@ -103,7 +104,14 @@ class AuditLogger {
   }
 
   // Payment events
-  logPayment(req: Request, userId: string, userEmail: string, amount: number, success: boolean, stripeSessionId?: string) {
+  logPayment(
+    req: Request,
+    userId: string,
+    userEmail: string,
+    amount: number,
+    success: boolean,
+    stripeSessionId?: string
+  ) {
     this.log({
       timestamp: new Date().toISOString(),
       userId,
@@ -112,12 +120,12 @@ class AuditLogger {
       userAgent: req.get('user-agent') || 'unknown',
       action: 'PAYMENT',
       resource: 'stripe',
-      details: { 
+      details: {
         amount,
         currency: 'USD',
         success,
         stripeSessionId,
-        type: 'subscription'
+        type: 'subscription',
       },
       result: success ? 'success' : 'failure',
       risk: 'high',
@@ -126,7 +134,14 @@ class AuditLogger {
   }
 
   // Admin actions
-  logAdminAction(req: Request, userId: string, userEmail: string, action: string, targetUserId?: string, details: Record<string, any> = {}) {
+  logAdminAction(
+    req: Request,
+    userId: string,
+    userEmail: string,
+    action: string,
+    targetUserId?: string,
+    details: Record<string, any> = {}
+  ) {
     this.log({
       timestamp: new Date().toISOString(),
       userId,
@@ -135,9 +150,9 @@ class AuditLogger {
       userAgent: req.get('user-agent') || 'unknown',
       action: `ADMIN_${action.toUpperCase()}`,
       resource: 'admin',
-      details: { 
+      details: {
         ...details,
-        targetUserId 
+        targetUserId,
       },
       result: 'success',
       risk: 'critical',
@@ -146,7 +161,14 @@ class AuditLogger {
   }
 
   // File upload events
-  logFileUpload(req: Request, userId: string, userEmail: string, fileName: string, fileSize: number, success: boolean) {
+  logFileUpload(
+    req: Request,
+    userId: string,
+    userEmail: string,
+    fileName: string,
+    fileSize: number,
+    success: boolean
+  ) {
     this.log({
       timestamp: new Date().toISOString(),
       userId,
@@ -155,11 +177,11 @@ class AuditLogger {
       userAgent: req.get('user-agent') || 'unknown',
       action: 'FILE_UPLOAD',
       resource: 'storage',
-      details: { 
+      details: {
         fileName,
         fileSize,
         success,
-        type: 'audio'
+        type: 'audio',
       },
       result: success ? 'success' : 'failure',
       risk: 'medium',
@@ -168,7 +190,13 @@ class AuditLogger {
   }
 
   // OAuth events
-  logOAuthConnection(req: Request, userId: string, userEmail: string, platform: string, success: boolean) {
+  logOAuthConnection(
+    req: Request,
+    userId: string,
+    userEmail: string,
+    platform: string,
+    success: boolean
+  ) {
     this.log({
       timestamp: new Date().toISOString(),
       userId,
@@ -177,9 +205,9 @@ class AuditLogger {
       userAgent: req.get('user-agent') || 'unknown',
       action: 'OAUTH_CONNECT',
       resource: 'social_media',
-      details: { 
+      details: {
         platform,
-        success 
+        success,
       },
       result: success ? 'success' : 'failure',
       risk: 'medium',
@@ -188,7 +216,12 @@ class AuditLogger {
   }
 
   // Security events
-  logSecurityEvent(req: Request, event: string, risk: 'low' | 'medium' | 'high' | 'critical', details: Record<string, any> = {}) {
+  logSecurityEvent(
+    req: Request,
+    event: string,
+    risk: 'low' | 'medium' | 'high' | 'critical',
+    details: Record<string, any> = {}
+  ) {
     this.log({
       timestamp: new Date().toISOString(),
       ip: this.getClientIP(req),
@@ -210,9 +243,9 @@ class AuditLogger {
       userAgent: req.get('user-agent') || 'unknown',
       action: 'RATE_LIMIT_EXCEEDED',
       resource: 'security',
-      details: { 
+      details: {
         limitType,
-        path: req.path 
+        path: req.path,
       },
       result: 'failure',
       risk: 'medium',
@@ -232,14 +265,18 @@ class AuditLogger {
 export const auditLogger = new AuditLogger();
 
 // Middleware for automatic API endpoint auditing
-export function auditMiddleware(action: string, resource: string, risk: 'low' | 'medium' | 'high' = 'low') {
+export function auditMiddleware(
+  action: string,
+  resource: string,
+  risk: 'low' | 'medium' | 'high' = 'low'
+) {
   return (req: Request, res: Response, next: NextFunction) => {
     const originalSend = res.send;
-    
-    res.send = function(data) {
+
+    res.send = function (data) {
       const user = (req as any).user;
       const statusCode = res.statusCode;
-      
+
       if (user && statusCode < 400) {
         auditLogger.log({
           timestamp: new Date().toISOString(),
@@ -252,17 +289,17 @@ export function auditMiddleware(action: string, resource: string, risk: 'low' | 
           details: {
             method: req.method,
             path: req.path,
-            statusCode
+            statusCode,
           },
           result: 'success',
           risk,
           sessionId: req.sessionID,
         });
       }
-      
+
       return originalSend.call(this, data);
     };
-    
+
     next();
   };
 }

@@ -4,16 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Layers, 
-  Star, 
-  Trash2, 
-  Eye, 
-  EyeOff, 
-  Scissors,
-  Copy,
-  Sparkles
-} from 'lucide-react';
+import { Layers, Star, Trash2, Eye, EyeOff, Scissors, Copy, Sparkles } from 'lucide-react';
 
 export interface Take {
   id: string;
@@ -42,6 +33,9 @@ interface TakeCompingLanesProps {
   compact?: boolean;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function TakeCompingLanes({
   takes,
   selectedTakeId,
@@ -81,8 +75,8 @@ export function TakeCompingLanes({
     setSelectedTakes(newSelection);
   };
 
-  const compedTakes = takes.filter(t => t.isComped);
-  const nonCompedTakes = takes.filter(t => !t.isComped);
+  const compedTakes = takes.filter((t) => t.isComped);
+  const nonCompedTakes = takes.filter((t) => !t.isComped);
 
   if (compact) {
     return (
@@ -215,6 +209,9 @@ interface TakeLaneItemProps {
   formatDuration: (seconds: number) => string;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function TakeLaneItem({
   take,
   isSelected,
@@ -235,8 +232,8 @@ function TakeLaneItem({
         isSelected
           ? 'bg-blue-500/20 border-blue-500/50'
           : isMultiSelected
-          ? 'bg-purple-500/20 border-purple-500/50'
-          : 'bg-gray-900/50 border-gray-800 hover:bg-gray-800/50'
+            ? 'bg-purple-500/20 border-purple-500/50'
+            : 'bg-gray-900/50 border-gray-800 hover:bg-gray-800/50'
       }`}
       onClick={onSelect}
     >
@@ -267,7 +264,7 @@ function TakeLaneItem({
               <span>•</span>
               <span>Duration: {formatDuration(take.duration)}</span>
             </div>
-            
+
             {/* Rating */}
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((rating) => (
@@ -323,11 +320,7 @@ function TakeLaneItem({
             className="h-7 w-7 p-0"
             title={take.isMuted ? 'Unmute' : 'Mute'}
           >
-            {take.isMuted ? (
-              <EyeOff className="h-3 w-3" />
-            ) : (
-              <Eye className="h-3 w-3" />
-            )}
+            {take.isMuted ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
           </Button>
 
           <Button

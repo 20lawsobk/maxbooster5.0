@@ -1,5 +1,6 @@
 import sgMail from '@sendgrid/mail';
 import { emailMonitor } from '../monitoring/emailMonitor';
+import { logger } from '../logger.js';
 
 interface InvitationEmailData {
   to: string;
@@ -49,18 +50,18 @@ class EmailService {
       try {
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
         this.isInitialized = true;
-        console.log('✅ SendGrid EmailService initialized');
-      } catch (error) {
-        console.error('❌ Failed to initialize SendGrid EmailService:', error);
+        logger.info('✅ SendGrid EmailService initialized');
+      } catch (error: unknown) {
+        logger.error('❌ Failed to initialize SendGrid EmailService:', error);
       }
     } else if (!process.env.SENDGRID_API_KEY) {
-      console.warn('⚠️  SendGrid API key not configured. Email features will be disabled.');
+      logger.warn('⚠️  SendGrid API key not configured. Email features will be disabled.');
     }
   }
 
   async sendInvitationEmail(data: InvitationEmailData): Promise<boolean> {
     if (!this.isInitialized) {
-      console.warn('⚠️  SendGrid not initialized, skipping invitation email to:', data.to);
+      logger.warn('⚠️  SendGrid not initialized, skipping invitation email to:', data.to);
       return false;
     }
 
@@ -79,16 +80,20 @@ class EmailService {
     try {
       await sgMail.send(emailData);
       const deliveryTime = Date.now() - startTime;
-      
+
       emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
-      console.log(`📧 Invitation email sent to ${data.to} from ${data.inviterName}`);
+      logger.info(`📧 Invitation email sent to ${data.to} from ${data.inviterName}`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const deliveryTime = Date.now() - startTime;
-      const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message || 'Unknown error';
-      
+      const errorMessage =
+        error?.response?.body?.errors?.[0]?.message || error.message || 'Unknown error';
+
       emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
-      console.error('❌ SendGrid invitation email error:', error?.response?.body || error.message || error);
+      logger.error(
+        '❌ SendGrid invitation email error:',
+        error?.response?.body || error.message || error
+      );
       return false;
     }
   }
@@ -147,12 +152,12 @@ class EmailService {
     ticketId: string
   ): Promise<boolean> {
     if (!this.isInitialized) {
-      console.warn('⚠️  SendGrid not initialized, skipping ticket created email');
+      logger.warn('⚠️  SendGrid not initialized, skipping ticket created email');
       return false;
     }
 
     const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'support@maxbooster.ai';
-    
+
     const emailData = {
       to,
       from: fromEmail,
@@ -195,11 +200,11 @@ class EmailService {
       const deliveryTime = Date.now() - startTime;
       emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const deliveryTime = Date.now() - startTime;
       const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
       emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
-      console.error('❌ Failed to send ticket created email:', errorMessage);
+      logger.error('❌ Failed to send ticket created email:', errorMessage);
       return false;
     }
   }
@@ -212,13 +217,14 @@ class EmailService {
     replyMessage: string
   ): Promise<boolean> {
     if (!this.isInitialized) {
-      console.warn('⚠️  SendGrid not initialized, skipping ticket reply email');
+      logger.warn('⚠️  SendGrid not initialized, skipping ticket reply email');
       return false;
     }
 
     const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'support@maxbooster.ai';
-    const truncatedMessage = replyMessage.length > 200 ? replyMessage.substring(0, 200) + '...' : replyMessage;
-    
+    const truncatedMessage =
+      replyMessage.length > 200 ? replyMessage.substring(0, 200) + '...' : replyMessage;
+
     const emailData = {
       to,
       from: fromEmail,
@@ -259,11 +265,11 @@ class EmailService {
       const deliveryTime = Date.now() - startTime;
       emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const deliveryTime = Date.now() - startTime;
       const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
       emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
-      console.error('❌ Failed to send ticket reply email:', errorMessage);
+      logger.error('❌ Failed to send ticket reply email:', errorMessage);
       return false;
     }
   }
@@ -276,7 +282,7 @@ class EmailService {
     newStatus: string
   ): Promise<boolean> {
     if (!this.isInitialized) {
-      console.warn('⚠️  SendGrid not initialized, skipping ticket status update email');
+      logger.warn('⚠️  SendGrid not initialized, skipping ticket status update email');
       return false;
     }
 
@@ -287,7 +293,7 @@ class EmailService {
       resolved: 'Your ticket has been resolved!',
       closed: 'Your ticket has been closed.',
     };
-    
+
     const emailData = {
       to,
       from: fromEmail,
@@ -329,18 +335,18 @@ class EmailService {
       const deliveryTime = Date.now() - startTime;
       emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const deliveryTime = Date.now() - startTime;
       const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
       emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
-      console.error('❌ Failed to send ticket status update email:', errorMessage);
+      logger.error('❌ Failed to send ticket status update email:', errorMessage);
       return false;
     }
   }
 
   async sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
     if (!this.isInitialized) {
-      console.warn('⚠️  SendGrid not initialized, skipping welcome email');
+      logger.warn('⚠️  SendGrid not initialized, skipping welcome email');
       return false;
     }
 
@@ -381,7 +387,7 @@ class EmailService {
       from: fromEmail,
       subject: '🎵 Welcome to Max Booster - Your Music Career Starts Here!',
       html,
-      text: `Hi ${data.firstName},\n\nWelcome to Max Booster!\n\nYou now have access to our complete platform including Studio, Distribution, Social Media Management, Marketplace, and Analytics.\n\nGet started: https://maxbooster.ai/dashboard\n\nBest,\nThe Max Booster Team`
+      text: `Hi ${data.firstName},\n\nWelcome to Max Booster!\n\nYou now have access to our complete platform including Studio, Distribution, Social Media Management, Marketplace, and Analytics.\n\nGet started: https://maxbooster.ai/dashboard\n\nBest,\nThe Max Booster Team`,
     };
 
     const startTime = Date.now();
@@ -389,20 +395,20 @@ class EmailService {
       await sgMail.send(emailData);
       const deliveryTime = Date.now() - startTime;
       emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
-      console.log(`📧 Welcome email sent to ${data.email}`);
+      logger.info(`📧 Welcome email sent to ${data.email}`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const deliveryTime = Date.now() - startTime;
       const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
       emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
-      console.error('❌ Failed to send welcome email:', errorMessage);
+      logger.error('❌ Failed to send welcome email:', errorMessage);
       return false;
     }
   }
 
   async sendPasswordResetEmail(data: PasswordResetEmailData, to: string): Promise<boolean> {
     if (!this.isInitialized) {
-      console.warn('⚠️  SendGrid not initialized, skipping password reset email');
+      logger.warn('⚠️  SendGrid not initialized, skipping password reset email');
       return false;
     }
 
@@ -444,7 +450,7 @@ class EmailService {
       from: fromEmail,
       subject: '🔒 Reset Your Max Booster Password',
       html,
-      text: `Hi ${data.firstName},\n\nWe received a request to reset your password.\n\nReset link: ${data.resetLink}\n\nThis link expires in ${data.expiresIn}.\n\nIf you didn't request this, please ignore this email.\n\nBest,\nThe Max Booster Team`
+      text: `Hi ${data.firstName},\n\nWe received a request to reset your password.\n\nReset link: ${data.resetLink}\n\nThis link expires in ${data.expiresIn}.\n\nIf you didn't request this, please ignore this email.\n\nBest,\nThe Max Booster Team`,
     };
 
     const startTime = Date.now();
@@ -452,20 +458,23 @@ class EmailService {
       await sgMail.send(emailData);
       const deliveryTime = Date.now() - startTime;
       emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
-      console.log(`📧 Password reset email sent to ${to}`);
+      logger.info(`📧 Password reset email sent to ${to}`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const deliveryTime = Date.now() - startTime;
       const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
       emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
-      console.error('❌ Failed to send password reset email:', errorMessage);
+      logger.error('❌ Failed to send password reset email:', errorMessage);
       return false;
     }
   }
 
-  async sendDistributionNotification(data: DistributionNotificationData, to: string): Promise<boolean> {
+  async sendDistributionNotification(
+    data: DistributionNotificationData,
+    to: string
+  ): Promise<boolean> {
     if (!this.isInitialized) {
-      console.warn('⚠️  SendGrid not initialized, skipping distribution notification');
+      logger.warn('⚠️  SendGrid not initialized, skipping distribution notification');
       return false;
     }
 
@@ -473,18 +482,23 @@ class EmailService {
       submitted: '📤',
       processing: '⚙️',
       live: '🎉',
-      failed: '❌'
+      failed: '❌',
     };
 
     const statusTitles = {
       submitted: 'Release Submitted',
       processing: 'Release Processing',
       live: 'Release is Live!',
-      failed: 'Distribution Failed'
+      failed: 'Distribution Failed',
     };
 
     const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'distribution@maxbooster.ai';
-    const platformsTags = data.platforms.map(p => `<span style="display: inline-block; background: #e0e7ff; color: #4c51bf; padding: 5px 12px; border-radius: 12px; margin: 3px; font-size: 13px;">${p}</span>`).join('');
+    const platformsTags = data.platforms
+      .map(
+        (p) =>
+          `<span style="display: inline-block; background: #e0e7ff; color: #4c51bf; padding: 5px 12px; border-radius: 12px; margin: 3px; font-size: 13px;">${p}</span>`
+      )
+      .join('');
 
     const html = `
 <!DOCTYPE html>
@@ -502,11 +516,15 @@ class EmailService {
           <strong>Platforms:</strong><br>
           ${platformsTags}
         </div>
-        ${data.status === 'failed' && data.errorMessage ? `
+        ${
+          data.status === 'failed' && data.errorMessage
+            ? `
         <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;">
           <strong>Error Details:</strong><br>${data.errorMessage}
         </div>
-        ` : ''}
+        `
+            : ''
+        }
         <div style="text-align: center; margin: 30px 0;">
           <a href="https://maxbooster.ai/distribution" style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px;">View Distribution Status</a>
         </div>
@@ -522,7 +540,7 @@ class EmailService {
       from: fromEmail,
       subject: `${statusEmojis[data.status]} ${statusTitles[data.status]}: ${data.releaseName}`,
       html,
-      text: `Hi ${data.firstName},\n\nYour release "${data.releaseName}" status: ${data.status}\n\nPlatforms: ${data.platforms.join(', ')}\n\n${data.errorMessage || ''}\n\nView status: https://maxbooster.ai/distribution\n\nBest,\nThe Max Booster Team`
+      text: `Hi ${data.firstName},\n\nYour release "${data.releaseName}" status: ${data.status}\n\nPlatforms: ${data.platforms.join(', ')}\n\n${data.errorMessage || ''}\n\nView status: https://maxbooster.ai/distribution\n\nBest,\nThe Max Booster Team`,
     };
 
     const startTime = Date.now();
@@ -530,20 +548,20 @@ class EmailService {
       await sgMail.send(emailData);
       const deliveryTime = Date.now() - startTime;
       emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
-      console.log(`📧 Distribution notification sent to ${to}`);
+      logger.info(`📧 Distribution notification sent to ${to}`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const deliveryTime = Date.now() - startTime;
       const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
       emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
-      console.error('❌ Failed to send distribution notification:', errorMessage);
+      logger.error('❌ Failed to send distribution notification:', errorMessage);
       return false;
     }
   }
 
   async sendSubscriptionConfirmation(data: SubscriptionEmailData, to: string): Promise<boolean> {
     if (!this.isInitialized) {
-      console.warn('⚠️  SendGrid not initialized, skipping subscription confirmation');
+      logger.warn('⚠️  SendGrid not initialized, skipping subscription confirmation');
       return false;
     }
 
@@ -581,7 +599,7 @@ class EmailService {
       from: fromEmail,
       subject: '🎉 Welcome to Max Booster! Your Subscription is Active',
       html,
-      text: `Hi ${data.firstName},\n\nThank you for subscribing to Max Booster!\n\nPlan: ${data.plan}\nAmount: ${data.amount}\n${data.nextBillingDate ? `Next billing: ${data.nextBillingDate}` : 'Lifetime Access'}\n\nView dashboard: https://maxbooster.ai/dashboard\n\nBest,\nThe Max Booster Team`
+      text: `Hi ${data.firstName},\n\nThank you for subscribing to Max Booster!\n\nPlan: ${data.plan}\nAmount: ${data.amount}\n${data.nextBillingDate ? `Next billing: ${data.nextBillingDate}` : 'Lifetime Access'}\n\nView dashboard: https://maxbooster.ai/dashboard\n\nBest,\nThe Max Booster Team`,
     };
 
     const startTime = Date.now();
@@ -589,13 +607,13 @@ class EmailService {
       await sgMail.send(emailData);
       const deliveryTime = Date.now() - startTime;
       emailMonitor.logEmail(emailData, 'sent', undefined, deliveryTime);
-      console.log(`📧 Subscription confirmation sent to ${to}`);
+      logger.info(`📧 Subscription confirmation sent to ${to}`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const deliveryTime = Date.now() - startTime;
       const errorMessage = error?.response?.body?.errors?.[0]?.message || error.message;
       emailMonitor.logEmail(emailData, 'failed', errorMessage, deliveryTime);
-      console.error('❌ Failed to send subscription confirmation:', errorMessage);
+      logger.error('❌ Failed to send subscription confirmation:', errorMessage);
       return false;
     }
   }

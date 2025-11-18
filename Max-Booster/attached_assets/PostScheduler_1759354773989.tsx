@@ -1,17 +1,37 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar as CalendarIcon, Clock, Edit, Trash2, ExternalLink, Plus, Send } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Plus,
+  Send,
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 interface SocialPost {
   id: string;
@@ -31,7 +51,7 @@ interface PostSchedulerProps {
 export function PostScheduler({ posts = [] }: PostSchedulerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<SocialPost | null>(null);
   const [newPost, setNewPost] = useState({
@@ -57,8 +77,8 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
     },
     onSuccess: () => {
       toast({
-        title: "Post Scheduled!",
-        description: "Your post has been scheduled successfully.",
+        title: 'Post Scheduled!',
+        description: 'Your post has been scheduled successfully.',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/social/posts'] });
       setIsCreateModalOpen(false);
@@ -71,11 +91,11 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
     },
     onError: () => {
       toast({
-        title: "Scheduling Failed",
-        description: "Failed to schedule post. Please try again.",
-        variant: "destructive",
+        title: 'Scheduling Failed',
+        description: 'Failed to schedule post. Please try again.',
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   const deletePostMutation = useMutation({
@@ -85,37 +105,37 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
     },
     onSuccess: () => {
       toast({
-        title: "Post Deleted",
-        description: "The scheduled post has been deleted.",
+        title: 'Post Deleted',
+        description: 'The scheduled post has been deleted.',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/social/posts'] });
     },
     onError: () => {
       toast({
-        title: "Delete Failed",
-        description: "Failed to delete post. Please try again.",
-        variant: "destructive",
+        title: 'Delete Failed',
+        description: 'Failed to delete post. Please try again.',
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   const handleCreatePost = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newPost.platforms.length === 0) {
       toast({
-        title: "Platform Required",
-        description: "Please select at least one platform.",
-        variant: "destructive",
+        title: 'Platform Required',
+        description: 'Please select at least one platform.',
+        variant: 'destructive',
       });
       return;
     }
 
     if (!newPost.publishNow && !newPost.scheduledFor) {
       toast({
-        title: "Schedule Required",
-        description: "Please set a schedule time or choose to publish now.",
-        variant: "destructive",
+        title: 'Schedule Required',
+        description: 'Please set a schedule time or choose to publish now.',
+        variant: 'destructive',
       });
       return;
     }
@@ -149,13 +169,13 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
   };
 
   const getCharacterCount = (content: string, platformIds: string[]) => {
-    const minLength = Math.min(...platformIds.map(id => 
-      platforms.find(p => p.id === id)?.maxLength || 280
-    ));
+    const minLength = Math.min(
+      ...platformIds.map((id) => platforms.find((p) => p.id === id)?.maxLength || 280)
+    );
     return {
       current: content.length,
       max: minLength,
-      isOverLimit: content.length > minLength
+      isOverLimit: content.length > minLength,
     };
   };
 
@@ -163,7 +183,7 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
     const date = new Date(dateTime);
     const now = new Date();
     const diffInHours = (date.getTime() - now.getTime()) / (1000 * 60 * 60);
-    
+
     if (diffInHours < 1) {
       return 'Less than 1 hour';
     } else if (diffInHours < 24) {
@@ -196,7 +216,7 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
                 <Textarea
                   id="content"
                   value={newPost.content}
-                  onChange={(e) => setNewPost(prev => ({ ...prev, content: e.target.value }))}
+                  onChange={(e) => setNewPost((prev) => ({ ...prev, content: e.target.value }))}
                   placeholder="What's happening in your music world?"
                   rows={4}
                   required
@@ -207,11 +227,13 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
                     <span className="text-muted-foreground">
                       Character count for selected platforms
                     </span>
-                    <span className={
-                      getCharacterCount(newPost.content, newPost.platforms).isOverLimit 
-                        ? 'text-destructive' 
-                        : 'text-muted-foreground'
-                    }>
+                    <span
+                      className={
+                        getCharacterCount(newPost.content, newPost.platforms).isOverLimit
+                          ? 'text-destructive'
+                          : 'text-muted-foreground'
+                      }
+                    >
                       {getCharacterCount(newPost.content, newPost.platforms).current}/
                       {getCharacterCount(newPost.content, newPost.platforms).max}
                     </span>
@@ -224,7 +246,7 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
                 <Label>Select Platforms</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {platforms.map((platform) => (
-                    <div 
+                    <div
                       key={platform.id}
                       className="flex items-center space-x-3 p-3 border border-border rounded-lg hover:bg-muted/20 transition-colors"
                       data-testid={`platform-option-${platform.id}`}
@@ -234,14 +256,14 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
                         checked={newPost.platforms.includes(platform.id)}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            setNewPost(prev => ({
+                            setNewPost((prev) => ({
                               ...prev,
-                              platforms: [...prev.platforms, platform.id]
+                              platforms: [...prev.platforms, platform.id],
                             }));
                           } else {
-                            setNewPost(prev => ({
+                            setNewPost((prev) => ({
                               ...prev,
-                              platforms: prev.platforms.filter(p => p !== platform.id)
+                              platforms: prev.platforms.filter((p) => p !== platform.id),
                             }));
                           }
                         }}
@@ -268,7 +290,9 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
                   <Checkbox
                     id="publishNow"
                     checked={newPost.publishNow}
-                    onCheckedChange={(checked) => setNewPost(prev => ({ ...prev, publishNow: !!checked }))}
+                    onCheckedChange={(checked) =>
+                      setNewPost((prev) => ({ ...prev, publishNow: !!checked }))
+                    }
                   />
                   <Label htmlFor="publishNow" className="font-medium cursor-pointer">
                     Publish immediately
@@ -286,7 +310,7 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
                         onChange={(e) => {
                           const date = e.target.value;
                           const time = newPost.scheduledFor.split('T')[1] || '12:00';
-                          setNewPost(prev => ({ ...prev, scheduledFor: `${date}T${time}` }));
+                          setNewPost((prev) => ({ ...prev, scheduledFor: `${date}T${time}` }));
                         }}
                         required={!newPost.publishNow}
                         data-testid="input-schedule-date"
@@ -299,8 +323,10 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
                         type="time"
                         onChange={(e) => {
                           const time = e.target.value;
-                          const date = newPost.scheduledFor.split('T')[0] || new Date().toISOString().split('T')[0];
-                          setNewPost(prev => ({ ...prev, scheduledFor: `${date}T${time}` }));
+                          const date =
+                            newPost.scheduledFor.split('T')[0] ||
+                            new Date().toISOString().split('T')[0];
+                          setNewPost((prev) => ({ ...prev, scheduledFor: `${date}T${time}` }));
                         }}
                         required={!newPost.publishNow}
                         data-testid="input-schedule-time"
@@ -314,9 +340,16 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
                 <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={createPostMutation.isPending} data-testid="button-submit-post">
-                  {createPostMutation.isPending ? 'Scheduling...' : 
-                   newPost.publishNow ? 'Publish Now' : 'Schedule Post'}
+                <Button
+                  type="submit"
+                  disabled={createPostMutation.isPending}
+                  data-testid="button-submit-post"
+                >
+                  {createPostMutation.isPending
+                    ? 'Scheduling...'
+                    : newPost.publishNow
+                      ? 'Publish Now'
+                      : 'Schedule Post'}
                 </Button>
               </div>
             </form>
@@ -340,7 +373,7 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
               <p className="text-muted-foreground mb-6">
                 Create your first scheduled post to manage your social media presence
               </p>
-              <Button 
+              <Button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="bg-primary hover:bg-primary/90"
                 data-testid="button-create-first-post"
@@ -352,7 +385,7 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
           ) : (
             <div className="space-y-4">
               {posts.map((post, index) => (
-                <div 
+                <div
                   key={post.id}
                   className="p-4 bg-muted/20 rounded-lg border border-border"
                   data-testid={`scheduled-post-${index}`}
@@ -361,9 +394,9 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
                     <div className="flex items-center space-x-3">
                       <div className="flex space-x-1">
                         {post.platforms.map((platformId) => {
-                          const platform = platforms.find(p => p.id === platformId);
+                          const platform = platforms.find((p) => p.id === platformId);
                           return (
-                            <span 
+                            <span
                               key={platformId}
                               className={`text-lg ${platform?.color}`}
                               title={platform?.name}
@@ -373,23 +406,21 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
                           );
                         })}
                       </div>
-                      <Badge className={getStatusColor(post.status)}>
-                        {post.status}
-                      </Badge>
+                      <Badge className={getStatusColor(post.status)}>{post.status}</Badge>
                       {post.generatedByAi && (
                         <Badge variant="outline" className="bg-primary/10 text-primary">
                           AI Generated
                         </Badge>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       <Button variant="ghost" size="sm" data-testid={`button-edit-${index}`}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="text-destructive hover:text-destructive/80"
                         onClick={() => handleDeletePost(post.id)}
                         data-testid={`button-delete-${index}`}
@@ -405,7 +436,10 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
                   </div>
 
                   <div className="mb-3">
-                    <p className="text-sm whitespace-pre-wrap" data-testid={`text-post-content-${index}`}>
+                    <p
+                      className="text-sm whitespace-pre-wrap"
+                      data-testid={`text-post-content-${index}`}
+                    >
                       {post.content}
                     </p>
                   </div>
@@ -425,10 +459,8 @@ export function PostScheduler({ posts = [] }: PostSchedulerProps) {
                         </span>
                       )}
                     </div>
-                    
-                    <span>
-                      Created {new Date(post.createdAt).toLocaleDateString()}
-                    </span>
+
+                    <span>Created {new Date(post.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               ))}

@@ -1,22 +1,22 @@
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Bell, ChevronDown, LogOut, User, Settings } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/dropdown-menu';
+import { Bell, ChevronDown, LogOut, User, Settings } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export function Header() {
   const { user } = useAuth();
 
   const handleLogout = () => {
-    window.location.href = "/api/logout";
+    window.location.href = '/api/logout';
   };
 
   return (
@@ -25,33 +25,53 @@ export function Header() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold gradient-text" data-testid="text-max-booster-logo">Max Booster</h1>
+              <h1 className="text-2xl font-bold gradient-text" data-testid="text-max-booster-logo">
+                Max Booster
+              </h1>
             </div>
             <div className="hidden md:block ml-10">
               <div className="flex items-baseline space-x-4">
                 {user?.subscriptionTier && (
-                  <Badge variant="secondary" className="bg-primary/20 text-primary" data-testid="badge-subscription-tier">
+                  <Badge
+                    variant="secondary"
+                    className="bg-primary/20 text-primary"
+                    data-testid="badge-subscription-tier"
+                  >
                     {user.subscriptionTier.toUpperCase()}
                   </Badge>
                 )}
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <Button variant="ghost" size="sm" className="p-2 rounded-full" data-testid="button-notifications">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 rounded-full"
+                data-testid="button-notifications"
+              >
                 <Bell className="h-5 w-5" />
               </Button>
-              <span className="absolute -top-1 -right-1 h-3 w-3 bg-secondary rounded-full" data-testid="indicator-notification-badge"></span>
+              <span
+                className="absolute -top-1 -right-1 h-3 w-3 bg-secondary rounded-full"
+                data-testid="indicator-notification-badge"
+              ></span>
             </div>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2" data-testid="button-user-menu">
+                <Button
+                  variant="ghost"
+                  className="flex items-center space-x-2"
+                  data-testid="button-user-menu"
+                >
                   <Avatar className="w-8 h-8 ring-2 ring-primary/20">
                     <AvatarImage src={user?.profileImageUrl} alt="User Avatar" />
-                    <AvatarFallback>{user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}</AvatarFallback>
+                    <AvatarFallback>
+                      {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                    </AvatarFallback>
                   </Avatar>
                   <span className="text-sm font-medium" data-testid="text-user-name">
                     {user?.firstName || user?.email?.split('@')[0] || 'User'}
@@ -60,9 +80,7 @@ export function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel data-testid="text-user-email">
-                  {user?.email}
-                </DropdownMenuLabel>
+                <DropdownMenuLabel data-testid="text-user-email">{user?.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem data-testid="menu-profile">
                   <User className="mr-2 h-4 w-4" />

@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useWebSocket } from "@/hooks/useWebSocket";
-import { Activity, Wifi, WifiOff, Clock, Music, Upload, Share2 } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { Activity, Wifi, WifiOff, Clock, Music, Upload, Share2 } from 'lucide-react';
 
 interface StatusItem {
   id: string;
@@ -19,7 +19,7 @@ export function RealTimeStatus() {
   const { isConnected, connectionStatus, sendMessage } = useWebSocket({
     onMessage: (message) => {
       if (message.type === 'status_update') {
-        setStatusItems(prev => [
+        setStatusItems((prev) => [
           {
             id: Date.now().toString(),
             type: message.data.type || 'general',
@@ -27,9 +27,9 @@ export function RealTimeStatus() {
             status: message.data.status || 'active',
             timestamp: new Date(),
           },
-          ...prev.slice(0, 4) // Keep only 5 most recent
+          ...prev.slice(0, 4), // Keep only 5 most recent
         ]);
-        
+
         // Auto-show status panel when new updates arrive
         setIsVisible(true);
         setTimeout(() => setIsVisible(false), 10000); // Hide after 10 seconds
@@ -40,7 +40,7 @@ export function RealTimeStatus() {
     },
     onDisconnect: () => {
       console.log('Real-time status disconnected');
-    }
+    },
   });
 
   const getStatusColor = (status: string) => {
@@ -74,7 +74,7 @@ export function RealTimeStatus() {
   const formatTimeAgo = (timestamp: Date) => {
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - timestamp.getTime()) / 1000);
-    
+
     if (diffInSeconds < 60) {
       return `${diffInSeconds}s ago`;
     } else if (diffInSeconds < 3600) {
@@ -93,11 +93,12 @@ export function RealTimeStatus() {
         { type: 'social', message: 'Post scheduled for 6:00 PM', status: 'active' },
         { type: 'general', message: 'New collaboration request received', status: 'pending' },
       ];
-      
+
       const randomUpdate = updates[Math.floor(Math.random() * updates.length)];
-      
-      if (Math.random() > 0.7) { // 30% chance every 5 seconds
-        setStatusItems(prev => [
+
+      if (Math.random() > 0.7) {
+        // 30% chance every 5 seconds
+        setStatusItems((prev) => [
           {
             id: Date.now().toString(),
             type: randomUpdate.type as any,
@@ -105,7 +106,7 @@ export function RealTimeStatus() {
             status: randomUpdate.status as any,
             timestamp: new Date(),
           },
-          ...prev.slice(0, 4)
+          ...prev.slice(0, 4),
         ]);
         setIsVisible(true);
         setTimeout(() => setIsVisible(false), 8000);
@@ -119,11 +120,11 @@ export function RealTimeStatus() {
     <div className="fixed bottom-4 right-4 z-50" data-testid="realtime-status-container">
       {/* Connection Status Indicator */}
       <div className="flex items-center justify-end mb-2">
-        <Badge 
-          variant="outline" 
+        <Badge
+          variant="outline"
           className={`${
-            isConnected 
-              ? 'bg-accent/20 text-accent border-accent/20' 
+            isConnected
+              ? 'bg-accent/20 text-accent border-accent/20'
               : 'bg-destructive/20 text-destructive border-destructive/20'
           }`}
           data-testid="connection-status"
@@ -135,7 +136,7 @@ export function RealTimeStatus() {
 
       {/* Status Updates Panel */}
       {(isVisible || statusItems.length > 0) && (
-        <Card 
+        <Card
           className={`bg-card/95 backdrop-blur-sm border-border shadow-lg transition-all duration-300 w-80 ${
             isVisible ? 'slide-in opacity-100' : 'opacity-75 hover:opacity-100'
           }`}
@@ -147,7 +148,7 @@ export function RealTimeStatus() {
                 <Activity className="w-4 h-4 mr-2 text-primary" />
                 Live Updates
               </h3>
-              <button 
+              <button
                 onClick={() => setIsVisible(false)}
                 className="text-muted-foreground hover:text-foreground text-xs"
                 data-testid="button-close-status"
@@ -155,7 +156,7 @@ export function RealTimeStatus() {
                 ✕
               </button>
             </div>
-            
+
             <div className="space-y-3 max-h-60 overflow-y-auto">
               {statusItems.length === 0 ? (
                 <div className="text-center py-4 text-muted-foreground text-sm">
@@ -165,21 +166,23 @@ export function RealTimeStatus() {
               ) : (
                 statusItems.map((item) => {
                   const StatusIcon = getStatusIcon(item.type);
-                  
+
                   return (
-                    <div 
+                    <div
                       key={item.id}
                       className="flex items-start space-x-3 p-3 bg-muted/10 rounded-lg hover:bg-muted/20 transition-colors"
                       data-testid={`status-item-${item.id}`}
                     >
-                      <div className={`p-1 rounded-full ${getStatusColor(item.status)} status-indicator`}>
+                      <div
+                        className={`p-1 rounded-full ${getStatusColor(item.status)} status-indicator`}
+                      >
                         <StatusIcon className="w-3 h-3" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{item.message}</p>
                         <div className="flex items-center space-x-2 mt-1">
-                          <Badge 
-                            variant="outline" 
+                          <Badge
+                            variant="outline"
                             className={`text-xs ${getStatusColor(item.status)}`}
                           >
                             {item.status}

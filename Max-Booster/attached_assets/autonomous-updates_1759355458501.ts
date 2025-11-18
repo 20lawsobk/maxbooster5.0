@@ -38,7 +38,8 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     return {
       enabled: false,
       frequency: 'daily',
-      externalApiBaseUrl: process.env.EXTERNAL_API_BASE_URL || process.env.REPLIT_API_BASE_URL || '',
+      externalApiBaseUrl:
+        process.env.EXTERNAL_API_BASE_URL || process.env.REPLIT_API_BASE_URL || '',
       productSignalsEnabled: true,
       dependencyAuditEnabled: true,
       seoGrowthEnabled: true,
@@ -84,9 +85,11 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     this.status.nextRunAt = next.toISOString();
     if (this.timer) clearTimeout(this.timer);
     this.timer = setTimeout(() => {
-      this.runOnce().catch(() => void 0).finally(() => {
-        if (this.running) this.scheduleNextRun();
-      });
+      this.runOnce()
+        .catch(() => void 0)
+        .finally(() => {
+          if (this.running) this.scheduleNextRun();
+        });
     }, delay);
   }
 
@@ -177,13 +180,14 @@ export class AutonomousUpdatesOrchestrator extends EventEmitter {
     const base = this.config.externalApiBaseUrl || '';
     if (!base) return { skipped: true };
     const url = `${base}/product/roadmap/evolve`;
-    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ context }) });
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ context }),
+    });
     if (!res.ok) throw new Error(`roadmap ${res.status}`);
     return res.json();
   }
 }
 
 export const autonomousUpdates = new AutonomousUpdatesOrchestrator();
-
-
-

@@ -19,7 +19,7 @@ export class SelfHealingSecuritySystem {
     systemUptime: Date.now(),
     lastSecurityScan: Date.now(),
     activeThreats: 0,
-    securityScore: 100
+    securityScore: 100,
   };
   private healingProcesses: Map<string, HealingProcess> = new Map();
   private securityRules: SecurityRule[] = [];
@@ -47,10 +47,11 @@ export class SelfHealingSecuritySystem {
       {
         id: 'sql-injection',
         name: 'SQL Injection Protection',
-        pattern: /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)|(\b(OR|AND)\s+\d+\s*=\s*\d+)/gi,
+        pattern:
+          /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)|(\b(OR|AND)\s+\d+\s*=\s*\d+)/gi,
         severity: 'critical',
         action: 'block',
-        healingAction: 'sanitize-input'
+        healingAction: 'sanitize-input',
       },
       // XSS Protection
       {
@@ -59,7 +60,7 @@ export class SelfHealingSecuritySystem {
         pattern: /<script[^>]*>.*?<\/script>|<iframe[^>]*>.*?<\/iframe>|javascript:|on\w+\s*=/gi,
         severity: 'high',
         action: 'block',
-        healingAction: 'sanitize-html'
+        healingAction: 'sanitize-html',
       },
       // CSRF Protection
       {
@@ -68,7 +69,7 @@ export class SelfHealingSecuritySystem {
         pattern: /^$/,
         severity: 'high',
         action: 'validate-token',
-        healingAction: 'regenerate-token'
+        healingAction: 'regenerate-token',
       },
       // Brute Force Protection
       {
@@ -77,7 +78,7 @@ export class SelfHealingSecuritySystem {
         pattern: /^$/,
         severity: 'medium',
         action: 'rate-limit',
-        healingAction: 'temporary-block'
+        healingAction: 'temporary-block',
       },
       // DDoS Protection
       {
@@ -86,7 +87,7 @@ export class SelfHealingSecuritySystem {
         pattern: /^$/,
         severity: 'critical',
         action: 'rate-limit',
-        healingAction: 'auto-scale'
+        healingAction: 'auto-scale',
       },
       // Data Exfiltration Protection
       {
@@ -95,7 +96,7 @@ export class SelfHealingSecuritySystem {
         pattern: /(base64|hex|binary|encrypt|decrypt|password|secret|key|token)/gi,
         severity: 'high',
         action: 'monitor',
-        healingAction: 'encrypt-sensitive'
+        healingAction: 'encrypt-sensitive',
       },
       // Malware Detection
       {
@@ -104,7 +105,7 @@ export class SelfHealingSecuritySystem {
         pattern: /(eval\(|Function\(|setTimeout\(|setInterval\(|document\.write\()/gi,
         severity: 'critical',
         action: 'block',
-        healingAction: 'quarantine'
+        healingAction: 'quarantine',
       },
       // Path Traversal Protection
       {
@@ -113,7 +114,7 @@ export class SelfHealingSecuritySystem {
         pattern: /\.\.\/|\.\.\\|%2e%2e%2f|%2e%2e%5c/gi,
         severity: 'high',
         action: 'block',
-        healingAction: 'normalize-path'
+        healingAction: 'normalize-path',
       },
       // Command Injection Protection
       {
@@ -122,7 +123,7 @@ export class SelfHealingSecuritySystem {
         pattern: /[;&|`$(){}[\]]/g,
         severity: 'critical',
         action: 'block',
-        healingAction: 'sanitize-command'
+        healingAction: 'sanitize-command',
       },
       // Authentication Bypass Protection
       {
@@ -131,8 +132,8 @@ export class SelfHealingSecuritySystem {
         pattern: /(admin|root|administrator|superuser)/gi,
         severity: 'high',
         action: 'validate-auth',
-        healingAction: 'strengthen-auth'
-      }
+        healingAction: 'strengthen-auth',
+      },
     ];
   }
 
@@ -158,16 +159,16 @@ export class SelfHealingSecuritySystem {
     try {
       // Check for suspicious network activity
       await this.checkNetworkActivity();
-      
+
       // Check for file system anomalies
       await this.checkFileSystemIntegrity();
-      
+
       // Check for process anomalies
       await this.checkProcessIntegrity();
-      
+
       // Check for memory anomalies
       await this.checkMemoryIntegrity();
-      
+
       // Update security score
       this.calculateSecurityScore();
     } catch (error) {
@@ -181,13 +182,13 @@ export class SelfHealingSecuritySystem {
     try {
       // Vulnerability assessment
       await this.performVulnerabilityAssessment();
-      
+
       // Penetration testing simulation
       await this.simulatePenetrationTest();
-      
+
       // Security configuration audit
       await this.auditSecurityConfiguration();
-      
+
       // Update threat database
       await this.updateThreatDatabase();
     } catch (error) {
@@ -200,13 +201,13 @@ export class SelfHealingSecuritySystem {
     try {
       const { stdout } = await execAsync('netstat -an | grep ESTABLISHED | wc -l');
       const activeConnections = parseInt(stdout.trim());
-      
+
       if (activeConnections > 1000) {
         this.detectThreat('network-anomaly', {
           type: 'excessive-connections',
           severity: 'medium',
           details: `High number of active connections: ${activeConnections}`,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
     } catch (error) {
@@ -220,13 +221,13 @@ export class SelfHealingSecuritySystem {
       // Check for suspicious file modifications
       const { stdout } = await execAsync('find /tmp -type f -mtime -1 2>/dev/null | wc -l');
       const recentFiles = parseInt(stdout.trim());
-      
+
       if (recentFiles > 100) {
         this.detectThreat('file-system-anomaly', {
           type: 'suspicious-file-activity',
           severity: 'medium',
           details: `High number of recent files: ${recentFiles}`,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
     } catch (error) {
@@ -239,13 +240,13 @@ export class SelfHealingSecuritySystem {
     try {
       const { stdout } = await execAsync('ps aux | wc -l');
       const processCount = parseInt(stdout.trim());
-      
+
       if (processCount > 500) {
         this.detectThreat('process-anomaly', {
           type: 'excessive-processes',
           severity: 'medium',
           details: `High number of processes: ${processCount}`,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
     } catch (error) {
@@ -256,15 +257,15 @@ export class SelfHealingSecuritySystem {
   // Check memory integrity
   private async checkMemoryIntegrity(): Promise<void> {
     try {
-      const { stdout } = await execAsync('free -m | grep Mem | awk \'{print $3/$2 * 100.0}\'');
+      const { stdout } = await execAsync("free -m | grep Mem | awk '{print $3/$2 * 100.0}'");
       const memoryUsage = parseFloat(stdout.trim());
-      
+
       if (memoryUsage > 90) {
         this.detectThreat('memory-anomaly', {
           type: 'high-memory-usage',
           severity: 'high',
           details: `High memory usage: ${memoryUsage.toFixed(2)}%`,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
     } catch (error) {
@@ -277,7 +278,7 @@ export class SelfHealingSecuritySystem {
     this.threatDatabase.set(threatId, threatInfo);
     this.securityMetrics.totalThreats++;
     this.securityMetrics.activeThreats++;
-    
+
     // Immediate response based on severity
     switch (threatInfo.severity) {
       case 'critical':
@@ -293,7 +294,7 @@ export class SelfHealingSecuritySystem {
         this.handleLowThreat(threatId, threatInfo);
         break;
     }
-    
+
     // Start healing process
     this.startHealingProcess(threatId, threatInfo);
   }
@@ -301,13 +302,13 @@ export class SelfHealingSecuritySystem {
   // Handle critical threats
   private handleCriticalThreat(threatId: string, threatInfo: ThreatInfo): void {
     console.log(`🚨 CRITICAL THREAT DETECTED: ${threatInfo.type}`);
-    
+
     // Immediate blocking
     this.blockThreat(threatId);
-    
+
     // Alert administrators
     this.sendSecurityAlert(threatInfo);
-    
+
     // Activate emergency protocols
     this.activateEmergencyProtocols();
   }
@@ -315,10 +316,10 @@ export class SelfHealingSecuritySystem {
   // Handle high threats
   private handleHighThreat(threatId: string, threatInfo: ThreatInfo): void {
     console.log(`⚠️ HIGH THREAT DETECTED: ${threatInfo.type}`);
-    
+
     // Enhanced monitoring
     this.enhanceMonitoring(threatId);
-    
+
     // Alert administrators
     this.sendSecurityAlert(threatInfo);
   }
@@ -326,7 +327,7 @@ export class SelfHealingSecuritySystem {
   // Handle medium threats
   private handleMediumThreat(threatId: string, threatInfo: ThreatInfo): void {
     console.log(`🔶 MEDIUM THREAT DETECTED: ${threatInfo.type}`);
-    
+
     // Log and monitor
     this.logThreat(threatId, threatInfo);
   }
@@ -334,7 +335,7 @@ export class SelfHealingSecuritySystem {
   // Handle low threats
   private handleLowThreat(threatId: string, threatInfo: ThreatInfo): void {
     console.log(`🔸 LOW THREAT DETECTED: ${threatInfo.type}`);
-    
+
     // Log for analysis
     this.logThreat(threatId, threatInfo);
   }
@@ -347,11 +348,11 @@ export class SelfHealingSecuritySystem {
       startTime: Date.now(),
       status: 'active',
       healingSteps: [],
-      success: false
+      success: false,
     };
-    
+
     this.healingProcesses.set(threatId, healingProcess);
-    
+
     // Execute healing based on threat type
     this.executeHealing(threatId, threatInfo);
   }
@@ -361,18 +362,18 @@ export class SelfHealingSecuritySystem {
     try {
       const healingProcess = this.healingProcesses.get(threatId);
       if (!healingProcess) return;
-      
+
       // Determine healing strategy
       const healingStrategy = this.determineHealingStrategy(threatInfo);
-      
+
       // Execute healing steps
       for (const step of healingStrategy) {
         healingProcess.healingSteps.push({
           step: step.name,
           startTime: Date.now(),
-          status: 'running'
+          status: 'running',
         });
-        
+
         try {
           await step.execute();
           healingProcess.healingSteps[healingProcess.healingSteps.length - 1].status = 'completed';
@@ -381,17 +382,18 @@ export class SelfHealingSecuritySystem {
           healingProcess.healingSteps[healingProcess.healingSteps.length - 1].error = error.message;
         }
       }
-      
+
       // Mark healing as successful
       healingProcess.status = 'completed';
       healingProcess.success = true;
       healingProcess.endTime = Date.now();
-      
+
       this.securityMetrics.threatsHealed++;
       this.securityMetrics.activeThreats--;
-      
-      console.log(`✅ THREAT HEALED: ${threatInfo.type} in ${healingProcess.endTime - healingProcess.startTime}ms`);
-      
+
+      console.log(
+        `✅ THREAT HEALED: ${threatInfo.type} in ${healingProcess.endTime - healingProcess.startTime}ms`
+      );
     } catch (error) {
       console.error(`❌ HEALING FAILED: ${threatInfo.type}`, error);
       const healingProcess = this.healingProcesses.get(threatId);
@@ -405,31 +407,45 @@ export class SelfHealingSecuritySystem {
   // Determine healing strategy
   private determineHealingStrategy(threatInfo: ThreatInfo): HealingStep[] {
     const strategies: Map<string, HealingStep[]> = new Map([
-      ['sql-injection', [
-        { name: 'sanitize-input', execute: () => this.sanitizeInput() },
-        { name: 'update-firewall', execute: () => this.updateFirewall() },
-        { name: 'patch-database', execute: () => this.patchDatabase() }
-      ]],
-      ['xss', [
-        { name: 'sanitize-html', execute: () => this.sanitizeHtml() },
-        { name: 'update-csp', execute: () => this.updateContentSecurityPolicy() },
-        { name: 'patch-frontend', execute: () => this.patchFrontend() }
-      ]],
-      ['ddos', [
-        { name: 'auto-scale', execute: () => this.autoScale() },
-        { name: 'rate-limit', execute: () => this.updateRateLimits() },
-        { name: 'block-ips', execute: () => this.blockMaliciousIPs() }
-      ]],
-      ['brute-force', [
-        { name: 'temporary-block', execute: () => this.temporaryBlock() },
-        { name: 'strengthen-auth', execute: () => this.strengthenAuthentication() },
-        { name: 'update-captcha', execute: () => this.updateCaptcha() }
-      ]]
+      [
+        'sql-injection',
+        [
+          { name: 'sanitize-input', execute: () => this.sanitizeInput() },
+          { name: 'update-firewall', execute: () => this.updateFirewall() },
+          { name: 'patch-database', execute: () => this.patchDatabase() },
+        ],
+      ],
+      [
+        'xss',
+        [
+          { name: 'sanitize-html', execute: () => this.sanitizeHtml() },
+          { name: 'update-csp', execute: () => this.updateContentSecurityPolicy() },
+          { name: 'patch-frontend', execute: () => this.patchFrontend() },
+        ],
+      ],
+      [
+        'ddos',
+        [
+          { name: 'auto-scale', execute: () => this.autoScale() },
+          { name: 'rate-limit', execute: () => this.updateRateLimits() },
+          { name: 'block-ips', execute: () => this.blockMaliciousIPs() },
+        ],
+      ],
+      [
+        'brute-force',
+        [
+          { name: 'temporary-block', execute: () => this.temporaryBlock() },
+          { name: 'strengthen-auth', execute: () => this.strengthenAuthentication() },
+          { name: 'update-captcha', execute: () => this.updateCaptcha() },
+        ],
+      ],
     ]);
-    
-    return strategies.get(threatInfo.type) || [
-      { name: 'generic-healing', execute: () => this.genericHealing() }
-    ];
+
+    return (
+      strategies.get(threatInfo.type) || [
+        { name: 'generic-healing', execute: () => this.genericHealing() },
+      ]
+    );
   }
 
   // Healing implementations
@@ -479,13 +495,13 @@ export class SelfHealingSecuritySystem {
     const threatsBlocked = this.securityMetrics.threatsBlocked;
     const threatsHealed = this.securityMetrics.threatsHealed;
     const activeThreats = this.securityMetrics.activeThreats;
-    
+
     // Calculate score based on threat handling
     let score = 100;
     score -= activeThreats * 10; // -10 points per active threat
     score += threatsBlocked * 2; // +2 points per blocked threat
     score += threatsHealed * 5; // +5 points per healed threat
-    
+
     this.securityMetrics.securityScore = Math.max(0, Math.min(100, score));
   }
 
@@ -618,26 +634,26 @@ class AutoHealer {
 // Express middleware for security
 export const securityMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const securitySystem = SelfHealingSecuritySystem.getInstance();
-  
+
   // Check request for threats
   const requestData = JSON.stringify(req.body) + req.url + req.method;
-  
+
   // Apply security rules
   for (const rule of securitySystem['securityRules']) {
     if (rule.pattern.test(requestData)) {
       console.log(`🚨 SECURITY RULE TRIGGERED: ${rule.name}`);
-      
+
       // Block request if critical or high severity
       if (rule.severity === 'critical' || rule.severity === 'high') {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: 'Request blocked by security system',
           rule: rule.name,
-          severity: rule.severity
+          severity: rule.severity,
         });
       }
     }
   }
-  
+
   next();
 };
 
@@ -657,21 +673,21 @@ export const securityHeadersMiddleware = helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+      imgSrc: ["'self'", 'data:', 'https:'],
     },
   },
   hsts: {
     maxAge: 31536000,
     includeSubDomains: true,
-    preload: true
-  }
+    preload: true,
+  },
 });
 
 // CORS middleware
 export const corsMiddleware = cors({
   origin: process.env.NODE_ENV === 'production' ? ['https://maxbooster.com'] : true,
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 });
 
 export default SelfHealingSecuritySystem;

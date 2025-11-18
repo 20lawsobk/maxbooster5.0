@@ -4,8 +4,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { MessageSquare, Clock, CheckCircle2, XCircle, AlertCircle, BarChart3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
@@ -55,8 +68,8 @@ export default function SupportDashboard() {
 
       const data = await response.json();
       setTickets(data);
-    } catch (error) {
-      console.error('Error fetching tickets:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching tickets:', error);
       toast({
         title: 'Error',
         description: 'Failed to load tickets',
@@ -77,8 +90,8 @@ export default function SupportDashboard() {
 
       const data = await response.json();
       setStats(data);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
+    } catch (error: unknown) {
+      logger.error('Error fetching stats:', error);
     }
   };
 
@@ -100,8 +113,8 @@ export default function SupportDashboard() {
 
       fetchTickets();
       fetchStats();
-    } catch (error) {
-      console.error('Error updating ticket:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating ticket:', error);
       toast({
         title: 'Error',
         description: 'Failed to update ticket',
@@ -133,11 +146,7 @@ export default function SupportDashboard() {
       critical: 'bg-red-100 text-red-800',
     };
 
-    return (
-      <Badge className={colors[priority] || ''}>
-        {priority.toUpperCase()}
-      </Badge>
-    );
+    return <Badge className={colors[priority] || ''}>{priority.toUpperCase()}</Badge>;
   };
 
   const calculateTicketCount = (status?: string) => {

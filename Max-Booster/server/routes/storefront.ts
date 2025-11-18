@@ -7,6 +7,7 @@ import {
   updateMembershipTierSchema,
 } from '@shared/schema';
 import { z } from 'zod';
+import { logger } from '../logger.js';
 
 const router = Router();
 
@@ -18,8 +19,8 @@ router.get('/templates', async (req, res) => {
   try {
     const templates = await storefrontService.getTemplates();
     res.json(templates);
-  } catch (error: any) {
-    console.error('Error fetching templates:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching templates:', error);
     res.status(500).json({ error: error.message || 'Failed to fetch templates' });
   }
 });
@@ -36,8 +37,8 @@ router.get('/my', async (req, res) => {
 
     const storefronts = await storefrontService.getUserStorefronts(req.user!.id);
     res.json(storefronts);
-  } catch (error: any) {
-    console.error('Error fetching user storefronts:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching user storefronts:', error);
     res.status(500).json({ error: error.message || 'Failed to fetch storefronts' });
   }
 });
@@ -52,13 +53,13 @@ router.get('/:slug', async (req, res) => {
 
     const storefront = await storefrontService.getStorefrontBySlug(slug);
     res.json(storefront);
-  } catch (error: any) {
-    console.error('Error fetching storefront:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Error fetching storefront:', error);
+
     if (error.message === 'Storefront not found') {
       return res.status(404).json({ error: error.message });
     }
-    
+
     res.status(500).json({ error: error.message || 'Failed to fetch storefront' });
   }
 });
@@ -80,7 +81,8 @@ router.post('/create', async (req, res) => {
 
     if (!storefrontService.validateSlug(validatedData.slug)) {
       return res.status(400).json({
-        error: 'Invalid slug format. Use lowercase letters, numbers, and hyphens only (3-50 characters)',
+        error:
+          'Invalid slug format. Use lowercase letters, numbers, and hyphens only (3-50 characters)',
       });
     }
 
@@ -93,21 +95,21 @@ router.post('/create', async (req, res) => {
     });
 
     res.status(201).json(storefront);
-  } catch (error: any) {
-    console.error('Error creating storefront:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Error creating storefront:', error);
+
     if (error.message?.includes('Slug already taken')) {
       return res.status(409).json({ error: error.message });
     }
-    
+
     if (error.message?.includes('Maximum of 5 storefronts')) {
       return res.status(400).json({ error: error.message });
     }
-    
+
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
-    
+
     res.status(500).json({ error: error.message || 'Failed to create storefront' });
   }
 });
@@ -127,7 +129,8 @@ router.put('/:id/customize', async (req, res) => {
 
     if (validatedData.slug && !storefrontService.validateSlug(validatedData.slug)) {
       return res.status(400).json({
-        error: 'Invalid slug format. Use lowercase letters, numbers, and hyphens only (3-50 characters)',
+        error:
+          'Invalid slug format. Use lowercase letters, numbers, and hyphens only (3-50 characters)',
       });
     }
 
@@ -138,25 +141,25 @@ router.put('/:id/customize', async (req, res) => {
     );
 
     res.json(updatedStorefront);
-  } catch (error: any) {
-    console.error('Error updating storefront:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Error updating storefront:', error);
+
     if (error.message === 'Storefront not found') {
       return res.status(404).json({ error: error.message });
     }
-    
+
     if (error.message === 'Unauthorized') {
       return res.status(403).json({ error: error.message });
     }
-    
+
     if (error.message?.includes('Slug already taken')) {
       return res.status(409).json({ error: error.message });
     }
-    
+
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
-    
+
     res.status(500).json({ error: error.message || 'Failed to update storefront' });
   }
 });
@@ -176,17 +179,17 @@ router.delete('/:id', async (req, res) => {
     await storefrontService.deleteStorefront(id, req.user!.id);
 
     res.json({ success: true, message: 'Storefront deleted successfully' });
-  } catch (error: any) {
-    console.error('Error deleting storefront:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Error deleting storefront:', error);
+
     if (error.message === 'Storefront not found') {
       return res.status(404).json({ error: error.message });
     }
-    
+
     if (error.message === 'Unauthorized') {
       return res.status(403).json({ error: error.message });
     }
-    
+
     res.status(500).json({ error: error.message || 'Failed to delete storefront' });
   }
 });
@@ -220,17 +223,17 @@ router.post('/:storefrontId/membership-tiers', async (req, res) => {
     });
 
     res.status(201).json(tier);
-  } catch (error: any) {
-    console.error('Error creating membership tier:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Error creating membership tier:', error);
+
     if (error.message === 'Storefront not found') {
       return res.status(404).json({ error: error.message });
     }
-    
+
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
-    
+
     res.status(500).json({ error: error.message || 'Failed to create membership tier' });
   }
 });
@@ -248,28 +251,24 @@ router.put('/membership-tiers/:tierId', async (req, res) => {
     const { tierId } = req.params;
     const validatedData = updateMembershipTierSchema.parse(req.body);
 
-    const tier = await storefrontService.updateMembershipTier(
-      tierId,
-      req.user!.id,
-      validatedData
-    );
+    const tier = await storefrontService.updateMembershipTier(tierId, req.user!.id, validatedData);
 
     res.json(tier);
-  } catch (error: any) {
-    console.error('Error updating membership tier:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Error updating membership tier:', error);
+
     if (error.message === 'Membership tier not found') {
       return res.status(404).json({ error: error.message });
     }
-    
+
     if (error.message === 'Unauthorized') {
       return res.status(403).json({ error: error.message });
     }
-    
+
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });
     }
-    
+
     res.status(500).json({ error: error.message || 'Failed to update membership tier' });
   }
 });
@@ -289,21 +288,21 @@ router.delete('/membership-tiers/:tierId', async (req, res) => {
     await storefrontService.deleteMembershipTier(tierId, req.user!.id);
 
     res.json({ success: true, message: 'Membership tier deleted successfully' });
-  } catch (error: any) {
-    console.error('Error deleting membership tier:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Error deleting membership tier:', error);
+
     if (error.message === 'Membership tier not found') {
       return res.status(404).json({ error: error.message });
     }
-    
+
     if (error.message === 'Unauthorized') {
       return res.status(403).json({ error: error.message });
     }
-    
+
     if (error.message?.includes('Cannot delete tier with active subscriptions')) {
       return res.status(400).json({ error: error.message });
     }
-    
+
     res.status(500).json({ error: error.message || 'Failed to delete membership tier' });
   }
 });
@@ -320,19 +319,16 @@ router.post('/subscribe/:tierId', async (req, res) => {
 
     const { tierId } = req.params;
 
-    const result = await storefrontService.subscribeMembershipTier(
-      req.user!.id,
-      tierId
-    );
+    const result = await storefrontService.subscribeMembershipTier(req.user!.id, tierId);
 
     res.status(201).json(result);
-  } catch (error: any) {
-    console.error('Error subscribing to membership tier:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Error subscribing to membership tier:', error);
+
     if (error.message === 'Membership tier not found') {
       return res.status(404).json({ error: error.message });
     }
-    
+
     if (
       error.message?.includes('not currently available') ||
       error.message?.includes('at maximum capacity') ||
@@ -340,11 +336,13 @@ router.post('/subscribe/:tierId', async (req, res) => {
     ) {
       return res.status(400).json({ error: error.message });
     }
-    
+
     if (error.message?.includes('Stripe')) {
-      return res.status(503).json({ error: 'Payment service unavailable. Please try again later.' });
+      return res
+        .status(503)
+        .json({ error: 'Payment service unavailable. Please try again later.' });
     }
-    
+
     res.status(500).json({ error: error.message || 'Failed to subscribe to membership tier' });
   }
 });
@@ -361,27 +359,26 @@ router.post('/memberships/:membershipId/cancel', async (req, res) => {
 
     const { membershipId } = req.params;
 
-    const membership = await storefrontService.cancelMembership(
-      membershipId,
-      req.user!.id
-    );
+    const membership = await storefrontService.cancelMembership(membershipId, req.user!.id);
 
     res.json(membership);
-  } catch (error: any) {
-    console.error('Error canceling membership:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Error canceling membership:', error);
+
     if (error.message === 'Membership not found') {
       return res.status(404).json({ error: error.message });
     }
-    
+
     if (error.message === 'Unauthorized') {
       return res.status(403).json({ error: error.message });
     }
-    
+
     if (error.message?.includes('Stripe')) {
-      return res.status(503).json({ error: 'Payment service unavailable. Please try again later.' });
+      return res
+        .status(503)
+        .json({ error: 'Payment service unavailable. Please try again later.' });
     }
-    
+
     res.status(500).json({ error: error.message || 'Failed to cancel membership' });
   }
 });
@@ -398,8 +395,8 @@ router.get('/memberships/my', async (req, res) => {
 
     const memberships = await storefrontService.getCustomerMemberships(req.user!.id);
     res.json(memberships);
-  } catch (error: any) {
-    console.error('Error fetching customer memberships:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching customer memberships:', error);
     res.status(500).json({ error: error.message || 'Failed to fetch memberships' });
   }
 });
@@ -422,8 +419,8 @@ router.post('/generate-slug', async (req, res) => {
 
     const slug = await storefrontService.generateSlug(name);
     res.json({ slug });
-  } catch (error: any) {
-    console.error('Error generating slug:', error);
+  } catch (error: unknown) {
+    logger.error('Error generating slug:', error);
     res.status(500).json({ error: error.message || 'Failed to generate slug' });
   }
 });

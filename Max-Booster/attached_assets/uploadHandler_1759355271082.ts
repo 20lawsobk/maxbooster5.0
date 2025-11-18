@@ -16,12 +16,12 @@ const storage = multer.diskStorage({
     if (!userId) {
       return cb(new Error('User not authenticated'), '');
     }
-    
+
     const userDir = path.join(uploadsDir, userId);
     if (!fs.existsSync(userDir)) {
       fs.mkdirSync(userDir, { recursive: true });
     }
-    
+
     cb(null, userDir);
   },
   filename: (req, file, cb) => {
@@ -30,9 +30,9 @@ const storage = multer.diskStorage({
     const ext = path.extname(file.originalname);
     const name = path.basename(file.originalname, ext);
     const sanitizedName = name.replace(/[^a-zA-Z0-9-_]/g, '_');
-    
+
     cb(null, `${timestamp}_${sanitizedName}${ext}`);
-  }
+  },
 });
 
 // File filter for audio files
@@ -48,9 +48,9 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
     'audio/aac',
     'audio/webm',
     'audio/mp4',
-    'audio/x-m4a'
+    'audio/x-m4a',
   ];
-  
+
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
@@ -73,30 +73,30 @@ export const handleUploadError = (error: any, req: Request, res: any, next: any)
   if (error instanceof multer.MulterError) {
     switch (error.code) {
       case 'LIMIT_FILE_SIZE':
-        return res.status(413).json({ 
+        return res.status(413).json({
           message: 'File too large. Maximum size is 100MB.',
-          code: 'FILE_TOO_LARGE'
+          code: 'FILE_TOO_LARGE',
         });
       case 'LIMIT_FILE_COUNT':
-        return res.status(413).json({ 
+        return res.status(413).json({
           message: 'Too many files. Maximum is 10 files per request.',
-          code: 'TOO_MANY_FILES'
+          code: 'TOO_MANY_FILES',
         });
       case 'LIMIT_UNEXPECTED_FILE':
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Unexpected field name for file upload.',
-          code: 'UNEXPECTED_FIELD'
+          code: 'UNEXPECTED_FIELD',
         });
       default:
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: error.message,
-          code: 'UPLOAD_ERROR'
+          code: 'UPLOAD_ERROR',
         });
     }
   } else if (error) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       message: error.message || 'Upload failed',
-      code: 'UPLOAD_ERROR'
+      code: 'UPLOAD_ERROR',
     });
   }
   next();

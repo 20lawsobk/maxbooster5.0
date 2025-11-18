@@ -5,7 +5,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 export const ARIA_LIVE_REGIONS = {
   POLITE: 'polite',
   ASSERTIVE: 'assertive',
-  OFF: 'off'
+  OFF: 'off',
 } as const;
 
 export const ARIA_ROLES = {
@@ -22,7 +22,7 @@ export const ARIA_ROLES = {
   MENUITEM: 'menuitem',
   TAB: 'tab',
   TABLIST: 'tablist',
-  TABPANEL: 'tabpanel'
+  TABPANEL: 'tabpanel',
 } as const;
 
 // Focus management utilities
@@ -37,30 +37,34 @@ export const focusableElements = [
   'video[controls]',
   '[contenteditable]:not([contenteditable="false"])',
   'details>summary:first-of-type',
-  'details'
+  'details',
 ];
 
+/**
+ * TODO: Add function documentation
+ */
 export function getFocusableElements(container: HTMLElement): HTMLElement[] {
   const elements = container.querySelectorAll<HTMLElement>(focusableElements.join(','));
-  return Array.from(elements).filter(el => {
+  return Array.from(elements).filter((el) => {
     // Check if element is visible
     const style = window.getComputedStyle(el);
-    return style.display !== 'none' && 
-           style.visibility !== 'hidden' && 
-           el.offsetParent !== null;
+    return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
   });
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function trapFocus(container: HTMLElement): () => void {
   const focusable = getFocusableElements(container);
   if (focusable.length === 0) return () => {};
-  
+
   const firstElement = focusable[0];
   const lastElement = focusable[focusable.length - 1];
-  
+
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key !== 'Tab') return;
-    
+
     if (e.shiftKey) {
       if (document.activeElement === firstElement) {
         e.preventDefault();
@@ -73,12 +77,12 @@ export function trapFocus(container: HTMLElement): () => void {
       }
     }
   };
-  
+
   container.addEventListener('keydown', handleKeyDown);
-  
+
   // Focus first element
   setTimeout(() => firstElement?.focus(), 0);
-  
+
   return () => {
     container.removeEventListener('keydown', handleKeyDown);
   };
@@ -92,9 +96,9 @@ export function announce(message: string, priority: 'polite' | 'assertive' = 'po
   announcement.setAttribute('aria-atomic', 'true');
   announcement.className = 'sr-only';
   announcement.textContent = message;
-  
+
   document.body.appendChild(announcement);
-  
+
   setTimeout(() => {
     document.body.removeChild(announcement);
   }, 1000);
@@ -105,20 +109,20 @@ export function getContrastRatio(color1: string, color2: string): number {
   const getLuminance = (color: string): number => {
     const rgb = color.match(/\d+/g);
     if (!rgb) return 0;
-    
-    const [r, g, b] = rgb.map(c => {
+
+    const [r, g, b] = rgb.map((c) => {
       const val = parseInt(c) / 255;
       return val <= 0.03928 ? val / 12.92 : Math.pow((val + 0.055) / 1.055, 2.4);
     });
-    
+
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   };
-  
+
   const l1 = getLuminance(color1);
   const l2 = getLuminance(color2);
   const lighter = Math.max(l1, l2);
   const darker = Math.min(l1, l2);
-  
+
   return (lighter + 0.05) / (darker + 0.05);
 }
 
@@ -161,19 +165,15 @@ export function handleArrowKeyNavigation(
   items: HTMLElement[],
   orientation: 'horizontal' | 'vertical' = 'horizontal'
 ): number | null {
-  const currentIndex = items.findIndex(item => item === document.activeElement);
+  const currentIndex = items.findIndex((item) => item === document.activeElement);
   if (currentIndex === -1) return null;
-  
+
   let nextIndex = currentIndex;
-  
-  const isNext = orientation === 'horizontal' 
-    ? e.key === 'ArrowRight' 
-    : e.key === 'ArrowDown';
-    
-  const isPrev = orientation === 'horizontal' 
-    ? e.key === 'ArrowLeft' 
-    : e.key === 'ArrowUp';
-  
+
+  const isNext = orientation === 'horizontal' ? e.key === 'ArrowRight' : e.key === 'ArrowDown';
+
+  const isPrev = orientation === 'horizontal' ? e.key === 'ArrowLeft' : e.key === 'ArrowUp';
+
   if (isNext) {
     nextIndex = (currentIndex + 1) % items.length;
   } else if (isPrev) {
@@ -185,7 +185,7 @@ export function handleArrowKeyNavigation(
   } else {
     return null;
   }
-  
+
   e.preventDefault();
   items[nextIndex]?.focus();
   return nextIndex;
@@ -197,7 +197,7 @@ export function handleArrowKeyNavigation(
 export function useFocusTrap(containerRef: React.RefObject<HTMLElement>, isActive: boolean = true) {
   useEffect(() => {
     if (!isActive || !containerRef.current) return;
-    
+
     const container = containerRef.current;
     const cleanup = trapFocus(container);
     return cleanup;
@@ -216,19 +216,26 @@ export interface KeyboardShortcut {
   category?: string;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled: boolean = true) {
   useEffect(() => {
     if (!enabled) return;
-    
+
     const handleKeyDown = (event: KeyboardEvent) => {
       for (const shortcut of shortcuts) {
         if (!shortcut.key || !event.key) continue;
         const matchesKey = event.key.toLowerCase() === shortcut.key.toLowerCase();
-        const matchesCtrl = shortcut.ctrl ? event.ctrlKey : !event.ctrlKey || event.key === 'Control';
-        const matchesShift = shortcut.shift ? event.shiftKey : !event.shiftKey || event.key === 'Shift';
+        const matchesCtrl = shortcut.ctrl
+          ? event.ctrlKey
+          : !event.ctrlKey || event.key === 'Control';
+        const matchesShift = shortcut.shift
+          ? event.shiftKey
+          : !event.shiftKey || event.key === 'Shift';
         const matchesAlt = shortcut.alt ? event.altKey : !event.altKey || event.key === 'Alt';
         const matchesMeta = shortcut.meta ? event.metaKey : !event.metaKey || event.key === 'Meta';
-        
+
         if (matchesKey && matchesCtrl && matchesShift && matchesAlt && matchesMeta) {
           event.preventDefault();
           shortcut.handler(event);
@@ -236,7 +243,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled: boo
         }
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [shortcuts, enabled]);
@@ -245,36 +252,36 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled: boo
 // Focus Return Hook
 export function useFocusReturn() {
   const previousFocusRef = useRef<HTMLElement | null>(null);
-  
+
   const saveFocus = useCallback(() => {
     previousFocusRef.current = document.activeElement as HTMLElement;
   }, []);
-  
+
   const restoreFocus = useCallback(() => {
     if (previousFocusRef.current && previousFocusRef.current.focus) {
       previousFocusRef.current.focus();
     }
   }, []);
-  
+
   return { saveFocus, restoreFocus };
 }
 
 // Reduced Motion Detection Hook
 export function usePrefersReducedMotion(): boolean {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  
+
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     setPrefersReducedMotion(mediaQuery.matches);
-    
+
     const handleChange = (event: MediaQueryListEvent) => {
       setPrefersReducedMotion(event.matches);
     };
-    
+
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
-  
+
   return prefersReducedMotion;
 }
 
@@ -285,7 +292,7 @@ export function useDialogAccessibility(
   onClose: () => void
 ) {
   const { saveFocus, restoreFocus } = useFocusReturn();
-  
+
   useEffect(() => {
     if (isOpen) {
       saveFocus();
@@ -295,20 +302,20 @@ export function useDialogAccessibility(
       announce('Dialog closed');
     }
   }, [isOpen, saveFocus, restoreFocus]);
-  
+
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
       }
     };
-    
+
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
-  
+
   useFocusTrap(dialogRef, isOpen);
 }
 
@@ -327,17 +334,17 @@ export function useRovingTabIndex(
   orientation: 'horizontal' | 'vertical' | 'both' = 'vertical'
 ) {
   const [focusedIndex, setFocusedIndex] = useState(0);
-  
+
   useEffect(() => {
     const items = itemsRef.current;
     if (!items) return;
-    
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      const currentIndex = items.findIndex(item => item === document.activeElement);
+      const currentIndex = items.findIndex((item) => item === document.activeElement);
       if (currentIndex === -1) return;
-      
+
       let nextIndex = currentIndex;
-      
+
       switch (event.key) {
         case 'ArrowUp':
           if (orientation === 'vertical' || orientation === 'both') {
@@ -372,23 +379,23 @@ export function useRovingTabIndex(
           nextIndex = items.length - 1;
           break;
       }
-      
+
       if (nextIndex !== currentIndex) {
         setFocusedIndex(nextIndex);
         items[nextIndex]?.focus();
       }
     };
-    
-    items.forEach(item => {
+
+    items.forEach((item) => {
       item.addEventListener('keydown', handleKeyDown);
     });
-    
+
     return () => {
-      items.forEach(item => {
+      items.forEach((item) => {
         item.removeEventListener('keydown', handleKeyDown);
       });
     };
   }, [itemsRef, orientation]);
-  
+
   return focusedIndex;
 }

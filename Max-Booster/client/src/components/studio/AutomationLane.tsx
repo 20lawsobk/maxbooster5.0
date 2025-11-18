@@ -28,9 +28,19 @@ interface AutomationLaneProps {
 const PARAMETER_CONFIG = {
   volume: { label: 'Volume', min: 0, max: 1, defaultValue: 0.8, unit: 'dB', color: '#3b82f6' },
   pan: { label: 'Pan', min: -1, max: 1, defaultValue: 0, unit: '', color: '#10b981' },
-  'effect-param': { label: 'Effect', min: 0, max: 1, defaultValue: 0.5, unit: '', color: '#8b5cf6' },
+  'effect-param': {
+    label: 'Effect',
+    min: 0,
+    max: 1,
+    defaultValue: 0.5,
+    unit: '',
+    color: '#8b5cf6',
+  },
 };
 
+/**
+ * TODO: Add function documentation
+ */
 export function AutomationLane({
   trackId,
   parameter,
@@ -244,7 +254,7 @@ export function AutomationLane({
   const getValueLabel = (normalizedValue: number) => {
     const { min, max, unit } = config;
     const value = min + normalizedValue * (max - min);
-    
+
     if (parameter === 'volume') {
       const db = 20 * Math.log10(value || 0.001);
       return `${db.toFixed(1)} dB`;
@@ -275,10 +285,7 @@ export function AutomationLane({
         }}
       >
         <div className="flex items-center gap-2">
-          <Circle
-            className="h-2 w-2"
-            style={{ fill: config.color, color: config.color }}
-          />
+          <Circle className="h-2 w-2" style={{ fill: config.color, color: config.color }} />
           <span className="text-[10px] font-semibold" style={{ color: 'var(--studio-text)' }}>
             {config.label}
           </span>

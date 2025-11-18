@@ -8,6 +8,9 @@ interface LayoutGridProps {
   browserCollapsed: boolean;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function LayoutGrid({
   topBar,
   inspector,
@@ -18,7 +21,7 @@ export function LayoutGrid({
   browserCollapsed,
 }: LayoutGridProps) {
   return (
-    <div 
+    <div
       className="h-screen w-full grid"
       style={{
         gridTemplateAreas: `
@@ -32,9 +35,9 @@ export function LayoutGrid({
       }}
       data-testid="layout-grid-container"
     >
-      <div 
+      <div
         className="border-b transition-all"
-        style={{ 
+        style={{
           gridArea: 'topbar',
           background: 'var(--studio-toolbar)',
           borderColor: 'var(--studio-border)',
@@ -44,9 +47,9 @@ export function LayoutGrid({
         {topBar}
       </div>
 
-      <div 
+      <div
         className="border-r overflow-hidden transition-all"
-        style={{ 
+        style={{
           gridArea: 'inspector',
           background: 'var(--studio-inspector)',
           borderColor: 'var(--studio-border-subtle)',
@@ -56,9 +59,9 @@ export function LayoutGrid({
         {inspector}
       </div>
 
-      <div 
+      <div
         className="flex flex-col overflow-hidden"
-        style={{ 
+        style={{
           gridArea: 'timeline',
           background: 'var(--studio-timeline)',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.02)',
@@ -67,9 +70,9 @@ export function LayoutGrid({
         {timeline}
       </div>
 
-      <div 
+      <div
         className="border-l overflow-hidden transition-all"
-        style={{ 
+        style={{
           gridArea: 'browser',
           background: 'var(--studio-browser)',
           borderColor: 'var(--studio-border-subtle)',
@@ -79,9 +82,9 @@ export function LayoutGrid({
         {browser}
       </div>
 
-      <div 
+      <div
         className="border-t"
-        style={{ 
+        style={{
           gridArea: 'dock',
           background: 'var(--studio-transport)',
           borderColor: 'var(--studio-border)',

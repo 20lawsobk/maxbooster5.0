@@ -5,20 +5,24 @@ import { revenueEvents } from '@shared/schema';
 import { eq, desc } from 'drizzle-orm';
 
 export class RoyaltiesForecastingService {
-  async calculateForecast(userId: string, projectId: string, granularity: 'monthly' | 'quarterly' | 'annual') {
+  async calculateForecast(
+    userId: string,
+    projectId: string,
+    granularity: 'monthly' | 'quarterly' | 'annual'
+  ) {
     const historicalEvents = await this.getHistoricalRevenue(projectId, granularity);
-    
+
     if (historicalEvents.length < 3) {
       throw new Error('Insufficient historical data (minimum 3 periods required)');
     }
-    
+
     const alpha = 0.3;
     const periods = this.getPeriodCount(granularity);
-    
+
     const forecast = this.exponentialSmoothing(historicalEvents, alpha, periods);
     const variance = this.calculateVariance(historicalEvents);
     const confidence = this.calculateConfidenceIntervals(forecast, variance);
-    
+
     const forecastData: InsertForecastSnapshot = {
       userId,
       projectId,
@@ -33,7 +37,7 @@ export class RoyaltiesForecastingService {
         historicalPeriods: historicalEvents.length,
       },
     };
-    
+
     return await storage.createForecast(forecastData);
   }
 
@@ -43,19 +47,19 @@ export class RoyaltiesForecastingService {
       .from(revenueEvents)
       .where(eq(revenueEvents.projectId, projectId))
       .orderBy(desc(revenueEvents.occurredAt));
-    
+
     const grouped = this.groupByPeriod(events, granularity);
     return grouped;
   }
 
-  private groupByPeriod(events: any[], granularity: string) {
+  private groupByPeriod(events: unknown[], granularity: string) {
     const periods: Record<string, number> = {};
-    
+
     for (const event of events) {
       const period = this.getPeriodKey(event.occurredAt, granularity);
       periods[period] = (periods[period] || 0) + Number(event.amount);
     }
-    
+
     return Object.entries(periods)
       .map(([period, amount]) => ({ period, amount }))
       .sort((a, b) => a.period.localeCompare(b.period));
@@ -79,10 +83,14 @@ export class RoyaltiesForecastingService {
     return 2;
   }
 
-  private exponentialSmoothing(data: {period: string, amount: number}[], alpha: number, periods: number) {
-    const forecast: {period: string, predicted: number}[] = [];
+  private exponentialSmoothing(
+    data: { period: string; amount: number }[],
+    alpha: number,
+    periods: number
+  ) {
+    const forecast: { period: string; predicted: number }[] = [];
     let lastValue = data[data.length - 1].amount;
-    
+
     for (let i = 0; i < periods; i++) {
       const predicted = lastValue;
       forecast.push({
@@ -91,7 +99,7 @@ export class RoyaltiesForecastingService {
       });
       lastValue = predicted;
     }
-    
+
     return forecast;
   }
 
@@ -113,20 +121,23 @@ export class RoyaltiesForecastingService {
     }
   }
 
-  private calculateVariance(data: {period: string, amount: number}[]): number {
+  private calculateVariance(data: { period: string; amount: number }[]): number {
     const mean = data.reduce((sum, d) => sum + d.amount, 0) / data.length;
     const variance = data.reduce((sum, d) => sum + Math.pow(d.amount - mean, 2), 0) / data.length;
     return Math.sqrt(variance);
   }
 
-  private calculateConfidenceIntervals(forecast: {period: string, predicted: number}[], stdDev: number) {
+  private calculateConfidenceIntervals(
+    forecast: { period: string; predicted: number }[],
+    stdDev: number
+  ) {
     const z95 = 1.96;
-    
-    return forecast.map(f => ({
+
+    return forecast.map((f) => ({
       period: f.period,
       predicted: f.predicted,
-      lower: Math.max(0, f.predicted - (z95 * stdDev)),
-      upper: f.predicted + (z95 * stdDev),
+      lower: Math.max(0, f.predicted - z95 * stdDev),
+      upper: f.predicted + z95 * stdDev,
     }));
   }
 }

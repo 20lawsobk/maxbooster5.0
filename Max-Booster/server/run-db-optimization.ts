@@ -1,10 +1,14 @@
 #!/usr/bin/env tsx
 
 import DatabaseOptimizer from '../database/optimize-database';
+import { logger } from './logger.js';
 
+/**
+ * TODO: Add function documentation
+ */
 async function main() {
-  console.log('🎯 Max Booster Database Optimization Script');
-  console.log('==========================================\n');
+  logger.info('🎯 Max Booster Database Optimization Script');
+  logger.info('==========================================\n');
 
   const optimizer = new DatabaseOptimizer();
 
@@ -13,41 +17,42 @@ async function main() {
     await optimizer.executeOptimization();
 
     // Step 2: Validate results
-    console.log('\n');
+    logger.info('\n');
     const isValid = await optimizer.validateOptimizations();
-    
+
     if (isValid) {
-      console.log('\n✅ All critical indexes validated successfully!');
+      logger.info('\n✅ All critical indexes validated successfully!');
     } else {
-      console.log('\n❌ Some critical indexes are missing. Please review the results above.');
+      logger.info('\n❌ Some critical indexes are missing. Please review the results above.');
     }
 
     // Step 3: Analyze performance
     await optimizer.analyzeQueryPerformance();
 
-    console.log('\n🎉 Database optimization process completed!');
-    console.log('\n📈 Your Max Booster platform is now optimized for:');
-    console.log('   • High-performance user queries');
-    console.log('   • Lightning-fast analytics dashboards');
-    console.log('   • Efficient distribution system');
-    console.log('   • Rapid search capabilities');
-    console.log('   • Scalable financial reporting');
-
-  } catch (error) {
-    console.error('❌ Database optimization failed:', error);
+    logger.info('\n🎉 Database optimization process completed!');
+    logger.info('\n📈 Your Max Booster platform is now optimized for:');
+    logger.info('   • High-performance user queries');
+    logger.info('   • Lightning-fast analytics dashboards');
+    logger.info('   • Efficient distribution system');
+    logger.info('   • Rapid search capabilities');
+    logger.info('   • Scalable financial reporting');
+  } catch (error: unknown) {
+    logger.error('❌ Database optimization failed:', error);
     process.exit(1);
   }
 }
 
 // Execute if called directly
 if (require.main === module) {
-  main().then(() => {
-    console.log('\n✨ Optimization complete. Exiting...');
-    process.exit(0);
-  }).catch(error => {
-    console.error('Fatal error:', error);
-    process.exit(1);
-  });
+  main()
+    .then(() => {
+      logger.info('\n✨ Optimization complete. Exiting...');
+      process.exit(0);
+    })
+    .catch((error) => {
+      logger.error('Fatal error:', error);
+      process.exit(1);
+    });
 }
 
 export default main;

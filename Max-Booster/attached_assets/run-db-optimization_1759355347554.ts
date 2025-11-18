@@ -15,7 +15,7 @@ async function main() {
     // Step 2: Validate results
     console.log('\n');
     const isValid = await optimizer.validateOptimizations();
-    
+
     if (isValid) {
       console.log('\n✅ All critical indexes validated successfully!');
     } else {
@@ -32,7 +32,6 @@ async function main() {
     console.log('   • Efficient distribution system');
     console.log('   • Rapid search capabilities');
     console.log('   • Scalable financial reporting');
-
   } catch (error) {
     console.error('❌ Database optimization failed:', error);
     process.exit(1);
@@ -41,13 +40,15 @@ async function main() {
 
 // Execute if called directly
 if (require.main === module) {
-  main().then(() => {
-    console.log('\n✨ Optimization complete. Exiting...');
-    process.exit(0);
-  }).catch(error => {
-    console.error('Fatal error:', error);
-    process.exit(1);
-  });
+  main()
+    .then(() => {
+      console.log('\n✨ Optimization complete. Exiting...');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('Fatal error:', error);
+      process.exit(1);
+    });
 }
 
 export default main;

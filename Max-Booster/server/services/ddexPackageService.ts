@@ -3,6 +3,7 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import archiver from 'archiver';
 import { create } from 'xmlbuilder2';
+import { logger } from '../logger.js';
 
 interface ReleaseMetadata {
   id: string;
@@ -47,29 +48,30 @@ interface RoyaltySplit {
 export class DDEXPackageService {
   private static readonly DDEX_VERSION = '4.3';
   private static readonly MESSAGE_SCHEMA_VERSION = 'ern/43';
-  
+
   async generateDDEXXML(release: ReleaseMetadata, tracks: TrackMetadata[]): Promise<string> {
     const messageId = this.generateMessageId(release.id);
     const releaseId = `REL${release.id.replace(/-/g, '').substring(0, 12).toUpperCase()}`;
 
-    const doc = create({ version: '1.0', encoding: 'UTF-8' })
-      .ele('ernm:NewReleaseMessage', {
-        'xmlns:ernm': 'http://ddex.net/xml/ern/43',
-        'xmlns:xs': 'http://www.w3.org/2001/XMLSchema-instance',
-        'MessageSchemaVersionId': this.MESSAGE_SCHEMA_VERSION,
-        'LanguageAndScriptCode': 'en',
-      });
+    const doc = create({ version: '1.0', encoding: 'UTF-8' }).ele('ernm:NewReleaseMessage', {
+      'xmlns:ernm': 'http://ddex.net/xml/ern/43',
+      'xmlns:xs': 'http://www.w3.org/2001/XMLSchema-instance',
+      MessageSchemaVersionId: this.MESSAGE_SCHEMA_VERSION,
+      LanguageAndScriptCode: 'en',
+    });
 
     // Message Header
     const header = doc.ele('MessageHeader');
     header.ele('MessageThreadId').txt(messageId);
     header.ele('MessageId').txt(messageId);
-    header.ele('MessageSender')
+    header
+      .ele('MessageSender')
       .ele('PartyName')
-      .ele('FullName').txt('Max Booster Distribution').up().up();
-    header.ele('SentOnBehalfOf')
-      .ele('PartyName')
-      .ele('FullName').txt(release.artistName).up().up();
+      .ele('FullName')
+      .txt('Max Booster Distribution')
+      .up()
+      .up();
+    header.ele('SentOnBehalfOf').ele('PartyName').ele('FullName').txt(release.artistName).up().up();
     header.ele('MessageCreatedDateTime').txt(new Date().toISOString());
 
     // Update Indicator (New release)
@@ -84,11 +86,10 @@ export class DDEXPackageService {
       const soundRecording = resourceList.ele('SoundRecording');
       soundRecording.ele('SoundRecordingType').txt('MusicalWorkSoundRecording');
       soundRecording.ele('IsArtistRelated').txt('true');
-      
+
       const soundRecordingId = soundRecording.ele('SoundRecordingId');
       soundRecordingId.ele('ISRC').txt(track.isrc);
-      soundRecordingId.ele('ProprietaryId', { Namespace: 'DPID:MAX_BOOSTER' })
-        .txt(track.id);
+      soundRecordingId.ele('ProprietaryId', { Namespace: 'DPID:MAX_BOOSTER' }).txt(track.id);
 
       const referenceTitle = soundRecording.ele('ReferenceTitle');
       referenceTitle.ele('TitleText').txt(track.title);
@@ -100,18 +101,16 @@ export class DDEXPackageService {
       // Artists
       const artistParty = soundRecording.ele('SoundRecordingDetailsByTerritory');
       artistParty.ele('TerritoryCode').txt('Worldwide');
-      
+
       const displayArtist = artistParty.ele('DisplayArtist', { SequenceNumber: '1' });
-      displayArtist.ele('PartyName')
-        .ele('FullName').txt(track.primaryArtist).up().up();
+      displayArtist.ele('PartyName').ele('FullName').txt(track.primaryArtist).up().up();
       displayArtist.ele('ArtistRole').txt('MainArtist');
 
       // Featured artists
       if (track.featuredArtists && track.featuredArtists.length > 0) {
         track.featuredArtists.forEach((artist, index) => {
           const featured = artistParty.ele('DisplayArtist', { SequenceNumber: String(index + 2) });
-          featured.ele('PartyName')
-            .ele('FullName').txt(artist).up().up();
+          featured.ele('PartyName').ele('FullName').txt(artist).up().up();
           featured.ele('ArtistRole').txt('FeaturedArtist');
         });
       }
@@ -120,18 +119,25 @@ export class DDEXPackageService {
       artistParty.ele('ParentalWarningType').txt(track.explicit ? 'Explicit' : 'NotExplicit');
 
       // Technical details
-      const technicalDetails = artistParty.ele('TechnicalSoundRecordingDetails', { SequenceNumber: '1' });
+      const technicalDetails = artistParty.ele('TechnicalSoundRecordingDetails', {
+        SequenceNumber: '1',
+      });
       technicalDetails.ele('TechnicalResourceDetailsReference').txt(`T${track.trackNumber}`);
       technicalDetails.ele('AudioCodecType').txt('FLAC');
       technicalDetails.ele('BitRate').txt('1411');
       technicalDetails.ele('SamplingRate').txt('44100');
       technicalDetails.ele('BitsPerSample').txt('16');
       technicalDetails.ele('NumberOfChannels').txt('2');
-      
+
       // File reference
-      technicalDetails.ele('File')
-        .ele('FileName').txt(`track_${track.trackNumber}.flac`).up()
-        .ele('FilePath').txt(track.audioFilePath).up()
+      technicalDetails
+        .ele('File')
+        .ele('FileName')
+        .txt(`track_${track.trackNumber}.flac`)
+        .up()
+        .ele('FilePath')
+        .txt(track.audioFilePath)
+        .up()
         .ele('HashSum', { HashSumAlgorithmType: 'MD5' })
         .txt(await this.calculateMD5(track.audioFilePath));
     }
@@ -140,10 +146,9 @@ export class DDEXPackageService {
     if (release.coverArtPath) {
       const image = resourceList.ele('Image');
       image.ele('ImageType').txt('FrontCoverImage');
-      
+
       const imageId = image.ele('ImageId');
-      imageId.ele('ProprietaryId', { Namespace: 'DPID:MAX_BOOSTER' })
-        .txt(`${release.id}-cover`);
+      imageId.ele('ProprietaryId', { Namespace: 'DPID:MAX_BOOSTER' }).txt(`${release.id}-cover`);
 
       const referenceTitle = image.ele('ReferenceTitle');
       referenceTitle.ele('TitleText').txt(`${release.title} - Cover Art`);
@@ -155,10 +160,15 @@ export class DDEXPackageService {
       technicalDetails.ele('ImageCodecType').txt('JPEG');
       technicalDetails.ele('ImageHeight').txt('3000');
       technicalDetails.ele('ImageWidth').txt('3000');
-      
-      technicalDetails.ele('File')
-        .ele('FileName').txt('cover.jpg').up()
-        .ele('FilePath').txt(release.coverArtPath).up()
+
+      technicalDetails
+        .ele('File')
+        .ele('FileName')
+        .txt('cover.jpg')
+        .up()
+        .ele('FilePath')
+        .txt(release.coverArtPath)
+        .up()
         .ele('HashSum', { HashSumAlgorithmType: 'MD5' })
         .txt(await this.calculateMD5(release.coverArtPath));
     }
@@ -166,20 +176,20 @@ export class DDEXPackageService {
     // Release List
     const releaseList = doc.ele('ReleaseList');
     const releaseElem = releaseList.ele('Release', { IsMainRelease: 'true' });
-    
+
     releaseElem.ele('ReleaseReference').txt(releaseId);
-    
+
     const releaseIdElem = releaseElem.ele('ReleaseId');
     releaseIdElem.ele('ICPN', { IsEan: 'true' }).txt(release.upc);
-    releaseIdElem.ele('ProprietaryId', { Namespace: 'DPID:MAX_BOOSTER' })
-      .txt(release.id);
+    releaseIdElem.ele('ProprietaryId', { Namespace: 'DPID:MAX_BOOSTER' }).txt(release.id);
 
     // Release type
-    const releaseType = {
-      'single': 'Single',
-      'EP': 'EP',
-      'album': 'Album'
-    }[release.releaseType] || 'Album';
+    const releaseType =
+      {
+        single: 'Single',
+        EP: 'EP',
+        album: 'Album',
+      }[release.releaseType] || 'Album';
     releaseElem.ele('ReleaseType').txt(releaseType);
 
     // Title
@@ -192,18 +202,16 @@ export class DDEXPackageService {
 
     // Release details by territory
     const releaseDetails = releaseElem.ele('ReleaseDetailsByTerritory');
-    const territories = release.territories && release.territories.length > 0
-      ? release.territories
-      : ['Worldwide'];
-    
-    territories.forEach(territory => {
+    const territories =
+      release.territories && release.territories.length > 0 ? release.territories : ['Worldwide'];
+
+    territories.forEach((territory) => {
       releaseDetails.ele('TerritoryCode').txt(territory);
     });
 
     // Display artists
     const displayArtist = releaseDetails.ele('DisplayArtist', { SequenceNumber: '1' });
-    displayArtist.ele('PartyName')
-      .ele('FullName').txt(release.artistName).up().up();
+    displayArtist.ele('PartyName').ele('FullName').txt(release.artistName).up().up();
     displayArtist.ele('ArtistRole').txt('MainArtist');
 
     // Label name
@@ -231,7 +239,9 @@ export class DDEXPackageService {
 
     // Track list
     tracks.forEach((track, index) => {
-      const trackRelease = releaseDetails.ele('TrackRelease', { SequenceNumber: String(index + 1) });
+      const trackRelease = releaseDetails.ele('TrackRelease', {
+        SequenceNumber: String(index + 1),
+      });
       trackRelease.ele('ReleaseResourceReference').txt(track.id);
       trackRelease.ele('TrackNumber').txt(String(track.trackNumber));
     });
@@ -239,20 +249,19 @@ export class DDEXPackageService {
     // Deal (distribution terms)
     const dealList = doc.ele('DealList');
     const releaseDeal = dealList.ele('ReleaseDeal');
-    
+
     const deal = releaseDeal.ele('Deal');
     deal.ele('DealReleaseReference').txt(releaseId);
-    
+
     const dealTerms = deal.ele('DealTerms');
     dealTerms.ele('CommercialModelType').txt('SubscriptionModel');
     dealTerms.ele('Usage').txt('PermanentDownload');
-    
-    territories.forEach(territory => {
+
+    territories.forEach((territory) => {
       dealTerms.ele('TerritoryCode').txt(territory);
     });
-    
-    dealTerms.ele('ValidityPeriod')
-      .ele('StartDate').txt(release.releaseDate).up();
+
+    dealTerms.ele('ValidityPeriod').ele('StartDate').txt(release.releaseDate).up();
 
     // Convert to XML string
     const xml = doc.end({ prettyPrint: true });
@@ -265,10 +274,10 @@ export class DDEXPackageService {
     outputPath: string
   ): Promise<string> {
     const xml = await this.generateDDEXXML(release, tracks);
-    
+
     // Create ZIP archive
     const archive = archiver('zip', {
-      zlib: { level: 9 }
+      zlib: { level: 9 },
     });
 
     const output = require('fs').createWriteStream(outputPath);
@@ -307,14 +316,9 @@ export class DDEXPackageService {
     try {
       // Basic XML validation
       const doc = create(xml);
-      
+
       // Check for required elements
-      const requiredElements = [
-        'MessageHeader',
-        'ResourceList',
-        'ReleaseList',
-        'DealList'
-      ];
+      const requiredElements = ['MessageHeader', 'ResourceList', 'ReleaseList', 'DealList'];
 
       for (const element of requiredElements) {
         if (!xml.includes(element)) {
@@ -326,7 +330,7 @@ export class DDEXPackageService {
       const isrcPattern = /[A-Z]{2}[A-Z0-9]{3}\d{7}/g;
       const isrcMatches = xml.match(/<ISRC>([^<]+)<\/ISRC>/g);
       if (isrcMatches) {
-        isrcMatches.forEach(match => {
+        isrcMatches.forEach((match) => {
           const isrc = match.replace(/<\/?ISRC>/g, '');
           if (!isrcPattern.test(isrc)) {
             errors.push(`Invalid ISRC format: ${isrc}`);
@@ -338,7 +342,7 @@ export class DDEXPackageService {
       const upcPattern = /^\d{12,13}$/;
       const upcMatches = xml.match(/<ICPN[^>]*>([^<]+)<\/ICPN>/g);
       if (upcMatches) {
-        upcMatches.forEach(match => {
+        upcMatches.forEach((match) => {
           const upc = match.replace(/<\/?ICPN[^>]*>/g, '');
           if (!upcPattern.test(upc)) {
             errors.push(`Invalid UPC format: ${upc}`);
@@ -348,12 +352,12 @@ export class DDEXPackageService {
 
       return {
         valid: errors.length === 0,
-        errors
+        errors,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         valid: false,
-        errors: [`XML parsing error: ${(error as Error).message}`]
+        errors: [`XML parsing error: ${(error as Error).message}`],
       };
     }
   }
@@ -384,8 +388,8 @@ export class DDEXPackageService {
     try {
       const fileBuffer = await readFile(filePath);
       return createHash('md5').update(fileBuffer).digest('hex');
-    } catch (error) {
-      console.error(`Error calculating MD5 for ${filePath}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Error calculating MD5 for ${filePath}:`, error);
       return '';
     }
   }

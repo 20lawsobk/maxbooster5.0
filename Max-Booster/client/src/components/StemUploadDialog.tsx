@@ -10,7 +10,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Upload, FileAudio, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -30,6 +36,9 @@ const STEM_TYPES = [
   { value: 'other', label: 'Other' },
 ];
 
+/**
+ * TODO: Add function documentation
+ */
 export function StemUploadDialog({ open, onOpenChange, listingId }: StemUploadDialogProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [stemName, setStemName] = useState('');
@@ -44,7 +53,7 @@ export function StemUploadDialog({ open, onOpenChange, listingId }: StemUploadDi
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const xhr = new XMLHttpRequest();
-      
+
       return new Promise((resolve, reject) => {
         xhr.upload.addEventListener('progress', (e) => {
           if (e.lengthComputable) {
@@ -120,7 +129,7 @@ export function StemUploadDialog({ open, onOpenChange, listingId }: StemUploadDi
     formData.append('stemFile', selectedFile);
     formData.append('stemName', stemName);
     formData.append('stemType', stemType);
-    
+
     if (price) {
       formData.append('price', price);
     }
@@ -165,7 +174,9 @@ export function StemUploadDialog({ open, onOpenChange, listingId }: StemUploadDi
             {selectedFile && (
               <div className="mt-2 flex items-center gap-2 text-sm text-green-600">
                 <CheckCircle2 className="h-4 w-4" />
-                <span>{selectedFile.name} ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                <span>
+                  {selectedFile.name} ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
+                </span>
               </div>
             )}
           </div>
@@ -183,7 +194,11 @@ export function StemUploadDialog({ open, onOpenChange, listingId }: StemUploadDi
 
           <div>
             <Label htmlFor="stem-type">Stem Type</Label>
-            <Select value={stemType} onValueChange={setStemType} disabled={uploadMutation.isPending}>
+            <Select
+              value={stemType}
+              onValueChange={setStemType}
+              disabled={uploadMutation.isPending}
+            >
               <SelectTrigger id="stem-type">
                 <SelectValue placeholder="Select stem type" />
               </SelectTrigger>

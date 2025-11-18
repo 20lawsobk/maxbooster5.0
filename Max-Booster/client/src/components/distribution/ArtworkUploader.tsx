@@ -11,6 +11,9 @@ interface ArtworkUploaderProps {
   onChange: (file: File | null, previewUrl: string | null) => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function ArtworkUploader({ artwork, previewUrl, onChange }: ArtworkUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -27,13 +30,17 @@ export function ArtworkUploader({ artwork, previewUrl, onChange }: ArtworkUpload
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   const ALLOWED_FORMATS = ['image/jpeg', 'image/jpg', 'image/png'];
 
-  const validateImage = (file: File): Promise<{ isValid: boolean; width?: number; height?: number; errors: string[] }> => {
+  const validateImage = (
+    file: File
+  ): Promise<{ isValid: boolean; width?: number; height?: number; errors: string[] }> => {
     return new Promise((resolve) => {
       const errors: string[] = [];
 
       // Check file size
       if (file.size > MAX_FILE_SIZE) {
-        errors.push(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum 10MB allowed.`);
+        errors.push(
+          `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum 10MB allowed.`
+        );
       }
 
       // Check format
@@ -58,19 +65,23 @@ export function ArtworkUploader({ artwork, previewUrl, onChange }: ArtworkUpload
 
         // Check minimum dimensions
         if (width < MIN_SIZE || height < MIN_SIZE) {
-          errors.push(`Too small (${width}x${height}px). Minimum ${MIN_SIZE}x${MIN_SIZE}px required.`);
+          errors.push(
+            `Too small (${width}x${height}px). Minimum ${MIN_SIZE}x${MIN_SIZE}px required.`
+          );
         }
 
         // Check maximum dimensions
         if (width > MAX_SIZE || height > MAX_SIZE) {
-          errors.push(`Too large (${width}x${height}px). Maximum ${MAX_SIZE}x${MAX_SIZE}px recommended.`);
+          errors.push(
+            `Too large (${width}x${height}px). Maximum ${MAX_SIZE}x${MAX_SIZE}px recommended.`
+          );
         }
 
         resolve({
           isValid: errors.length === 0,
           width,
           height,
-          errors
+          errors,
         });
       };
 
@@ -99,14 +110,14 @@ export function ArtworkUploader({ artwork, previewUrl, onChange }: ArtworkUpload
       onChange(file, url);
       toast({
         title: 'Artwork uploaded',
-        description: `${validationResult.width}x${validationResult.height}px - Perfect!`
+        description: `${validationResult.width}x${validationResult.height}px - Perfect!`,
       });
     } else {
       onChange(null, null);
       toast({
         title: 'Invalid artwork',
         description: validationResult.errors[0],
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
@@ -152,7 +163,7 @@ export function ArtworkUploader({ artwork, previewUrl, onChange }: ArtworkUpload
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            <strong>DSP Requirements:</strong> Square aspect ratio (1:1), minimum 3000x3000px, 
+            <strong>DSP Requirements:</strong> Square aspect ratio (1:1), minimum 3000x3000px,
             maximum 5000x5000px recommended. Avoid text, logos, or price info.
           </AlertDescription>
         </Alert>
@@ -170,17 +181,9 @@ export function ArtworkUploader({ artwork, previewUrl, onChange }: ArtworkUpload
             onDragLeave={handleDragLeave}
           >
             <Image className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-lg font-medium mb-2">
-              Drag and drop artwork here
-            </p>
-            <p className="text-sm text-muted-foreground mb-4">
-              or click to browse
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-            >
+            <p className="text-lg font-medium mb-2">Drag and drop artwork here</p>
+            <p className="text-sm text-muted-foreground mb-4">or click to browse</p>
+            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
               <Upload className="h-4 w-4 mr-2" />
               Select Image
             </Button>

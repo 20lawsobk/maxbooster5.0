@@ -14,22 +14,22 @@ const spotlightFeatures = [
     title: 'AI Advertising Revolution',
     description: 'Zero-cost advertising that outperforms paid campaigns',
     badge: 'New',
-    badgeColor: 'bg-green-500'
+    badgeColor: 'bg-green-500',
   },
   {
     id: 'ai-mixing',
     title: 'AI-Powered Mixing',
     description: 'Professional-grade mixing with AI assistance',
     badge: 'Popular',
-    badgeColor: 'bg-blue-500'
+    badgeColor: 'bg-blue-500',
   },
   {
     id: 'analytics',
     title: 'Advanced Analytics',
     description: 'Deep insights into your music performance',
     badge: 'Trending',
-    badgeColor: 'bg-purple-500'
-  }
+    badgeColor: 'bg-purple-500',
+  },
 ];
 
 export default function FeatureSpotlight({ onClose, onExploreFeature }: FeatureSpotlightProps) {
@@ -44,8 +44,8 @@ export default function FeatureSpotlight({ onClose, onExploreFeature }: FeatureS
         </DialogHeader>
         <div className="space-y-4 mt-4">
           {spotlightFeatures.map((feature) => (
-            <div 
-              key={feature.id} 
+            <div
+              key={feature.id}
               className="p-4 border rounded-lg"
               data-testid={`spotlight-card-${feature.id}`}
             >
@@ -54,8 +54,8 @@ export default function FeatureSpotlight({ onClose, onExploreFeature }: FeatureS
                 <Badge className={feature.badgeColor}>{feature.badge}</Badge>
               </div>
               <p className="text-sm text-muted-foreground mb-3">{feature.description}</p>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 onClick={() => onExploreFeature(feature.id)}
                 data-testid={`button-explore-${feature.id}`}
               >

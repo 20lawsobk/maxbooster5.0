@@ -1,10 +1,10 @@
-import { aiService } from "./aiService";
-import { db } from "../db";
-import { nanoid } from "nanoid";
-import { 
-  aiModels, 
-  aiModelVersions, 
-  inferenceRuns, 
+import { aiService } from './aiService';
+import { db } from '../db';
+import { nanoid } from 'nanoid';
+import {
+  aiModels,
+  aiModelVersions,
+  inferenceRuns,
   explanationLogs,
   userBrandVoices,
   hashtagResearch,
@@ -14,9 +14,10 @@ import {
   type InsertHashtagResearch,
   type InsertBestPostingTime,
   type InsertInferenceRun,
-  type InsertExplanationLog
-} from "@shared/schema";
-import { eq, and, gte, desc, sql } from "drizzle-orm";
+  type InsertExplanationLog,
+} from '@shared/schema';
+import { eq, and, gte, desc, sql } from 'drizzle-orm';
+import { logger } from '../logger.js';
 
 export interface ContentGenerationOptions {
   prompt: string;
@@ -93,16 +94,56 @@ export class AIContentService {
   } = {};
 
   private languageTemplates: Record<string, any> = {
-    en: { name: 'English', greetings: ['Hello', 'Hi', 'Hey'], connectors: ['and', 'but', 'or', 'so'] },
-    es: { name: 'Spanish', greetings: ['Hola', 'Buenas', 'Saludos'], connectors: ['y', 'pero', 'o', 'así que'] },
-    fr: { name: 'French', greetings: ['Bonjour', 'Salut', 'Bonsoir'], connectors: ['et', 'mais', 'ou', 'donc'] },
-    de: { name: 'German', greetings: ['Hallo', 'Guten Tag', 'Servus'], connectors: ['und', 'aber', 'oder', 'also'] },
-    it: { name: 'Italian', greetings: ['Ciao', 'Buongiorno', 'Salve'], connectors: ['e', 'ma', 'o', 'quindi'] },
-    pt: { name: 'Portuguese', greetings: ['Olá', 'Oi', 'Bom dia'], connectors: ['e', 'mas', 'ou', 'então'] },
-    zh: { name: 'Chinese', greetings: ['你好', '您好', '大家好'], connectors: ['和', '但是', '或者', '所以'] },
-    ja: { name: 'Japanese', greetings: ['こんにちは', 'おはよう', 'こんばんは'], connectors: ['と', 'でも', 'または', 'だから'] },
-    ko: { name: 'Korean', greetings: ['안녕하세요', '안녕', '여러분'], connectors: ['그리고', '하지만', '또는', '그래서'] },
-    ar: { name: 'Arabic', greetings: ['مرحبا', 'أهلا', 'السلام عليكم'], connectors: ['و', 'لكن', 'أو', 'لذلك'] },
+    en: {
+      name: 'English',
+      greetings: ['Hello', 'Hi', 'Hey'],
+      connectors: ['and', 'but', 'or', 'so'],
+    },
+    es: {
+      name: 'Spanish',
+      greetings: ['Hola', 'Buenas', 'Saludos'],
+      connectors: ['y', 'pero', 'o', 'así que'],
+    },
+    fr: {
+      name: 'French',
+      greetings: ['Bonjour', 'Salut', 'Bonsoir'],
+      connectors: ['et', 'mais', 'ou', 'donc'],
+    },
+    de: {
+      name: 'German',
+      greetings: ['Hallo', 'Guten Tag', 'Servus'],
+      connectors: ['und', 'aber', 'oder', 'also'],
+    },
+    it: {
+      name: 'Italian',
+      greetings: ['Ciao', 'Buongiorno', 'Salve'],
+      connectors: ['e', 'ma', 'o', 'quindi'],
+    },
+    pt: {
+      name: 'Portuguese',
+      greetings: ['Olá', 'Oi', 'Bom dia'],
+      connectors: ['e', 'mas', 'ou', 'então'],
+    },
+    zh: {
+      name: 'Chinese',
+      greetings: ['你好', '您好', '大家好'],
+      connectors: ['和', '但是', '或者', '所以'],
+    },
+    ja: {
+      name: 'Japanese',
+      greetings: ['こんにちは', 'おはよう', 'こんばんは'],
+      connectors: ['と', 'でも', 'または', 'だから'],
+    },
+    ko: {
+      name: 'Korean',
+      greetings: ['안녕하세요', '안녕', '여러분'],
+      connectors: ['그리고', '하지만', '또는', '그래서'],
+    },
+    ar: {
+      name: 'Arabic',
+      greetings: ['مرحبا', 'أهلا', 'السلام عليكم'],
+      connectors: ['و', 'لكن', 'أو', 'لذلك'],
+    },
   };
 
   constructor() {
@@ -111,25 +152,28 @@ export class AIContentService {
 
   private async initializeAIModels() {
     try {
-      const models = await db.select().from(aiModels).where(
-        sql`${aiModels.modelName} IN ('content_multilingual_v1', 'brand_voice_analyzer_v1', 'trend_detector_v1', 'hashtag_optimizer_v1')`
-      );
+      const models = await db
+        .select()
+        .from(aiModels)
+        .where(
+          sql`${aiModels.modelName} IN ('content_multilingual_v1', 'brand_voice_analyzer_v1', 'trend_detector_v1', 'hashtag_optimizer_v1')`
+        );
 
-      models.forEach(model => {
+      models.forEach((model) => {
         if (model.modelName === 'content_multilingual_v1') this.modelIds.multilingual = model.id;
         if (model.modelName === 'brand_voice_analyzer_v1') this.modelIds.brandVoice = model.id;
         if (model.modelName === 'trend_detector_v1') this.modelIds.trendDetector = model.id;
         if (model.modelName === 'hashtag_optimizer_v1') this.modelIds.hashtagOptimizer = model.id;
       });
-    } catch (error) {
-      console.error('Failed to load AI models:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to load AI models:', error);
     }
   }
 
   private async logInference(
     modelName: string,
-    inputData: any,
-    outputData: any,
+    inputData: unknown,
+    outputData: unknown,
     userId?: string,
     executionTimeMs: number = 0
   ): Promise<string | null> {
@@ -137,36 +181,38 @@ export class AIContentService {
       if (!this.modelIds[modelName as keyof typeof this.modelIds]) return null;
 
       const modelId = this.modelIds[modelName as keyof typeof this.modelIds]!;
-      const versions = await db.select().from(aiModelVersions)
-        .where(and(
-          eq(aiModelVersions.modelId, modelId),
-          eq(aiModelVersions.status, 'production')
-        ))
+      const versions = await db
+        .select()
+        .from(aiModelVersions)
+        .where(and(eq(aiModelVersions.modelId, modelId), eq(aiModelVersions.status, 'production')))
         .limit(1);
 
       if (!versions.length) return null;
 
-      const [inference] = await db.insert(inferenceRuns).values({
-        modelId,
-        versionId: versions[0].id,
-        userId: userId || null,
-        inferenceType: 'generation',
-        inputData,
-        outputData,
-        confidenceScore: outputData.confidence || 0.85,
-        executionTimeMs,
-        success: true,
-        requestId: nanoid(),
-      }).returning();
+      const [inference] = await db
+        .insert(inferenceRuns)
+        .values({
+          modelId,
+          versionId: versions[0].id,
+          userId: userId || null,
+          inferenceType: 'generation',
+          inputData,
+          outputData,
+          confidenceScore: outputData.confidence || 0.85,
+          executionTimeMs,
+          success: true,
+          requestId: nanoid(),
+        })
+        .returning();
 
       return inference.id;
-    } catch (error) {
-      console.error('Failed to log inference:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to log inference:', error);
       return null;
     }
   }
 
-  private async logExplanation(inferenceId: string, explanation: any) {
+  private async logExplanation(inferenceId: string, explanation: unknown) {
     try {
       await db.insert(explanationLogs).values({
         inferenceId,
@@ -177,8 +223,8 @@ export class AIContentService {
         humanReadable: explanation.text || 'Content generated using AI model',
         visualizationData: explanation.viz || {},
       });
-    } catch (error) {
-      console.error('Failed to log explanation:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to log explanation:', error);
     }
   }
 
@@ -207,7 +253,7 @@ export class AIContentService {
         await this.logExplanation(inferenceId, {
           text: `Generated ${platform} content with ${tone} tone`,
           features: { platform: 0.3, tone: 0.4, length: 0.3 },
-          confidence: 0.9
+          confidence: 0.9,
         });
       }
 
@@ -218,9 +264,9 @@ export class AIContentService {
         metadata: { platform, tone, length, executionTimeMs },
         createdAt: new Date(),
       };
-    } catch (error) {
-      console.error("Error generating text:", error);
-      throw new Error("Failed to generate text content");
+    } catch (error: unknown) {
+      logger.error('Error generating text:', error);
+      throw new Error('Failed to generate text content');
     }
   }
 
@@ -258,7 +304,7 @@ export class AIContentService {
       await this.logExplanation(inferenceId, {
         text: `Translated content into ${targetLanguages.length} languages with cultural adaptations`,
         features: { languages: targetLanguages.length / 10, complexity: 0.5 },
-        confidence: 0.88
+        confidence: 0.88,
       });
     }
 
@@ -275,9 +321,42 @@ export class AIContentService {
     if (targetLang === 'en') return content;
 
     const translations: Record<string, string> = {
-      'music': { es: 'música', fr: 'musique', de: 'Musik', it: 'musica', pt: 'música', zh: '音乐', ja: '音楽', ko: '음악', ar: 'موسيقى' }[targetLang] || 'music',
-      'new': { es: 'nuevo', fr: 'nouveau', de: 'neu', it: 'nuovo', pt: 'novo', zh: '新', ja: '新しい', ko: '새로운', ar: 'جديد' }[targetLang] || 'new',
-      'listen': { es: 'escucha', fr: 'écouter', de: 'hören', it: 'ascolta', pt: 'ouça', zh: '听', ja: '聴く', ko: '듣다', ar: 'استمع' }[targetLang] || 'listen',
+      music:
+        {
+          es: 'música',
+          fr: 'musique',
+          de: 'Musik',
+          it: 'musica',
+          pt: 'música',
+          zh: '音乐',
+          ja: '音楽',
+          ko: '음악',
+          ar: 'موسيقى',
+        }[targetLang] || 'music',
+      new:
+        {
+          es: 'nuevo',
+          fr: 'nouveau',
+          de: 'neu',
+          it: 'nuovo',
+          pt: 'novo',
+          zh: '新',
+          ja: '新しい',
+          ko: '새로운',
+          ar: 'جديد',
+        }[targetLang] || 'new',
+      listen:
+        {
+          es: 'escucha',
+          fr: 'écouter',
+          de: 'hören',
+          it: 'ascolta',
+          pt: 'ouça',
+          zh: '听',
+          ja: '聴く',
+          ko: '듣다',
+          ar: 'استمع',
+        }[targetLang] || 'listen',
     };
 
     let translated = content;
@@ -290,7 +369,10 @@ export class AIContentService {
 
   private getCulturalAdaptations(lang: string, content: string): string[] {
     const adaptations: Record<string, string[]> = {
-      es: ['Use "vosotros" for Spain, "ustedes" for Latin America', 'Add exclamation marks: ¡Hola!'],
+      es: [
+        'Use "vosotros" for Spain, "ustedes" for Latin America',
+        'Add exclamation marks: ¡Hola!',
+      ],
       fr: ['Use formal "vous" for professional content', 'Add accents: é, è, ê, à'],
       de: ['Capitalize all nouns', 'Use formal "Sie" in professional contexts'],
       it: ['Use expressive language and gestures references', 'Double consonants are important'],
@@ -310,18 +392,19 @@ export class AIContentService {
     const emojiRegex = /[\u{1F300}-\u{1F9FF}]/gu;
     const hashtagRegex = /#\w+/g;
 
-    const totalEmojis = historicalPosts.reduce((sum, post) => 
-      sum + (post.match(emojiRegex) || []).length, 0
+    const totalEmojis = historicalPosts.reduce(
+      (sum, post) => sum + (post.match(emojiRegex) || []).length,
+      0
     );
-    const totalHashtags = historicalPosts.reduce((sum, post) => 
-      sum + (post.match(hashtagRegex) || []).length, 0
+    const totalHashtags = historicalPosts.reduce(
+      (sum, post) => sum + (post.match(hashtagRegex) || []).length,
+      0
     );
-    const totalSentences = historicalPosts.reduce((sum, post) => 
-      sum + post.split(/[.!?]+/).filter(s => s.trim()).length, 0
+    const totalSentences = historicalPosts.reduce(
+      (sum, post) => sum + post.split(/[.!?]+/).filter((s) => s.trim()).length,
+      0
     );
-    const totalWords = historicalPosts.reduce((sum, post) => 
-      sum + post.split(/\s+/).length, 0
-    );
+    const totalWords = historicalPosts.reduce((sum, post) => sum + post.split(/\s+/).length, 0);
 
     const avgSentenceLength = totalWords / Math.max(totalSentences, 1);
     const emojiPerPost = totalEmojis / historicalPosts.length;
@@ -329,30 +412,40 @@ export class AIContentService {
 
     const formalWords = ['moreover', 'furthermore', 'additionally', 'consequently'];
     const casualWords = ['yeah', 'cool', 'awesome', 'hey', 'lol'];
-    
+
     let formalCount = 0;
     let casualCount = 0;
-    historicalPosts.forEach(post => {
+    historicalPosts.forEach((post) => {
       const lower = post.toLowerCase();
-      formalWords.forEach(word => { if (lower.includes(word)) formalCount++; });
-      casualWords.forEach(word => { if (lower.includes(word)) casualCount++; });
+      formalWords.forEach((word) => {
+        if (lower.includes(word)) formalCount++;
+      });
+      casualWords.forEach((word) => {
+        if (lower.includes(word)) casualCount++;
+      });
     });
 
-    const tone: 'formal' | 'casual' | 'mixed' = 
-      formalCount > casualCount * 1.5 ? 'formal' :
-      casualCount > formalCount * 1.5 ? 'casual' : 'mixed';
+    const tone: 'formal' | 'casual' | 'mixed' =
+      formalCount > casualCount * 1.5
+        ? 'formal'
+        : casualCount > formalCount * 1.5
+          ? 'casual'
+          : 'mixed';
 
     const emojiUsage: 'none' | 'light' | 'moderate' | 'heavy' =
-      emojiPerPost === 0 ? 'none' :
-      emojiPerPost < 1 ? 'light' :
-      emojiPerPost < 3 ? 'moderate' : 'heavy';
+      emojiPerPost === 0
+        ? 'none'
+        : emojiPerPost < 1
+          ? 'light'
+          : emojiPerPost < 3
+            ? 'moderate'
+            : 'heavy';
 
     const vocabularyComplexity: 'simple' | 'moderate' | 'advanced' =
-      avgSentenceLength < 10 ? 'simple' :
-      avgSentenceLength < 20 ? 'moderate' : 'advanced';
+      avgSentenceLength < 10 ? 'simple' : avgSentenceLength < 20 ? 'moderate' : 'advanced';
 
     const commonPhrases = this.extractCommonPhrases(historicalPosts);
-    const confidenceScore = Math.min(100, 50 + (historicalPosts.length * 2));
+    const confidenceScore = Math.min(100, 50 + historicalPosts.length * 2);
 
     const profile: BrandVoiceProfile = {
       tone,
@@ -365,10 +458,15 @@ export class AIContentService {
     };
 
     try {
-      const existing = await db.select().from(userBrandVoices).where(eq(userBrandVoices.userId, userId)).limit(1);
+      const existing = await db
+        .select()
+        .from(userBrandVoices)
+        .where(eq(userBrandVoices.userId, userId))
+        .limit(1);
 
       if (existing.length > 0) {
-        await db.update(userBrandVoices)
+        await db
+          .update(userBrandVoices)
           .set({
             voiceProfile: profile as any,
             confidenceScore: profile.confidenceScore,
@@ -386,8 +484,8 @@ export class AIContentService {
           lastAnalyzedAt: new Date(),
         });
       }
-    } catch (error) {
-      console.error('Failed to save brand voice:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to save brand voice:', error);
     }
 
     const executionTimeMs = Date.now() - startTime;
@@ -403,7 +501,7 @@ export class AIContentService {
       await this.logExplanation(inferenceId, {
         text: `Analyzed ${historicalPosts.length} posts to extract brand voice with ${confidenceScore}% confidence`,
         features: { tone: 0.3, emoji: 0.2, hashtags: 0.2, vocabulary: 0.3 },
-        confidence: profile.confidenceScore / 100
+        confidence: profile.confidenceScore / 100,
       });
     }
 
@@ -412,8 +510,8 @@ export class AIContentService {
 
   private extractCommonPhrases(posts: string[]): string[] {
     const phrases: Record<string, number> = {};
-    
-    posts.forEach(post => {
+
+    posts.forEach((post) => {
       const words = post.toLowerCase().split(/\s+/);
       for (let i = 0; i < words.length - 1; i++) {
         const phrase = `${words[i]} ${words[i + 1]}`;
@@ -432,16 +530,18 @@ export class AIContentService {
     const startTime = Date.now();
 
     try {
-      const [brandVoice] = await db.select().from(userBrandVoices)
+      const [brandVoice] = await db
+        .select()
+        .from(userBrandVoices)
         .where(eq(userBrandVoices.userId, userId))
         .limit(1);
 
       if (!brandVoice) {
-        return await this.generateText({ 
-          prompt, 
-          platform: 'instagram', 
-          format: 'text' 
-        }).then(r => Array.isArray(r.content) ? r.content[0] : r.content);
+        return await this.generateText({
+          prompt,
+          platform: 'instagram',
+          format: 'text',
+        }).then((r) => (Array.isArray(r.content) ? r.content[0] : r.content));
       }
 
       const profile = brandVoice.voiceProfile as any as BrandVoiceProfile;
@@ -465,7 +565,8 @@ export class AIContentService {
       }
 
       if (profile.commonPhrases.length > 0 && Math.random() > 0.5) {
-        const phrase = profile.commonPhrases[Math.floor(Math.random() * profile.commonPhrases.length)];
+        const phrase =
+          profile.commonPhrases[Math.floor(Math.random() * profile.commonPhrases.length)];
         content = `${phrase}! ${content}`;
       }
 
@@ -482,13 +583,13 @@ export class AIContentService {
         await this.logExplanation(inferenceId, {
           text: `Applied ${profile.tone} tone with ${profile.emojiUsage} emoji usage`,
           features: { tone: 0.4, emoji: 0.3, phrases: 0.3 },
-          confidence: profile.confidenceScore / 100
+          confidence: profile.confidenceScore / 100,
         });
       }
 
       return content;
-    } catch (error) {
-      console.error('Error generating with brand voice:', error);
+    } catch (error: unknown) {
+      logger.error('Error generating with brand voice:', error);
       throw new Error('Failed to generate content with brand voice');
     }
   }
@@ -522,9 +623,24 @@ export class AIContentService {
     }
 
     const musicTrends = [
-      { topic: 'New Music Friday', category: 'music' as const, popularity: 80, hashtags: ['#NewMusicFriday', '#NewMusic', '#MusicRelease'] },
-      { topic: 'Throwback Thursday', category: 'social' as const, popularity: 75, hashtags: ['#ThrowbackThursday', '#TBT', '#ClassicHits'] },
-      { topic: 'Independent Artists', category: 'industry' as const, popularity: 70, hashtags: ['#IndieMusic', '#IndependentArtist', '#SupportIndieMusic'] },
+      {
+        topic: 'New Music Friday',
+        category: 'music' as const,
+        popularity: 80,
+        hashtags: ['#NewMusicFriday', '#NewMusic', '#MusicRelease'],
+      },
+      {
+        topic: 'Throwback Thursday',
+        category: 'social' as const,
+        popularity: 75,
+        hashtags: ['#ThrowbackThursday', '#TBT', '#ClassicHits'],
+      },
+      {
+        topic: 'Independent Artists',
+        category: 'industry' as const,
+        popularity: 70,
+        hashtags: ['#IndieMusic', '#IndependentArtist', '#SupportIndieMusic'],
+      },
     ];
 
     if (dayOfWeek === 5) trends.push(musicTrends[0]);
@@ -553,7 +669,7 @@ export class AIContentService {
       await this.logExplanation(inferenceId, {
         text: `Detected ${trends.length} trending topics for ${platform}`,
         features: { platform: 0.3, timeOfDay: 0.2, dayOfWeek: 0.3, season: 0.2 },
-        confidence: 0.87
+        confidence: 0.87,
       });
     }
 
@@ -562,7 +678,7 @@ export class AIContentService {
 
   async generateTrendingContent(topic: string, platform: string): Promise<string> {
     const trends = await this.getTrendingTopics(platform);
-    const matchedTrend = trends.find(t => t.topic.toLowerCase().includes(topic.toLowerCase()));
+    const matchedTrend = trends.find((t) => t.topic.toLowerCase().includes(topic.toLowerCase()));
 
     if (!matchedTrend) {
       return `Check out ${topic}! ${trends[0]?.hashtags.join(' ') || ''}`;
@@ -597,33 +713,110 @@ export class AIContentService {
     const limit = platformLimits[platform] || 10;
 
     const musicHashtags: HashtagSuggestion[] = [
-      { hashtag: '#NewMusic', category: 'high-reach', popularity: 95, competition: 90, avgEngagement: 4.2, trending: true },
-      { hashtag: '#Music', category: 'high-reach', popularity: 98, competition: 95, avgEngagement: 3.8, trending: false },
-      { hashtag: '#MusicProducer', category: 'medium-reach', popularity: 75, competition: 70, avgEngagement: 5.5, trending: false },
-      { hashtag: '#IndieMusic', category: 'medium-reach', popularity: 70, competition: 60, avgEngagement: 6.2, trending: false },
-      { hashtag: '#MusicProduction', category: 'medium-reach', popularity: 68, competition: 65, avgEngagement: 5.8, trending: false },
-      { hashtag: '#Musician', category: 'high-reach', popularity: 88, competition: 85, avgEngagement: 4.5, trending: false },
-      { hashtag: '#UnsignedArtist', category: 'niche', popularity: 45, competition: 35, avgEngagement: 8.5, trending: false },
-      { hashtag: '#BedroomProducer', category: 'niche', popularity: 40, competition: 30, avgEngagement: 9.2, trending: false },
-      { hashtag: '#DIYMusic', category: 'niche', popularity: 42, competition: 32, avgEngagement: 8.8, trending: false },
-      { hashtag: '#MusicMarketing', category: 'niche', popularity: 38, competition: 28, avgEngagement: 10.1, trending: false },
+      {
+        hashtag: '#NewMusic',
+        category: 'high-reach',
+        popularity: 95,
+        competition: 90,
+        avgEngagement: 4.2,
+        trending: true,
+      },
+      {
+        hashtag: '#Music',
+        category: 'high-reach',
+        popularity: 98,
+        competition: 95,
+        avgEngagement: 3.8,
+        trending: false,
+      },
+      {
+        hashtag: '#MusicProducer',
+        category: 'medium-reach',
+        popularity: 75,
+        competition: 70,
+        avgEngagement: 5.5,
+        trending: false,
+      },
+      {
+        hashtag: '#IndieMusic',
+        category: 'medium-reach',
+        popularity: 70,
+        competition: 60,
+        avgEngagement: 6.2,
+        trending: false,
+      },
+      {
+        hashtag: '#MusicProduction',
+        category: 'medium-reach',
+        popularity: 68,
+        competition: 65,
+        avgEngagement: 5.8,
+        trending: false,
+      },
+      {
+        hashtag: '#Musician',
+        category: 'high-reach',
+        popularity: 88,
+        competition: 85,
+        avgEngagement: 4.5,
+        trending: false,
+      },
+      {
+        hashtag: '#UnsignedArtist',
+        category: 'niche',
+        popularity: 45,
+        competition: 35,
+        avgEngagement: 8.5,
+        trending: false,
+      },
+      {
+        hashtag: '#BedroomProducer',
+        category: 'niche',
+        popularity: 40,
+        competition: 30,
+        avgEngagement: 9.2,
+        trending: false,
+      },
+      {
+        hashtag: '#DIYMusic',
+        category: 'niche',
+        popularity: 42,
+        competition: 32,
+        avgEngagement: 8.8,
+        trending: false,
+      },
+      {
+        hashtag: '#MusicMarketing',
+        category: 'niche',
+        popularity: 38,
+        competition: 28,
+        avgEngagement: 10.1,
+        trending: false,
+      },
     ];
 
-    const sorted = goal === 'reach' 
-      ? musicHashtags.sort((a, b) => b.popularity - a.popularity)
-      : goal === 'engagement'
-      ? musicHashtags.sort((a, b) => b.avgEngagement - a.avgEngagement)
-      : musicHashtags.filter(h => h.category === 'niche').sort((a, b) => b.avgEngagement - a.avgEngagement);
+    const sorted =
+      goal === 'reach'
+        ? musicHashtags.sort((a, b) => b.popularity - a.popularity)
+        : goal === 'engagement'
+          ? musicHashtags.sort((a, b) => b.avgEngagement - a.avgEngagement)
+          : musicHashtags
+              .filter((h) => h.category === 'niche')
+              .sort((a, b) => b.avgEngagement - a.avgEngagement);
 
     const suggestions = sorted.slice(0, limit);
 
     try {
       for (const suggestion of suggestions.slice(0, 5)) {
-        const existing = await db.select().from(hashtagResearch)
-          .where(and(
-            eq(hashtagResearch.hashtag, suggestion.hashtag),
-            eq(hashtagResearch.platform, platform)
-          ))
+        const existing = await db
+          .select()
+          .from(hashtagResearch)
+          .where(
+            and(
+              eq(hashtagResearch.hashtag, suggestion.hashtag),
+              eq(hashtagResearch.platform, platform)
+            )
+          )
           .limit(1);
 
         if (existing.length === 0) {
@@ -636,13 +829,16 @@ export class AIContentService {
             competition: suggestion.competition,
             avgEngagement: suggestion.avgEngagement,
             trending: suggestion.trending,
-            relatedTags: musicHashtags.filter(h => h.category === suggestion.category).map(h => h.hashtag).slice(0, 5),
+            relatedTags: musicHashtags
+              .filter((h) => h.category === suggestion.category)
+              .map((h) => h.hashtag)
+              .slice(0, 5),
             lastUpdated: new Date(),
           });
         }
       }
-    } catch (error) {
-      console.error('Failed to save hashtag research:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to save hashtag research:', error);
     }
 
     const executionTimeMs = Date.now() - startTime;
@@ -658,7 +854,7 @@ export class AIContentService {
       await this.logExplanation(inferenceId, {
         text: `Optimized ${suggestions.length} hashtags for ${goal} on ${platform}`,
         features: { goal: 0.4, platform: 0.3, popularity: 0.3 },
-        confidence: 0.92
+        confidence: 0.92,
       });
     }
 
@@ -701,7 +897,15 @@ export class AIContentService {
     const recommendations: PostingTimeRecommendation[] = [];
 
     for (const pattern of patterns) {
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayNames = [
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+      ];
       const reasoning = `${dayNames[pattern.day]} at ${pattern.hour}:00 ${timezone} has ${pattern.score}% engagement based on ${platform} algorithm and audience activity patterns`;
 
       recommendations.push({
@@ -712,13 +916,17 @@ export class AIContentService {
       });
 
       try {
-        const existing = await db.select().from(bestPostingTimes)
-          .where(and(
-            eq(bestPostingTimes.userId, userId),
-            eq(bestPostingTimes.platform, platform),
-            eq(bestPostingTimes.dayOfWeek, pattern.day),
-            eq(bestPostingTimes.hour, pattern.hour)
-          ))
+        const existing = await db
+          .select()
+          .from(bestPostingTimes)
+          .where(
+            and(
+              eq(bestPostingTimes.userId, userId),
+              eq(bestPostingTimes.platform, platform),
+              eq(bestPostingTimes.dayOfWeek, pattern.day),
+              eq(bestPostingTimes.hour, pattern.hour)
+            )
+          )
           .limit(1);
 
         if (existing.length === 0) {
@@ -732,8 +940,8 @@ export class AIContentService {
             lastCalculated: new Date(),
           });
         }
-      } catch (error) {
-        console.error('Failed to save posting time:', error);
+      } catch (error: unknown) {
+        logger.error('Failed to save posting time:', error);
       }
     }
 
@@ -750,7 +958,7 @@ export class AIContentService {
       await this.logExplanation(inferenceId, {
         text: `Suggested ${recommendations.length} optimal posting times for ${platform}`,
         features: { platform: 0.3, historical: 0.4, algorithm: 0.3 },
-        confidence: 0.89
+        confidence: 0.89,
       });
     }
 
@@ -789,7 +997,11 @@ export class AIContentService {
         }
       );
     } else if (variationType === 'emoji') {
-      const emojis = [['🎵', '🎶'], ['✨', '💫'], ['🔥', '💯']];
+      const emojis = [
+        ['🎵', '🎶'],
+        ['✨', '💫'],
+        ['🔥', '💯'],
+      ];
       emojis.forEach((emojiSet, i) => {
         variants.push({
           id: nanoid(),
@@ -800,7 +1012,7 @@ export class AIContentService {
         });
       });
     } else if (variationType === 'CTA') {
-      const ctas = ['Listen now!', 'Check it out!', 'Don\'t miss this!', 'Stream it here!'];
+      const ctas = ['Listen now!', 'Check it out!', "Don't miss this!", 'Stream it here!'];
       ctas.forEach((cta, i) => {
         variants.push({
           id: nanoid(),
@@ -853,7 +1065,7 @@ export class AIContentService {
       await this.logExplanation(inferenceId, {
         text: `Generated ${variants.length} A/B test variants for ${variationType}`,
         features: { variationType: 0.5, baseContent: 0.3, count: 0.2 },
-        confidence: 0.86
+        confidence: 0.86,
       });
     }
 
@@ -932,7 +1144,7 @@ export class AIContentService {
     count: number = 3
   ): Promise<string[]> {
     const abVariants = await this.generateABVariants(baseContent, 'tone');
-    return abVariants.slice(0, count).map(v => v.content);
+    return abVariants.slice(0, count).map((v) => v.content);
   }
 
   async optimizeForPlatform(

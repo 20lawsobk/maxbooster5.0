@@ -1,17 +1,9 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Volume2, 
-  VolumeX, 
-  Headphones,
-  Settings,
-  Plus,
-  Trash2,
-  Copy
-} from "lucide-react";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
+import { Volume2, VolumeX, Headphones, Settings, Plus, Trash2, Copy } from 'lucide-react';
 
 interface Track {
   id: string;
@@ -32,11 +24,11 @@ interface TrackMixerProps {
   onTrackUpdate: (trackId: string, updates: Partial<Track>) => void;
 }
 
-export default function TrackMixer({ 
-  tracks, 
-  selectedTrack, 
-  onTrackSelect, 
-  onTrackUpdate 
+export default function TrackMixer({
+  tracks,
+  selectedTrack,
+  onTrackSelect,
+  onTrackUpdate,
 }: TrackMixerProps) {
   const [soloedTracks, setSoloedTracks] = useState<Set<string>>(new Set());
 
@@ -49,7 +41,7 @@ export default function TrackMixer({
   };
 
   const handleMute = (trackId: string) => {
-    const track = tracks.find(t => t.id === trackId);
+    const track = tracks.find((t) => t.id === trackId);
     if (track) {
       onTrackUpdate(trackId, { muted: !track.muted });
     }
@@ -64,20 +56,20 @@ export default function TrackMixer({
     }
     setSoloedTracks(newSoloedTracks);
 
-    const track = tracks.find(t => t.id === trackId);
+    const track = tracks.find((t) => t.id === trackId);
     if (track) {
       onTrackUpdate(trackId, { solo: !track.solo });
     }
   };
 
   const getVolumeColor = (volume: number) => {
-    if (volume > 0.8) return "bg-red-500";
-    if (volume > 0.6) return "bg-yellow-500";
-    return "bg-green-500";
+    if (volume > 0.8) return 'bg-red-500';
+    if (volume > 0.6) return 'bg-yellow-500';
+    return 'bg-green-500';
   };
 
   const formatPan = (pan: number) => {
-    if (pan === 0) return "C";
+    if (pan === 0) return 'C';
     if (pan > 0) return `${Math.round(pan * 100)}R`;
     return `${Math.round(Math.abs(pan) * 100)}L`;
   };
@@ -128,11 +120,11 @@ export default function TrackMixer({
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex space-x-1">
                     <Button
                       size="sm"
-                      variant={track.muted ? "destructive" : "outline"}
+                      variant={track.muted ? 'destructive' : 'outline'}
                       className="w-8 h-8 p-0 text-xs"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -144,7 +136,7 @@ export default function TrackMixer({
                     </Button>
                     <Button
                       size="sm"
-                      variant={track.solo ? "secondary" : "outline"}
+                      variant={track.solo ? 'secondary' : 'outline'}
                       className="w-8 h-8 p-0 text-xs"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -179,9 +171,7 @@ export default function TrackMixer({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium">Pan</span>
-                    <span className="text-xs font-mono">
-                      {formatPan(track.pan)}
-                    </span>
+                    <span className="text-xs font-mono">{formatPan(track.pan)}</span>
                   </div>
                   <Slider
                     value={[(track.pan + 1) * 50]}
@@ -200,8 +190,12 @@ export default function TrackMixer({
                   </div>
                   <div className="h-16 bg-background rounded flex items-end justify-center space-x-1 p-1">
                     {/* Mock level meters */}
-                    <div className={`w-2 h-full ${getVolumeColor(track.volume)} rounded opacity-70`} />
-                    <div className={`w-2 h-3/4 ${getVolumeColor(track.volume * 0.8)} rounded opacity-70`} />
+                    <div
+                      className={`w-2 h-full ${getVolumeColor(track.volume)} rounded opacity-70`}
+                    />
+                    <div
+                      className={`w-2 h-3/4 ${getVolumeColor(track.volume * 0.8)} rounded opacity-70`}
+                    />
                   </div>
                 </div>
 
@@ -225,7 +219,7 @@ export default function TrackMixer({
                       <Copy className="w-3 h-3" />
                     </Button>
                   </div>
-                  
+
                   <Button
                     size="sm"
                     variant="ghost"

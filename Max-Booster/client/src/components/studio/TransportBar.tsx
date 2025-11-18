@@ -4,8 +4,21 @@ import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useStudioStore } from '@/lib/studioStore';
 import {
-  Play, Pause, Square, Circle, SkipBack, SkipForward, Repeat, Plus, Minus,
-  Music2, RotateCcw, RotateCw, Activity, Sparkles, Volume2
+  Play,
+  Pause,
+  Square,
+  Circle,
+  SkipBack,
+  SkipForward,
+  Repeat,
+  Plus,
+  Minus,
+  Music2,
+  RotateCcw,
+  RotateCw,
+  Activity,
+  Sparkles,
+  Volume2,
 } from 'lucide-react';
 import { AIMixer } from '@/lib/audio/AIMixer';
 import { AIMastering } from '@/lib/audio/AIMastering';
@@ -25,6 +38,9 @@ interface TransportBarProps {
   onSeek?: (time: number) => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function TransportBar({
   armedTracksCount = 0,
   onUndo,
@@ -68,12 +84,12 @@ export function TransportBar({
     const [numerator] = timeSignature.split('/').map(Number);
     const beatsPerBar = numerator;
     const beatDuration = 60 / tempo;
-    
+
     const totalBeats = seconds / beatDuration;
     const bar = Math.floor(totalBeats / beatsPerBar) + 1;
     const beat = Math.floor(totalBeats % beatsPerBar) + 1;
     const tick = Math.floor((totalBeats % 1) * 960);
-    
+
     return `${bar}.${beat}.${tick.toString().padStart(3, '0')}`;
   };
 
@@ -130,10 +146,11 @@ export function TransportBar({
   }, [tapTempoTimes, setTempo]);
 
   return (
-    <div 
+    <div
       className="h-20 flex items-center justify-between px-6 border-b"
       style={{
-        background: 'linear-gradient(180deg, var(--studio-bg-medium) 0%, var(--studio-bg-deep) 100%)',
+        background:
+          'linear-gradient(180deg, var(--studio-bg-medium) 0%, var(--studio-bg-deep) 100%)',
         borderColor: 'var(--studio-border)',
       }}
     >
@@ -175,11 +192,7 @@ export function TransportBar({
                 }`}
                 onClick={handlePlay}
               >
-                {isPlaying ? (
-                  <Pause className="h-6 w-6" />
-                ) : (
-                  <Play className="h-6 w-6 ml-0.5" />
-                )}
+                {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6 ml-0.5" />}
               </button>
             </TooltipTrigger>
             <TooltipContent>Play/Pause (Space)</TooltipContent>
@@ -215,7 +228,7 @@ export function TransportBar({
 
           {/* Armed Tracks Badge */}
           {armedTracksCount > 0 && (
-            <div 
+            <div
               className="ml-2 px-3 h-7 rounded flex items-center gap-1.5 text-xs font-medium"
               style={{
                 background: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%)',
@@ -233,7 +246,7 @@ export function TransportBar({
         {/* Center: Time Display & Loop Controls */}
         <div className="flex items-center gap-6">
           {/* SMPTE Timecode */}
-          <div 
+          <div
             className="flex flex-col items-end px-4 py-2 rounded-md"
             style={{
               background: 'var(--studio-surface)',
@@ -241,14 +254,14 @@ export function TransportBar({
               boxShadow: 'var(--studio-shadow-inner)',
             }}
           >
-            <div 
-              className="text-lg font-mono font-bold tracking-widest" 
+            <div
+              className="text-lg font-mono font-bold tracking-widest"
               style={{ color: 'var(--studio-text)' }}
             >
               {formatSMPTE(currentTime)}
             </div>
-            <div 
-              className="text-xs font-mono tracking-wide" 
+            <div
+              className="text-xs font-mono tracking-wide"
               style={{ color: 'var(--studio-text-subtle)' }}
             >
               {formatMusicalTime(currentTime)}
@@ -325,7 +338,7 @@ export function TransportBar({
               <Minus className="h-3 w-3" />
             </button>
 
-            <div 
+            <div
               className="flex flex-col items-center px-4 py-1.5 rounded-md"
               style={{
                 background: 'var(--studio-surface)',
@@ -345,8 +358,8 @@ export function TransportBar({
                 min="40"
                 max="240"
               />
-              <span 
-                className="text-[9px] font-medium tracking-wider" 
+              <span
+                className="text-[9px] font-medium tracking-wider"
                 style={{ color: 'var(--studio-text-subtle)' }}
               >
                 BPM
@@ -374,7 +387,7 @@ export function TransportBar({
           </div>
 
           {/* Time Signature */}
-          <div 
+          <div
             className="px-3 py-1.5 rounded-md font-mono text-base font-bold"
             style={{
               background: 'var(--studio-surface)',

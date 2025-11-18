@@ -15,15 +15,15 @@ class DatabaseOptimizer {
 
   async executeOptimization(): Promise<void> {
     console.log('🚀 Starting Max Booster Database Performance Optimization...');
-    
+
     const sqlFilePath = path.join(__dirname, 'performance-optimization.sql');
     const sqlContent = fs.readFileSync(sqlFilePath, 'utf-8');
-    
+
     // Split SQL commands by semicolon and filter out comments and empty lines
     const commands = sqlContent
       .split(';')
-      .map(cmd => cmd.trim())
-      .filter(cmd => cmd && !cmd.startsWith('--') && cmd.toUpperCase().includes('CREATE INDEX'));
+      .map((cmd) => cmd.trim())
+      .filter((cmd) => cmd && !cmd.startsWith('--') && cmd.toUpperCase().includes('CREATE INDEX'));
 
     console.log(`📊 Found ${commands.length} index optimization commands`);
 
@@ -37,9 +37,9 @@ class DatabaseOptimizer {
   private async executeIndexCommand(command: string): Promise<void> {
     const indexMatch = command.match(/idx_[\w_]+/);
     const indexName = indexMatch ? indexMatch[0] : 'unknown_index';
-    
+
     const startTime = Date.now();
-    
+
     try {
       // Check if index already exists
       const existsQuery = sql`
@@ -48,41 +48,40 @@ class DatabaseOptimizer {
           WHERE indexname = ${indexName}
         ) as exists
       `;
-      
+
       const result = await db.execute(existsQuery);
       const exists = (result.rows[0] as any)?.exists;
-      
+
       if (exists) {
         console.log(`⏭️  Index ${indexName} already exists, skipping...`);
         this.results.push({
           indexName,
           created: false,
-          executionTime: Date.now() - startTime
+          executionTime: Date.now() - startTime,
         });
         return;
       }
 
       // Execute the index creation
       await db.execute(sql.raw(command));
-      
+
       const executionTime = Date.now() - startTime;
       console.log(`✅ Created index ${indexName} (${executionTime}ms)`);
-      
+
       this.results.push({
         indexName,
         created: true,
-        executionTime
+        executionTime,
       });
-      
     } catch (error: any) {
       const executionTime = Date.now() - startTime;
       console.error(`❌ Failed to create index ${indexName}: ${error.message}`);
-      
+
       this.results.push({
         indexName,
         created: false,
         error: error.message,
-        executionTime
+        executionTime,
       });
     }
   }
@@ -90,21 +89,21 @@ class DatabaseOptimizer {
   private printResults(): void {
     console.log('\n📈 Database Optimization Results:');
     console.log('==================================');
-    
-    const created = this.results.filter(r => r.created);
-    const skipped = this.results.filter(r => !r.created && !r.error);
-    const failed = this.results.filter(r => r.error);
-    
+
+    const created = this.results.filter((r) => r.created);
+    const skipped = this.results.filter((r) => !r.created && !r.error);
+    const failed = this.results.filter((r) => r.error);
+
     console.log(`✅ Indexes Created: ${created.length}`);
     console.log(`⏭️  Indexes Skipped: ${skipped.length}`);
     console.log(`❌ Indexes Failed: ${failed.length}`);
-    
+
     const totalTime = this.results.reduce((sum, r) => sum + r.executionTime, 0);
     console.log(`⏱️  Total Execution Time: ${totalTime}ms`);
 
     if (failed.length > 0) {
       console.log('\n❌ Failed Indexes:');
-      failed.forEach(f => {
+      failed.forEach((f) => {
         console.log(`   ${f.indexName}: ${f.error}`);
       });
     }
@@ -120,7 +119,7 @@ class DatabaseOptimizer {
 
   async analyzeQueryPerformance(): Promise<void> {
     console.log('\n🔍 Analyzing Query Performance...');
-    
+
     try {
       // Get slow queries from pg_stat_statements if available
       const slowQueriesResult = await db.execute(sql`
@@ -135,7 +134,7 @@ class DatabaseOptimizer {
         ORDER BY mean_time DESC
         LIMIT 10
       `);
-      
+
       if (slowQueriesResult.rows && slowQueriesResult.rows.length > 0) {
         console.log('🐌 Top Slow Queries (>100ms average):');
         slowQueriesResult.rows.forEach((row: any, i: number) => {
@@ -176,13 +175,13 @@ class DatabaseOptimizer {
 
   async validateOptimizations(): Promise<boolean> {
     console.log('\n🧪 Validating Database Optimizations...');
-    
+
     const criticalIndexes = [
       'idx_projects_user_updated',
-      'idx_analytics_user_date', 
+      'idx_analytics_user_date',
       'idx_releases_user_updated',
       'idx_earnings_user_report_date',
-      'idx_users_email'
+      'idx_users_email',
     ];
 
     let allValid = true;
@@ -195,7 +194,7 @@ class DatabaseOptimizer {
             WHERE indexname = ${indexName}
           ) as exists
         `);
-        
+
         if (result.rows && result.rows[0] && (result.rows[0] as any).exists) {
           console.log(`✅ ${indexName} - OK`);
         } else {

@@ -39,14 +39,14 @@ export default function Login() {
       await login({ username, password });
       // Navigation will be handled by useRedirectIfAuthenticated hook
       toast({
-        title: "Welcome back!",
+        title: 'Welcome back!',
         description: "You've successfully signed in.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Login Failed",
-        description: error.message || "Invalid credentials. Please try again.",
-        variant: "destructive",
+        title: 'Login Failed',
+        description: error.message || 'Invalid credentials. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -67,9 +67,7 @@ export default function Login() {
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
             Sign In
           </CardTitle>
-          <CardDescription className="text-gray-600">
-            Welcome back to Max Booster
-          </CardDescription>
+          <CardDescription className="text-gray-600">Welcome back to Max Booster</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -91,7 +89,7 @@ export default function Login() {
                 <Input
                   id="password"
                   data-testid="input-password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -105,16 +103,17 @@ export default function Login() {
                   onClick={() => setShowPassword(!showPassword)}
                   data-testid="button-toggle-password"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-login-submit">
-              {isLoading ? "Signing In..." : "Sign In"}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading}
+              data-testid="button-login-submit"
+            >
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
 

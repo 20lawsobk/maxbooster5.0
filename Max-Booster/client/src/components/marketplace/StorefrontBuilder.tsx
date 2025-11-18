@@ -8,8 +8,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -189,7 +202,7 @@ export default function StorefrontBuilder() {
       setSelectedStorefront(data);
       setCreateForm({ name: '', slug: '', templateId: '' });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Creation Failed',
         description: error.message || 'Failed to create storefront',
@@ -215,7 +228,7 @@ export default function StorefrontBuilder() {
       queryClient.invalidateQueries({ queryKey: ['/api/storefront/my'] });
       setSelectedStorefront(data);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Update Failed',
         description: error.message || 'Failed to update storefront',
@@ -256,7 +269,7 @@ export default function StorefrontBuilder() {
         maxSubscribers: null,
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Creation Failed',
         description: error.message || 'Failed to create membership tier',
@@ -270,7 +283,7 @@ export default function StorefrontBuilder() {
       const response = await apiRequest('POST', '/api/storefront/generate-slug', { name });
       const data = await response.json();
       setCreateForm((prev) => ({ ...prev, slug: data.slug }));
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         title: 'Error',
         description: 'Failed to generate slug',
@@ -352,9 +365,7 @@ export default function StorefrontBuilder() {
                           </Badge>
                         )}
                       </CardTitle>
-                      <CardDescription className="mt-1">
-                        /{storefront.slug}
-                      </CardDescription>
+                      <CardDescription className="mt-1">/{storefront.slug}</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -426,11 +437,7 @@ export default function StorefrontBuilder() {
                       </div>
                       <div>
                         <Label>Slug (URL)</Label>
-                        <Input
-                          value={selectedStorefront.slug}
-                          disabled
-                          className="bg-muted"
-                        />
+                        <Input value={selectedStorefront.slug} disabled className="bg-muted" />
                         <p className="text-xs text-muted-foreground mt-1">
                           Your storefront URL: /{selectedStorefront.slug}
                         </p>
@@ -802,17 +809,14 @@ export default function StorefrontBuilder() {
                                   <span className="text-3xl font-bold">
                                     ${(tier.priceCents / 100).toFixed(2)}
                                   </span>
-                                  <span className="text-muted-foreground">
-                                    / {tier.interval}
-                                  </span>
+                                  <span className="text-muted-foreground">/ {tier.interval}</span>
                                 </div>
 
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <Users className="w-4 h-4" />
                                   <span>
                                     {tier.currentSubscribers}
-                                    {tier.maxSubscribers && ` / ${tier.maxSubscribers}`}{' '}
-                                    subscribers
+                                    {tier.maxSubscribers && ` / ${tier.maxSubscribers}`} subscribers
                                   </span>
                                 </div>
 
@@ -829,11 +833,7 @@ export default function StorefrontBuilder() {
                                     <Edit className="w-4 h-4 mr-1" />
                                     Edit
                                   </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-destructive"
-                                  >
+                                  <Button variant="outline" size="sm" className="text-destructive">
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
                                 </div>
@@ -880,9 +880,7 @@ export default function StorefrontBuilder() {
               <div className="flex gap-2">
                 <Input
                   value={createForm.slug}
-                  onChange={(e) =>
-                    setCreateForm({ ...createForm, slug: e.target.value })
-                  }
+                  onChange={(e) => setCreateForm({ ...createForm, slug: e.target.value })}
                   placeholder="my-artist-name"
                 />
                 <Button
@@ -902,9 +900,7 @@ export default function StorefrontBuilder() {
               <Label>Template (Optional)</Label>
               <Select
                 value={createForm.templateId}
-                onValueChange={(value) =>
-                  setCreateForm({ ...createForm, templateId: value })
-                }
+                onValueChange={(value) => setCreateForm({ ...createForm, templateId: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a template..." />
@@ -938,9 +934,7 @@ export default function StorefrontBuilder() {
       <Dialog open={showTierDialog} onOpenChange={setShowTierDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editingTier ? 'Edit' : 'Create'} Membership Tier
-            </DialogTitle>
+            <DialogTitle>{editingTier ? 'Edit' : 'Create'} Membership Tier</DialogTitle>
             <DialogDescription>
               Set up recurring revenue with subscription tiers for your fans
             </DialogDescription>
@@ -960,9 +954,7 @@ export default function StorefrontBuilder() {
               <Label>Description</Label>
               <Textarea
                 value={tierForm.description}
-                onChange={(e) =>
-                  setTierForm({ ...tierForm, description: e.target.value })
-                }
+                onChange={(e) => setTierForm({ ...tierForm, description: e.target.value })}
                 rows={3}
                 placeholder="What members get..."
               />

@@ -39,7 +39,8 @@ export default function SecurityPage() {
             </span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Enterprise-grade security measures to protect your music, data, and financial information
+            Enterprise-grade security measures to protect your music, data, and financial
+            information
           </p>
         </div>
       </section>
@@ -51,34 +52,40 @@ export default function SecurityPage() {
             {[
               {
                 icon: Lock,
-                title: "End-to-End Encryption",
-                description: "All data transmitted to and from Max Booster is encrypted using TLS 1.3, the latest industry standard."
+                title: 'End-to-End Encryption',
+                description:
+                  'All data transmitted to and from Max Booster is encrypted using TLS 1.3, the latest industry standard.',
               },
               {
                 icon: Server,
-                title: "Secure Infrastructure",
-                description: "Our servers are hosted on enterprise-grade infrastructure with 24/7 monitoring and automatic failover."
+                title: 'Secure Infrastructure',
+                description:
+                  'Our servers are hosted on enterprise-grade infrastructure with 24/7 monitoring and automatic failover.',
               },
               {
                 icon: Key,
-                title: "Two-Factor Authentication",
-                description: "Optional 2FA adds an extra layer of security to protect your account from unauthorized access."
+                title: 'Two-Factor Authentication',
+                description:
+                  'Optional 2FA adds an extra layer of security to protect your account from unauthorized access.',
               },
               {
                 icon: Eye,
-                title: "Privacy by Design",
-                description: "We collect only what's necessary and never sell your data. You own your music and information."
+                title: 'Privacy by Design',
+                description:
+                  "We collect only what's necessary and never sell your data. You own your music and information.",
               },
               {
                 icon: FileCheck,
-                title: "Regular Security Audits",
-                description: "Independent security audits and penetration testing ensure our systems stay secure."
+                title: 'Regular Security Audits',
+                description:
+                  'Independent security audits and penetration testing ensure our systems stay secure.',
               },
               {
                 icon: Shield,
-                title: "GDPR Compliant",
-                description: "We comply with GDPR, CCPA, and other privacy regulations to protect your rights."
-              }
+                title: 'GDPR Compliant',
+                description:
+                  'We comply with GDPR, CCPA, and other privacy regulations to protect your rights.',
+              },
             ].map((feature, i) => (
               <Card key={i} className="hover-lift">
                 <CardContent className="p-6">
@@ -103,22 +110,24 @@ export default function SecurityPage() {
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-3">Stripe Integration</h3>
                     <p className="text-gray-700">
-                      All payments are processed through Stripe, a PCI DSS Level 1 certified payment processor. 
-                      We never store your credit card information on our servers.
+                      All payments are processed through Stripe, a PCI DSS Level 1 certified payment
+                      processor. We never store your credit card information on our servers.
                     </p>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">Secure Royalty Payouts</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                      Secure Royalty Payouts
+                    </h3>
                     <p className="text-gray-700">
-                      Your earnings are protected with bank-level security. Stripe Connect ensures your financial 
-                      information is encrypted and never exposed.
+                      Your earnings are protected with bank-level security. Stripe Connect ensures
+                      your financial information is encrypted and never exposed.
                     </p>
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-3">Fraud Protection</h3>
                     <p className="text-gray-700">
-                      Advanced fraud detection algorithms monitor all transactions in real-time to protect both 
-                      buyers and sellers in our marketplace.
+                      Advanced fraud detection algorithms monitor all transactions in real-time to
+                      protect both buyers and sellers in our marketplace.
                     </p>
                   </div>
                 </div>
@@ -135,27 +144,33 @@ export default function SecurityPage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Data Protection</h2>
             <div className="space-y-6 text-gray-700">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Your Music, Your Rights</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Your Music, Your Rights
+                </h3>
                 <p>
-                  You retain 100% ownership of all music you upload. We act only as a distributor and platform provider.
+                  You retain 100% ownership of all music you upload. We act only as a distributor
+                  and platform provider.
                 </p>
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Data Backups</h3>
                 <p>
-                  All projects and music files are backed up daily with geo-redundant storage across multiple regions.
+                  All projects and music files are backed up daily with geo-redundant storage across
+                  multiple regions.
                 </p>
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Right to Delete</h3>
                 <p>
-                  You can permanently delete your account and all associated data at any time from your settings.
+                  You can permanently delete your account and all associated data at any time from
+                  your settings.
                 </p>
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Transparent Practices</h3>
                 <p>
-                  We provide clear information about what data we collect, how we use it, and who we share it with (spoiler: only DSPs you choose).
+                  We provide clear information about what data we collect, how we use it, and who we
+                  share it with (spoiler: only DSPs you choose).
                 </p>
               </div>
             </div>
@@ -169,10 +184,13 @@ export default function SecurityPage() {
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Responsible Disclosure</h2>
             <p className="text-gray-700 mb-6">
-              Found a security vulnerability? We appreciate responsible disclosure. Please report security 
-              issues to our security team at:
+              Found a security vulnerability? We appreciate responsible disclosure. Please report
+              security issues to our security team at:
             </p>
-            <a href="mailto:security@maxbooster.com" className="text-blue-600 hover:underline font-medium text-lg">
+            <a
+              href="mailto:security@maxbooster.com"
+              className="text-blue-600 hover:underline font-medium text-lg"
+            >
               security@maxbooster.com
             </a>
             <p className="text-gray-600 text-sm mt-4">

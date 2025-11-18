@@ -11,17 +11,29 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Eye, 
-  Save, 
-  Copy, 
-  ExternalLink, 
-  Upload, 
-  Palette, 
-  Mail, 
+import {
+  Eye,
+  Save,
+  Copy,
+  ExternalLink,
+  Upload,
+  Palette,
+  Mail,
   Share2,
   Smartphone,
   BarChart3,
@@ -31,43 +43,50 @@ import {
   Check,
   Music,
   Globe,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
-import { 
-  SiSpotify, 
-  SiApple, 
-  SiYoutube, 
-  SiAmazon, 
-  SiTidal, 
+import {
+  SiSpotify,
+  SiApple,
+  SiYoutube,
+  SiAmazon,
+  SiTidal,
   SiDeezer,
   SiSoundcloud,
   SiTwitter,
   SiFacebook,
   SiInstagram,
-  SiTiktok
+  SiTiktok,
 } from 'react-icons/si';
 
 // Validation schema
 const hyperFollowSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   artistName: z.string().min(1, 'Artist name is required'),
-  slug: z.string()
+  slug: z
+    .string()
     .min(3, 'Slug must be at least 3 characters')
     .max(50, 'Slug must be less than 50 characters')
     .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
   headerImage: z.string().optional(),
   description: z.string().optional(),
   collectEmails: z.boolean().default(true),
-  platforms: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    enabled: z.boolean(),
-    url: z.string().optional(),
-  })),
-  socialLinks: z.array(z.object({
-    platform: z.string(),
-    url: z.string(),
-  })).optional(),
+  platforms: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      enabled: z.boolean(),
+      url: z.string().optional(),
+    })
+  ),
+  socialLinks: z
+    .array(
+      z.object({
+        platform: z.string(),
+        url: z.string(),
+      })
+    )
+    .optional(),
   theme: z.object({
     primaryColor: z.string(),
     backgroundColor: z.string(),
@@ -88,13 +107,43 @@ interface Platform {
 }
 
 const AVAILABLE_PLATFORMS: Platform[] = [
-  { id: 'spotify', name: 'Spotify Pre-Save', icon: SiSpotify, color: '#1DB954', category: 'streaming' },
-  { id: 'apple-music', name: 'Apple Music Pre-Add', icon: SiApple, color: '#FA243C', category: 'streaming' },
-  { id: 'youtube-music', name: 'YouTube Music', icon: SiYoutube, color: '#FF0000', category: 'streaming' },
-  { id: 'amazon-music', name: 'Amazon Music', icon: SiAmazon, color: '#FF9900', category: 'streaming' },
+  {
+    id: 'spotify',
+    name: 'Spotify Pre-Save',
+    icon: SiSpotify,
+    color: '#1DB954',
+    category: 'streaming',
+  },
+  {
+    id: 'apple-music',
+    name: 'Apple Music Pre-Add',
+    icon: SiApple,
+    color: '#FA243C',
+    category: 'streaming',
+  },
+  {
+    id: 'youtube-music',
+    name: 'YouTube Music',
+    icon: SiYoutube,
+    color: '#FF0000',
+    category: 'streaming',
+  },
+  {
+    id: 'amazon-music',
+    name: 'Amazon Music',
+    icon: SiAmazon,
+    color: '#FF9900',
+    category: 'streaming',
+  },
   { id: 'tidal', name: 'TIDAL', icon: SiTidal, color: '#000000', category: 'streaming' },
   { id: 'deezer', name: 'Deezer', icon: SiDeezer, color: '#FEAA2D', category: 'streaming' },
-  { id: 'soundcloud', name: 'SoundCloud', icon: SiSoundcloud, color: '#FF3300', category: 'streaming' },
+  {
+    id: 'soundcloud',
+    name: 'SoundCloud',
+    icon: SiSoundcloud,
+    color: '#FF3300',
+    category: 'streaming',
+  },
 ];
 
 const SOCIAL_PLATFORMS = [
@@ -107,11 +156,19 @@ const SOCIAL_PLATFORMS = [
 interface HyperFollowBuilderProps {
   releaseId?: string;
   campaignId?: string;
-  onComplete?: (campaign: any) => void;
+  onComplete?: (campaign: unknown) => void;
   onCancel?: () => void;
 }
 
-export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel }: HyperFollowBuilderProps) {
+/**
+ * TODO: Add function documentation
+ */
+export function HyperFollowBuilder({
+  releaseId,
+  campaignId,
+  onComplete,
+  onCancel,
+}: HyperFollowBuilderProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('design');
@@ -125,7 +182,13 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
     enabled: !!campaignId,
   });
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<HyperFollowFormData>({
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<HyperFollowFormData>({
     resolver: zodResolver(hyperFollowSchema),
     defaultValues: existingCampaign || {
       title: '',
@@ -133,7 +196,7 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
       slug: '',
       description: '',
       collectEmails: true,
-      platforms: AVAILABLE_PLATFORMS.map(p => ({
+      platforms: AVAILABLE_PLATFORMS.map((p) => ({
         id: p.id,
         name: p.name,
         enabled: false,
@@ -190,20 +253,23 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
   const saveMutation = useMutation({
     mutationFn: async (data: HyperFollowFormData) => {
       const formData = new FormData();
-      
+
       if (headerImageFile) {
         formData.append('headerImage', headerImageFile);
       }
 
-      formData.append('data', JSON.stringify({
-        ...data,
-        releaseId,
-      }));
+      formData.append(
+        'data',
+        JSON.stringify({
+          ...data,
+          releaseId,
+        })
+      );
 
-      const url = campaignId 
+      const url = campaignId
         ? `/api/distribution/hyperfollow/${campaignId}`
         : '/api/distribution/hyperfollow';
-      
+
       const method = campaignId ? 'PATCH' : 'POST';
       const response = await apiRequest(method, url, formData);
       return response.json();
@@ -216,7 +282,7 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
       queryClient.invalidateQueries({ queryKey: ['/api/distribution/hyperfollow'] });
       onComplete?.(campaign);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Error saving campaign',
         description: error.message || 'Please try again.',
@@ -294,23 +360,13 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Release Title *</Label>
-                <Input
-                  id="title"
-                  {...register('title')}
-                  placeholder="My Awesome Song"
-                />
-                {errors.title && (
-                  <p className="text-sm text-destructive">{errors.title.message}</p>
-                )}
+                <Input id="title" {...register('title')} placeholder="My Awesome Song" />
+                {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="artistName">Artist Name *</Label>
-                <Input
-                  id="artistName"
-                  {...register('artistName')}
-                  placeholder="Your Artist Name"
-                />
+                <Input id="artistName" {...register('artistName')} placeholder="Your Artist Name" />
                 {errors.artistName && (
                   <p className="text-sm text-destructive">{errors.artistName.message}</p>
                 )}
@@ -327,9 +383,7 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
                     className="flex-1"
                   />
                 </div>
-                {errors.slug && (
-                  <p className="text-sm text-destructive">{errors.slug.message}</p>
-                )}
+                {errors.slug && <p className="text-sm text-destructive">{errors.slug.message}</p>}
               </div>
 
               <div className="space-y-2">
@@ -367,9 +421,7 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
                   ) : (
                     <label className="cursor-pointer">
                       <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Click to upload header image
-                      </p>
+                      <p className="text-sm text-muted-foreground">Click to upload header image</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         Recommended: 1600x900px, Max 5MB
                       </p>
@@ -455,9 +507,11 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
                           ? 'border-primary bg-primary/10'
                           : 'border-muted'
                       } ${
-                        style === 'rounded' ? 'rounded-md' :
-                        style === 'square' ? 'rounded-none' :
-                        'rounded-full'
+                        style === 'rounded'
+                          ? 'rounded-md'
+                          : style === 'square'
+                            ? 'rounded-none'
+                            : 'rounded-full'
                       }`}
                     >
                       {style.charAt(0).toUpperCase() + style.slice(1)}
@@ -496,9 +550,7 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
           <Card>
             <CardHeader>
               <CardTitle>Streaming Platforms</CardTitle>
-              <CardDescription>
-                Enable platforms and set up pre-save/pre-add links
-              </CardDescription>
+              <CardDescription>Enable platforms and set up pre-save/pre-add links</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {AVAILABLE_PLATFORMS.map((platform, index) => {
@@ -564,9 +616,7 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
           <Card>
             <CardHeader>
               <CardTitle>Social Media Links</CardTitle>
-              <CardDescription>
-                Add social sharing buttons to your campaign
-              </CardDescription>
+              <CardDescription>Add social sharing buttons to your campaign</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {SOCIAL_PLATFORMS.map((platform) => {
@@ -592,11 +642,11 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
                       onChange={(e) => {
                         const links = watchedValues.socialLinks || [];
                         const filtered = links.filter((l) => l.platform !== platform.id);
-                        
+
                         if (e.target.value) {
                           filtered.push({ platform: platform.id, url: e.target.value });
                         }
-                        
+
                         setValue('socialLinks', filtered);
                       }}
                     />
@@ -606,8 +656,8 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
 
               <div className="p-4 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground">
-                  Social links will appear as share buttons on your HyperFollow page,
-                  making it easy for fans to share your release.
+                  Social links will appear as share buttons on your HyperFollow page, making it easy
+                  for fans to share your release.
                 </p>
               </div>
             </CardContent>
@@ -619,9 +669,7 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
           <Card>
             <CardHeader>
               <CardTitle>Campaign Analytics</CardTitle>
-              <CardDescription>
-                Track performance and engagement metrics
-              </CardDescription>
+              <CardDescription>Track performance and engagement metrics</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {campaignId ? (
@@ -705,21 +753,17 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
             <DialogTitle>Campaign Preview</DialogTitle>
             <DialogDescription>This is how your HyperFollow page will look</DialogDescription>
           </DialogHeader>
-          
-          <div 
+
+          <div
             className="rounded-lg overflow-hidden"
-            style={{ 
+            style={{
               backgroundColor: watchedValues.theme?.backgroundColor || '#0F0F0F',
-              color: watchedValues.theme?.textColor || '#FFFFFF'
+              color: watchedValues.theme?.textColor || '#FFFFFF',
             }}
           >
             {/* Header Image */}
             {headerImagePreview && (
-              <img
-                src={headerImagePreview}
-                alt="Header"
-                className="w-full h-40 object-cover"
-              />
+              <img src={headerImagePreview} alt="Header" className="w-full h-40 object-cover" />
             )}
 
             {/* Content */}
@@ -747,9 +791,12 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
                         className="w-full flex items-center justify-center gap-3 p-3 transition-opacity hover:opacity-80"
                         style={{
                           backgroundColor: watchedValues.theme?.primaryColor || '#8B5CF6',
-                          borderRadius: 
-                            watchedValues.theme?.buttonStyle === 'pill' ? '9999px' :
-                            watchedValues.theme?.buttonStyle === 'square' ? '0' : '0.375rem'
+                          borderRadius:
+                            watchedValues.theme?.buttonStyle === 'pill'
+                              ? '9999px'
+                              : watchedValues.theme?.buttonStyle === 'square'
+                                ? '0'
+                                : '0.375rem',
                         }}
                       >
                         <Icon className="h-5 w-5" />
@@ -762,11 +809,7 @@ export function HyperFollowBuilder({ releaseId, campaignId, onComplete, onCancel
               {/* Email Collection */}
               {watchedValues.collectEmails && (
                 <div className="space-y-2">
-                  <Input
-                    placeholder="Enter your email"
-                    disabled
-                    className="bg-background/10"
-                  />
+                  <Input placeholder="Enter your email" disabled className="bg-background/10" />
                   <Button
                     className="w-full"
                     disabled

@@ -1,6 +1,7 @@
 import { Router, type RequestHandler } from 'express';
 import { metricsService } from '../../services/metricsService.js';
 import { emailTrackingService } from '../../services/emailTrackingService.js';
+import { logger } from '../../logger.js';
 
 const router = Router();
 
@@ -8,11 +9,11 @@ const requireAdmin: RequestHandler = (req, res, next) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: 'Authentication required' });
   }
-  
+
   if (!req.user?.isAdmin) {
     return res.status(403).json({ error: 'Admin access required' });
   }
-  
+
   next();
 };
 
@@ -41,8 +42,8 @@ router.get('/metrics', async (req, res) => {
     );
 
     res.json({ metrics });
-  } catch (error: any) {
-    console.error('Error fetching metrics:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching metrics:', error);
     res.status(500).json({ error: 'Failed to fetch metrics' });
   }
 });
@@ -61,8 +62,8 @@ router.post('/metrics/test', async (req, res) => {
     await metricsService.recordMetric(metricName, value, source, tags);
 
     res.json({ success: true, message: 'Test metric recorded' });
-  } catch (error: any) {
-    console.error('Error recording test metric:', error);
+  } catch (error: unknown) {
+    logger.error('Error recording test metric:', error);
     res.status(500).json({ error: 'Failed to record metric' });
   }
 });
@@ -74,8 +75,8 @@ router.get('/alerts/incidents', async (req, res) => {
   try {
     const incidents = await metricsService.getActiveIncidents();
     res.json({ incidents });
-  } catch (error: any) {
-    console.error('Error fetching incidents:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching incidents:', error);
     res.status(500).json({ error: 'Failed to fetch incidents' });
   }
 });
@@ -102,8 +103,8 @@ router.post('/alerts/rules', async (req, res) => {
     });
 
     res.json({ success: true, message: 'Alert rule created' });
-  } catch (error: any) {
-    console.error('Error creating alert rule:', error);
+  } catch (error: unknown) {
+    logger.error('Error creating alert rule:', error);
     res.status(500).json({ error: 'Failed to create alert rule' });
   }
 });
@@ -115,8 +116,8 @@ router.post('/alerts/evaluate', async (req, res) => {
   try {
     await metricsService.evaluateAlerts();
     res.json({ success: true, message: 'Alerts evaluated' });
-  } catch (error: any) {
-    console.error('Error evaluating alerts:', error);
+  } catch (error: unknown) {
+    logger.error('Error evaluating alerts:', error);
     res.status(500).json({ error: 'Failed to evaluate alerts' });
   }
 });
@@ -134,8 +135,8 @@ router.get('/email/stats', async (req, res) => {
     const recentBounces = await emailTrackingService.getRecentBounces(20);
 
     res.json({ stats, recentBounces });
-  } catch (error: any) {
-    console.error('Error fetching email stats:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching email stats:', error);
     res.status(500).json({ error: 'Failed to fetch email stats' });
   }
 });

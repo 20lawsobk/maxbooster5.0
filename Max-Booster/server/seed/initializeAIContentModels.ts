@@ -1,9 +1,18 @@
-import { db } from "../db";
-import { aiModels, aiModelVersions, type InsertAIModel, type InsertAIModelVersion } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { db } from '../db';
+import {
+  aiModels,
+  aiModelVersions,
+  type InsertAIModel,
+  type InsertAIModelVersion,
+} from '@shared/schema';
+import { eq } from 'drizzle-orm';
+import { logger } from '../logger.js';
 
+/**
+ * TODO: Add function documentation
+ */
 export async function initializeAIContentModels() {
-  console.log('🚀 Initializing AI Content Models...');
+  logger.info('🚀 Initializing AI Content Models...');
 
   const models: Array<{
     model: InsertAIModel;
@@ -13,7 +22,8 @@ export async function initializeAIContentModels() {
       model: {
         modelName: 'content_multilingual_v1',
         modelType: 'content_generation',
-        description: 'Multi-language content generation with cultural adaptations. Supports 10+ languages including English, Spanish, French, German, Italian, Portuguese, Chinese, Japanese, Korean, and Arabic.',
+        description:
+          'Multi-language content generation with cultural adaptations. Supports 10+ languages including English, Spanish, French, German, Italian, Portuguese, Chinese, Japanese, Korean, and Arabic.',
         category: 'text',
         isActive: true,
         isBeta: false,
@@ -21,7 +31,8 @@ export async function initializeAIContentModels() {
       version: {
         versionNumber: 'v1.0.0',
         versionHash: 'multilingual_20251111_deterministic_v1',
-        algorithmChanges: 'Initial release: Deterministic translation templates with cultural adaptations for 10 languages. Template-based approach ensures reproducibility.',
+        algorithmChanges:
+          'Initial release: Deterministic translation templates with cultural adaptations for 10 languages. Template-based approach ensures reproducibility.',
         parameters: {
           languages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'zh', 'ja', 'ko', 'ar'],
           translationApproach: 'template-based',
@@ -42,7 +53,8 @@ export async function initializeAIContentModels() {
       model: {
         modelName: 'brand_voice_analyzer_v1',
         modelType: 'content_generation',
-        description: 'Analyzes historical posts to extract brand voice characteristics including tone, emoji usage, hashtag patterns, sentence structure, and vocabulary complexity. Generates brand voice profiles with confidence scores.',
+        description:
+          'Analyzes historical posts to extract brand voice characteristics including tone, emoji usage, hashtag patterns, sentence structure, and vocabulary complexity. Generates brand voice profiles with confidence scores.',
         category: 'analytics',
         isActive: true,
         isBeta: false,
@@ -50,7 +62,8 @@ export async function initializeAIContentModels() {
       version: {
         versionNumber: 'v1.0.0',
         versionHash: 'brand_voice_20251111_deterministic_v1',
-        algorithmChanges: 'Initial release: Statistical analysis of historical posts. Analyzes tone (formal/casual/mixed), emoji frequency, hashtag patterns, sentence length, vocabulary complexity, and common phrases. Confidence score improves with sample size.',
+        algorithmChanges:
+          'Initial release: Statistical analysis of historical posts. Analyzes tone (formal/casual/mixed), emoji frequency, hashtag patterns, sentence length, vocabulary complexity, and common phrases. Confidence score improves with sample size.',
         parameters: {
           minPosts: 5,
           maxAnalysisWindow: 100,
@@ -73,7 +86,8 @@ export async function initializeAIContentModels() {
       model: {
         modelName: 'trend_detector_v1',
         modelType: 'content_generation',
-        description: 'Detects trending topics based on temporal patterns (day of week, season, time of day), platform-specific trends, and cultural events. Uses deterministic simulation for consistent trend predictions.',
+        description:
+          'Detects trending topics based on temporal patterns (day of week, season, time of day), platform-specific trends, and cultural events. Uses deterministic simulation for consistent trend predictions.',
         category: 'analytics',
         isActive: true,
         isBeta: false,
@@ -81,7 +95,8 @@ export async function initializeAIContentModels() {
       version: {
         versionNumber: 'v1.0.0',
         versionHash: 'trend_detector_20251111_deterministic_v1',
-        algorithmChanges: 'Initial release: Deterministic trend simulation based on temporal patterns. Categories: music trends, social media trends, cultural events, holidays, industry events. Platform-aware recommendations.',
+        algorithmChanges:
+          'Initial release: Deterministic trend simulation based on temporal patterns. Categories: music trends, social media trends, cultural events, holidays, industry events. Platform-aware recommendations.',
         parameters: {
           trendCategories: ['music', 'social', 'cultural', 'holiday', 'industry'],
           temporalFactors: ['dayOfWeek', 'season', 'hour', 'month'],
@@ -102,7 +117,8 @@ export async function initializeAIContentModels() {
       model: {
         modelName: 'hashtag_optimizer_v1',
         modelType: 'content_generation',
-        description: 'Optimizes hashtag selection based on goal (reach, engagement, niche), platform-specific limits, and hashtag effectiveness metrics. Categorizes hashtags by reach level and tracks performance data.',
+        description:
+          'Optimizes hashtag selection based on goal (reach, engagement, niche), platform-specific limits, and hashtag effectiveness metrics. Categorizes hashtags by reach level and tracks performance data.',
         category: 'text',
         isActive: true,
         isBeta: false,
@@ -110,7 +126,8 @@ export async function initializeAIContentModels() {
       version: {
         versionNumber: 'v1.0.0',
         versionHash: 'hashtag_optimizer_20251111_deterministic_v1',
-        algorithmChanges: 'Initial release: Platform-aware hashtag optimization with goal-based selection. Analyzes popularity vs competition trade-offs. Categories: high-reach (95+ popularity), medium-reach (60-90 popularity), niche (<60 popularity).',
+        algorithmChanges:
+          'Initial release: Platform-aware hashtag optimization with goal-based selection. Analyzes popularity vs competition trade-offs. Categories: high-reach (95+ popularity), medium-reach (60-90 popularity), niche (<60 popularity).',
         parameters: {
           goals: ['reach', 'engagement', 'niche'],
           categories: ['high-reach', 'medium-reach', 'niche'],
@@ -148,16 +165,13 @@ export async function initializeAIContentModels() {
       let modelId: string;
 
       if (existing.length === 0) {
-        const [createdModel] = await db
-          .insert(aiModels)
-          .values(model)
-          .returning();
-        
+        const [createdModel] = await db.insert(aiModels).values(model).returning();
+
         modelId = createdModel.id;
-        console.log(`✅ Created AI model: ${model.modelName}`);
+        logger.info(`✅ Created AI model: ${model.modelName}`);
       } else {
         modelId = existing[0].id;
-        console.log(`ℹ️  AI model already exists: ${model.modelName}`);
+        logger.info(`ℹ️  AI model already exists: ${model.modelName}`);
       }
 
       const existingVersion = await db
@@ -180,32 +194,32 @@ export async function initializeAIContentModels() {
           .set({ currentVersionId: createdVersion.id })
           .where(eq(aiModels.id, modelId));
 
-        console.log(`✅ Created version ${version.versionNumber} for ${model.modelName}`);
+        logger.info(`✅ Created version ${version.versionNumber} for ${model.modelName}`);
       } else {
-        console.log(`ℹ️  Version already exists: ${version.versionNumber} for ${model.modelName}`);
+        logger.info(`ℹ️  Version already exists: ${version.versionNumber} for ${model.modelName}`);
       }
-    } catch (error) {
-      console.error(`❌ Error initializing ${model.modelName}:`, error);
+    } catch (error: unknown) {
+      logger.error(`❌ Error initializing ${model.modelName}:`, error);
       throw error;
     }
   }
 
-  console.log('✅ AI Content Models initialized successfully!');
-  console.log('\nInitialized Models:');
-  console.log('  1. content_multilingual_v1 - Multi-language content generation (10+ languages)');
-  console.log('  2. brand_voice_analyzer_v1 - Brand voice learning and profiling');
-  console.log('  3. trend_detector_v1 - Trending topic detection and analysis');
-  console.log('  4. hashtag_optimizer_v1 - Hashtag optimization with goal-based selection');
+  logger.info('✅ AI Content Models initialized successfully!');
+  logger.info('\nInitialized Models:');
+  logger.info('  1. content_multilingual_v1 - Multi-language content generation (10+ languages)');
+  logger.info('  2. brand_voice_analyzer_v1 - Brand voice learning and profiling');
+  logger.info('  3. trend_detector_v1 - Trending topic detection and analysis');
+  logger.info('  4. hashtag_optimizer_v1 - Hashtag optimization with goal-based selection');
 }
 
 if (require.main === module) {
   initializeAIContentModels()
     .then(() => {
-      console.log('\n🎉 Initialization complete!');
+      logger.info('\n🎉 Initialization complete!');
       process.exit(0);
     })
     .catch((error) => {
-      console.error('\n💥 Initialization failed:', error);
+      logger.error('\n💥 Initialization failed:', error);
       process.exit(1);
     });
 }

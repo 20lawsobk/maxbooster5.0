@@ -16,6 +16,9 @@ interface UserOverviewPanelProps {
   };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function UserOverviewPanel({ user }: UserOverviewPanelProps) {
   const getSubscriptionBadge = (plan?: string | null) => {
     // Handle null, undefined, empty string, or trial as Free tier
@@ -23,52 +26,52 @@ export function UserOverviewPanel({ user }: UserOverviewPanelProps) {
       return {
         label: 'Free',
         variant: 'secondary' as const,
-        icon: null
+        icon: null,
       };
     }
-    
+
     // Core plan
     if (plan === 'core') {
       return {
         label: 'Core',
         variant: 'default' as const,
-        icon: <Crown className="w-3 h-3" />
+        icon: <Crown className="w-3 h-3" />,
       };
     }
-    
+
     // Pro plan
     if (plan === 'pro') {
       return {
         label: 'Pro',
         variant: 'default' as const,
-        icon: <Crown className="w-3 h-3" />
+        icon: <Crown className="w-3 h-3" />,
       };
     }
-    
+
     // Lifetime plan
     if (plan === 'lifetime') {
       return {
         label: 'Lifetime',
         variant: 'default' as const,
-        icon: <Crown className="w-3 h-3" />
+        icon: <Crown className="w-3 h-3" />,
       };
     }
-    
+
     // Fallback for any other plan types
     return {
       label: plan.charAt(0).toUpperCase() + plan.slice(1),
       variant: 'default' as const,
-      icon: <Crown className="w-3 h-3" />
+      icon: <Crown className="w-3 h-3" />,
     };
   };
 
   const badge = getSubscriptionBadge(user.subscriptionPlan ?? null);
-  
+
   // Get user initials for avatar fallback
   const getInitials = (username: string) => {
     return username
       .split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
@@ -78,23 +81,20 @@ export function UserOverviewPanel({ user }: UserOverviewPanelProps) {
     if (!date) return 'N/A';
     try {
       return formatDistanceToNow(new Date(date), { addSuffix: true });
-    } catch (error) {
+    } catch (error: unknown) {
       return 'N/A';
     }
   };
 
   return (
-    <Card 
+    <Card
       className="border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-blue-950"
       data-testid="user-overview-panel"
     >
       <CardContent className="p-6">
         <div className="flex items-center space-x-4">
           {/* Avatar */}
-          <Avatar 
-            className="w-16 h-16 border-2 border-blue-600"
-            data-testid="user-avatar"
-          >
+          <Avatar className="w-16 h-16 border-2 border-blue-600" data-testid="user-avatar">
             <AvatarImage src={user.avatarUrl} alt={user.username} />
             <AvatarFallback className="bg-blue-600 text-white text-lg font-bold">
               {getInitials(user.username)}
@@ -104,13 +104,13 @@ export function UserOverviewPanel({ user }: UserOverviewPanelProps) {
           {/* User Info */}
           <div className="flex-1 space-y-1">
             <div className="flex items-center space-x-2">
-              <h3 
+              <h3
                 className="text-xl font-bold text-gray-900 dark:text-white"
                 data-testid="user-name"
               >
                 {user.username}
               </h3>
-              <Badge 
+              <Badge
                 variant={badge.variant}
                 className="flex items-center space-x-1"
                 data-testid="subscription-badge"

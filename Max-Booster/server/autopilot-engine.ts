@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import { randomUUID } from 'crypto';
 import { platformAPI } from './platform-apis.ts';
 import { customAI } from './custom-ai-engine.ts';
+import { logger } from './logger.js';
 
 interface AutopilotJob {
   id: string;
@@ -54,7 +55,7 @@ export class AutopilotEngine extends EventEmitter {
       contentTypes: ['announcements', 'questions', 'tips', 'insights'],
       optimalTimesOnly: true,
       crossPostingEnabled: true,
-      engagementThreshold: 0.03
+      engagementThreshold: 0.03,
     });
     return engine;
   }
@@ -69,7 +70,7 @@ export class AutopilotEngine extends EventEmitter {
       contentTypes: ['announcements', 'insights'],
       optimalTimesOnly: true,
       crossPostingEnabled: false,
-      engagementThreshold: 0.02
+      engagementThreshold: 0.02,
     });
     return engine;
   }
@@ -84,7 +85,7 @@ export class AutopilotEngine extends EventEmitter {
       contentTypes: ['announcements', 'insights'],
       optimalTimesOnly: true,
       crossPostingEnabled: false,
-      engagementThreshold: 0.01
+      engagementThreshold: 0.01,
     });
     return engine;
   }
@@ -102,14 +103,14 @@ export class AutopilotEngine extends EventEmitter {
       autoPublish: false,
       optimalTimesOnly: true,
       crossPostingEnabled: false,
-      engagementThreshold: 0.02
+      engagementThreshold: 0.02,
     };
   }
 
   // Autopilot Configuration
   async configure(config: Partial<AutopilotConfig>): Promise<void> {
     this.config = { ...this.config, ...config };
-    
+
     if (this.config.enabled && !this.isRunning) {
       await this.start();
     } else if (!this.config.enabled && this.isRunning) {
@@ -126,40 +127,40 @@ export class AutopilotEngine extends EventEmitter {
   // Autopilot Lifecycle
   async start(): Promise<void> {
     if (this.isRunning) return;
-    
+
     this.isRunning = true;
     this.emit('autopilotStarted');
-    
+
     // Initialize content generation jobs
     await this.scheduleContentGeneration();
-    
+
     // Start the job scheduler
     this.schedulerInterval = setInterval(() => {
       this.processJobs();
     }, 60000); // Check every minute
 
-    console.log('Autopilot started with config:', this.config);
+    logger.info('Autopilot started with config:', this.config);
   }
 
   async stop(): Promise<void> {
     if (!this.isRunning) return;
-    
+
     this.isRunning = false;
-    
+
     if (this.schedulerInterval) {
       clearInterval(this.schedulerInterval);
       this.schedulerInterval = null;
     }
-    
+
     // Cancel pending jobs
     this.jobs.forEach((job) => {
       if (job.status === 'pending') {
         job.status = 'failed';
       }
     });
-    
+
     this.emit('autopilotStopped');
-    console.log('Autopilot stopped');
+    logger.info('Autopilot stopped');
   }
 
   // Content Generation Pipeline
@@ -168,10 +169,10 @@ export class AutopilotEngine extends EventEmitter {
 
     for (const platform of this.config.platforms) {
       const nextPostTime = this.calculateNextPostTime(platform);
-      
+
       // Schedule content generation 30 minutes before posting
       const generationTime = new Date(nextPostTime.getTime() - 30 * 60 * 1000);
-      
+
       const job: AutopilotJob = {
         id: randomUUID(),
         type: 'content_generation',
@@ -180,11 +181,11 @@ export class AutopilotEngine extends EventEmitter {
         data: {
           topic: this.selectNextTopic(),
           brandVoice: this.config.brandVoice,
-          contentType: this.selectContentType()
+          contentType: this.selectContentType(),
         },
         status: 'pending',
         retries: 0,
-        maxRetries: 3
+        maxRetries: 3,
       };
 
       this.jobs.set(job.id, job);
@@ -198,7 +199,7 @@ export class AutopilotEngine extends EventEmitter {
         data: { contentJobId: job.id },
         status: 'pending',
         retries: 0,
-        maxRetries: 2
+        maxRetries: 2,
       };
 
       this.jobs.set(publishJob.id, publishJob);
@@ -214,10 +215,10 @@ export class AutopilotEngine extends EventEmitter {
   private calculateNextPostTime(platform: string): Date {
     const now = new Date();
     const optimalTimes = this.getOptimalTimesForPlatform(platform);
-    
+
     // Find next optimal time
     let nextTime = new Date(now);
-    
+
     switch (this.config.postingFrequency) {
       case 'hourly':
         nextTime.setHours(now.getHours() + 1, 0, 0, 0);
@@ -225,7 +226,7 @@ export class AutopilotEngine extends EventEmitter {
       case 'twice-daily':
         const morningHour = optimalTimes[0] || 9;
         const eveningHour = optimalTimes[1] || 17;
-        
+
         if (now.getHours() < morningHour) {
           nextTime.setHours(morningHour, 0, 0, 0);
         } else if (now.getHours() < eveningHour) {
@@ -252,7 +253,7 @@ export class AutopilotEngine extends EventEmitter {
   private calculateNextBatchTime(): number {
     const now = Date.now();
     const frequency = this.config.postingFrequency;
-    
+
     switch (frequency) {
       case 'hourly':
         return now + 60 * 60 * 1000; // 1 hour
@@ -270,13 +271,13 @@ export class AutopilotEngine extends EventEmitter {
   private getOptimalTimesForPlatform(platform: string): number[] {
     // Real implementation would query actual audience activity data
     const platformTimes: Record<string, number[]> = {
-      'Twitter': [9, 12, 15, 18],
-      'Instagram': [8, 11, 14, 19],
-      'LinkedIn': [8, 12, 17],
-      'Facebook': [9, 13, 15, 20],
-      'TikTok': [6, 10, 16, 19]
+      Twitter: [9, 12, 15, 18],
+      Instagram: [8, 11, 14, 19],
+      LinkedIn: [8, 12, 17],
+      Facebook: [9, 13, 15, 20],
+      TikTok: [6, 10, 16, 19],
     };
-    
+
     return platformTimes[platform] || [14];
   }
 
@@ -284,7 +285,7 @@ export class AutopilotEngine extends EventEmitter {
     if (this.config.topics.length === 0) {
       return 'business insights';
     }
-    
+
     // Rotate through topics to ensure variety
     const topicIndex = Date.now() % this.config.topics.length;
     return this.config.topics[Math.floor(topicIndex)];
@@ -299,7 +300,7 @@ export class AutopilotEngine extends EventEmitter {
   private async processJobs(): Promise<void> {
     const now = new Date();
     const pendingJobs = Array.from(this.jobs.values())
-      .filter(job => job.status === 'pending' && job.scheduledAt <= now)
+      .filter((job) => job.status === 'pending' && job.scheduledAt <= now)
       .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime());
 
     for (const job of pendingJobs) {
@@ -326,9 +327,9 @@ export class AutopilotEngine extends EventEmitter {
 
       job.status = 'completed';
       this.emit('jobCompleted', job);
-    } catch (error) {
-      console.error(`Job ${job.id} failed:`, error);
-      
+    } catch (error: unknown) {
+      logger.error(`Job ${job.id} failed:`, error);
+
       if (job.retries < job.maxRetries) {
         job.retries++;
         job.status = 'pending';
@@ -342,7 +343,7 @@ export class AutopilotEngine extends EventEmitter {
 
   private async executeContentGeneration(job: AutopilotJob): Promise<void> {
     const { topic, brandVoice, contentType } = job.data;
-    
+
     try {
       // This would call your actual AI service
       const generatedContent = await this.generateContentForAutopilot({
@@ -351,7 +352,7 @@ export class AutopilotEngine extends EventEmitter {
         brandVoice,
         contentType,
         targetAudience: this.config.targetAudience,
-        businessGoals: this.config.businessGoals
+        businessGoals: this.config.businessGoals,
       });
 
       // Store generated content in-memory queue item
@@ -361,7 +362,7 @@ export class AutopilotEngine extends EventEmitter {
         hashtags: generatedContent.hashtags,
         platforms: [job.platform],
         status: 'draft',
-        createdAt: new Date()
+        createdAt: new Date(),
       };
 
       // Add to content queue
@@ -371,30 +372,32 @@ export class AutopilotEngine extends EventEmitter {
       this.contentQueue.get(job.platform)!.push(content);
 
       this.emit('contentGenerated', { job, content });
-    } catch (error) {
+    } catch (error: unknown) {
       // If AI service is not configured, create a placeholder request
-      throw new Error('AI content generation service not configured. Please connect your AI service.');
+      throw new Error(
+        'AI content generation service not configured. Please connect your AI service.'
+      );
     }
   }
 
   private async executeContentPublishing(job: AutopilotJob): Promise<void> {
     const platformQueue = this.contentQueue.get(job.platform);
-    
+
     if (!platformQueue || platformQueue.length === 0) {
       throw new Error(`No content available for platform ${job.platform}`);
     }
 
     const content = platformQueue.shift()!;
-    
+
     if (this.config.autoPublish) {
       // Publish immediately
       const results = await platformAPI.publishContent(content, [job.platform], this.userId);
-      const successfulResults = results.filter((r: any) => r.success);
-      
+      const successfulResults = results.filter((r: unknown) => r.success);
+
       if (successfulResults.length > 0) {
         content.status = 'published';
         content.publishedAt = new Date();
-        
+
         // Schedule performance analysis for later
         const analysisJob: AutopilotJob = {
           id: randomUUID(),
@@ -404,12 +407,12 @@ export class AutopilotEngine extends EventEmitter {
           data: { contentId: content.id, postId: successfulResults[0].postId },
           status: 'pending',
           retries: 0,
-          maxRetries: 2
+          maxRetries: 2,
         };
-        
+
         this.jobs.set(analysisJob.id, analysisJob);
       }
-      
+
       this.emit('contentPublished', { job, content, results });
     } else {
       // Schedule for review
@@ -420,21 +423,21 @@ export class AutopilotEngine extends EventEmitter {
 
   private async executePerformanceAnalysis(job: AutopilotJob): Promise<void> {
     const { contentId, postId } = job.data;
-    
+
     // Collect real engagement data
     const analytics = await platformAPI.collectEngagementData(postId, job.platform, this.userId);
-    
+
     if (analytics) {
       // Store performance data for learning
       this.performanceData.set(contentId, {
         platform: job.platform,
         engagement: analytics,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
-      
+
       // Learn from performance
       await this.learnFromPerformance(contentId, analytics);
-      
+
       this.emit('performanceAnalyzed', { job, analytics });
     }
   }
@@ -454,18 +457,17 @@ export class AutopilotEngine extends EventEmitter {
       brandVoice: params.brandVoice,
       contentType: params.contentType,
       targetAudience: params.targetAudience,
-      businessGoals: params.businessGoals
+      businessGoals: params.businessGoals,
     });
 
     return {
       text: generatedContent.text,
-      hashtags: generatedContent.hashtags
+      hashtags: generatedContent.hashtags,
     };
   }
 
   // Performance Learning
-  private async learnFromPerformance(contentId: string, analytics: any): Promise<void> {
-    
+  private async learnFromPerformance(contentId: string, analytics: unknown): Promise<void> {
     // Get content details to extract template information
     // In this minimal integration, we don't persist content externally.
     const content = { id: contentId, text: '', contentType: 'tips', platform: 'Twitter' } as any;
@@ -473,20 +475,20 @@ export class AutopilotEngine extends EventEmitter {
     // Extract content metadata for learning
     const contentType = content.contentType || 'tips';
     const platform = content.platform || 'Twitter';
-    
+
     // Determine template index based on content patterns
     const templateIndex = this.extractTemplateIndex(content.text, contentType);
-    
+
     // Feed performance data back to AI engine for learning
     customAI.updatePerformanceData(contentType, platform, templateIndex, analytics);
-    
+
     const engagementRate = analytics.engagementRate;
-    
+
     // Adjust future content strategy based on performance
     if (engagementRate > this.config.engagementThreshold * 2) {
-      console.log(`High performing content detected: ${contentId} (${engagementRate}% engagement)`);
+      logger.info(`High performing content detected: ${contentId} (${engagementRate}% engagement)`);
     } else if (engagementRate < this.config.engagementThreshold * 0.5) {
-      console.log(`Low performing content detected: ${contentId} (${engagementRate}% engagement)`);
+      logger.info(`Low performing content detected: ${contentId} (${engagementRate}% engagement)`);
     }
   }
 
@@ -496,7 +498,7 @@ export class AutopilotEngine extends EventEmitter {
     if (text.includes('🔥') || text.includes('Quick tip')) return 1;
     if (text.includes('✨') || text.includes('Want to')) return 2;
     if (text.includes('📈')) return 3;
-    
+
     return 0; // Default
   }
 
@@ -510,16 +512,18 @@ export class AutopilotEngine extends EventEmitter {
     nextScheduledJob?: Date;
   }> {
     const jobs = Array.from(this.jobs.values());
-    const pendingJobs = jobs.filter(j => j.status === 'pending');
-    const nextJob = pendingJobs.sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())[0];
-    
+    const pendingJobs = jobs.filter((j) => j.status === 'pending');
+    const nextJob = pendingJobs.sort(
+      (a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime()
+    )[0];
+
     return {
       isRunning: this.isRunning,
       totalJobs: jobs.length,
       pendingJobs: pendingJobs.length,
-      completedJobs: jobs.filter(j => j.status === 'completed').length,
-      failedJobs: jobs.filter(j => j.status === 'failed').length,
-      nextScheduledJob: nextJob?.scheduledAt
+      completedJobs: jobs.filter((j) => j.status === 'completed').length,
+      failedJobs: jobs.filter((j) => j.status === 'failed').length,
+      nextScheduledJob: nextJob?.scheduledAt,
     };
   }
 

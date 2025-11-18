@@ -3,35 +3,36 @@ import path from 'path';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import type { IStorage } from '../storage';
+import { logger } from '../logger.js';
 
 // Quality presets mapping for different formats and quality levels
 const qualityPresets = {
-  low: { 
-    mp3: 128000, 
-    aac: 96000, 
-    ogg: 96000, 
+  low: {
+    mp3: 128000,
+    aac: 96000,
+    ogg: 96000,
     m4a: 96000,
-    sampleRate: 44100 
+    sampleRate: 44100,
   },
-  medium: { 
-    mp3: 192000, 
-    aac: 128000, 
-    ogg: 128000, 
+  medium: {
+    mp3: 192000,
+    aac: 128000,
+    ogg: 128000,
     m4a: 128000,
-    sampleRate: 44100 
+    sampleRate: 44100,
   },
-  high: { 
-    mp3: 320000, 
-    aac: 256000, 
-    ogg: 256000, 
+  high: {
+    mp3: 320000,
+    aac: 256000,
+    ogg: 256000,
     m4a: 256000,
-    sampleRate: 48000 
+    sampleRate: 48000,
   },
-  lossless: { 
-    flac: 0, 
-    wav: 0, 
-    sampleRate: 48000 
-  }
+  lossless: {
+    flac: 0,
+    wav: 0,
+    sampleRate: 48000,
+  },
 };
 
 // Track active FFmpeg processes for cancellation
@@ -44,6 +45,9 @@ const MAX_CONCURRENT_CONVERSIONS = 2;
 /**
  * Sanitize file path to prevent directory traversal attacks
  */
+/**
+ * TODO: Add function documentation
+ */
 function sanitizePath(filePath: string): string {
   const normalized = path.normalize(filePath);
   if (normalized.includes('..') || path.isAbsolute(normalized)) {
@@ -55,7 +59,13 @@ function sanitizePath(filePath: string): string {
 /**
  * Get quality settings based on format and preset
  */
-function getQualitySettings(format: string, preset: string): { bitrate?: number; sampleRate: number } {
+/**
+ * TODO: Add function documentation
+ */
+function getQualitySettings(
+  format: string,
+  preset: string
+): { bitrate?: number; sampleRate: number } {
   const presetConfig = qualityPresets[preset as keyof typeof qualityPresets];
   if (!presetConfig) {
     throw new Error(`Invalid quality preset: ${preset}`);
@@ -78,12 +88,15 @@ function getQualitySettings(format: string, preset: string): { bitrate?: number;
 
   return {
     bitrate,
-    sampleRate: presetConfig.sampleRate
+    sampleRate: presetConfig.sampleRate,
   };
 }
 
 /**
  * Convert audio file using FFmpeg
+ */
+/**
+ * TODO: Add function documentation
  */
 export async function convertAudioFile(
   conversionId: string,
@@ -160,28 +173,30 @@ export async function convertAudioFile(
       let duration: number = 0;
 
       command
-        .on('codecData', (data: any) => {
+        .on('codecData', (data: unknown) => {
           // Get total duration for progress calculation
           if (data.duration) {
             const timeParts = data.duration.split(':');
-            duration = parseInt(timeParts[0]) * 3600 + 
-                      parseInt(timeParts[1]) * 60 + 
-                      parseFloat(timeParts[2]);
+            duration =
+              parseInt(timeParts[0]) * 3600 +
+              parseInt(timeParts[1]) * 60 +
+              parseFloat(timeParts[2]);
           }
         })
-        .on('progress', async (progress: any) => {
+        .on('progress', async (progress: unknown) => {
           if (duration > 0 && progress.timemark) {
             const timeParts = progress.timemark.split(':');
-            const currentTime = parseInt(timeParts[0]) * 3600 + 
-                               parseInt(timeParts[1]) * 60 + 
-                               parseFloat(timeParts[2]);
+            const currentTime =
+              parseInt(timeParts[0]) * 3600 +
+              parseInt(timeParts[1]) * 60 +
+              parseFloat(timeParts[2]);
             const percentage = Math.min(Math.round((currentTime / duration) * 100), 99);
-            
+
             // Update progress in database
             try {
               await storage.updateConversion(conversionId, { progress: percentage });
-            } catch (err) {
-              console.error('Failed to update conversion progress:', err);
+            } catch (err: unknown) {
+              logger.error('Failed to update conversion progress:', err);
             }
           }
         })
@@ -192,11 +207,11 @@ export async function convertAudioFile(
               progress: 100,
               status: 'completed',
               outputFilePath: relativeOutputPath,
-              completedAt: new Date()
+              completedAt: new Date(),
             });
             activeProcesses.delete(conversionId);
             resolve(relativeOutputPath);
-          } catch (err) {
+          } catch (err: unknown) {
             reject(err);
           }
         })
@@ -206,10 +221,10 @@ export async function convertAudioFile(
             await storage.updateConversion(conversionId, {
               status: 'failed',
               errorMessage: err.message,
-              completedAt: new Date()
+              completedAt: new Date(),
             });
-          } catch (updateErr) {
-            console.error('Failed to update conversion error:', updateErr);
+          } catch (updateErr: unknown) {
+            logger.error('Failed to update conversion error:', updateErr);
           }
           activeProcesses.delete(conversionId);
           reject(err);
@@ -219,12 +234,12 @@ export async function convertAudioFile(
       // Store process for potential cancellation
       activeProcesses.set(conversionId, command);
     });
-  } catch (error) {
+  } catch (error: unknown) {
     // Update database with error
     await storage.updateConversion(conversionId, {
       status: 'failed',
       errorMessage: error instanceof Error ? error.message : 'Unknown error',
-      completedAt: new Date()
+      completedAt: new Date(),
     });
     throw error;
   }
@@ -232,6 +247,9 @@ export async function convertAudioFile(
 
 /**
  * Process a conversion job
+ */
+/**
+ * TODO: Add function documentation
  */
 export async function processConversion(conversionId: string, storage: IStorage): Promise<void> {
   try {
@@ -243,7 +261,7 @@ export async function processConversion(conversionId: string, storage: IStorage)
 
     // Check if already processing or completed
     if (conversion.status !== 'pending') {
-      console.log(`Conversion ${conversionId} already ${conversion.status}, skipping`);
+      logger.info(`Conversion ${conversionId} already ${conversion.status}, skipping`);
       return;
     }
 
@@ -260,9 +278,9 @@ export async function processConversion(conversionId: string, storage: IStorage)
       storage
     );
 
-    console.log(`Conversion ${conversionId} completed successfully`);
-  } catch (error) {
-    console.error(`Conversion ${conversionId} failed:`, error);
+    logger.info(`Conversion ${conversionId} completed successfully`);
+  } catch (error: unknown) {
+    logger.error(`Conversion ${conversionId} failed:`, error);
     throw error;
   } finally {
     // Remove from queue
@@ -273,6 +291,9 @@ export async function processConversion(conversionId: string, storage: IStorage)
 /**
  * Add conversion to queue and start processing if slot available
  */
+/**
+ * TODO: Add function documentation
+ */
 export async function enqueueConversion(conversionId: string, storage: IStorage): Promise<void> {
   // Check if already in queue
   if (conversionQueue.has(conversionId)) {
@@ -281,7 +302,7 @@ export async function enqueueConversion(conversionId: string, storage: IStorage)
 
   // Wait if queue is full
   while (conversionQueue.size >= MAX_CONCURRENT_CONVERSIONS) {
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   // Add to queue and start processing
@@ -289,13 +310,16 @@ export async function enqueueConversion(conversionId: string, storage: IStorage)
   conversionQueue.set(conversionId, promise);
 
   // Don't await - let it process in background
-  promise.catch(err => {
-    console.error(`Background conversion ${conversionId} error:`, err);
+  promise.catch((err) => {
+    logger.error(`Background conversion ${conversionId} error:`, err);
   });
 }
 
 /**
  * Cancel an active conversion
+ */
+/**
+ * TODO: Add function documentation
  */
 export async function cancelConversion(conversionId: string, storage: IStorage): Promise<void> {
   // Kill FFmpeg process if active
@@ -304,15 +328,15 @@ export async function cancelConversion(conversionId: string, storage: IStorage):
     try {
       process.kill('SIGKILL');
       activeProcesses.delete(conversionId);
-    } catch (err) {
-      console.error(`Failed to kill conversion process ${conversionId}:`, err);
+    } catch (err: unknown) {
+      logger.error(`Failed to kill conversion process ${conversionId}:`, err);
     }
   }
 
   // Update database status
   await storage.updateConversion(conversionId, {
     status: 'cancelled',
-    completedAt: new Date()
+    completedAt: new Date(),
   });
 
   // Remove from queue
@@ -326,8 +350,8 @@ export async function cancelConversion(conversionId: string, storage: IStorage):
       if (existsSync(fullPath)) {
         await fs.unlink(fullPath);
       }
-    } catch (err) {
-      console.error(`Failed to delete partial file for ${conversionId}:`, err);
+    } catch (err: unknown) {
+      logger.error(`Failed to delete partial file for ${conversionId}:`, err);
     }
   }
 }
@@ -335,9 +359,12 @@ export async function cancelConversion(conversionId: string, storage: IStorage):
 /**
  * Get current queue status
  */
+/**
+ * TODO: Add function documentation
+ */
 export function getQueueStatus(): { active: number; max: number } {
   return {
     active: conversionQueue.size,
-    max: MAX_CONCURRENT_CONVERSIONS
+    max: MAX_CONCURRENT_CONVERSIONS,
   };
 }

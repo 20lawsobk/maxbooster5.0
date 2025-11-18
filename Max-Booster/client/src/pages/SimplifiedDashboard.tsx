@@ -51,8 +51,10 @@ export default function SimplifiedDashboard() {
   };
 
   useEffect(() => {
-    if (onboardingStatus?.hasCompletedOnboarding && 
-        onboardingStatus?.onboardingData?.preferSimplifiedView === false) {
+    if (
+      onboardingStatus?.hasCompletedOnboarding &&
+      onboardingStatus?.onboardingData?.preferSimplifiedView === false
+    ) {
       setLocation('/dashboard');
     }
   }, [onboardingStatus, setLocation]);
@@ -69,10 +71,7 @@ export default function SimplifiedDashboard() {
 
   return (
     <AppLayout>
-      <SimplifiedDashboardComponent 
-        onUpgrade={handleUpgrade}
-        userLevel={userLevel}
-      />
+      <SimplifiedDashboardComponent onUpgrade={handleUpgrade} userLevel={userLevel} />
     </AppLayout>
   );
 }

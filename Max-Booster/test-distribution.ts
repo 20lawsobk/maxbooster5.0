@@ -14,13 +14,13 @@ async function testDistribution() {
     // Step 1: Login as test user
     console.log('Step 1: Logging in as test user...');
     const loginRes = await axios.post(`${API_BASE}/auth/login`, {
-      username: 'test.monthly@maxbooster.com',  // Changed from 'email' to 'username'
-      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#'
+      username: 'test.monthly@maxbooster.com', // Changed from 'email' to 'username'
+      password: process.env.TEST_USER_PASSWORD || 'TestUser123!@#',
     });
-    
+
     const sessionCookie = loginRes.headers['set-cookie']?.[0];
     if (!sessionCookie) throw new Error('Failed to get session cookie');
-    
+
     console.log('✅ Logged in successfully\n');
 
     // Step 2: Create a test track (simulating user having uploaded music)
@@ -35,8 +35,8 @@ async function testDistribution() {
       metadata: {
         bpm: 128,
         key: 'C Major',
-        mood: 'Energetic'
-      }
+        mood: 'Energetic',
+      },
     };
 
     // Step 3: Create distribution release
@@ -55,12 +55,12 @@ async function testDistribution() {
         isExplicit: false,
         releaseDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
         territoryMode: 'worldwide',
-        selectedPlatforms: ['spotify', 'apple-music', 'youtube-music']
+        selectedPlatforms: ['spotify', 'apple-music', 'youtube-music'],
       },
       {
         headers: {
-          Cookie: sessionCookie
-        }
+          Cookie: sessionCookie,
+        },
       }
     );
 
@@ -72,8 +72,8 @@ async function testDistribution() {
       `${API_BASE}/distribution/releases/${distributionRes.data.id}`,
       {
         headers: {
-          Cookie: sessionCookie
-        }
+          Cookie: sessionCookie,
+        },
       }
     );
 
@@ -86,8 +86,8 @@ async function testDistribution() {
       { trackId: 'test-track-001' },
       {
         headers: {
-          Cookie: sessionCookie
-        }
+          Cookie: sessionCookie,
+        },
       }
     );
 
@@ -97,11 +97,11 @@ async function testDistribution() {
     console.log('\nStep 6: Testing UPC generation...');
     const upcRes = await axios.post(
       `${API_BASE}/distribution/generate-upc`,
-      { releaseId: distributionRes.data.id },  // Changed from releaseId to id
+      { releaseId: distributionRes.data.id }, // Changed from releaseId to id
       {
         headers: {
-          Cookie: sessionCookie
-        }
+          Cookie: sessionCookie,
+        },
       }
     );
 
@@ -109,25 +109,24 @@ async function testDistribution() {
 
     console.log('\n🎉 Distribution test completed successfully!');
     console.log('LabelGrid integration is working correctly.');
-    
+
     return {
       success: true,
-      releaseId: distributionRes.data.id,  // Changed from releaseId to id
-      status: statusRes.data
+      releaseId: distributionRes.data.id, // Changed from releaseId to id
+      status: statusRes.data,
     };
-
   } catch (error: any) {
     console.error('\n❌ Distribution test failed:', error.response?.data || error.message);
     console.error('Details:', error.response?.status, error.response?.statusText);
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 }
 
 // Run the test
-testDistribution().then(result => {
+testDistribution().then((result) => {
   console.log('\n📊 Test Summary:', result);
   process.exit(result.success ? 0 : 1);
 });

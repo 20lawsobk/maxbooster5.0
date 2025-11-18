@@ -6,6 +6,7 @@ import { bulkSchedulePostSchema, bulkValidatePostSchema } from '@shared/schema';
 import { socialQueueService } from '../services/socialQueueService';
 import { eq, and, desc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { logger } from '../logger.js';
 
 const router = Router();
 
@@ -37,7 +38,15 @@ router.post('/validate', async (req: AuthenticatedRequest, res) => {
         });
       }
 
-      const validPlatforms = ['twitter', 'facebook', 'instagram', 'linkedin', 'tiktok', 'youtube', 'threads'];
+      const validPlatforms = [
+        'twitter',
+        'facebook',
+        'instagram',
+        'linkedin',
+        'tiktok',
+        'youtube',
+        'threads',
+      ];
       if (!validPlatforms.includes(post.platform.toLowerCase())) {
         errors.push({
           index: i,
@@ -76,7 +85,7 @@ router.post('/validate', async (req: AuthenticatedRequest, res) => {
       if (post.scheduledAt) {
         const scheduledDate = new Date(post.scheduledAt);
         const now = new Date();
-        
+
         if (isNaN(scheduledDate.getTime())) {
           errors.push({
             index: i,
@@ -121,9 +130,9 @@ router.post('/validate', async (req: AuthenticatedRequest, res) => {
       errors,
       warnings,
     });
-  } catch (error) {
-    console.error('Bulk validation error:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Bulk validation error:', error);
+
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         error: 'Validation failed',
@@ -153,7 +162,7 @@ router.post('/schedule', async (req: AuthenticatedRequest, res) => {
 
     for (let i = 0; i < validatedData.posts.length; i++) {
       const post = validatedData.posts[i];
-      
+
       if (!post.content || post.content.trim() === '') {
         validationErrors.push({
           index: i,
@@ -170,30 +179,36 @@ router.post('/schedule', async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    const [batch] = await db.insert(scheduledPostBatches).values({
-      userId: req.user.id,
-      totalPosts: validatedData.posts.length,
-      processedPosts: 0,
-      successfulPosts: 0,
-      failedPosts: 0,
-      status: 'processing',
-      metadata: validatedData.metadata || {},
-    }).returning();
+    const [batch] = await db
+      .insert(scheduledPostBatches)
+      .values({
+        userId: req.user.id,
+        totalPosts: validatedData.posts.length,
+        processedPosts: 0,
+        successfulPosts: 0,
+        failedPosts: 0,
+        status: 'processing',
+        metadata: validatedData.metadata || {},
+      })
+      .returning();
 
     const defaultCampaignId = validatedData.posts[0]?.campaignId || nanoid();
-    
+
     if (!validatedData.posts[0]?.campaignId) {
-      await db.insert(socialCampaigns).values({
-        userId: req.user.id,
-        name: `Bulk Schedule - ${new Date().toISOString()}`,
-        platforms: [...new Set(validatedData.posts.map(p => p.platform))],
-        status: 'active',
-      }).catch(err => {
-        console.error('Error creating default campaign:', err);
-      });
+      await db
+        .insert(socialCampaigns)
+        .values({
+          userId: req.user.id,
+          name: `Bulk Schedule - ${new Date().toISOString()}`,
+          platforms: [...new Set(validatedData.posts.map((p) => p.platform))],
+          status: 'active',
+        })
+        .catch((err) => {
+          logger.error('Error creating default campaign:', err);
+        });
     }
 
-    const postsToInsert = validatedData.posts.map(post => ({
+    const postsToInsert = validatedData.posts.map((post) => ({
       campaignId: post.campaignId || defaultCampaignId,
       batchId: batch.id,
       platform: post.platform,
@@ -210,16 +225,19 @@ router.post('/schedule', async (req: AuthenticatedRequest, res) => {
       const scheduledDate = post.scheduledAt || new Date();
       const delay = scheduledDate.getTime() - Date.now();
 
-      await socialQueueService.addSocialPostJob({
-        postId: post.id,
-        batchId: batch.id,
-        platform: post.platform,
-        content: post.content || '',
-        mediaUrls: (post.mediaUrls as string[]) || [],
-        socialAccountId: post.socialAccountId,
-        campaignId: post.campaignId,
-        scheduledAt: post.scheduledAt || undefined,
-      }, Math.max(0, delay));
+      await socialQueueService.addSocialPostJob(
+        {
+          postId: post.id,
+          batchId: batch.id,
+          platform: post.platform,
+          content: post.content || '',
+          mediaUrls: (post.mediaUrls as string[]) || [],
+          socialAccountId: post.socialAccountId,
+          campaignId: post.campaignId,
+          scheduledAt: post.scheduledAt || undefined,
+        },
+        Math.max(0, delay)
+      );
     }
 
     return res.status(201).json({
@@ -228,9 +246,9 @@ router.post('/schedule', async (req: AuthenticatedRequest, res) => {
       totalPosts: validatedData.posts.length,
       message: 'Batch scheduled successfully',
     });
-  } catch (error) {
-    console.error('Bulk schedule error:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Bulk schedule error:', error);
+
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         error: 'Validation failed',
@@ -266,10 +284,13 @@ router.get('/status/:batchId', async (req: AuthenticatedRequest, res) => {
       orderBy: [desc(posts.createdAt)],
     });
 
-    const statusBreakdown = batchPosts.reduce((acc, post) => {
-      acc[post.status] = (acc[post.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const statusBreakdown = batchPosts.reduce(
+      (acc, post) => {
+        acc[post.status] = (acc[post.status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     const queueStats = await socialQueueService.getQueueStats();
 
@@ -285,7 +306,7 @@ router.get('/status/:batchId', async (req: AuthenticatedRequest, res) => {
       updatedAt: batch.updatedAt,
       completedAt: batch.completedAt,
       queueStats,
-      posts: batchPosts.map(post => ({
+      posts: batchPosts.map((post) => ({
         id: post.id,
         platform: post.platform,
         status: post.status,
@@ -294,8 +315,8 @@ router.get('/status/:batchId', async (req: AuthenticatedRequest, res) => {
         error: post.error,
       })),
     });
-  } catch (error) {
-    console.error('Batch status error:', error);
+  } catch (error: unknown) {
+    logger.error('Batch status error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -318,8 +339,8 @@ router.delete('/:batchId', async (req: AuthenticatedRequest, res) => {
       success: true,
       message: 'Batch cancelled successfully',
     });
-  } catch (error) {
-    console.error('Cancel batch error:', error);
+  } catch (error: unknown) {
+    logger.error('Cancel batch error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -337,7 +358,7 @@ router.get('/batches', async (req: AuthenticatedRequest, res) => {
     });
 
     return res.json({
-      batches: batches.map(batch => ({
+      batches: batches.map((batch) => ({
         id: batch.id,
         totalPosts: batch.totalPosts,
         processedPosts: batch.processedPosts,
@@ -349,8 +370,8 @@ router.get('/batches', async (req: AuthenticatedRequest, res) => {
         completedAt: batch.completedAt,
       })),
     });
-  } catch (error) {
-    console.error('Get batches error:', error);
+  } catch (error: unknown) {
+    logger.error('Get batches error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });

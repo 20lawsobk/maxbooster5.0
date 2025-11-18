@@ -20,22 +20,19 @@ const SNAP_RESOLUTIONS = [
   { value: 4, label: '4 Bars' },
 ];
 
+/**
+ * TODO: Add function documentation
+ */
 export function ZoomControls() {
-  const {
-    zoom,
-    setZoom,
-    snapEnabled,
-    toggleSnap,
-    snapResolution,
-    setSnapResolution,
-  } = useStudioStore();
+  const { zoom, setZoom, snapEnabled, toggleSnap, snapResolution, setSnapResolution } =
+    useStudioStore();
 
   const handleZoomIn = () => setZoom(zoom * 1.2);
   const handleZoomOut = () => setZoom(zoom / 1.2);
   const handleZoomFit = () => setZoom(1.0);
 
   return (
-    <div 
+    <div
       className="h-10 flex items-center gap-2 px-3 border-b"
       style={{
         background: 'var(--studio-bg-medium)',
@@ -53,18 +50,18 @@ export function ZoomControls() {
         >
           <ZoomOut className="h-3.5 w-3.5" />
         </Button>
-        
+
         <div className="w-24 px-2">
           <Slider
             value={[Math.log2(zoom)]}
             onValueChange={([val]) => setZoom(Math.pow(2, val))}
             min={-3} // 0.125x
-            max={3}  // 8x
+            max={3} // 8x
             step={0.1}
             className="cursor-pointer"
           />
         </div>
-        
+
         <Button
           variant="ghost"
           size="sm"
@@ -74,7 +71,7 @@ export function ZoomControls() {
         >
           <ZoomIn className="h-3.5 w-3.5" />
         </Button>
-        
+
         <Button
           variant="ghost"
           size="sm"
@@ -84,8 +81,8 @@ export function ZoomControls() {
         >
           <Maximize2 className="h-3.5 w-3.5" />
         </Button>
-        
-        <div 
+
+        <div
           className="ml-2 px-2 text-[10px] font-mono font-medium"
           style={{ color: 'var(--studio-text-muted)' }}
         >
@@ -93,10 +90,7 @@ export function ZoomControls() {
         </div>
       </div>
 
-      <div 
-        className="h-5 w-px mx-2"
-        style={{ background: 'var(--studio-border)' }}
-      />
+      <div className="h-5 w-px mx-2" style={{ background: 'var(--studio-border)' }} />
 
       {/* Snap Controls */}
       <Button

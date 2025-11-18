@@ -8,8 +8,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -92,7 +105,7 @@ import {
   Check,
   AlertCircle,
   CheckCircle,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 
 // Studio One 7 Clone Interfaces
@@ -167,7 +180,17 @@ interface MidiNote {
 interface VirtualInstrument {
   id: string;
   name: string;
-  type: 'synthesizer' | 'sampler' | 'drum' | 'piano' | 'guitar' | 'bass' | 'strings' | 'brass' | 'woodwind' | 'percussion';
+  type:
+    | 'synthesizer'
+    | 'sampler'
+    | 'drum'
+    | 'piano'
+    | 'guitar'
+    | 'bass'
+    | 'strings'
+    | 'brass'
+    | 'woodwind'
+    | 'percussion';
   preset: string;
   parameters: Record<string, number>;
   midiChannel: number;
@@ -177,7 +200,27 @@ interface VirtualInstrument {
 interface AudioEffect {
   id: string;
   name: string;
-  type: 'eq' | 'compressor' | 'reverb' | 'delay' | 'chorus' | 'flanger' | 'phaser' | 'distortion' | 'filter' | 'limiter' | 'gate' | 'expander' | 'saturator' | 'exciter' | 'stereo' | 'pitch' | 'time' | 'modulation' | 'dynamics' | 'utility';
+  type:
+    | 'eq'
+    | 'compressor'
+    | 'reverb'
+    | 'delay'
+    | 'chorus'
+    | 'flanger'
+    | 'phaser'
+    | 'distortion'
+    | 'filter'
+    | 'limiter'
+    | 'gate'
+    | 'expander'
+    | 'saturator'
+    | 'exciter'
+    | 'stereo'
+    | 'pitch'
+    | 'time'
+    | 'modulation'
+    | 'dynamics'
+    | 'utility';
   preset: string;
   parameters: Record<string, number>;
   bypass: boolean;
@@ -231,96 +274,420 @@ interface Marker {
 const MAX_BOOSTER_PLUGINS = {
   // EQ Plugins
   eq: [
-    { id: 'mb-eq-7', name: 'Max Booster EQ-7', type: 'eq', category: 'eq', description: '7-band parametric EQ with vintage character' },
-    { id: 'mb-eq-pro', name: 'Max Booster EQ Pro', type: 'eq', category: 'eq', description: 'Professional 10-band EQ with linear phase' },
-    { id: 'mb-eq-vintage', name: 'Max Booster EQ Vintage', type: 'eq', category: 'eq', description: 'Classic analog EQ emulation' },
-    { id: 'mb-eq-mastering', name: 'Max Booster EQ Mastering', type: 'eq', category: 'eq', description: 'Precision mastering EQ' },
+    {
+      id: 'mb-eq-7',
+      name: 'Max Booster EQ-7',
+      type: 'eq',
+      category: 'eq',
+      description: '7-band parametric EQ with vintage character',
+    },
+    {
+      id: 'mb-eq-pro',
+      name: 'Max Booster EQ Pro',
+      type: 'eq',
+      category: 'eq',
+      description: 'Professional 10-band EQ with linear phase',
+    },
+    {
+      id: 'mb-eq-vintage',
+      name: 'Max Booster EQ Vintage',
+      type: 'eq',
+      category: 'eq',
+      description: 'Classic analog EQ emulation',
+    },
+    {
+      id: 'mb-eq-mastering',
+      name: 'Max Booster EQ Mastering',
+      type: 'eq',
+      category: 'eq',
+      description: 'Precision mastering EQ',
+    },
   ],
-  
+
   // Dynamics Plugins
   dynamics: [
-    { id: 'mb-compressor', name: 'Max Booster Compressor', type: 'compressor', category: 'dynamics', description: 'Professional compressor with multiple modes' },
-    { id: 'mb-comp-vintage', name: 'Max Booster Comp Vintage', type: 'compressor', category: 'dynamics', description: 'Classic analog compressor emulation' },
-    { id: 'mb-multiband', name: 'Max Booster Multiband', type: 'compressor', category: 'dynamics', description: '4-band multiband compressor' },
-    { id: 'mb-limiter', name: 'Max Booster Limiter', type: 'limiter', category: 'dynamics', description: 'Transparent peak limiter' },
-    { id: 'mb-gate', name: 'Max Booster Gate', type: 'gate', category: 'dynamics', description: 'Noise gate with sidechain' },
-    { id: 'mb-expander', name: 'Max Booster Expander', type: 'expander', category: 'dynamics', description: 'Dynamic range expander' },
+    {
+      id: 'mb-compressor',
+      name: 'Max Booster Compressor',
+      type: 'compressor',
+      category: 'dynamics',
+      description: 'Professional compressor with multiple modes',
+    },
+    {
+      id: 'mb-comp-vintage',
+      name: 'Max Booster Comp Vintage',
+      type: 'compressor',
+      category: 'dynamics',
+      description: 'Classic analog compressor emulation',
+    },
+    {
+      id: 'mb-multiband',
+      name: 'Max Booster Multiband',
+      type: 'compressor',
+      category: 'dynamics',
+      description: '4-band multiband compressor',
+    },
+    {
+      id: 'mb-limiter',
+      name: 'Max Booster Limiter',
+      type: 'limiter',
+      category: 'dynamics',
+      description: 'Transparent peak limiter',
+    },
+    {
+      id: 'mb-gate',
+      name: 'Max Booster Gate',
+      type: 'gate',
+      category: 'dynamics',
+      description: 'Noise gate with sidechain',
+    },
+    {
+      id: 'mb-expander',
+      name: 'Max Booster Expander',
+      type: 'expander',
+      category: 'dynamics',
+      description: 'Dynamic range expander',
+    },
   ],
-  
+
   // Reverb & Space
   reverb: [
-    { id: 'mb-reverb-hall', name: 'Max Booster Reverb Hall', type: 'reverb', category: 'reverb', description: 'Concert hall reverb' },
-    { id: 'mb-reverb-room', name: 'Max Booster Reverb Room', type: 'reverb', category: 'reverb', description: 'Natural room reverb' },
-    { id: 'mb-reverb-plate', name: 'Max Booster Reverb Plate', type: 'reverb', category: 'reverb', description: 'Classic plate reverb' },
-    { id: 'mb-reverb-spring', name: 'Max Booster Reverb Spring', type: 'reverb', category: 'reverb', description: 'Vintage spring reverb' },
-    { id: 'mb-reverb-convolution', name: 'Max Booster Reverb Convolution', type: 'reverb', category: 'reverb', description: 'Convolution reverb with IR support' },
+    {
+      id: 'mb-reverb-hall',
+      name: 'Max Booster Reverb Hall',
+      type: 'reverb',
+      category: 'reverb',
+      description: 'Concert hall reverb',
+    },
+    {
+      id: 'mb-reverb-room',
+      name: 'Max Booster Reverb Room',
+      type: 'reverb',
+      category: 'reverb',
+      description: 'Natural room reverb',
+    },
+    {
+      id: 'mb-reverb-plate',
+      name: 'Max Booster Reverb Plate',
+      type: 'reverb',
+      category: 'reverb',
+      description: 'Classic plate reverb',
+    },
+    {
+      id: 'mb-reverb-spring',
+      name: 'Max Booster Reverb Spring',
+      type: 'reverb',
+      category: 'reverb',
+      description: 'Vintage spring reverb',
+    },
+    {
+      id: 'mb-reverb-convolution',
+      name: 'Max Booster Reverb Convolution',
+      type: 'reverb',
+      category: 'reverb',
+      description: 'Convolution reverb with IR support',
+    },
   ],
-  
+
   // Delay & Echo
   delay: [
-    { id: 'mb-delay-analog', name: 'Max Booster Delay Analog', type: 'delay', category: 'delay', description: 'Analog delay emulation' },
-    { id: 'mb-delay-digital', name: 'Max Booster Delay Digital', type: 'delay', category: 'delay', description: 'Clean digital delay' },
-    { id: 'mb-delay-tape', name: 'Max Booster Delay Tape', type: 'delay', category: 'delay', description: 'Vintage tape echo' },
-    { id: 'mb-delay-ping', name: 'Max Booster Delay Ping Pong', type: 'delay', category: 'delay', description: 'Stereo ping pong delay' },
-    { id: 'mb-delay-multi', name: 'Max Booster Delay Multi', type: 'delay', category: 'delay', description: 'Multi-tap delay' },
+    {
+      id: 'mb-delay-analog',
+      name: 'Max Booster Delay Analog',
+      type: 'delay',
+      category: 'delay',
+      description: 'Analog delay emulation',
+    },
+    {
+      id: 'mb-delay-digital',
+      name: 'Max Booster Delay Digital',
+      type: 'delay',
+      category: 'delay',
+      description: 'Clean digital delay',
+    },
+    {
+      id: 'mb-delay-tape',
+      name: 'Max Booster Delay Tape',
+      type: 'delay',
+      category: 'delay',
+      description: 'Vintage tape echo',
+    },
+    {
+      id: 'mb-delay-ping',
+      name: 'Max Booster Delay Ping Pong',
+      type: 'delay',
+      category: 'delay',
+      description: 'Stereo ping pong delay',
+    },
+    {
+      id: 'mb-delay-multi',
+      name: 'Max Booster Delay Multi',
+      type: 'delay',
+      category: 'delay',
+      description: 'Multi-tap delay',
+    },
   ],
-  
+
   // Modulation Effects
   modulation: [
-    { id: 'mb-chorus', name: 'Max Booster Chorus', type: 'chorus', category: 'modulation', description: 'Classic chorus effect' },
-    { id: 'mb-flanger', name: 'Max Booster Flanger', type: 'flanger', category: 'modulation', description: 'Jet flanger effect' },
-    { id: 'mb-phaser', name: 'Max Booster Phaser', type: 'phaser', category: 'modulation', description: 'Multi-stage phaser' },
-    { id: 'mb-tremolo', name: 'Max Booster Tremolo', type: 'tremolo', category: 'modulation', description: 'Amplitude modulation' },
-    { id: 'mb-vibrato', name: 'Max Booster Vibrato', type: 'vibrato', category: 'modulation', description: 'Pitch modulation' },
+    {
+      id: 'mb-chorus',
+      name: 'Max Booster Chorus',
+      type: 'chorus',
+      category: 'modulation',
+      description: 'Classic chorus effect',
+    },
+    {
+      id: 'mb-flanger',
+      name: 'Max Booster Flanger',
+      type: 'flanger',
+      category: 'modulation',
+      description: 'Jet flanger effect',
+    },
+    {
+      id: 'mb-phaser',
+      name: 'Max Booster Phaser',
+      type: 'phaser',
+      category: 'modulation',
+      description: 'Multi-stage phaser',
+    },
+    {
+      id: 'mb-tremolo',
+      name: 'Max Booster Tremolo',
+      type: 'tremolo',
+      category: 'modulation',
+      description: 'Amplitude modulation',
+    },
+    {
+      id: 'mb-vibrato',
+      name: 'Max Booster Vibrato',
+      type: 'vibrato',
+      category: 'modulation',
+      description: 'Pitch modulation',
+    },
   ],
-  
+
   // Distortion & Saturation
   distortion: [
-    { id: 'mb-distortion', name: 'Max Booster Distortion', type: 'distortion', category: 'distortion', description: 'Tube distortion' },
-    { id: 'mb-saturator', name: 'Max Booster Saturator', type: 'saturator', category: 'distortion', description: 'Analog saturation' },
-    { id: 'mb-overdrive', name: 'Max Booster Overdrive', type: 'overdrive', category: 'distortion', description: 'Guitar overdrive' },
-    { id: 'mb-fuzz', name: 'Max Booster Fuzz', type: 'fuzz', category: 'distortion', description: 'Vintage fuzz effect' },
-    { id: 'mb-bitcrusher', name: 'Max Booster Bitcrusher', type: 'bitcrusher', category: 'distortion', description: 'Digital bit reduction' },
+    {
+      id: 'mb-distortion',
+      name: 'Max Booster Distortion',
+      type: 'distortion',
+      category: 'distortion',
+      description: 'Tube distortion',
+    },
+    {
+      id: 'mb-saturator',
+      name: 'Max Booster Saturator',
+      type: 'saturator',
+      category: 'distortion',
+      description: 'Analog saturation',
+    },
+    {
+      id: 'mb-overdrive',
+      name: 'Max Booster Overdrive',
+      type: 'overdrive',
+      category: 'distortion',
+      description: 'Guitar overdrive',
+    },
+    {
+      id: 'mb-fuzz',
+      name: 'Max Booster Fuzz',
+      type: 'fuzz',
+      category: 'distortion',
+      description: 'Vintage fuzz effect',
+    },
+    {
+      id: 'mb-bitcrusher',
+      name: 'Max Booster Bitcrusher',
+      type: 'bitcrusher',
+      category: 'distortion',
+      description: 'Digital bit reduction',
+    },
   ],
-  
+
   // Filters
   filter: [
-    { id: 'mb-filter-lowpass', name: 'Max Booster Filter Lowpass', type: 'filter', category: 'filter', description: 'Lowpass filter' },
-    { id: 'mb-filter-highpass', name: 'Max Booster Filter Highpass', type: 'filter', category: 'filter', description: 'Highpass filter' },
-    { id: 'mb-filter-bandpass', name: 'Max Booster Filter Bandpass', type: 'filter', category: 'filter', description: 'Bandpass filter' },
-    { id: 'mb-filter-notch', name: 'Max Booster Filter Notch', type: 'filter', category: 'filter', description: 'Notch filter' },
-    { id: 'mb-filter-moog', name: 'Max Booster Filter Moog', type: 'filter', category: 'filter', description: 'Moog ladder filter' },
+    {
+      id: 'mb-filter-lowpass',
+      name: 'Max Booster Filter Lowpass',
+      type: 'filter',
+      category: 'filter',
+      description: 'Lowpass filter',
+    },
+    {
+      id: 'mb-filter-highpass',
+      name: 'Max Booster Filter Highpass',
+      type: 'filter',
+      category: 'filter',
+      description: 'Highpass filter',
+    },
+    {
+      id: 'mb-filter-bandpass',
+      name: 'Max Booster Filter Bandpass',
+      type: 'filter',
+      category: 'filter',
+      description: 'Bandpass filter',
+    },
+    {
+      id: 'mb-filter-notch',
+      name: 'Max Booster Filter Notch',
+      type: 'filter',
+      category: 'filter',
+      description: 'Notch filter',
+    },
+    {
+      id: 'mb-filter-moog',
+      name: 'Max Booster Filter Moog',
+      type: 'filter',
+      category: 'filter',
+      description: 'Moog ladder filter',
+    },
   ],
-  
+
   // Pitch & Time
   pitch: [
-    { id: 'mb-pitch-shift', name: 'Max Booster Pitch Shift', type: 'pitch', category: 'pitch', description: 'Real-time pitch shifting' },
-    { id: 'mb-harmonizer', name: 'Max Booster Harmonizer', type: 'harmonizer', category: 'pitch', description: 'Intelligent harmonizer' },
-    { id: 'mb-time-stretch', name: 'Max Booster Time Stretch', type: 'time', category: 'pitch', description: 'Time stretching' },
-    { id: 'mb-formant', name: 'Max Booster Formant', type: 'formant', category: 'pitch', description: 'Formant shifting' },
+    {
+      id: 'mb-pitch-shift',
+      name: 'Max Booster Pitch Shift',
+      type: 'pitch',
+      category: 'pitch',
+      description: 'Real-time pitch shifting',
+    },
+    {
+      id: 'mb-harmonizer',
+      name: 'Max Booster Harmonizer',
+      type: 'harmonizer',
+      category: 'pitch',
+      description: 'Intelligent harmonizer',
+    },
+    {
+      id: 'mb-time-stretch',
+      name: 'Max Booster Time Stretch',
+      type: 'time',
+      category: 'pitch',
+      description: 'Time stretching',
+    },
+    {
+      id: 'mb-formant',
+      name: 'Max Booster Formant',
+      type: 'formant',
+      category: 'pitch',
+      description: 'Formant shifting',
+    },
   ],
-  
+
   // Utility
   utility: [
-    { id: 'mb-stereo-imager', name: 'Max Booster Stereo Imager', type: 'stereo', category: 'utility', description: 'Stereo width control' },
-    { id: 'mb-gain', name: 'Max Booster Gain', type: 'gain', category: 'utility', description: 'Precision gain control' },
-    { id: 'mb-pan', name: 'Max Booster Pan', type: 'pan', category: 'utility', description: 'Stereo panning' },
-    { id: 'mb-mute', name: 'Max Booster Mute', type: 'mute', category: 'utility', description: 'Channel muting' },
-    { id: 'mb-phase', name: 'Max Booster Phase', type: 'phase', category: 'utility', description: 'Phase inversion' },
+    {
+      id: 'mb-stereo-imager',
+      name: 'Max Booster Stereo Imager',
+      type: 'stereo',
+      category: 'utility',
+      description: 'Stereo width control',
+    },
+    {
+      id: 'mb-gain',
+      name: 'Max Booster Gain',
+      type: 'gain',
+      category: 'utility',
+      description: 'Precision gain control',
+    },
+    {
+      id: 'mb-pan',
+      name: 'Max Booster Pan',
+      type: 'pan',
+      category: 'utility',
+      description: 'Stereo panning',
+    },
+    {
+      id: 'mb-mute',
+      name: 'Max Booster Mute',
+      type: 'mute',
+      category: 'utility',
+      description: 'Channel muting',
+    },
+    {
+      id: 'mb-phase',
+      name: 'Max Booster Phase',
+      type: 'phase',
+      category: 'utility',
+      description: 'Phase inversion',
+    },
   ],
-  
+
   // Virtual Instruments
   instruments: [
-    { id: 'mb-synth-analog', name: 'Max Booster Synth Analog', type: 'synthesizer', category: 'instruments', description: 'Analog synthesizer' },
-    { id: 'mb-synth-fm', name: 'Max Booster Synth FM', type: 'synthesizer', category: 'instruments', description: 'FM synthesizer' },
-    { id: 'mb-synth-wavetable', name: 'Max Booster Synth Wavetable', type: 'synthesizer', category: 'instruments', description: 'Wavetable synthesizer' },
-    { id: 'mb-sampler', name: 'Max Booster Sampler', type: 'sampler', category: 'instruments', description: 'Professional sampler' },
-    { id: 'mb-drum-machine', name: 'Max Booster Drum Machine', type: 'drum', category: 'instruments', description: 'Drum machine' },
-    { id: 'mb-piano', name: 'Max Booster Piano', type: 'piano', category: 'instruments', description: 'Grand piano' },
-    { id: 'mb-guitar', name: 'Max Booster Guitar', type: 'guitar', category: 'instruments', description: 'Electric guitar' },
-    { id: 'mb-bass', name: 'Max Booster Bass', type: 'bass', category: 'instruments', description: 'Electric bass' },
-    { id: 'mb-strings', name: 'Max Booster Strings', type: 'strings', category: 'instruments', description: 'String ensemble' },
-    { id: 'mb-brass', name: 'Max Booster Brass', type: 'brass', category: 'instruments', description: 'Brass section' },
+    {
+      id: 'mb-synth-analog',
+      name: 'Max Booster Synth Analog',
+      type: 'synthesizer',
+      category: 'instruments',
+      description: 'Analog synthesizer',
+    },
+    {
+      id: 'mb-synth-fm',
+      name: 'Max Booster Synth FM',
+      type: 'synthesizer',
+      category: 'instruments',
+      description: 'FM synthesizer',
+    },
+    {
+      id: 'mb-synth-wavetable',
+      name: 'Max Booster Synth Wavetable',
+      type: 'synthesizer',
+      category: 'instruments',
+      description: 'Wavetable synthesizer',
+    },
+    {
+      id: 'mb-sampler',
+      name: 'Max Booster Sampler',
+      type: 'sampler',
+      category: 'instruments',
+      description: 'Professional sampler',
+    },
+    {
+      id: 'mb-drum-machine',
+      name: 'Max Booster Drum Machine',
+      type: 'drum',
+      category: 'instruments',
+      description: 'Drum machine',
+    },
+    {
+      id: 'mb-piano',
+      name: 'Max Booster Piano',
+      type: 'piano',
+      category: 'instruments',
+      description: 'Grand piano',
+    },
+    {
+      id: 'mb-guitar',
+      name: 'Max Booster Guitar',
+      type: 'guitar',
+      category: 'instruments',
+      description: 'Electric guitar',
+    },
+    {
+      id: 'mb-bass',
+      name: 'Max Booster Bass',
+      type: 'bass',
+      category: 'instruments',
+      description: 'Electric bass',
+    },
+    {
+      id: 'mb-strings',
+      name: 'Max Booster Strings',
+      type: 'strings',
+      category: 'instruments',
+      description: 'String ensemble',
+    },
+    {
+      id: 'mb-brass',
+      name: 'Max Booster Brass',
+      type: 'brass',
+      category: 'instruments',
+      description: 'Brass section',
+    },
   ],
 };
 
@@ -335,8 +702,8 @@ const AI_SYSTEMS = {
       'Stereo field enhancement',
       'Frequency masking detection',
       'Real-time mix analysis',
-      'One-click mix optimization'
-    ]
+      'One-click mix optimization',
+    ],
   },
   mastering: {
     name: 'Max Booster AI Master',
@@ -347,9 +714,9 @@ const AI_SYSTEMS = {
       'Stereo enhancement',
       'Dynamic range control',
       'Reference track matching',
-      'Multi-format export'
-    ]
-  }
+      'Multi-format export',
+    ],
+  },
 };
 
 export default function Studio() {
@@ -479,11 +846,11 @@ export default function Studio() {
           <div className="max-w-7xl mx-auto space-y-8">
             {/* Header Section */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200/60 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-              <div>
+              <div className="flex items-center justify-between">
+                <div>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Max Booster Studio
-                </h1>
+                    Max Booster Studio
+                  </h1>
                   <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">
                     Professional Digital Audio Workstation with AI-Powered Mixing & Mastering
                   </p>
@@ -492,40 +859,45 @@ export default function Studio() {
                       <Brain className="w-3 h-3 mr-1" />
                       AI-Powered
                     </Badge>
-                    <Badge variant="outline" className="border-purple-200 text-purple-700 bg-purple-50">
+                    <Badge
+                      variant="outline"
+                      className="border-purple-200 text-purple-700 bg-purple-50"
+                    >
                       <Zap className="w-3 h-3 mr-1" />
                       1000+ Plugins
                     </Badge>
-                    <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50">
+                    <Badge
+                      variant="outline"
+                      className="border-green-200 text-green-700 bg-green-50"
+                    >
                       <Cpu className="w-3 h-3 mr-1" />
                       Real-time Processing
                     </Badge>
                   </div>
-                  </div>
+                </div>
                 <div className="flex space-x-2">
                   <Button
-                    onClick={() => createProjectMutation.mutate({ name: 'New Project', tempo: 120 })}
+                    onClick={() =>
+                      createProjectMutation.mutate({ name: 'New Project', tempo: 120 })
+                    }
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     New Project
                   </Button>
-                  <Button
-                    onClick={() => setShowPluginBrowser(true)}
-                    variant="outline"
-                  >
+                  <Button onClick={() => setShowPluginBrowser(true)} variant="outline">
                     <Layers className="w-4 h-4 mr-2" />
                     Plugins
                   </Button>
                 </div>
               </div>
-          </div>
+            </div>
 
             {/* Transport Controls */}
             <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
               <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
                     <Button
                       onClick={handlePlay}
                       disabled={isPlaying}
@@ -533,17 +905,10 @@ export default function Studio() {
                     >
                       <Play className="w-4 h-4" />
                     </Button>
-                    <Button
-                      onClick={handlePause}
-                      disabled={!isPlaying}
-                      variant="outline"
-                    >
+                    <Button onClick={handlePause} disabled={!isPlaying} variant="outline">
                       <Pause className="w-4 h-4" />
                     </Button>
-                    <Button
-                      onClick={handleStop}
-                      variant="outline"
-                    >
+                    <Button onClick={handleStop} variant="outline">
                       <Square className="w-4 h-4" />
                     </Button>
                     <Button
@@ -553,22 +918,25 @@ export default function Studio() {
                       <Circle className="w-4 h-4" />
                     </Button>
                   </div>
-                  
+
                   <div className="flex items-center space-x-6">
-                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                       <Label>Tempo</Label>
-                    <Input 
-                      type="number" 
+                      <Input
+                        type="number"
                         value={tempo}
                         onChange={(e) => setTempo(Number(e.target.value))}
                         className="w-20"
-                    />
-                  </div>
+                      />
+                    </div>
                     <div className="flex items-center space-x-2">
                       <Label>Time</Label>
-                      <span className="font-mono text-sm">{Math.floor(currentTime / 60)}:{(currentTime % 60).toFixed(1).padStart(4, '0')}</span>
+                      <span className="font-mono text-sm">
+                        {Math.floor(currentTime / 60)}:
+                        {(currentTime % 60).toFixed(1).padStart(4, '0')}
+                      </span>
                     </div>
-                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                       <Volume2 className="w-4 h-4" />
                       <Slider defaultValue={[80]} max={100} step={1} className="w-20" />
                     </div>
@@ -633,10 +1001,12 @@ export default function Studio() {
                     {AI_SYSTEMS.mastering.features.map((feature, index) => (
                       <div key={index} className="flex items-center space-x-2">
                         <CheckCircle className="w-4 h-4 text-purple-600" />
-                        <span className="text-sm text-purple-700 dark:text-purple-300">{feature}</span>
-                </div>
+                        <span className="text-sm text-purple-700 dark:text-purple-300">
+                          {feature}
+                        </span>
+                      </div>
                     ))}
-              </div>
+                  </div>
                   <Button
                     onClick={handleAIMaster}
                     disabled={!selectedProject || isAIMastering}
@@ -661,25 +1031,43 @@ export default function Studio() {
             {/* Main Studio Interface */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList className="grid w-full grid-cols-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                <TabsTrigger value="projects" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="projects"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   Projects
-                  </TabsTrigger>
-                <TabsTrigger value="mixer" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                    Mixer
-                  </TabsTrigger>
-                <TabsTrigger value="arrange" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                </TabsTrigger>
+                <TabsTrigger
+                  value="mixer"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
+                  Mixer
+                </TabsTrigger>
+                <TabsTrigger
+                  value="arrange"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   Arrange
                 </TabsTrigger>
-                <TabsTrigger value="plugins" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="plugins"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   Plugins
                 </TabsTrigger>
-                <TabsTrigger value="instruments" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="instruments"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   Instruments
                 </TabsTrigger>
-                <TabsTrigger value="browser" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger
+                  value="browser"
+                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                >
                   Browser
                 </TabsTrigger>
-                </TabsList>
+              </TabsList>
 
               {/* Projects Tab */}
               <TabsContent value="projects" className="space-y-6">
@@ -700,23 +1088,28 @@ export default function Studio() {
                         <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                           <Music className="w-12 h-12 text-white" />
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Projects Yet</h3>
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                          No Projects Yet
+                        </h3>
                         <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                          Create your first studio project to start making music with Max Booster Studio.
+                          Create your first studio project to start making music with Max Booster
+                          Studio.
                         </p>
-                        <Button 
-                          onClick={() => createProjectMutation.mutate({ name: 'My First Project', tempo: 120 })}
+                        <Button
+                          onClick={() =>
+                            createProjectMutation.mutate({ name: 'My First Project', tempo: 120 })
+                          }
                           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-8 py-3"
                         >
                           <Plus className="w-5 h-5 mr-2" />
                           Create Your First Project
-                              </Button>
+                        </Button>
                       </CardContent>
                     </Card>
                   ) : (
                     projects.map((project) => (
-                      <Card 
-                        key={project.id} 
+                      <Card
+                        key={project.id}
                         className="group hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-700"
                         onClick={() => setSelectedProject(project)}
                       >
@@ -751,7 +1144,7 @@ export default function Studio() {
                       </Card>
                     ))
                   )}
-                        </div>
+                </div>
               </TabsContent>
 
               {/* Other tabs content will be added here */}
@@ -806,7 +1199,7 @@ export default function Studio() {
                     <div className="text-center py-8">
                       <Piano className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                       <p className="text-gray-500">Professional virtual instruments coming soon</p>
-                  </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -820,14 +1213,14 @@ export default function Studio() {
                     <div className="text-center py-8">
                       <FolderOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                       <p className="text-gray-500">File browser and sample library coming soon</p>
-                  </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
             </Tabs>
           </div>
         </main>
-        </div>
+      </div>
     </div>
   );
 }

@@ -1,9 +1,21 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { CreditCard } from 'lucide-react';
@@ -22,18 +34,18 @@ export default function PaymentUpdateDialog({ open, onOpenChange }: PaymentUpdat
     expiryYear: '',
     cvc: '',
     name: '',
-    zip: ''
+    zip: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (paymentData.cardNumber.replace(/\s/g, '').length !== 16) {
       toast({
-        title: "Error",
-        description: "Please enter a valid 16-digit card number",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please enter a valid 16-digit card number',
+        variant: 'destructive',
       });
       return;
     }
@@ -42,14 +54,14 @@ export default function PaymentUpdateDialog({ open, onOpenChange }: PaymentUpdat
     try {
       await apiRequest('POST', '/api/billing/update-payment', {
         ...paymentData,
-        cardNumber: paymentData.cardNumber.replace(/\s/g, '')
+        cardNumber: paymentData.cardNumber.replace(/\s/g, ''),
       });
-      
+
       toast({
-        title: "Success",
-        description: "Your payment method has been updated successfully",
+        title: 'Success',
+        description: 'Your payment method has been updated successfully',
       });
-      
+
       onOpenChange(false);
       setPaymentData({
         cardNumber: '',
@@ -57,13 +69,13 @@ export default function PaymentUpdateDialog({ open, onOpenChange }: PaymentUpdat
         expiryYear: '',
         cvc: '',
         name: '',
-        zip: ''
+        zip: '',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update payment method",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to update payment method',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -101,7 +113,7 @@ export default function PaymentUpdateDialog({ open, onOpenChange }: PaymentUpdat
             Enter your new payment details to update your billing information
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="cardNumber">Card Number</Label>
@@ -109,10 +121,12 @@ export default function PaymentUpdateDialog({ open, onOpenChange }: PaymentUpdat
               id="cardNumber"
               placeholder="1234 5678 9012 3456"
               value={paymentData.cardNumber}
-              onChange={(e) => setPaymentData(prev => ({ 
-                ...prev, 
-                cardNumber: formatCardNumber(e.target.value)
-              }))}
+              onChange={(e) =>
+                setPaymentData((prev) => ({
+                  ...prev,
+                  cardNumber: formatCardNumber(e.target.value),
+                }))
+              }
               maxLength={19}
               required
               data-testid="input-card-number"
@@ -122,15 +136,17 @@ export default function PaymentUpdateDialog({ open, onOpenChange }: PaymentUpdat
           <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="expiryMonth">Exp. Month</Label>
-              <Select 
-                value={paymentData.expiryMonth} 
-                onValueChange={(value) => setPaymentData(prev => ({ ...prev, expiryMonth: value }))}
+              <Select
+                value={paymentData.expiryMonth}
+                onValueChange={(value) =>
+                  setPaymentData((prev) => ({ ...prev, expiryMonth: value }))
+                }
               >
                 <SelectTrigger id="expiryMonth" data-testid="select-expiry-month">
                   <SelectValue placeholder="MM" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
                     <SelectItem key={month} value={month.toString().padStart(2, '0')}>
                       {month.toString().padStart(2, '0')}
                     </SelectItem>
@@ -141,19 +157,23 @@ export default function PaymentUpdateDialog({ open, onOpenChange }: PaymentUpdat
 
             <div>
               <Label htmlFor="expiryYear">Exp. Year</Label>
-              <Select 
-                value={paymentData.expiryYear} 
-                onValueChange={(value) => setPaymentData(prev => ({ ...prev, expiryYear: value }))}
+              <Select
+                value={paymentData.expiryYear}
+                onValueChange={(value) =>
+                  setPaymentData((prev) => ({ ...prev, expiryYear: value }))
+                }
               >
                 <SelectTrigger id="expiryYear" data-testid="select-expiry-year">
                   <SelectValue placeholder="YYYY" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map(year => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
+                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map(
+                    (year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -167,7 +187,7 @@ export default function PaymentUpdateDialog({ open, onOpenChange }: PaymentUpdat
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, '');
                   if (value.length <= 4) {
-                    setPaymentData(prev => ({ ...prev, cvc: value }));
+                    setPaymentData((prev) => ({ ...prev, cvc: value }));
                   }
                 }}
                 maxLength={4}
@@ -183,7 +203,7 @@ export default function PaymentUpdateDialog({ open, onOpenChange }: PaymentUpdat
               id="name"
               placeholder="John Doe"
               value={paymentData.name}
-              onChange={(e) => setPaymentData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) => setPaymentData((prev) => ({ ...prev, name: e.target.value }))}
               required
               data-testid="input-cardholder-name"
             />
@@ -198,7 +218,7 @@ export default function PaymentUpdateDialog({ open, onOpenChange }: PaymentUpdat
               onChange={(e) => {
                 const value = e.target.value.replace(/\D/g, '');
                 if (value.length <= 5) {
-                  setPaymentData(prev => ({ ...prev, zip: value }));
+                  setPaymentData((prev) => ({ ...prev, zip: value }));
                 }
               }}
               maxLength={5}
@@ -217,11 +237,7 @@ export default function PaymentUpdateDialog({ open, onOpenChange }: PaymentUpdat
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              data-testid="button-submit-payment-update"
-            >
+            <Button type="submit" disabled={loading} data-testid="button-submit-payment-update">
               {loading ? 'Updating...' : 'Update Payment Method'}
             </Button>
           </div>

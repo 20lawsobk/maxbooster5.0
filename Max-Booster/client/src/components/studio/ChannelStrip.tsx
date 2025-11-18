@@ -5,11 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ProfessionalFader } from './ProfessionalFader';
 import { VUMeter } from './VUMeter';
 import { Knob } from './Knob';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -35,9 +31,12 @@ interface ChannelStripProps {
   onMuteToggle: () => void;
   onSoloToggle: () => void;
   onArmedToggle?: () => void;
-  onEffectChange?: (effectType: string, params: any) => void;
+  onEffectChange?: (effectType: string, params: unknown) => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function ChannelStrip({
   id,
   name,
@@ -60,27 +59,27 @@ export function ChannelStrip({
   const [showSends, setShowSends] = useState(false);
   const [meterLevel, setMeterLevel] = useState([0, 0]); // L, R
   const [peakLevel, setPeakLevel] = useState([0, 0]);
-  
+
   // Simulated meter animation (replace with real audio metering)
   useEffect(() => {
     if (mute) {
       setMeterLevel([0, 0]);
       return;
     }
-    
+
     const interval = setInterval(() => {
       // Simulate meter movement
       const newLevelL = Math.random() * volume * 0.8;
       const newLevelR = Math.random() * volume * 0.8;
       setMeterLevel([newLevelL, newLevelR]);
-      
+
       // Update peaks
-      setPeakLevel(prev => [
+      setPeakLevel((prev) => [
         Math.max(prev[0] * 0.95, newLevelL),
-        Math.max(prev[1] * 0.95, newLevelR)
+        Math.max(prev[1] * 0.95, newLevelR),
       ]);
     }, 50);
-    
+
     return () => clearInterval(interval);
   }, [volume, mute]);
 
@@ -95,7 +94,8 @@ export function ChannelStrip({
       className="w-24 h-full flex flex-col border-r"
       style={{
         borderColor: 'var(--studio-border)',
-        background: 'linear-gradient(180deg, var(--studio-bg-medium) 0%, var(--studio-bg-deep) 100%)',
+        background:
+          'linear-gradient(180deg, var(--studio-bg-medium) 0%, var(--studio-bg-deep) 100%)',
       }}
     >
       {/* Track Header */}
@@ -151,7 +151,7 @@ export function ChannelStrip({
           <span>INSERTS</span>
           {showInserts ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
         </button>
-        
+
         {showInserts && (
           <div className="p-2 space-y-1">
             {/* EQ */}
@@ -175,7 +175,7 @@ export function ChannelStrip({
                       <Label className="text-xs">EQ</Label>
                       <Switch
                         checked={!effects.eq.bypass}
-                        onCheckedChange={(checked) => 
+                        onCheckedChange={(checked) =>
                           onEffectChange?.('eq', { ...effects.eq, bypass: !checked })
                         }
                       />
@@ -186,7 +186,7 @@ export function ChannelStrip({
                         <Label className="text-[10px]">Low: {effects.eq.lowGain}dB</Label>
                         <Slider
                           value={[effects.eq.lowGain]}
-                          onValueChange={([val]) => 
+                          onValueChange={([val]) =>
                             onEffectChange?.('eq', { ...effects.eq, lowGain: val })
                           }
                           min={-12}
@@ -198,7 +198,7 @@ export function ChannelStrip({
                         <Label className="text-[10px]">Mid: {effects.eq.midGain}dB</Label>
                         <Slider
                           value={[effects.eq.midGain]}
-                          onValueChange={([val]) => 
+                          onValueChange={([val]) =>
                             onEffectChange?.('eq', { ...effects.eq, midGain: val })
                           }
                           min={-12}
@@ -210,7 +210,7 @@ export function ChannelStrip({
                         <Label className="text-[10px]">High: {effects.eq.highGain}dB</Label>
                         <Slider
                           value={[effects.eq.highGain]}
-                          onValueChange={([val]) => 
+                          onValueChange={([val]) =>
                             onEffectChange?.('eq', { ...effects.eq, highGain: val })
                           }
                           min={-12}
@@ -223,7 +223,7 @@ export function ChannelStrip({
                 </PopoverContent>
               </Popover>
             )}
-            
+
             {/* Compressor */}
             {effects?.compressor && (
               <button
@@ -251,7 +251,7 @@ export function ChannelStrip({
           <span>SENDS</span>
           {showSends ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
         </button>
-        
+
         {showSends && (
           <div className="p-2 space-y-2">
             <div className="flex items-center justify-between text-[9px]">
@@ -273,7 +273,10 @@ export function ChannelStrip({
       </div>
 
       {/* Pan Knob */}
-      <div className="p-2 flex flex-col items-center border-t" style={{ borderColor: 'var(--studio-border)' }}>
+      <div
+        className="p-2 flex flex-col items-center border-t"
+        style={{ borderColor: 'var(--studio-border)' }}
+      >
         <Knob
           value={pan}
           onChange={onPanChange}
@@ -282,18 +285,19 @@ export function ChannelStrip({
           step={0.01}
           size={40}
           label="PAN"
-          valueDisplay={(val) => val === 0 ? 'C' : val < 0 ? `${Math.abs(val * 100).toFixed(0)}L` : `${(val * 100).toFixed(0)}R`}
+          valueDisplay={(val) =>
+            val === 0
+              ? 'C'
+              : val < 0
+                ? `${Math.abs(val * 100).toFixed(0)}L`
+                : `${(val * 100).toFixed(0)}R`
+          }
         />
       </div>
 
       {/* Volume Fader */}
       <div className="flex-1 flex flex-col items-center px-2 py-3">
-        <ProfessionalFader
-          value={volume}
-          onChange={onVolumeChange}
-          height="100%"
-          color={color}
-        />
+        <ProfessionalFader value={volume} onChange={onVolumeChange} height="100%" color={color} />
         <div
           className="mt-2 text-[9px] font-mono text-center"
           style={{ color: 'var(--studio-text-muted)' }}

@@ -1,31 +1,53 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle, CheckCircle, Edit, Plus, Trash2, Users } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { ProjectRoyaltySplit } from "@shared/schema";
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { AlertCircle, CheckCircle, Edit, Plus, Trash2, Users } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import type { ProjectRoyaltySplit } from '@shared/schema';
 
 interface RoyaltySplitManagerProps {
   projectId: string;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function RoyaltySplitManager({ projectId }: RoyaltySplitManagerProps) {
   const { toast } = useToast();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSplit, setEditingSplit] = useState<ProjectRoyaltySplit | null>(null);
   const [formData, setFormData] = useState({
-    collaboratorId: "",
-    splitPercentage: "",
-    role: "",
+    collaboratorId: '',
+    splitPercentage: '',
+    role: '',
   });
 
   // Fetch royalty splits for this project
@@ -43,23 +65,23 @@ export function RoyaltySplitManager({ projectId }: RoyaltySplitManagerProps) {
 
   // Create split mutation
   const createSplitMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: unknown) => {
       const response = await apiRequest('POST', `/api/projects/${projectId}/royalty-splits`, data);
       return response.json();
     },
     onSuccess: (data) => {
       toast({
         title: data.isValid ? 'Collaborator Added' : 'Collaborator Added (Invalid Total)',
-        description: data.isValid 
+        description: data.isValid
           ? 'Royalty split has been created successfully'
           : 'Warning: Total splits do not equal 100%',
         variant: data.isValid ? 'default' : 'destructive',
       });
       setIsAddDialogOpen(false);
-      setFormData({ collaboratorId: "", splitPercentage: "", role: "" });
+      setFormData({ collaboratorId: '', splitPercentage: '', role: '' });
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'royalty-splits'] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to create split',
@@ -71,13 +93,17 @@ export function RoyaltySplitManager({ projectId }: RoyaltySplitManagerProps) {
   // Update split mutation
   const updateSplitMutation = useMutation({
     mutationFn: async ({ splitId, data }: { splitId: string; data: any }) => {
-      const response = await apiRequest('PUT', `/api/projects/${projectId}/royalty-splits/${splitId}`, data);
+      const response = await apiRequest(
+        'PUT',
+        `/api/projects/${projectId}/royalty-splits/${splitId}`,
+        data
+      );
       return response.json();
     },
     onSuccess: (data) => {
       toast({
         title: data.isValid ? 'Split Updated' : 'Split Updated (Invalid Total)',
-        description: data.isValid 
+        description: data.isValid
           ? 'Royalty split has been updated successfully'
           : 'Warning: Total splits do not equal 100%',
         variant: data.isValid ? 'default' : 'destructive',
@@ -86,7 +112,7 @@ export function RoyaltySplitManager({ projectId }: RoyaltySplitManagerProps) {
       setEditingSplit(null);
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'royalty-splits'] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to update split',
@@ -98,7 +124,11 @@ export function RoyaltySplitManager({ projectId }: RoyaltySplitManagerProps) {
   // Delete split mutation
   const deleteSplitMutation = useMutation({
     mutationFn: async (splitId: string) => {
-      const response = await apiRequest('DELETE', `/api/projects/${projectId}/royalty-splits/${splitId}`, {});
+      const response = await apiRequest(
+        'DELETE',
+        `/api/projects/${projectId}/royalty-splits/${splitId}`,
+        {}
+      );
       return response.json();
     },
     onSuccess: () => {
@@ -108,7 +138,7 @@ export function RoyaltySplitManager({ projectId }: RoyaltySplitManagerProps) {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'royalty-splits'] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to delete split',
@@ -169,9 +199,9 @@ export function RoyaltySplitManager({ projectId }: RoyaltySplitManagerProps) {
   const openEditDialog = (split: ProjectRoyaltySplit) => {
     setEditingSplit(split);
     setFormData({
-      collaboratorId: split.collaboratorId || "",
-      splitPercentage: split.splitPercentage || "",
-      role: split.role || "",
+      collaboratorId: split.collaboratorId || '',
+      splitPercentage: split.splitPercentage || '',
+      role: split.role || '',
     });
     setIsEditDialogOpen(true);
   };
@@ -264,9 +294,12 @@ export function RoyaltySplitManager({ projectId }: RoyaltySplitManagerProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Validation indicator */}
-        <div className={`flex items-center gap-2 p-3 rounded-lg ${
-          isValid ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'
-        }`} data-testid={isValid ? 'indicator-valid' : 'indicator-invalid'}>
+        <div
+          className={`flex items-center gap-2 p-3 rounded-lg ${
+            isValid ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'
+          }`}
+          data-testid={isValid ? 'indicator-valid' : 'indicator-invalid'}
+        >
           {isValid ? (
             <>
               <CheckCircle className="w-5 h-5" />
@@ -275,7 +308,9 @@ export function RoyaltySplitManager({ projectId }: RoyaltySplitManagerProps) {
           ) : (
             <>
               <AlertCircle className="w-5 h-5" />
-              <span className="font-medium">Invalid Split: Total = {totalPercentage.toFixed(2)}% (Must be 100%)</span>
+              <span className="font-medium">
+                Invalid Split: Total = {totalPercentage.toFixed(2)}% (Must be 100%)
+              </span>
             </>
           )}
         </div>
@@ -340,7 +375,10 @@ export function RoyaltySplitManager({ projectId }: RoyaltySplitManagerProps) {
 
         {/* Total row */}
         {splits.length > 0 && (
-          <div className="flex items-center justify-between pt-4 border-t font-bold" data-testid="row-total">
+          <div
+            className="flex items-center justify-between pt-4 border-t font-bold"
+            data-testid="row-total"
+          >
             <span>Total</span>
             <span className={totalPercentage !== 100 ? 'text-red-600' : ''}>
               {totalPercentage.toFixed(2)}%

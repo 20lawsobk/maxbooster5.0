@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Music, 
-  TrendingUp, 
-  Share2, 
-  Target, 
+import {
+  Music,
+  TrendingUp,
+  Share2,
+  Target,
   Plus,
   Play,
   Upload,
@@ -17,7 +17,7 @@ import {
   Zap,
   Crown,
   ArrowRight,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 
 interface SimplifiedDashboardProps {
@@ -36,7 +36,7 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
       description: 'Get your music on all major platforms',
       icon: <Upload className="w-6 h-6" />,
       color: 'bg-blue-500',
-      href: '/distribution'
+      href: '/distribution',
     },
     {
       id: 'create-beat',
@@ -44,7 +44,7 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
       description: 'Use our AI-powered studio',
       icon: <Music className="w-6 h-6" />,
       color: 'bg-purple-500',
-      href: '/studio'
+      href: '/studio',
     },
     {
       id: 'share-music',
@@ -52,7 +52,7 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
       description: 'AI-optimized social media posts',
       icon: <Share2 className="w-6 h-6" />,
       color: 'bg-pink-500',
-      href: '/social-media'
+      href: '/social-media',
     },
     {
       id: 'boost-reach',
@@ -60,8 +60,8 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
       description: 'Zero-cost AI advertising',
       icon: <Target className="w-6 h-6" />,
       color: 'bg-red-500',
-      href: '/advertising'
-    }
+      href: '/advertising',
+    },
   ];
 
   const beginnerTasks = [
@@ -70,47 +70,51 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
       title: 'Complete Your Profile',
       description: 'Add your artist information and bio',
       completed: completedTasks.includes('setup-profile'),
-      points: 10
+      points: 10,
     },
     {
       id: 'upload-first-track',
       title: 'Upload Your First Track',
       description: 'Get your music on streaming platforms',
       completed: completedTasks.includes('upload-first-track'),
-      points: 25
+      points: 25,
     },
     {
       id: 'connect-social',
       title: 'Connect Social Media',
       description: 'Link your social media accounts',
       completed: completedTasks.includes('connect-social'),
-      points: 15
+      points: 15,
     },
     {
       id: 'create-first-post',
       title: 'Create Your First Post',
       description: 'Share your music with AI-optimized content',
       completed: completedTasks.includes('create-first-post'),
-      points: 20
-    }
+      points: 20,
+    },
   ];
 
   const totalPoints = beginnerTasks.reduce((sum, task) => sum + task.points, 0);
   const earnedPoints = beginnerTasks
-    .filter(task => task.completed)
+    .filter((task) => task.completed)
     .reduce((sum, task) => sum + task.points, 0);
   const progressPercentage = (earnedPoints / totalPoints) * 100;
 
   const handleTaskComplete = (taskId: string) => {
-    setCompletedTasks(prev => [...prev, taskId]);
+    setCompletedTasks((prev) => [...prev, taskId]);
   };
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'beginner': return 'bg-green-100 text-green-800';
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800';
-      case 'advanced': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'beginner':
+        return 'bg-green-100 text-green-800';
+      case 'intermediate':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'advanced':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -124,9 +128,7 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
             <p className="text-gray-600 mt-2">Your simplified music career management dashboard</p>
           </div>
           <div className="flex items-center space-x-4">
-            <Badge className={getLevelColor(userLevel)}>
-              {userLevel} Mode
-            </Badge>
+            <Badge className={getLevelColor(userLevel)}>{userLevel} Mode</Badge>
             <Button onClick={onUpgrade} variant="outline">
               <Crown className="w-4 h-4 mr-2" />
               Upgrade to Full Mode
@@ -146,14 +148,17 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Getting Started</span>
-                <span className="text-sm text-gray-600">{earnedPoints}/{totalPoints} points</span>
+                <span className="text-sm text-gray-600">
+                  {earnedPoints}/{totalPoints} points
+                </span>
               </div>
               <Progress value={progressPercentage} className="h-3" />
               <div className="flex items-center space-x-2">
                 <Zap className="w-4 h-4 text-yellow-500" />
                 <span className="text-sm text-gray-600">
-                  {progressPercentage >= 100 ? '🎉 All tasks completed!' : 
-                   `${Math.round(100 - progressPercentage)}% to completion`}
+                  {progressPercentage >= 100
+                    ? '🎉 All tasks completed!'
+                    : `${Math.round(100 - progressPercentage)}% to completion`}
                 </span>
               </div>
             </div>
@@ -171,7 +176,10 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {quickActions.map((action) => (
-                    <Card key={action.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                    <Card
+                      key={action.id}
+                      className="hover:shadow-md transition-shadow cursor-pointer"
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start space-x-3">
                           <div className={`p-2 rounded-lg ${action.color} text-white`}>
@@ -180,9 +188,9 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
                           <div className="flex-1">
                             <h3 className="font-semibold">{action.title}</h3>
                             <p className="text-sm text-gray-600 mt-1">{action.description}</p>
-                            <Button 
-                              size="sm" 
-                              className="mt-3" 
+                            <Button
+                              size="sm"
+                              className="mt-3"
                               variant="outline"
                               onClick={() => setLocation(action.href)}
                             >
@@ -209,11 +217,11 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
               <CardContent>
                 <div className="space-y-3">
                   {beginnerTasks.map((task) => (
-                    <div 
+                    <div
                       key={task.id}
                       className={`p-3 rounded-lg border-2 transition-colors ${
-                        task.completed 
-                          ? 'border-green-200 bg-green-50' 
+                        task.completed
+                          ? 'border-green-200 bg-green-50'
                           : 'border-gray-200 bg-white hover:border-blue-200'
                       }`}
                     >
@@ -233,8 +241,8 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
                               +{task.points} pts
                             </Badge>
                             {!task.completed && (
-                              <Button 
-                                size="sm" 
+                              <Button
+                                size="sm"
                                 variant="ghost"
                                 onClick={() => handleTaskComplete(task.id)}
                                 className="text-xs"
@@ -266,20 +274,28 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
                 </div>
                 <div>
                   <p className="font-medium text-sm">Welcome to Max Booster!</p>
-                  <p className="text-xs text-gray-600">Your account has been created successfully</p>
+                  <p className="text-xs text-gray-600">
+                    Your account has been created successfully
+                  </p>
                 </div>
-                <Badge variant="secondary" className="ml-auto">Just now</Badge>
+                <Badge variant="secondary" className="ml-auto">
+                  Just now
+                </Badge>
               </div>
-              
+
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                 <div className="p-2 bg-gray-400 rounded-lg text-white">
                   <Settings className="w-4 h-4" />
                 </div>
                 <div>
                   <p className="font-medium text-sm">Complete your profile</p>
-                  <p className="text-xs text-gray-600">Add your artist information to get started</p>
+                  <p className="text-xs text-gray-600">
+                    Add your artist information to get started
+                  </p>
                 </div>
-                <Button size="sm" variant="outline">Complete</Button>
+                <Button size="sm" variant="outline">
+                  Complete
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -297,15 +313,21 @@ export default function SimplifiedDashboard({ onUpgrade, userLevel }: Simplified
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
                 <h4 className="font-semibold text-sm mb-2">🎵 Start with Distribution</h4>
-                <p className="text-xs text-gray-600">Upload your music first to get it on all major platforms</p>
+                <p className="text-xs text-gray-600">
+                  Upload your music first to get it on all major platforms
+                </p>
               </div>
               <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
                 <h4 className="font-semibold text-sm mb-2">🤖 Use AI Features</h4>
-                <p className="text-xs text-gray-600">Let AI optimize your social media posts and advertising</p>
+                <p className="text-xs text-gray-600">
+                  Let AI optimize your social media posts and advertising
+                </p>
               </div>
               <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
                 <h4 className="font-semibold text-sm mb-2">📈 Track Your Progress</h4>
-                <p className="text-xs text-gray-600">Monitor your analytics to see what's working</p>
+                <p className="text-xs text-gray-600">
+                  Monitor your analytics to see what's working
+                </p>
               </div>
             </div>
           </CardContent>

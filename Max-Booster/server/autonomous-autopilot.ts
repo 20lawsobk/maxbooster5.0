@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import { randomUUID } from 'crypto';
 import { platformAPI } from './platform-apis.ts';
 import { customAI } from './custom-ai-engine.ts';
+import { logger } from './logger.js';
 
 interface AutonomousConfig {
   enabled: boolean;
@@ -50,7 +51,7 @@ export class AutonomousAutopilot extends EventEmitter {
       brandPersonality: 'friendly',
       contentObjectives: ['engagement', 'brand-awareness'],
       crossPlatformSyncing: true,
-      adaptivePosting: true
+      adaptivePosting: true,
     });
     return engine;
   }
@@ -64,7 +65,7 @@ export class AutonomousAutopilot extends EventEmitter {
       brandPersonality: 'authoritative',
       contentObjectives: ['thought-leadership', 'brand-awareness'],
       crossPlatformSyncing: true,
-      adaptivePosting: true
+      adaptivePosting: true,
     });
     return engine;
   }
@@ -78,7 +79,7 @@ export class AutonomousAutopilot extends EventEmitter {
       brandPersonality: 'professional',
       contentObjectives: ['education', 'thought-leadership'],
       crossPlatformSyncing: false,
-      adaptivePosting: true
+      adaptivePosting: true,
     });
     return engine;
   }
@@ -95,11 +96,11 @@ export class AutonomousAutopilot extends EventEmitter {
       engagementTargets: {
         minLikesPerPost: 10,
         minSharesPerPost: 2,
-        minCommentsPerPost: 1
+        minCommentsPerPost: 1,
       },
       autoOptimization: true,
       crossPlatformSyncing: true,
-      adaptivePosting: true
+      adaptivePosting: true,
     };
   }
 
@@ -125,14 +126,14 @@ export class AutonomousAutopilot extends EventEmitter {
 
     // Start continuous content generation
     this.scheduleAutonomousContentGeneration();
-    
+
     // Start performance monitoring
     this.schedulePerformanceAnalysis();
-    
+
     // Start adaptive learning
     this.scheduleAdaptiveLearning();
 
-    console.log('Autonomous autopilot started with full automation');
+    logger.info('Autonomous autopilot started with full automation');
   }
 
   async stopAutonomousMode(): Promise<void> {
@@ -155,7 +156,7 @@ export class AutonomousAutopilot extends EventEmitter {
     }
 
     this.emit('autonomousModeStopped');
-    console.log('Autonomous autopilot stopped');
+    logger.info('Autonomous autopilot stopped');
   }
 
   // Autonomous Content Generation
@@ -169,7 +170,7 @@ export class AutonomousAutopilot extends EventEmitter {
         const connectedPlatforms = [
           { name: 'Twitter', isConnected: true },
           { name: 'Instagram', isConnected: true },
-          { name: 'LinkedIn', isConnected: true }
+          { name: 'LinkedIn', isConnected: true },
         ];
 
         for (const platform of connectedPlatforms) {
@@ -177,8 +178,8 @@ export class AutonomousAutopilot extends EventEmitter {
             await this.generateAndPublishAutonomousContent(platform.name);
           }
         }
-      } catch (error) {
-        console.error('Autonomous content generation failed:', error);
+      } catch (error: unknown) {
+        logger.error('Autonomous content generation failed:', error);
         this.emit('autonomousError', { type: 'content_generation', error });
       }
     };
@@ -187,21 +188,23 @@ export class AutonomousAutopilot extends EventEmitter {
     setTimeout(generateContent, 5000); // Start in 5 seconds
 
     // Set up regular intervals with adaptive timing
-    this.contentGenerationInterval = setInterval(generateContent, this.calculateNextGenerationInterval());
+    this.contentGenerationInterval = setInterval(
+      generateContent,
+      this.calculateNextGenerationInterval()
+    );
   }
 
   private async shouldGenerateContentForPlatform(platform: string): Promise<boolean> {
     // Check if we've already posted enough today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
-    const todaysContent = this.contentPerformanceHistory.filter(content => 
-      content.platform === platform && 
-      new Date(content.publishedAt) >= today
+
+    const todaysContent = this.contentPerformanceHistory.filter(
+      (content) => content.platform === platform && new Date(content.publishedAt) >= today
     );
 
     const dailyPostCount = todaysContent.length;
-    
+
     // Don't exceed max posts per day
     if (dailyPostCount >= this.config.maxPostsPerDay) {
       return false;
@@ -210,7 +213,7 @@ export class AutonomousAutopilot extends EventEmitter {
     // Ensure minimum posts per day are met
     const hoursLeft = 24 - new Date().getHours();
     const postsNeeded = this.config.minPostsPerDay - dailyPostCount;
-    
+
     if (hoursLeft <= 4 && postsNeeded > 0) {
       return true; // Must post to meet minimum
     }
@@ -218,15 +221,15 @@ export class AutonomousAutopilot extends EventEmitter {
     // Use optimal timing for regular posts
     const currentHour = new Date().getHours();
     const optimalHours = this.optimalTimingCache.get(platform) || [14];
-    
-    return optimalHours.some(hour => Math.abs(hour - currentHour) <= 1);
+
+    return optimalHours.some((hour) => Math.abs(hour - currentHour) <= 1);
   }
 
   private async generateAndPublishAutonomousContent(platform: string): Promise<void> {
     try {
       // Autonomously select the best topic based on performance history
       const topic = this.selectOptimalTopic();
-      
+
       // Generate content autonomously
       const content = await this.autonomousContentGeneration({
         platform,
@@ -234,7 +237,7 @@ export class AutonomousAutopilot extends EventEmitter {
         brandPersonality: this.config.brandPersonality,
         targetAudience: this.config.targetAudience,
         businessVertical: this.config.businessVertical,
-        objectives: this.config.contentObjectives
+        objectives: this.config.contentObjectives,
       });
 
       // Create content in storage
@@ -244,32 +247,41 @@ export class AutonomousAutopilot extends EventEmitter {
         hashtags: content.hashtags,
         selectedPlatforms: [platform],
         status: 'draft',
-        contentType: 'social_post'
+        contentType: 'social_post',
       } as any;
 
       // Publish immediately (fully autonomous)
-      const publishResults = await platformAPI.publishContent(savedContent, [platform], this.userId);
-      const successfulPublish = publishResults.find((r: any) => r.success);
+      const publishResults = await platformAPI.publishContent(
+        savedContent,
+        [platform],
+        this.userId
+      );
+      const successfulPublish = publishResults.find((r: unknown) => r.success);
 
       if (successfulPublish) {
         savedContent.status = 'published';
         (savedContent as any).publishedAt = new Date();
 
         // Schedule autonomous performance analysis
-        setTimeout(() => {
-          this.analyzeContentPerformance(savedContent.id, successfulPublish.postId!, platform);
-        }, 2 * 60 * 60 * 1000); // Analyze after 2 hours
+        setTimeout(
+          () => {
+            this.analyzeContentPerformance(savedContent.id, successfulPublish.postId!, platform);
+          },
+          2 * 60 * 60 * 1000
+        ); // Analyze after 2 hours
 
         this.emit('autonomousContentPublished', {
           content: savedContent,
           platform,
-          postId: successfulPublish.postId
+          postId: successfulPublish.postId,
         });
 
-        console.log(`Autonomous content published to ${platform}: "${content.text.substring(0, 50)}..."`);
+        logger.info(
+          `Autonomous content published to ${platform}: "${content.text.substring(0, 50)}..."`
+        );
       }
-    } catch (error) {
-      console.error(`Autonomous content generation failed for ${platform}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Autonomous content generation failed for ${platform}:`, error);
       this.emit('autonomousError', { type: 'content_generation', platform, error });
     }
   }
@@ -289,82 +301,82 @@ export class AutonomousAutopilot extends EventEmitter {
       brandVoice: params.brandPersonality,
       contentType: this.selectContentTypeFromObjectives(params.objectives),
       targetAudience: params.targetAudience,
-      businessGoals: params.objectives
+      businessGoals: params.objectives,
     });
 
     return {
       text: generatedContent.text,
-      hashtags: generatedContent.hashtags
+      hashtags: generatedContent.hashtags,
     };
   }
 
   private selectContentTypeFromObjectives(objectives: string[]): string {
     const contentTypeMap: Record<string, string> = {
-      'engagement': 'questions',
+      engagement: 'questions',
       'brand-awareness': 'announcements',
       'thought-leadership': 'insights',
-      'education': 'tips',
-      'promotion': 'announcements'
+      education: 'tips',
+      promotion: 'announcements',
     };
-    
+
     for (const objective of objectives) {
       if (contentTypeMap[objective]) {
         return contentTypeMap[objective];
       }
     }
-    
+
     return 'tips'; // Default fallback
   }
 
-  private getContentTemplates(params: any): string[] {
+  private getContentTemplates(params: unknown): string[] {
     const templates: Record<string, string[]> = {
-      'professional': [
+      professional: [
         `Industry insight: ${params.topic} is reshaping how we approach business strategy. Key implications for ${params.targetAudience}:`,
         `After analyzing current ${params.topic} trends, here are three critical factors every leader should consider:`,
         `The future of ${params.topic} depends on understanding these fundamental principles:`,
-        `${params.topic} presents both challenges and opportunities. Here's how to navigate effectively:`
+        `${params.topic} presents both challenges and opportunities. Here's how to navigate effectively:`,
       ],
-      'casual': [
+      casual: [
         `Just discovered something interesting about ${params.topic}! 🤔`,
         `Hot take: ${params.topic} is about to change everything. Here's why:`,
         `Let's talk about ${params.topic} - this is actually pretty fascinating:`,
-        `${params.topic} update: Things are getting interesting! 👀`
+        `${params.topic} update: Things are getting interesting! 👀`,
       ],
-      'authoritative': [
+      authoritative: [
         `${params.topic} analysis: Based on extensive research, here are the key findings:`,
         `The definitive guide to ${params.topic}: Everything you need to know:`,
         `${params.topic} best practices that deliver measurable results:`,
-        `Comprehensive ${params.topic} strategy framework:`
+        `Comprehensive ${params.topic} strategy framework:`,
       ],
-      'friendly': [
+      friendly: [
         `Hey everyone! Wanted to share some thoughts on ${params.topic} 😊`,
         `Good morning! Let's dive into ${params.topic} together:`,
         `Hope everyone's having a great day! Quick ${params.topic} tip:`,
-        `${params.topic} made simple - here's what you need to know:`
+        `${params.topic} made simple - here's what you need to know:`,
       ],
-      'innovative': [
+      innovative: [
         `🚀 Revolutionary approach to ${params.topic}: Here's what's changing:`,
         `Breaking: ${params.topic} innovation that's disrupting the entire industry:`,
         `Next-generation ${params.topic} strategies that are already working:`,
-        `The cutting-edge of ${params.topic}: What early adopters are doing differently:`
-      ]
+        `The cutting-edge of ${params.topic}: What early adopters are doing differently:`,
+      ],
     };
 
     return templates[params.brandPersonality] || templates['professional'];
   }
 
-  private customizeContentTemplate(template: string, params: any): string {
+  private customizeContentTemplate(template: string, params: unknown): string {
     // Add context and value based on objectives
     let content = template;
-    
+
     if (params.objectives.includes('thought-leadership')) {
       content += `\n\n💡 Key insight: This approach has proven effective across multiple ${params.businessVertical} organizations.`;
     }
-    
+
     if (params.objectives.includes('engagement')) {
       content += `\n\nWhat's your experience with this? Share your thoughts below! 👇`;
     }
-    
+
     if (params.objectives.includes('brand-awareness')) {
       content += `\n\n#${params.businessVertical} #Innovation #Growth`;
     }
@@ -374,50 +386,70 @@ export class AutonomousAutopilot extends EventEmitter {
 
   private generateOptimalHashtags(content: string, platform: string): string[] {
     const words = content.toLowerCase().split(/\s+/);
-    const keywords = words.filter(word => word.length > 4 && !this.isStopWord(word));
-    
+    const keywords = words.filter((word) => word.length > 4 && !this.isStopWord(word));
+
     const platformHashtagCounts = {
-      'Instagram': 8,
-      'Twitter': 3,
-      'LinkedIn': 3,
-      'Facebook': 2,
-      'TikTok': 5
+      Instagram: 8,
+      Twitter: 3,
+      LinkedIn: 3,
+      Facebook: 2,
+      TikTok: 5,
     };
 
     const maxHashtags = (platformHashtagCounts as any)[platform] || 3;
-    
+
     // Generate contextual hashtags
     const hashtags = keywords
       .slice(0, maxHashtags)
-      .map(word => `#${word.charAt(0).toUpperCase() + word.slice(1)}`);
+      .map((word) => `#${word.charAt(0).toUpperCase() + word.slice(1)}`);
 
     return hashtags;
   }
 
   private isStopWord(word: string): boolean {
-    const stopWords = ['this', 'that', 'with', 'have', 'will', 'from', 'they', 'been', 'said', 'each', 'which', 'their', 'time', 'people'];
+    const stopWords = [
+      'this',
+      'that',
+      'with',
+      'have',
+      'will',
+      'from',
+      'they',
+      'been',
+      'said',
+      'each',
+      'which',
+      'their',
+      'time',
+      'people',
+    ];
     return stopWords.includes(word);
   }
 
   // Autonomous Performance Analysis
   private schedulePerformanceAnalysis(): void {
-    this.performanceAnalysisInterval = setInterval(async () => {
-      if (!this.isRunning) return;
+    this.performanceAnalysisInterval = setInterval(
+      async () => {
+        if (!this.isRunning) return;
 
-      try {
-        await this.performAutonomousAnalysis();
-      } catch (error) {
-        console.error('Autonomous performance analysis failed:', error);
-        this.emit('autonomousError', { type: 'performance_analysis', error });
-      }
-    }, 30 * 60 * 1000); // Every 30 minutes
+        try {
+          await this.performAutonomousAnalysis();
+        } catch (error: unknown) {
+          logger.error('Autonomous performance analysis failed:', error);
+          this.emit('autonomousError', { type: 'performance_analysis', error });
+        }
+      },
+      30 * 60 * 1000
+    ); // Every 30 minutes
   }
 
   private async performAutonomousAnalysis(): Promise<void> {
     // Analyze recent posts that haven't been analyzed yet
     const recentPosts = this.contentPerformanceHistory
-      .filter(post => !post.analyzed && 
-               (Date.now() - new Date(post.publishedAt).getTime()) > 60 * 60 * 1000) // At least 1 hour old
+      .filter(
+        (post) =>
+          !post.analyzed && Date.now() - new Date(post.publishedAt).getTime() > 60 * 60 * 1000
+      ) // At least 1 hour old
       .slice(0, 10); // Analyze up to 10 posts at a time
 
     for (const post of recentPosts) {
@@ -425,10 +457,14 @@ export class AutonomousAutopilot extends EventEmitter {
     }
   }
 
-  private async analyzeContentPerformance(contentId: string, postId: string, platform: string): Promise<void> {
+  private async analyzeContentPerformance(
+    contentId: string,
+    postId: string,
+    platform: string
+  ): Promise<void> {
     try {
       const analytics = await platformAPI.collectEngagementData(postId, platform, this.userId);
-      
+
       if (analytics) {
         // Persist analytics via external API if available (optional)
 
@@ -439,7 +475,7 @@ export class AutonomousAutopilot extends EventEmitter {
           platform,
           publishedAt: new Date(),
           analytics,
-          analyzed: true
+          analyzed: true,
         });
 
         // Autonomous learning from performance
@@ -447,54 +483,59 @@ export class AutonomousAutopilot extends EventEmitter {
 
         this.emit('autonomousAnalysisCompleted', { contentId, platform, analytics });
       }
-    } catch (error) {
-      console.error(`Performance analysis failed for ${contentId}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Performance analysis failed for ${contentId}:`, error);
     }
   }
 
   // Autonomous Learning and Adaptation
   private scheduleAdaptiveLearning(): void {
-    this.adaptationInterval = setInterval(async () => {
-      if (!this.isRunning) return;
+    this.adaptationInterval = setInterval(
+      async () => {
+        if (!this.isRunning) return;
 
-      try {
-        await this.performAutonomousAdaptation();
-      } catch (error) {
-        console.error('Autonomous adaptation failed:', error);
-        this.emit('autonomousError', { type: 'adaptation', error });
-      }
-    }, 6 * 60 * 60 * 1000); // Every 6 hours
+        try {
+          await this.performAutonomousAdaptation();
+        } catch (error: unknown) {
+          logger.error('Autonomous adaptation failed:', error);
+          this.emit('autonomousError', { type: 'adaptation', error });
+        }
+      },
+      6 * 60 * 60 * 1000
+    ); // Every 6 hours
   }
 
   private async performAutonomousAdaptation(): Promise<void> {
     // Adapt posting frequency based on performance
     this.adaptPostingFrequency();
-    
+
     // Adapt optimal timing based on engagement data
     this.adaptOptimalTiming();
-    
+
     // Adapt content strategy based on topic performance
     this.adaptContentStrategy();
 
     this.emit('autonomousAdaptationCompleted', {
       newConfig: this.config,
-      adaptations: this.getRecentAdaptations()
+      adaptations: this.getRecentAdaptations(),
     });
 
-    console.log('Autonomous adaptation completed');
+    logger.info('Autonomous adaptation completed');
   }
 
   private adaptPostingFrequency(): void {
     const recentPerformance = this.contentPerformanceHistory
-      .filter(post => (Date.now() - new Date(post.publishedAt).getTime()) < 7 * 24 * 60 * 60 * 1000) // Last 7 days
-      .map(post => post.analytics.engagementRate);
+      .filter((post) => Date.now() - new Date(post.publishedAt).getTime() < 7 * 24 * 60 * 60 * 1000) // Last 7 days
+      .map((post) => post.analytics.engagementRate);
 
     if (recentPerformance.length > 5) {
       const avgEngagement = recentPerformance.reduce((a, b) => a + b, 0) / recentPerformance.length;
-      
-      if (avgEngagement > 0.05) { // High engagement
+
+      if (avgEngagement > 0.05) {
+        // High engagement
         this.config.maxPostsPerDay = Math.min(this.config.maxPostsPerDay + 1, 12);
-      } else if (avgEngagement < 0.01) { // Low engagement
+      } else if (avgEngagement < 0.01) {
+        // Low engagement
         this.config.maxPostsPerDay = Math.max(this.config.maxPostsPerDay - 1, 2);
       }
     }
@@ -504,14 +545,14 @@ export class AutonomousAutopilot extends EventEmitter {
     const platformPerformance = new Map<string, Map<number, number>>();
 
     // Analyze performance by hour for each platform
-    this.contentPerformanceHistory.forEach(post => {
+    this.contentPerformanceHistory.forEach((post) => {
       const hour = new Date(post.publishedAt).getHours();
       const platform = post.platform;
-      
+
       if (!platformPerformance.has(platform)) {
         platformPerformance.set(platform, new Map());
       }
-      
+
       const hourlyPerf = platformPerformance.get(platform)!;
       const currentAvg = hourlyPerf.get(hour) || 0;
       hourlyPerf.set(hour, (currentAvg + post.analytics.engagementRate) / 2);
@@ -523,7 +564,7 @@ export class AutonomousAutopilot extends EventEmitter {
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
         .map(([hour]) => hour);
-      
+
       if (sortedHours.length > 0) {
         this.optimalTimingCache.set(platform, sortedHours);
       }
@@ -533,8 +574,8 @@ export class AutonomousAutopilot extends EventEmitter {
   private adaptContentStrategy(): void {
     // Track which topics perform best and adjust focus
     const topicPerformance = new Map<string, number[]>();
-    
-    this.contentPerformanceHistory.forEach(post => {
+
+    this.contentPerformanceHistory.forEach((post) => {
       if (post.topic) {
         if (!topicPerformance.has(post.topic)) {
           topicPerformance.set(post.topic, []);
@@ -550,24 +591,26 @@ export class AutonomousAutopilot extends EventEmitter {
     });
   }
 
-  private async learnFromPerformance(analytics: any, platform: string): Promise<void> {
+  private async learnFromPerformance(analytics: unknown, platform: string): Promise<void> {
     const engagementRate = analytics.engagementRate;
-    
+
     // Feed performance data to custom AI for learning
     // Default to 'tips' content type and template index 0 since we don't track these in autonomous mode
     customAI.updatePerformanceData('tips', platform, 0, analytics);
-    
+
     // Store platform-specific learning data
     const platformData = this.adaptiveLearningData.get(platform) || {
       totalPosts: 0,
       avgEngagement: 0,
       bestPerformingHours: [],
-      contentPatterns: {}
+      contentPatterns: {},
     };
 
     platformData.totalPosts += 1;
-    platformData.avgEngagement = ((platformData.avgEngagement * (platformData.totalPosts - 1)) + engagementRate) / platformData.totalPosts;
-    
+    platformData.avgEngagement =
+      (platformData.avgEngagement * (platformData.totalPosts - 1) + engagementRate) /
+      platformData.totalPosts;
+
     this.adaptiveLearningData.set(platform, platformData);
   }
 
@@ -575,18 +618,24 @@ export class AutonomousAutopilot extends EventEmitter {
   private selectOptimalTopic(): string {
     if (this.topicPerformanceMap.size === 0) {
       // Default topics for initial content
-      const defaultTopics = ['business insights', 'industry trends', 'productivity tips', 'innovation', 'leadership'];
+      const defaultTopics = [
+        'business insights',
+        'industry trends',
+        'productivity tips',
+        'innovation',
+        'leadership',
+      ];
       return defaultTopics[Math.floor(Math.random() * defaultTopics.length)];
     }
 
     // Select topic based on performance, with some randomization
     const topicEntries = Array.from(this.topicPerformanceMap.entries());
     const sortedTopics = topicEntries.sort((a, b) => b[1] - a[1]);
-    
+
     // 70% chance to pick from top performers, 30% chance for variety
     const useTopPerformer = Math.random() < 0.7;
     const topPerformers = sortedTopics.slice(0, Math.ceil(sortedTopics.length * 0.3));
-    
+
     if (useTopPerformer && topPerformers.length > 0) {
       return topPerformers[Math.floor(Math.random() * topPerformers.length)][0];
     } else {
@@ -605,9 +654,10 @@ export class AutonomousAutopilot extends EventEmitter {
       return baseInterval; // Standard interval initially
     }
 
-    const recentAvgEngagement = this.contentPerformanceHistory
-      .slice(-10)
-      .reduce((sum, post) => sum + post.analytics.engagementRate, 0) / 10;
+    const recentAvgEngagement =
+      this.contentPerformanceHistory
+        .slice(-10)
+        .reduce((sum, post) => sum + post.analytics.engagementRate, 0) / 10;
 
     if (recentAvgEngagement > 0.05) {
       return minInterval; // Post more frequently if performing well
@@ -618,11 +668,14 @@ export class AutonomousAutopilot extends EventEmitter {
     return baseInterval;
   }
 
-  private getRecentAdaptations(): any[] {
+  private getRecentAdaptations(): unknown[] {
     return [
       { type: 'posting_frequency', value: this.config.maxPostsPerDay },
       { type: 'optimal_timing', platforms: Array.from(this.optimalTimingCache.keys()) },
-      { type: 'topic_focus', topPerformers: Array.from(this.topicPerformanceMap.entries()).slice(0, 3) }
+      {
+        type: 'topic_focus',
+        topPerformers: Array.from(this.topicPerformanceMap.entries()).slice(0, 3),
+      },
     ];
   }
 
@@ -632,13 +685,17 @@ export class AutonomousAutopilot extends EventEmitter {
       isRunning: this.isRunning,
       config: this.config,
       totalContentPublished: this.contentPerformanceHistory.length,
-      avgEngagementRate: this.contentPerformanceHistory.length > 0 
-        ? this.contentPerformanceHistory.reduce((sum, post) => sum + post.analytics.engagementRate, 0) / this.contentPerformanceHistory.length 
-        : 0,
+      avgEngagementRate:
+        this.contentPerformanceHistory.length > 0
+          ? this.contentPerformanceHistory.reduce(
+              (sum, post) => sum + post.analytics.engagementRate,
+              0
+            ) / this.contentPerformanceHistory.length
+          : 0,
       optimalTimes: Object.fromEntries(this.optimalTimingCache),
       topPerformingTopics: Array.from(this.topicPerformanceMap.entries()).slice(0, 5),
       nextGenerationInterval: this.calculateNextGenerationInterval(),
-      platformPerformance: Object.fromEntries(this.adaptiveLearningData)
+      platformPerformance: Object.fromEntries(this.adaptiveLearningData),
     };
   }
 

@@ -4,7 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Volume2, Music4, Play, Square } from 'lucide-react';
@@ -17,7 +23,14 @@ interface MetronomeControlProps {
   compact?: boolean;
 }
 
-export function MetronomeControl({ bpm: externalBPM, onBPMChange, compact = false }: MetronomeControlProps) {
+/**
+ * TODO: Add function documentation
+ */
+export function MetronomeControl({
+  bpm: externalBPM,
+  onBPMChange,
+  compact = false,
+}: MetronomeControlProps) {
   const metronome = useMetronome({ bpm: externalBPM });
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -37,7 +50,7 @@ export function MetronomeControl({ bpm: externalBPM, onBPMChange, compact = fals
         >
           <Music4 className="h-3 w-3" />
         </Button>
-        
+
         <div className="flex items-center gap-1 text-xs">
           <Input
             type="number"
@@ -57,9 +70,7 @@ export function MetronomeControl({ bpm: externalBPM, onBPMChange, compact = fals
                 <div
                   key={i}
                   className={`h-2 w-2 rounded-full transition-colors ${
-                    i === metronome.currentBeat
-                      ? 'bg-green-500'
-                      : 'bg-gray-700'
+                    i === metronome.currentBeat ? 'bg-green-500' : 'bg-gray-700'
                   }`}
                 />
               ))}
@@ -174,9 +185,7 @@ export function MetronomeControl({ bpm: externalBPM, onBPMChange, compact = fals
                 </div>
               ))}
             </div>
-            <div className="text-xs text-gray-500">
-              Measure {metronome.currentMeasure + 1}
-            </div>
+            <div className="text-xs text-gray-500">Measure {metronome.currentMeasure + 1}</div>
           </div>
         </div>
       )}
@@ -293,7 +302,7 @@ export function MetronomeControl({ bpm: externalBPM, onBPMChange, compact = fals
         </Button>
         <Button
           variant="outline"
-          onClick={() => metronome.countIn(() => console.log('Count-in complete'))}
+          onClick={() => metronome.countIn(() => logger.info('Count-in complete'))}
           disabled={!metronome.enabled || metronome.isPlaying}
         >
           Count-In

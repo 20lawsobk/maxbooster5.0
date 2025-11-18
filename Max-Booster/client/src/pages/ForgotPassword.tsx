@@ -28,21 +28,21 @@ export default function ForgotPassword() {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || 'Failed to send reset link');
       }
-      
+
       setSubmitted(true);
       toast({
-        title: "Reset Link Sent",
-        description: data.message || "Check your email for password reset instructions.",
+        title: 'Reset Link Sent',
+        description: data.message || 'Check your email for password reset instructions.',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to send reset link. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to send reset link. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -71,8 +71,8 @@ export default function ForgotPassword() {
               {!submitted ? 'Forgot Password?' : 'Check Your Email'}
             </CardTitle>
             <p className="text-gray-600 mt-2">
-              {!submitted 
-                ? "Enter your email and we'll send you a reset link" 
+              {!submitted
+                ? "Enter your email and we'll send you a reset link"
                 : "We've sent password reset instructions to your email"}
             </p>
           </CardHeader>
@@ -92,9 +92,9 @@ export default function ForgotPassword() {
                     data-testid="input-forgot-password-email"
                   />
                 </div>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
+                <Button
+                  type="submit"
+                  className="w-full"
                   disabled={loading}
                   data-testid="button-send-reset-link"
                 >
@@ -113,9 +113,7 @@ export default function ForgotPassword() {
               <div className="text-center space-y-6">
                 <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
                 <div>
-                  <p className="text-gray-600 mb-4">
-                    We've sent a password reset link to:
-                  </p>
+                  <p className="text-gray-600 mb-4">We've sent a password reset link to:</p>
                   <p className="font-medium text-gray-900 mb-6">{email}</p>
                   <p className="text-sm text-gray-500 mb-6">
                     The link will expire in 1 hour. Check your spam folder if you don't see it.
@@ -127,8 +125,8 @@ export default function ForgotPassword() {
                       Back to Login
                     </Button>
                   </Link>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full"
                     onClick={() => {
                       setSubmitted(false);

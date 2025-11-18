@@ -58,7 +58,7 @@ import {
   Lightbulb,
   Shield,
   Lock,
-  Unlock
+  Unlock,
 } from 'lucide-react';
 import { Link } from 'wouter';
 
@@ -108,7 +108,7 @@ export default function Dashboard() {
   const { user, isLoading: authLoading } = useRequireSubscription();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // Early return for loading state to prevent hooks order issues
   if (authLoading) {
     return (
@@ -165,7 +165,7 @@ function DashboardContent({ user }: { user: any }) {
       const response = await apiRequest('POST', '/api/projects', {
         title: 'New Project',
         description: 'AI-generated project',
-        genre: 'Electronic'
+        genre: 'Electronic',
       });
       return response.json();
     },
@@ -196,81 +196,81 @@ function DashboardContent({ user }: { user: any }) {
     totalRevenue: 0,
     totalProjects: 0,
     totalFollowers: 0,
-    monthlyGrowth: { streams: 0, revenue: 0, projects: 0, followers: 0 }
+    monthlyGrowth: { streams: 0, revenue: 0, projects: 0, followers: 0 },
   };
 
   const statsCards = [
     {
-      title: "Total Streams",
+      title: 'Total Streams',
       value: stats.totalStreams.toLocaleString(),
       change: `+${stats.monthlyGrowth.streams}%`,
       icon: Play,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-950/20",
-      borderColor: "border-blue-200 dark:border-blue-800"
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50 dark:bg-blue-950/20',
+      borderColor: 'border-blue-200 dark:border-blue-800',
     },
     {
-      title: "Total Revenue",
+      title: 'Total Revenue',
       value: `$${stats.totalRevenue.toLocaleString()}`,
       change: `+${stats.monthlyGrowth.revenue}%`,
       icon: DollarSign,
-      color: "text-green-600",
-      bgColor: "bg-green-50 dark:bg-green-950/20",
-      borderColor: "border-green-200 dark:border-green-800"
+      color: 'text-green-600',
+      bgColor: 'bg-green-50 dark:bg-green-950/20',
+      borderColor: 'border-green-200 dark:border-green-800',
     },
     {
-      title: "Active Projects",
+      title: 'Active Projects',
       value: stats.totalProjects.toString(),
       change: `+${stats.monthlyGrowth.projects}%`,
       icon: Music,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-950/20",
-      borderColor: "border-purple-200 dark:border-purple-800"
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50 dark:bg-purple-950/20',
+      borderColor: 'border-purple-200 dark:border-purple-800',
     },
     {
-      title: "Total Followers",
+      title: 'Total Followers',
       value: stats.totalFollowers.toLocaleString(),
       change: `+${stats.monthlyGrowth.followers}%`,
       icon: Users,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50 dark:bg-orange-950/20",
-      borderColor: "border-orange-200 dark:border-orange-800"
-    }
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50 dark:bg-orange-950/20',
+      borderColor: 'border-orange-200 dark:border-orange-800',
+    },
   ];
 
   const quickActions = [
     {
-      title: "Create New Project",
-      description: "Start a new music project with AI assistance",
+      title: 'Create New Project',
+      description: 'Start a new music project with AI assistance',
       icon: Plus,
       action: () => createProjectMutation.mutate(),
-      color: "bg-blue-600 hover:bg-blue-700",
-      loading: createProjectMutation.isPending
+      color: 'bg-blue-600 hover:bg-blue-700',
+      loading: createProjectMutation.isPending,
     },
     {
-      title: "AI Content Optimization",
-      description: "Optimize your content for maximum reach",
+      title: 'AI Content Optimization',
+      description: 'Optimize your content for maximum reach',
       icon: Brain,
       action: () => optimizeContentMutation.mutate(),
-      color: "bg-purple-600 hover:bg-purple-700",
-      loading: optimizeContentMutation.isPending
+      color: 'bg-purple-600 hover:bg-purple-700',
+      loading: optimizeContentMutation.isPending,
     },
     {
-      title: "Launch Campaign",
-      description: "Start an AI-powered advertising campaign",
+      title: 'Launch Campaign',
+      description: 'Start an AI-powered advertising campaign',
       icon: Rocket,
-      action: () => window.location.href = '/advertising',
-      color: "bg-green-600 hover:bg-green-700",
-      loading: false
+      action: () => (window.location.href = '/advertising'),
+      color: 'bg-green-600 hover:bg-green-700',
+      loading: false,
     },
     {
-      title: "Distribute Music",
-      description: "Release your music to all platforms",
+      title: 'Distribute Music',
+      description: 'Release your music to all platforms',
       icon: Upload,
-      action: () => window.location.href = '/distribution',
-      color: "bg-cyan-600 hover:bg-cyan-700",
-      loading: false
-    }
+      action: () => (window.location.href = '/distribution'),
+      color: 'bg-cyan-600 hover:bg-cyan-700',
+      loading: false,
+    },
   ];
 
   // Check if user needs onboarding
@@ -304,29 +304,19 @@ function DashboardContent({ user }: { user: any }) {
     // Navigate to specific feature
     // This would typically route to the specific feature page
     toast({
-      title: "Feature Navigation",
+      title: 'Feature Navigation',
       description: `Navigating to ${featureId} feature...`,
     });
   };
 
   // Show onboarding flow
   if (showOnboarding) {
-    return (
-      <OnboardingFlow 
-        onComplete={handleOnboardingComplete}
-        onSkip={handleOnboardingSkip}
-      />
-    );
+    return <OnboardingFlow onComplete={handleOnboardingComplete} onSkip={handleOnboardingSkip} />;
   }
 
   // Show simplified dashboard for beginners
   if (showSimplified) {
-    return (
-      <SimplifiedDashboard 
-        onUpgrade={handleUpgradeToFullMode}
-        userLevel={userLevel}
-      />
-    );
+    return <SimplifiedDashboard onUpgrade={handleUpgradeToFullMode} userLevel={userLevel} />;
   }
 
   return (
@@ -355,11 +345,7 @@ function DashboardContent({ user }: { user: any }) {
                   <Sparkles className="w-4 h-4 mr-2" />
                   Discover Features
                 </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowFeatureDiscovery(true)}
-                  size="sm"
-                >
+                <Button variant="ghost" onClick={() => setShowFeatureDiscovery(true)} size="sm">
                   <Zap className="w-4 h-4 mr-1" />
                   All Features
                 </Button>
@@ -383,7 +369,7 @@ function DashboardContent({ user }: { user: any }) {
                       <div className="p-3 bg-white dark:bg-gray-900 rounded-full">
                         <Brain className="w-8 h-8 text-blue-600" />
                       </div>
-                    <div>
+                      <div>
                         <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                           AI Performance Score
                         </h3>
@@ -408,8 +394,8 @@ function DashboardContent({ user }: { user: any }) {
               {statsCards.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
-                  <Card 
-                    key={index} 
+                  <Card
+                    key={index}
                     className={`${stat.bgColor} ${stat.borderColor} border-2 hover:shadow-lg transition-all duration-300`}
                   >
                     <CardContent className="p-6">
@@ -418,15 +404,15 @@ function DashboardContent({ user }: { user: any }) {
                           <p className="text-sm font-medium text-muted-foreground mb-1">
                             {stat.title}
                           </p>
-                          <p className={`text-2xl font-bold ${stat.color}`}>
-                            {stat.value}
-                          </p>
+                          <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
                           <p className="text-xs text-green-600 flex items-center mt-1">
                             <ArrowUp className="w-3 h-3 mr-1" />
                             {stat.change} from last month
                           </p>
                         </div>
-                        <div className={`p-3 rounded-full ${stat.bgColor} ${stat.borderColor} border-2`}>
+                        <div
+                          className={`p-3 rounded-full ${stat.bgColor} ${stat.borderColor} border-2`}
+                        >
                           <Icon className={`w-6 h-6 ${stat.color}`} />
                         </div>
                       </div>
@@ -434,11 +420,11 @@ function DashboardContent({ user }: { user: any }) {
                   </Card>
                 );
               })}
-          </div>
+            </div>
 
             {/* Quick Actions */}
-              <Card>
-                <CardHeader>
+            <Card>
+              <CardHeader>
                 <CardTitle className="flex items-center">
                   <Zap className="w-5 h-5 mr-2 text-yellow-600" />
                   Quick Actions
@@ -470,7 +456,7 @@ function DashboardContent({ user }: { user: any }) {
                       </Button>
                     );
                   })}
-                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -493,15 +479,20 @@ function DashboardContent({ user }: { user: any }) {
                         <Globe className="w-5 h-5 mr-2 text-blue-600" />
                         Top Performing Platforms
                       </CardTitle>
-                </CardHeader>
-                <CardContent>
+                    </CardHeader>
+                    <CardContent>
                       {dashboardData?.topPlatforms ? (
-                    <div className="space-y-4">
+                        <div className="space-y-4">
                           {dashboardData.topPlatforms.map((platform, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
+                            >
                               <div className="flex items-center space-x-3">
                                 <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                                  <span className="text-sm font-bold text-blue-600">{index + 1}</span>
+                                  <span className="text-sm font-bold text-blue-600">
+                                    {index + 1}
+                                  </span>
                                 </div>
                                 <div>
                                   <div className="font-semibold">{platform.name}</div>
@@ -514,9 +505,11 @@ function DashboardContent({ user }: { user: any }) {
                                 <div className="font-semibold text-green-600">
                                   ${platform.revenue.toLocaleString()}
                                 </div>
-                                <div className={`text-sm flex items-center ${
-                                  platform.growth > 0 ? 'text-green-600' : 'text-red-600'
-                                }`}>
+                                <div
+                                  className={`text-sm flex items-center ${
+                                    platform.growth > 0 ? 'text-green-600' : 'text-red-600'
+                                  }`}
+                                >
                                   {platform.growth > 0 ? (
                                     <ArrowUp className="w-3 h-3 mr-1" />
                                   ) : (
@@ -524,10 +517,10 @@ function DashboardContent({ user }: { user: any }) {
                                   )}
                                   {Math.abs(platform.growth)}%
                                 </div>
-                          </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
                       ) : (
                         <div className="space-y-3">
                           {[1, 2, 3, 4].map((i) => (
@@ -556,7 +549,10 @@ function DashboardContent({ user }: { user: any }) {
                       ) : projects.length > 0 ? (
                         <div className="space-y-3">
                           {projects.slice(0, 5).map((project: any) => (
-                            <div key={project.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                            <div
+                              key={project.id}
+                              className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
+                            >
                               <div className="flex items-center space-x-3">
                                 <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
                                   <Music className="w-5 h-5 text-purple-600" />
@@ -564,11 +560,14 @@ function DashboardContent({ user }: { user: any }) {
                                 <div>
                                   <div className="font-semibold">{project.title}</div>
                                   <div className="text-sm text-muted-foreground">
-                                    {project.genre} • {project.streams?.toLocaleString() || 0} streams
+                                    {project.genre} • {project.streams?.toLocaleString() || 0}{' '}
+                                    streams
                                   </div>
-                    </div>
-                          </div>
-                              <Badge variant={project.status === 'published' ? 'default' : 'secondary'}>
+                                </div>
+                              </div>
+                              <Badge
+                                variant={project.status === 'published' ? 'default' : 'secondary'}
+                              >
                                 {project.status}
                               </Badge>
                             </div>
@@ -584,12 +583,12 @@ function DashboardContent({ user }: { user: any }) {
                           <Button onClick={() => createProjectMutation.mutate()}>
                             <Plus className="w-4 h-4 mr-2" />
                             Create Project
-                            </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
 
               <TabsContent value="ai-insights" className="space-y-6">
@@ -602,8 +601,8 @@ function DashboardContent({ user }: { user: any }) {
                 ) : aiInsights ? (
                   <>
                     {/* AI Recommendations */}
-              <Card>
-                <CardHeader>
+                    <Card>
+                      <CardHeader>
                         <CardTitle className="flex items-center">
                           <Lightbulb className="w-5 h-5 mr-2 text-yellow-600" />
                           AI Recommendations
@@ -611,49 +610,60 @@ function DashboardContent({ user }: { user: any }) {
                         <p className="text-sm text-muted-foreground">
                           Personalized suggestions to boost your music career
                         </p>
-                </CardHeader>
-                <CardContent>
+                      </CardHeader>
+                      <CardContent>
                         <div className="space-y-4">
                           {aiInsights.recommendations?.map((rec, index) => (
-                            <div key={index} className={`p-4 rounded-lg border-l-4 ${
-                              rec.priority === 'high' ? 'border-red-500 bg-red-50 dark:bg-red-950/20' :
-                              rec.priority === 'medium' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20' :
-                              'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-                            }`}>
+                            <div
+                              key={index}
+                              className={`p-4 rounded-lg border-l-4 ${
+                                rec.priority === 'high'
+                                  ? 'border-red-500 bg-red-50 dark:bg-red-950/20'
+                                  : rec.priority === 'medium'
+                                    ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20'
+                                    : 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                              }`}
+                            >
                               <div className="flex items-start justify-between">
                                 <div>
                                   <h4 className="font-semibold">{rec.title}</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {rec.description}
+                                  </p>
                                   <Badge variant="outline" className="mt-2">
                                     {rec.category}
                                   </Badge>
                                 </div>
-                                <Badge className={
-                                  rec.priority === 'high' ? 'bg-red-100 text-red-800' :
-                                  rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-blue-100 text-blue-800'
-                                }>
+                                <Badge
+                                  className={
+                                    rec.priority === 'high'
+                                      ? 'bg-red-100 text-red-800'
+                                      : rec.priority === 'medium'
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : 'bg-blue-100 text-blue-800'
+                                  }
+                                >
                                   {rec.priority}
                                 </Badge>
                               </div>
                             </div>
                           ))}
-                  </div>
-                </CardContent>
-              </Card>
+                        </div>
+                      </CardContent>
+                    </Card>
 
                     {/* AI Predictions */}
-              <Card>
-                <CardHeader>
+                    <Card>
+                      <CardHeader>
                         <CardTitle className="flex items-center">
                           <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
                           AI Predictions
-                  </CardTitle>
+                        </CardTitle>
                         <p className="text-sm text-muted-foreground">
                           Forecast your music career growth with AI
                         </p>
-                </CardHeader>
-                <CardContent>
+                      </CardHeader>
+                      <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-lg">
                             <div className="text-2xl font-bold text-blue-600">
@@ -688,66 +698,78 @@ function DashboardContent({ user }: { user: any }) {
                       <p className="text-muted-foreground">
                         AI is analyzing your music career data...
                       </p>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
                 )}
               </TabsContent>
 
               <TabsContent value="activity" className="space-y-6">
-          <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
                       <Activity className="w-5 h-5 mr-2 text-green-600" />
                       Recent Activity
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     {dashboardData?.recentActivity ? (
                       <div className="space-y-4">
                         {dashboardData.recentActivity.map((activity) => (
-                          <div key={activity.id} className="flex items-start space-x-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              activity.status === 'success' ? 'bg-green-100 dark:bg-green-900' :
-                              activity.status === 'warning' ? 'bg-yellow-100 dark:bg-yellow-900' :
-                              activity.status === 'error' ? 'bg-red-100 dark:bg-red-900' :
-                              'bg-blue-100 dark:bg-blue-900'
-                            }`}>
-                              {activity.status === 'success' ? <CheckCircle className="w-4 h-4 text-green-600" /> :
-                               activity.status === 'warning' ? <AlertTriangle className="w-4 h-4 text-yellow-600" /> :
-                               activity.status === 'error' ? <AlertTriangle className="w-4 h-4 text-red-600" /> :
-                               <Info className="w-4 h-4 text-blue-600" />}
+                          <div
+                            key={activity.id}
+                            className="flex items-start space-x-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
+                          >
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                activity.status === 'success'
+                                  ? 'bg-green-100 dark:bg-green-900'
+                                  : activity.status === 'warning'
+                                    ? 'bg-yellow-100 dark:bg-yellow-900'
+                                    : activity.status === 'error'
+                                      ? 'bg-red-100 dark:bg-red-900'
+                                      : 'bg-blue-100 dark:bg-blue-900'
+                              }`}
+                            >
+                              {activity.status === 'success' ? (
+                                <CheckCircle className="w-4 h-4 text-green-600" />
+                              ) : activity.status === 'warning' ? (
+                                <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                              ) : activity.status === 'error' ? (
+                                <AlertTriangle className="w-4 h-4 text-red-600" />
+                              ) : (
+                                <Info className="w-4 h-4 text-blue-600" />
+                              )}
                             </div>
                             <div className="flex-1">
                               <div className="font-semibold">{activity.title}</div>
-                              <div className="text-sm text-muted-foreground">{activity.description}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {activity.description}
+                              </div>
                               <div className="text-xs text-muted-foreground mt-1">
                                 {new Date(activity.timestamp).toLocaleString()}
-                    </div>
-                  </div>
-                </div>
+                              </div>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {[1, 2, 3, 4, 5].map((i) => (
                           <Skeleton key={i} className="h-16 w-full" />
-                    ))}
-                  </div>
+                        ))}
+                      </div>
                     )}
-            </CardContent>
-          </Card>
+                  </CardContent>
+                </Card>
               </TabsContent>
             </Tabs>
-        </div>
-      </main>
+          </div>
+        </main>
       </div>
 
       {/* Feature Discovery Modals */}
       {showFeatureDiscovery && (
-        <FeatureDiscovery
-          onClose={() => setShowFeatureDiscovery(false)}
-          userLevel={userLevel}
-        />
+        <FeatureDiscovery onClose={() => setShowFeatureDiscovery(false)} userLevel={userLevel} />
       )}
 
       {showFeatureSpotlight && (

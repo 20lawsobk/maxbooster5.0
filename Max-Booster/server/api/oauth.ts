@@ -12,11 +12,11 @@ router.get('/connect/:platform', requireAuth, (req, res) => {
   try {
     const { platform } = req.params;
     const userId = req.session.userId!;
-    
+
     const authUrl = socialOAuth.getAuthorizationUrl(platform, userId);
-    
+
     res.json({ authUrl });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Failed to generate OAuth URL:', error);
     res.status(400).json({ error: error.message });
   }
@@ -29,26 +29,25 @@ router.get('/callback/:platform', async (req, res) => {
   try {
     const { platform } = req.params;
     const { code, state, error } = req.query;
-    
+
     if (error) {
       logger.error(`OAuth error for ${platform}:`, error);
       return res.redirect(`/dashboard?error=oauth_${error}`);
     }
-    
+
     if (!code || !state) {
       return res.redirect('/dashboard?error=oauth_invalid');
     }
-    
+
     // Extract userId from state
     const [userId] = (state as string).split(':');
-    
+
     // Exchange code for tokens
     await socialOAuth.exchangeCodeForToken(platform, code as string, userId);
-    
+
     // Redirect to dashboard with success message
     res.redirect(`/dashboard?success=connected_${platform}`);
-    
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('OAuth callback error:', error);
     res.redirect('/dashboard?error=oauth_failed');
   }
@@ -61,9 +60,9 @@ router.get('/connected', requireAuth, async (req, res) => {
   try {
     const userId = req.session.userId!;
     const connected = await socialOAuth.getConnectedPlatforms(userId);
-    
+
     res.json({ platforms: connected });
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('Failed to get connected platforms:', error);
     res.status(500).json({ error: 'Failed to get connected platforms' });
   }
@@ -76,11 +75,11 @@ router.delete('/disconnect/:platform', requireAuth, async (req, res) => {
   try {
     const { platform } = req.params;
     const userId = req.session.userId!;
-    
+
     await socialOAuth.disconnectPlatform(userId, platform);
-    
+
     res.json({ success: true, message: `${platform} disconnected` });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Failed to disconnect platform:', error);
     res.status(500).json({ error: error.message });
   }
@@ -93,14 +92,14 @@ router.post('/refresh/:platform', requireAuth, async (req, res) => {
   try {
     const { platform } = req.params;
     const userId = req.session.userId!;
-    
+
     const result = await socialOAuth.refreshAccessToken(userId, platform);
-    
-    res.json({ 
-      success: true, 
-      expiresIn: result.expiresIn 
+
+    res.json({
+      success: true,
+      expiresIn: result.expiresIn,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Failed to refresh token:', error);
     res.status(500).json({ error: error.message });
   }
@@ -114,20 +113,19 @@ router.post('/test/:platform', requireAuth, async (req, res) => {
     const { platform } = req.params;
     const { message } = req.body;
     const userId = req.session.userId!;
-    
+
     // Check if platform is connected
     const isConnected = await socialOAuth.isPlatformConnected(userId, platform);
     if (!isConnected) {
       return res.status(400).json({ error: `${platform} not connected` });
     }
-    
+
     // This would integrate with platformAPI service
-    res.json({ 
-      success: true, 
-      message: `Test post to ${platform} would be sent: "${message}"` 
+    res.json({
+      success: true,
+      message: `Test post to ${platform} would be sent: "${message}"`,
     });
-    
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Test post failed:', error);
     res.status(500).json({ error: error.message });
   }

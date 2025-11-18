@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { approvalService } from '../services/approvalService';
 import { submitForReviewSchema, approvePostSchema, rejectPostSchema } from '@shared/schema';
 import { z } from 'zod';
+import { logger } from '../logger.js';
 
 const router = Router();
 
@@ -33,8 +34,8 @@ router.get('/pending', async (req: AuthenticatedRequest, res) => {
       total: pendingPosts.length,
       posts: pendingPosts,
     });
-  } catch (error) {
-    console.error('Get pending approvals error:', error);
+  } catch (error: unknown) {
+    logger.error('Get pending approvals error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -46,7 +47,7 @@ router.post('/:postId/submit', async (req: AuthenticatedRequest, res) => {
     }
 
     const { postId } = req.params;
-    
+
     const validatedData = submitForReviewSchema.parse({ postId });
 
     const hasPermission = await approvalService.checkPermission(req.user.id, 'submit');
@@ -69,9 +70,9 @@ router.post('/:postId/submit', async (req: AuthenticatedRequest, res) => {
       success: true,
       message: 'Post submitted for review successfully',
     });
-  } catch (error) {
-    console.error('Submit for review error:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Submit for review error:', error);
+
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         error: 'Validation failed',
@@ -118,9 +119,9 @@ router.post('/:postId/approve', async (req: AuthenticatedRequest, res) => {
       success: true,
       message: 'Post approved successfully',
     });
-  } catch (error) {
-    console.error('Approve post error:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Approve post error:', error);
+
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         error: 'Validation failed',
@@ -168,9 +169,9 @@ router.post('/:postId/reject', async (req: AuthenticatedRequest, res) => {
       success: true,
       message: 'Post rejected successfully',
     });
-  } catch (error) {
-    console.error('Reject post error:', error);
-    
+  } catch (error: unknown) {
+    logger.error('Reject post error:', error);
+
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         error: 'Validation failed',
@@ -197,8 +198,8 @@ router.get('/history/:postId', async (req: AuthenticatedRequest, res) => {
       postId,
       history,
     });
-  } catch (error) {
-    console.error('Get approval history error:', error);
+  } catch (error: unknown) {
+    logger.error('Get approval history error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -210,18 +211,15 @@ router.get('/my-posts', async (req: AuthenticatedRequest, res) => {
     }
 
     const { status } = req.query;
-    const posts = await approvalService.getUserPosts(
-      req.user.id,
-      status as any
-    );
+    const posts = await approvalService.getUserPosts(req.user.id, status as any);
 
     return res.json({
       success: true,
       total: posts.length,
       posts,
     });
-  } catch (error) {
-    console.error('Get my posts error:', error);
+  } catch (error: unknown) {
+    logger.error('Get my posts error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -237,11 +235,11 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
 
     const stats = {
       total: allPosts.length,
-      draft: allPosts.filter(p => p.approvalStatus === 'draft').length,
-      pending_review: allPosts.filter(p => p.approvalStatus === 'pending_review').length,
-      approved: allPosts.filter(p => p.approvalStatus === 'approved').length,
-      rejected: allPosts.filter(p => p.approvalStatus === 'rejected').length,
-      published: allPosts.filter(p => p.approvalStatus === 'published').length,
+      draft: allPosts.filter((p) => p.approvalStatus === 'draft').length,
+      pending_review: allPosts.filter((p) => p.approvalStatus === 'pending_review').length,
+      approved: allPosts.filter((p) => p.approvalStatus === 'approved').length,
+      rejected: allPosts.filter((p) => p.approvalStatus === 'rejected').length,
+      published: allPosts.filter((p) => p.approvalStatus === 'published').length,
       userRole,
     };
 
@@ -254,8 +252,8 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
       success: true,
       stats,
     });
-  } catch (error) {
-    console.error('Get stats error:', error);
+  } catch (error: unknown) {
+    logger.error('Get stats error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });

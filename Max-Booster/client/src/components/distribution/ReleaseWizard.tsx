@@ -12,11 +12,11 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  CheckCircle, 
-  Save, 
+import {
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+  Save,
   Send,
   Music,
   FileAudio,
@@ -27,7 +27,7 @@ import {
   Eye,
   Sparkles,
   Copy,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react';
 
 import { MetadataForm } from './MetadataForm';
@@ -58,7 +58,11 @@ const metadataSchema = z.object({
   secondaryGenre: z.string().optional(),
   language: z.string().min(1, 'Language is required'),
   labelName: z.string().optional(),
-  copyrightYear: z.number().int().min(1900).max(new Date().getFullYear() + 1),
+  copyrightYear: z
+    .number()
+    .int()
+    .min(1900)
+    .max(new Date().getFullYear() + 1),
   copyrightOwner: z.string().min(1, 'Copyright owner is required'),
   publishingRights: z.string().optional(),
   isExplicit: z.boolean(),
@@ -76,6 +80,9 @@ interface ReleaseWizardProps {
   onCancel?: () => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -102,8 +109,14 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
   const [artwork, setArtwork] = useState<File | null>(null);
   const [lyrics, setLyrics] = useState<Record<string, string>>({});
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
-  const [territoryMode, setTerritoryMode] = useState<'worldwide' | 'include' | 'exclude'>('worldwide');
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['spotify', 'apple-music', 'youtube-music']);
+  const [territoryMode, setTerritoryMode] = useState<'worldwide' | 'include' | 'exclude'>(
+    'worldwide'
+  );
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([
+    'spotify',
+    'apple-music',
+    'youtube-music',
+  ]);
   const [releaseDate, setReleaseDate] = useState<Date | null>(null);
   const [royaltySplits, setRoyaltySplits] = useState<any[]>([]);
   const [createPreSave, setCreatePreSave] = useState(true);
@@ -121,18 +134,21 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
       formData.append('copyrightYear', metadataData.copyrightYear.toString());
       formData.append('copyrightOwner', metadataData.copyrightOwner);
       formData.append('isExplicit', metadataData.isExplicit.toString());
-      
+
       if (releaseDate) {
         formData.append('releaseDate', releaseDate.toISOString());
       }
 
-      formData.append('metadata', JSON.stringify({
-        ...metadataData,
-        territoryMode,
-        territories: selectedTerritories,
-        selectedPlatforms,
-        royaltySplits,
-      }));
+      formData.append(
+        'metadata',
+        JSON.stringify({
+          ...metadataData,
+          territoryMode,
+          territories: selectedTerritories,
+          selectedPlatforms,
+          royaltySplits,
+        })
+      );
 
       const response = await apiRequest('POST', '/api/distribution/releases', formData);
       return response.json();
@@ -161,7 +177,7 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
       }
 
       const formData = new FormData();
-      
+
       // Add metadata
       formData.append('title', metadataData.title);
       formData.append('artistName', metadataData.artistName);
@@ -171,7 +187,7 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
       formData.append('copyrightYear', metadataData.copyrightYear.toString());
       formData.append('copyrightOwner', metadataData.copyrightOwner);
       formData.append('isExplicit', metadataData.isExplicit.toString());
-      
+
       if (releaseDate) {
         formData.append('releaseDate', releaseDate.toISOString());
       }
@@ -187,52 +203,64 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
       }
 
       // Add metadata
-      formData.append('metadata', JSON.stringify({
-        ...metadataData,
-        territoryMode,
-        territories: selectedTerritories,
-        selectedPlatforms,
-        lyrics,
-        royaltySplits,
-      }));
+      formData.append(
+        'metadata',
+        JSON.stringify({
+          ...metadataData,
+          territoryMode,
+          territories: selectedTerritories,
+          selectedPlatforms,
+          lyrics,
+          royaltySplits,
+        })
+      );
 
       const response = await apiRequest('POST', '/api/distribution/releases', formData);
       const releaseData = await response.json();
 
       // Create HyperFollow campaign if enabled
       if (createPreSave && releaseData.id) {
-        const slug = preSaveSlug || metadataData.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').substring(0, 50);
-        
+        const slug =
+          preSaveSlug ||
+          metadataData.title
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .substring(0, 50);
+
         const hyperFollowData = new FormData();
         if (artwork) {
           hyperFollowData.append('headerImage', artwork);
         }
-        
-        hyperFollowData.append('data', JSON.stringify({
-          title: metadataData.title,
-          artistName: metadataData.artistName,
-          slug,
-          releaseId: releaseData.id,
-          collectEmails: true,
-          platforms: selectedPlatforms.map(platformId => ({
-            id: platformId,
-            name: platformId.charAt(0).toUpperCase() + platformId.slice(1).replace('-', ' '),
-            enabled: true,
-            url: '',
-          })),
-          socialLinks: [],
-          theme: {
-            primaryColor: '#8B5CF6',
-            backgroundColor: '#0F0F0F',
-            textColor: '#FFFFFF',
-            buttonStyle: 'rounded' as const,
-          },
-        }));
+
+        hyperFollowData.append(
+          'data',
+          JSON.stringify({
+            title: metadataData.title,
+            artistName: metadataData.artistName,
+            slug,
+            releaseId: releaseData.id,
+            collectEmails: true,
+            platforms: selectedPlatforms.map((platformId) => ({
+              id: platformId,
+              name: platformId.charAt(0).toUpperCase() + platformId.slice(1).replace('-', ' '),
+              enabled: true,
+              url: '',
+            })),
+            socialLinks: [],
+            theme: {
+              primaryColor: '#8B5CF6',
+              backgroundColor: '#0F0F0F',
+              textColor: '#FFFFFF',
+              buttonStyle: 'rounded' as const,
+            },
+          })
+        );
 
         try {
           await apiRequest('POST', '/api/distribution/hyperfollow', hyperFollowData);
-        } catch (error) {
-          console.error('Failed to create HyperFollow campaign:', error);
+        } catch (error: unknown) {
+          logger.error('Failed to create HyperFollow campaign:', error);
         }
       }
 
@@ -241,13 +269,15 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
     onSuccess: () => {
       toast({
         title: 'Release submitted!',
-        description: createPreSave ? 'Your release and pre-save campaign have been created!' : 'Your release has been submitted for distribution.',
+        description: createPreSave
+          ? 'Your release and pre-save campaign have been created!'
+          : 'Your release has been submitted for distribution.',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/distribution/releases'] });
       queryClient.invalidateQueries({ queryKey: ['/api/distribution/hyperfollow'] });
       onComplete?.();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Submission failed',
         description: error.message || 'Please try again.',
@@ -293,7 +323,7 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
         default:
           return true;
       }
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof z.ZodError) {
         toast({
           title: 'Validation error',
@@ -341,7 +371,11 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
               Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].title}
             </p>
           </div>
-          <Button variant="outline" onClick={handleSaveDraft} disabled={saveDraftMutation.isPending}>
+          <Button
+            variant="outline"
+            onClick={handleSaveDraft}
+            disabled={saveDraftMutation.isPending}
+          >
             <Save className="h-4 w-4 mr-2" />
             Save Draft
           </Button>
@@ -355,7 +389,7 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
             const Icon = step.icon;
             const isActive = currentStep === step.id;
             const isCompleted = completedSteps.includes(step.id);
-            
+
             return (
               <div key={step.id} className="flex flex-col items-center flex-1">
                 <div
@@ -363,17 +397,15 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
                     isActive
                       ? 'bg-primary text-primary-foreground'
                       : isCompleted
-                      ? 'bg-green-500 text-white'
-                      : 'bg-muted text-muted-foreground'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-muted text-muted-foreground'
                   }`}
                 >
-                  {isCompleted ? (
-                    <CheckCircle className="h-5 w-5" />
-                  ) : (
-                    <Icon className="h-5 w-5" />
-                  )}
+                  {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                 </div>
-                <span className={`text-xs text-center hidden md:block ${isActive ? 'font-medium' : ''}`}>
+                <span
+                  className={`text-xs text-center hidden md:block ${isActive ? 'font-medium' : ''}`}
+                >
                   {step.title}
                 </span>
                 {index < STEPS.length - 1 && (
@@ -397,23 +429,17 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
 
           {currentStep === 2 && (
             <div className="space-y-6">
-              <TrackUploader
-                files={audioFiles}
-                onChange={setAudioFiles}
-              />
-              <ArtworkUploader
-                artwork={artwork}
-                onChange={setArtwork}
-              />
+              <TrackUploader files={audioFiles} onChange={setAudioFiles} />
+              <ArtworkUploader artwork={artwork} onChange={setArtwork} />
             </div>
           )}
 
           {currentStep === 3 && (
             <LyricsEditor
-              tracks={audioFiles.map((f, i) => ({ 
-                id: f.id, 
+              tracks={audioFiles.map((f, i) => ({
+                id: f.id,
                 title: f.file.name.replace(/\.[^/.]+$/, ''),
-                trackNumber: i + 1 
+                trackNumber: i + 1,
               }))}
               lyrics={lyrics}
               onChange={setLyrics}
@@ -428,20 +454,14 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
                 onModeChange={setTerritoryMode}
                 onTerritoriesChange={setSelectedTerritories}
               />
-              <DSPSelector
-                selectedPlatforms={selectedPlatforms}
-                onChange={setSelectedPlatforms}
-              />
+              <DSPSelector selectedPlatforms={selectedPlatforms} onChange={setSelectedPlatforms} />
             </div>
           )}
 
           {currentStep === 5 && (
             <div className="space-y-6">
-              <ReleaseDateScheduler
-                releaseDate={releaseDate}
-                onChange={setReleaseDate}
-              />
-              
+              <ReleaseDateScheduler releaseDate={releaseDate} onChange={setReleaseDate} />
+
               {/* HyperFollow Pre-Save Campaign */}
               <Card className="border-primary/20">
                 <CardContent className="pt-6 space-y-4">
@@ -471,7 +491,9 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
                       <div className="space-y-2">
                         <Label htmlFor="presave-slug">Campaign URL Slug</Label>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">maxbooster.com/pre-save/</span>
+                          <span className="text-sm text-muted-foreground">
+                            maxbooster.com/pre-save/
+                          </span>
                           <Input
                             id="presave-slug"
                             placeholder={metadataData.title.toLowerCase().replace(/\s+/g, '-')}
@@ -484,11 +506,12 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
                           Leave empty to auto-generate from release title
                         </p>
                       </div>
-                      
+
                       <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                         <p className="text-sm text-blue-500">
-                          <strong>What's included:</strong> Customizable landing page with platform pre-save buttons, 
-                          email capture, social sharing, and real-time analytics tracking.
+                          <strong>What's included:</strong> Customizable landing page with platform
+                          pre-save buttons, email capture, social sharing, and real-time analytics
+                          tracking.
                         </p>
                       </div>
                     </div>
@@ -496,17 +519,14 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
                 </CardContent>
               </Card>
 
-              <RoyaltySplitManager
-                splits={royaltySplits}
-                onChange={setRoyaltySplits}
-              />
+              <RoyaltySplitManager splits={royaltySplits} onChange={setRoyaltySplits} />
             </div>
           )}
 
           {currentStep === 6 && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold">Review Your Release</h3>
-              
+
               <div className="grid gap-4">
                 <div className="p-4 bg-muted rounded-lg">
                   <h4 className="font-medium mb-2">Metadata</h4>
@@ -531,7 +551,9 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
                   <h4 className="font-medium mb-2">Distribution</h4>
                   <p className="text-sm">{selectedPlatforms.length} platform(s) selected</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {territoryMode === 'worldwide' ? 'Worldwide distribution' : `${selectedTerritories.length} territories`}
+                    {territoryMode === 'worldwide'
+                      ? 'Worldwide distribution'
+                      : `${selectedTerritories.length} territories`}
                   </p>
                 </div>
 
@@ -552,11 +574,18 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Campaign URL:</span>
                         <code className="bg-background px-2 py-1 rounded text-xs">
-                          maxbooster.com/pre-save/{preSaveSlug || metadataData.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').substring(0, 50)}
+                          maxbooster.com/pre-save/
+                          {preSaveSlug ||
+                            metadataData.title
+                              .toLowerCase()
+                              .replace(/[^a-z0-9\s-]/g, '')
+                              .replace(/\s+/g, '-')
+                              .substring(0, 50)}
                         </code>
                       </div>
                       <p className="text-muted-foreground">
-                        Your pre-save landing page will be created automatically with your release artwork and platform links.
+                        Your pre-save landing page will be created automatically with your release
+                        artwork and platform links.
                       </p>
                     </div>
                   </div>
@@ -565,8 +594,9 @@ export function ReleaseWizard({ releaseId, onComplete, onCancel }: ReleaseWizard
 
               <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                 <p className="text-sm">
-                  <strong>Important:</strong> Once submitted, your release will be processed and sent to the selected platforms. 
-                  This process typically takes 2-5 business days. Make sure all information is correct before submitting.
+                  <strong>Important:</strong> Once submitted, your release will be processed and
+                  sent to the selected platforms. This process typically takes 2-5 business days.
+                  Make sure all information is correct before submitting.
                 </p>
               </div>
             </div>

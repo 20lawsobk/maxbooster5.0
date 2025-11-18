@@ -60,19 +60,31 @@ const tempoKeywords: Record<string, number> = {
 
 const genreTemplates = {
   jazz: {
-    progressions: [[2, 5, 1], [1, 6, 2, 5], [1, 4, 2, 5]],
+    progressions: [
+      [2, 5, 1],
+      [1, 6, 2, 5],
+      [1, 4, 2, 5],
+    ],
     complexity: 'complex',
     chordTypes: ['major7', 'minor7', 'dom7'],
     swingFactor: 0.6,
   },
   rock: {
-    progressions: [[1, 4, 5], [1, 5, 6, 4], [1, 4, 1, 5]],
+    progressions: [
+      [1, 4, 5],
+      [1, 5, 6, 4],
+      [1, 4, 1, 5],
+    ],
     complexity: 'simple',
     chordTypes: ['major', 'minor'],
     swingFactor: 0.5,
   },
   pop: {
-    progressions: [[1, 5, 6, 4], [6, 4, 1, 5], [1, 4, 6, 5]],
+    progressions: [
+      [1, 5, 6, 4],
+      [6, 4, 1, 5],
+      [1, 4, 6, 5],
+    ],
     complexity: 'simple',
     chordTypes: ['major', 'minor'],
     swingFactor: 0.5,
@@ -84,13 +96,19 @@ const genreTemplates = {
     swingFactor: 0.67,
   },
   classical: {
-    progressions: [[1, 4, 5, 1], [1, 6, 4, 5]],
+    progressions: [
+      [1, 4, 5, 1],
+      [1, 6, 4, 5],
+    ],
     complexity: 'complex',
     chordTypes: ['major', 'minor', 'dim'],
     swingFactor: 0.5,
   },
   electronic: {
-    progressions: [[1, 5, 6, 4], [1, 3, 4, 5]],
+    progressions: [
+      [1, 5, 6, 4],
+      [1, 3, 4, 5],
+    ],
     complexity: 'simple',
     chordTypes: ['major', 'minor'],
     swingFactor: 0.5,
@@ -99,23 +117,23 @@ const genreTemplates = {
 
 // Musical note frequencies (A4 = 440Hz)
 const NOTE_FREQUENCIES: Record<string, number> = {
-  'C': 261.63,
+  C: 261.63,
   'C#': 277.18,
-  'Db': 277.18,
-  'D': 293.66,
+  Db: 277.18,
+  D: 293.66,
   'D#': 311.13,
-  'Eb': 311.13,
-  'E': 329.63,
-  'F': 349.23,
+  Eb: 311.13,
+  E: 329.63,
+  F: 349.23,
   'F#': 369.99,
-  'Gb': 369.99,
-  'G': 392.00,
-  'G#': 415.30,
-  'Ab': 415.30,
-  'A': 440.00,
+  Gb: 369.99,
+  G: 392.0,
+  'G#': 415.3,
+  Ab: 415.3,
+  A: 440.0,
   'A#': 466.16,
-  'Bb': 466.16,
-  'B': 493.88,
+  Bb: 466.16,
+  B: 493.88,
 };
 
 // ============================================================================
@@ -190,14 +208,17 @@ class SeededRandom {
 // TEXT PARSER
 // ============================================================================
 
+/**
+ * TODO: Add function documentation
+ */
 export function parseTextToParameters(text: string): MusicParameters {
   const lowerText = text.toLowerCase();
-  
+
   // Extract mood
   let mood = 'happy';
   let scale: 'major' | 'minor' = 'major';
   let tempo = 120;
-  
+
   for (const [keyword, data] of Object.entries(moodKeywords)) {
     if (lowerText.includes(keyword)) {
       mood = keyword;
@@ -206,7 +227,7 @@ export function parseTextToParameters(text: string): MusicParameters {
       break;
     }
   }
-  
+
   // Extract tempo overrides
   for (const [keyword, bpm] of Object.entries(tempoKeywords)) {
     if (lowerText.includes(keyword)) {
@@ -214,7 +235,7 @@ export function parseTextToParameters(text: string): MusicParameters {
       break;
     }
   }
-  
+
   // Extract genre
   let genre = 'pop';
   for (const genreName of Object.keys(genreTemplates)) {
@@ -223,7 +244,7 @@ export function parseTextToParameters(text: string): MusicParameters {
       break;
     }
   }
-  
+
   // Extract key
   let key = 'C';
   const keyPattern = /\b([A-G][#b]?)\s*(major|minor)?/gi;
@@ -234,7 +255,7 @@ export function parseTextToParameters(text: string): MusicParameters {
       scale = keyMatch[2].toLowerCase() as 'major' | 'minor';
     }
   }
-  
+
   return {
     key,
     scale,
@@ -249,24 +270,27 @@ export function parseTextToParameters(text: string): MusicParameters {
 // CHORD PROGRESSION GENERATOR
 // ============================================================================
 
+/**
+ * TODO: Add function documentation
+ */
 export function generateChordProgression(params: MusicParameters): Chord[] {
   const { key, scale, genre, structure = 8 } = params;
   const scaleKey = `${key} ${scale}`;
   const scaleArray = scaleNotes[scaleKey] || scaleNotes['C major'];
-  
+
   // Get progression template
   const template = genreTemplates[genre as keyof typeof genreTemplates] || genreTemplates.pop;
   const progression = template.progressions[0]; // Use first progression
-  
+
   // Generate chords from scale degrees
   const chords: Chord[] = [];
   const beatsPerBar = 4;
   const barsPerChord = structure / progression.length;
-  
+
   progression.forEach((degree, index) => {
     // Get root note from scale (1-indexed to 0-indexed)
     const rootNote = scaleArray[(degree - 1) % scaleArray.length];
-    
+
     // Determine chord type based on degree and scale
     let chordType = 'major';
     if (scale === 'major') {
@@ -276,20 +300,20 @@ export function generateChordProgression(params: MusicParameters): Chord[] {
       if ([1, 4, 5].includes(degree)) chordType = 'minor';
       if ([3, 6, 7].includes(degree)) chordType = 'major';
     }
-    
+
     // Use genre-specific chord types if available
     if (template.chordTypes.length > 0) {
       const seed = new SeededRandom(degree + index);
       chordType = seed.choice(template.chordTypes);
     }
-    
+
     chords.push({
       chord: `${rootNote}${chordType}`,
       time: index * barsPerChord * beatsPerBar,
       duration: barsPerChord * beatsPerBar,
     });
   });
-  
+
   return chords;
 }
 
@@ -297,14 +321,17 @@ export function generateChordProgression(params: MusicParameters): Chord[] {
 // MELODY GENERATOR
 // ============================================================================
 
+/**
+ * TODO: Add function documentation
+ */
 export function generateMelody(params: MusicParameters, chords: Chord[]): Note[] {
   const { key, scale, tempo, structure = 8 } = params;
   const scaleKey = `${key} ${scale}`;
   const scaleArray = scaleNotes[scaleKey] || scaleNotes['C major'];
-  
+
   const notes: Note[] = [];
   const seed = new SeededRandom(key.charCodeAt(0) + tempo);
-  
+
   // Rhythmic patterns (in beats)
   const rhythmPatterns = [
     [1, 1, 1, 1], // Quarter notes
@@ -312,38 +339,43 @@ export function generateMelody(params: MusicParameters, chords: Chord[]): Note[]
     [1, 0.5, 0.5, 1, 1], // Syncopated
     [2, 1, 1], // Half + quarters
   ];
-  
+
   const pattern = seed.choice(rhythmPatterns);
   const totalBeats = structure * 4;
   let currentTime = 0;
   let currentPitchIndex = 2; // Start around middle of scale
-  
+
   while (currentTime < totalBeats) {
     const duration = seed.choice(pattern);
-    
+
     // Find current chord
-    const currentChord = chords.find(c => c.time <= currentTime && (c.time + c.duration) > currentTime);
-    
+    const currentChord = chords.find(
+      (c) => c.time <= currentTime && c.time + c.duration > currentTime
+    );
+
     // Generate pitch with constraints
     const direction = seed.next() > 0.5 ? 1 : -1;
     const interval = seed.nextInt(0, 2); // Stepwise motion preferred
-    currentPitchIndex = Math.max(0, Math.min(scaleArray.length - 1, currentPitchIndex + (direction * interval)));
-    
+    currentPitchIndex = Math.max(
+      0,
+      Math.min(scaleArray.length - 1, currentPitchIndex + direction * interval)
+    );
+
     const note = scaleArray[currentPitchIndex];
     const octave = 4 + Math.floor(currentPitchIndex / scaleArray.length);
-    
+
     notes.push({
       note,
       octave,
       duration,
       time: currentTime,
     });
-    
+
     currentTime += duration;
-    
+
     if (currentTime >= totalBeats) break;
   }
-  
+
   return notes;
 }
 
@@ -351,6 +383,9 @@ export function generateMelody(params: MusicParameters, chords: Chord[]): Note[]
 // AUDIO SYNTHESIS
 // ============================================================================
 
+/**
+ * TODO: Add function documentation
+ */
 function getNoteFrequency(note: string, octave: number): number {
   const baseFreq = NOTE_FREQUENCIES[note] || 440;
   // Adjust for octave (A4 = 440Hz is our reference)
@@ -358,6 +393,9 @@ function getNoteFrequency(note: string, octave: number): number {
   return baseFreq * Math.pow(2, octaveDiff);
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function generateADSREnvelope(
   sampleCount: number,
   sampleRate: number,
@@ -371,32 +409,35 @@ function generateADSREnvelope(
   const decaySamples = Math.floor(decay * sampleRate);
   const releaseSamples = Math.floor(release * sampleRate);
   const sustainSamples = sampleCount - attackSamples - decaySamples - releaseSamples;
-  
+
   let idx = 0;
-  
+
   // Attack
   for (let i = 0; i < attackSamples && idx < sampleCount; i++, idx++) {
     envelope[idx] = i / attackSamples;
   }
-  
+
   // Decay
   for (let i = 0; i < decaySamples && idx < sampleCount; i++, idx++) {
     envelope[idx] = 1 - (1 - sustain) * (i / decaySamples);
   }
-  
+
   // Sustain
   for (let i = 0; i < sustainSamples && idx < sampleCount; i++, idx++) {
     envelope[idx] = sustain;
   }
-  
+
   // Release
   for (let i = 0; i < releaseSamples && idx < sampleCount; i++, idx++) {
     envelope[idx] = sustain * (1 - i / releaseSamples);
   }
-  
+
   return envelope;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export async function synthesizeToWAV(
   notes: Note[],
   chords: Chord[],
@@ -404,29 +445,28 @@ export async function synthesizeToWAV(
 ): Promise<string> {
   const sampleRate = 48000;
   const beatsPerSecond = params.tempo / 60;
-  const totalDuration = Math.max(
-    ...notes.map(n => n.time + n.duration),
-    ...chords.map(c => c.time + c.duration)
-  ) / beatsPerSecond;
-  
+  const totalDuration =
+    Math.max(...notes.map((n) => n.time + n.duration), ...chords.map((c) => c.time + c.duration)) /
+    beatsPerSecond;
+
   const totalSamples = Math.floor(totalDuration * sampleRate);
   const audioBuffer = new Float32Array(totalSamples);
-  
+
   // Synthesize notes
   for (const note of notes) {
     const freq = getNoteFrequency(note.note, note.octave);
     const startSample = Math.floor((note.time / beatsPerSecond) * sampleRate);
     const durationSamples = Math.floor((note.duration / beatsPerSecond) * sampleRate);
-    
+
     const envelope = generateADSREnvelope(durationSamples, sampleRate);
-    
-    for (let i = 0; i < durationSamples && (startSample + i) < totalSamples; i++) {
+
+    for (let i = 0; i < durationSamples && startSample + i < totalSamples; i++) {
       const t = i / sampleRate;
       const sample = Math.sin(2 * Math.PI * freq * t) * envelope[i] * 0.3;
       audioBuffer[startSample + i] += sample;
     }
   }
-  
+
   // Normalize audio
   let maxAmplitude = 0;
   for (let i = 0; i < totalSamples; i++) {
@@ -437,26 +477,26 @@ export async function synthesizeToWAV(
       audioBuffer[i] = (audioBuffer[i] / maxAmplitude) * 0.8;
     }
   }
-  
+
   // Convert to 16-bit PCM
   const pcmData = new Int16Array(totalSamples);
   for (let i = 0; i < totalSamples; i++) {
     pcmData[i] = Math.max(-32768, Math.min(32767, Math.floor(audioBuffer[i] * 32767)));
   }
-  
+
   // Create WAV file
   const wav = new WaveFile();
   wav.fromScratch(1, sampleRate, '16', Array.from(pcmData));
-  
+
   // Save to file
   const outputDir = path.join(process.cwd(), 'public', 'generated-content', 'audio');
   await fs.mkdir(outputDir, { recursive: true });
-  
+
   const filename = `melody_${Date.now()}_${Math.random().toString(36).substring(7)}.wav`;
   const filepath = path.join(outputDir, filename);
-  
+
   await fs.writeFile(filepath, wav.toBuffer());
-  
+
   return `/generated-content/audio/${filename}`;
 }
 
@@ -464,6 +504,9 @@ export async function synthesizeToWAV(
 // AUDIO ANALYSIS (Using Essentia.js - stub for now, can be enhanced)
 // ============================================================================
 
+/**
+ * TODO: Add function documentation
+ */
 export async function analyzeAudioForGeneration(audioPath: string): Promise<MusicParameters> {
   // This is a stub - in production, use Essentia.js for real audio analysis
   // For now, return default parameters
@@ -477,7 +520,13 @@ export async function analyzeAudioForGeneration(audioPath: string): Promise<Musi
   };
 }
 
-export function generateComplementaryMelody(params: MusicParameters): { notes: Note[], chords: Chord[] } {
+/**
+ * TODO: Add function documentation
+ */
+export function generateComplementaryMelody(params: MusicParameters): {
+  notes: Note[];
+  chords: Chord[];
+} {
   const chords = generateChordProgression(params);
   const notes = generateMelody(params, chords);
   return { notes, chords };

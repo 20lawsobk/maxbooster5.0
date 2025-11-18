@@ -1,23 +1,74 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ContentGenerator } from "@/components/social/ContentGenerator";
-import { PostScheduler } from "@/components/social/PostScheduler";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SkeletonLoader } from "@/components/ui/skeleton-loader";
-import { Wand2, Calendar, BarChart3, Settings, Plus, ExternalLink, Share2, Users } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ContentGenerator } from '@/components/social/ContentGenerator';
+import { PostScheduler } from '@/components/social/PostScheduler';
+import { EmptyState } from '@/components/ui/empty-state';
+import { SkeletonLoader } from '@/components/ui/skeleton-loader';
+import {
+  Wand2,
+  Calendar,
+  BarChart3,
+  Settings,
+  Plus,
+  ExternalLink,
+  Share2,
+  Users,
+} from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const connectedPlatforms = [
-  { name: 'Twitter', username: '@alexchen_music', color: 'text-blue-400', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/20', connected: true },
-  { name: 'Instagram', username: '@alexchenmusic', color: 'text-pink-400', bgColor: 'bg-pink-500/10', borderColor: 'border-pink-500/20', connected: true },
-  { name: 'YouTube', username: 'Alex Chen Music', color: 'text-red-400', bgColor: 'bg-red-500/10', borderColor: 'border-red-500/20', connected: true },
-  { name: 'TikTok', username: '@alexchenmusic', color: 'text-green-400', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/20', connected: false },
-  { name: 'Facebook', username: 'Alex Chen Music', color: 'text-blue-600', bgColor: 'bg-blue-600/10', borderColor: 'border-blue-600/20', connected: false },
-  { name: 'LinkedIn', username: 'Alex Chen', color: 'text-blue-500', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/20', connected: false },
+  {
+    name: 'Twitter',
+    username: '@alexchen_music',
+    color: 'text-blue-400',
+    bgColor: 'bg-blue-500/10',
+    borderColor: 'border-blue-500/20',
+    connected: true,
+  },
+  {
+    name: 'Instagram',
+    username: '@alexchenmusic',
+    color: 'text-pink-400',
+    bgColor: 'bg-pink-500/10',
+    borderColor: 'border-pink-500/20',
+    connected: true,
+  },
+  {
+    name: 'YouTube',
+    username: 'Alex Chen Music',
+    color: 'text-red-400',
+    bgColor: 'bg-red-500/10',
+    borderColor: 'border-red-500/20',
+    connected: true,
+  },
+  {
+    name: 'TikTok',
+    username: '@alexchenmusic',
+    color: 'text-green-400',
+    bgColor: 'bg-green-500/10',
+    borderColor: 'border-green-500/20',
+    connected: false,
+  },
+  {
+    name: 'Facebook',
+    username: 'Alex Chen Music',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-600/10',
+    borderColor: 'border-blue-600/20',
+    connected: false,
+  },
+  {
+    name: 'LinkedIn',
+    username: 'Alex Chen',
+    color: 'text-blue-500',
+    bgColor: 'bg-blue-500/10',
+    borderColor: 'border-blue-500/20',
+    connected: false,
+  },
 ];
 
 export default function Social() {
@@ -76,32 +127,41 @@ export default function Social() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {connectedPlatforms.map((platform, index) => (
-              <div 
+              <div
                 key={platform.name}
                 className={`flex items-center space-x-3 p-4 rounded-lg border transition-colors ${platform.bgColor} ${platform.borderColor} ${
                   platform.connected ? 'opacity-100' : 'opacity-60'
                 }`}
                 data-testid={`platform-${index}`}
               >
-                <div className={`w-10 h-10 rounded-full ${platform.bgColor} flex items-center justify-center`}>
+                <div
+                  className={`w-10 h-10 rounded-full ${platform.bgColor} flex items-center justify-center`}
+                >
                   <span className={`text-lg ${platform.color}`}>
-                    {platform.name === 'Twitter' ? '𝕏' : 
-                     platform.name === 'Instagram' ? '📸' :
-                     platform.name === 'YouTube' ? '📺' :
-                     platform.name === 'TikTok' ? '🎵' :
-                     platform.name === 'Facebook' ? '👤' :
-                     platform.name === 'LinkedIn' ? '💼' : '📱'}
+                    {platform.name === 'Twitter'
+                      ? '𝕏'
+                      : platform.name === 'Instagram'
+                        ? '📸'
+                        : platform.name === 'YouTube'
+                          ? '📺'
+                          : platform.name === 'TikTok'
+                            ? '🎵'
+                            : platform.name === 'Facebook'
+                              ? '👤'
+                              : platform.name === 'LinkedIn'
+                                ? '💼'
+                                : '📱'}
                   </span>
                 </div>
                 <div className="flex-1">
                   <p className="font-medium">{platform.name}</p>
                   <p className="text-sm text-muted-foreground">{platform.username}</p>
                 </div>
-                <Badge 
-                  variant={platform.connected ? "default" : "outline"}
-                  className={platform.connected ? "bg-accent/20 text-accent" : ""}
+                <Badge
+                  variant={platform.connected ? 'default' : 'outline'}
+                  className={platform.connected ? 'bg-accent/20 text-accent' : ''}
                 >
-                  {platform.connected ? "Connected" : "Connect"}
+                  {platform.connected ? 'Connected' : 'Connect'}
                 </Badge>
               </div>
             ))}
@@ -112,10 +172,18 @@ export default function Social() {
       {/* Main Social Management Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
-          <TabsTrigger value="create" data-testid="tab-create">Create</TabsTrigger>
-          <TabsTrigger value="schedule" data-testid="tab-schedule">Schedule</TabsTrigger>
-          <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="overview" data-testid="tab-overview">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="create" data-testid="tab-create">
+            Create
+          </TabsTrigger>
+          <TabsTrigger value="schedule" data-testid="tab-schedule">
+            Schedule
+          </TabsTrigger>
+          <TabsTrigger value="analytics" data-testid="tab-analytics">
+            Analytics
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -169,8 +237,8 @@ export default function Social() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {socialPosts?.slice(0, 5).map((post: any, index: number) => (
-                  <div 
+                {socialPosts?.slice(0, 5).map((post: unknown, index: number) => (
+                  <div
                     key={post.id}
                     className="flex items-start space-x-4 p-4 bg-muted/20 rounded-lg"
                     data-testid={`activity-item-${index}`}
@@ -183,13 +251,22 @@ export default function Social() {
                         Posted to {post.platforms?.join(', ') || 'Multiple platforms'}
                       </p>
                       <p className="text-sm text-muted-foreground mb-2">
-                        {post.content.length > 100 ? `${post.content.substring(0, 100)}...` : post.content}
+                        {post.content.length > 100
+                          ? `${post.content.substring(0, 100)}...`
+                          : post.content}
                       </p>
                       <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                        <span>{new Date(post.scheduledFor || post.createdAt).toLocaleDateString()}</span>
-                        <Badge variant="outline" className={`${
-                          post.status === 'published' ? 'bg-accent/20 text-accent' : 'bg-secondary/20 text-secondary'
-                        }`}>
+                        <span>
+                          {new Date(post.scheduledFor || post.createdAt).toLocaleDateString()}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className={`${
+                            post.status === 'published'
+                              ? 'bg-accent/20 text-accent'
+                              : 'bg-secondary/20 text-secondary'
+                          }`}
+                        >
                           {post.status}
                         </Badge>
                       </div>
@@ -226,33 +303,43 @@ export default function Social() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {connectedPlatforms.filter(p => p.connected).map((platform, index) => (
-                  <div 
-                    key={platform.name}
-                    className="flex items-center justify-between p-4 bg-muted/20 rounded-lg"
-                    data-testid={`platform-performance-${index}`}
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-8 h-8 rounded-full ${platform.bgColor} flex items-center justify-center`}>
-                        <span className={`text-sm ${platform.color}`}>
-                          {platform.name === 'Twitter' ? '𝕏' : 
-                           platform.name === 'Instagram' ? '📸' :
-                           platform.name === 'YouTube' ? '📺' : '📱'}
-                        </span>
+                {connectedPlatforms
+                  .filter((p) => p.connected)
+                  .map((platform, index) => (
+                    <div
+                      key={platform.name}
+                      className="flex items-center justify-between p-4 bg-muted/20 rounded-lg"
+                      data-testid={`platform-performance-${index}`}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div
+                          className={`w-8 h-8 rounded-full ${platform.bgColor} flex items-center justify-center`}
+                        >
+                          <span className={`text-sm ${platform.color}`}>
+                            {platform.name === 'Twitter'
+                              ? '𝕏'
+                              : platform.name === 'Instagram'
+                                ? '📸'
+                                : platform.name === 'YouTube'
+                                  ? '📺'
+                                  : '📱'}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium">{platform.name}</p>
+                          <p className="text-sm text-muted-foreground">{platform.username}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{platform.name}</p>
-                        <p className="text-sm text-muted-foreground">{platform.username}</p>
+                      <div className="text-right">
+                        <p className="font-medium">
+                          {Math.floor(Math.random() * 50000 + 10000).toLocaleString()} followers
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {(Math.random() * 10 + 2).toFixed(1)}% engagement
+                        </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">{Math.floor(Math.random() * 50000 + 10000).toLocaleString()} followers</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(Math.random() * 10 + 2).toFixed(1)}% engagement
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </CardContent>
           </Card>
@@ -264,8 +351,8 @@ export default function Social() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {socialPosts?.slice(0, 3).map((post: any, index: number) => (
-                  <div 
+                {socialPosts?.slice(0, 3).map((post: unknown, index: number) => (
+                  <div
                     key={post.id}
                     className="flex items-start space-x-4 p-4 bg-muted/20 rounded-lg"
                     data-testid={`top-post-${index}`}
@@ -275,7 +362,9 @@ export default function Social() {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm mb-2">
-                        {post.content.length > 80 ? `${post.content.substring(0, 80)}...` : post.content}
+                        {post.content.length > 80
+                          ? `${post.content.substring(0, 80)}...`
+                          : post.content}
                       </p>
                       <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                         <span>{Math.floor(Math.random() * 1000 + 100)} likes</span>

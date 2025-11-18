@@ -3,9 +3,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import {
-  ArrowRight, Mic, Volume2, Radio, X, CheckCircle2
-} from 'lucide-react';
+import { ArrowRight, Mic, Volume2, Radio, X, CheckCircle2 } from 'lucide-react';
 
 interface RoutingConnection {
   from: string;
@@ -45,6 +43,9 @@ const DEFAULT_BUSES: Bus[] = [
   { id: 'master', name: 'Master', color: '#ec4899' },
 ];
 
+/**
+ * TODO: Add function documentation
+ */
 export function RoutingMatrix({
   tracks = DEFAULT_TRACKS,
   buses = DEFAULT_BUSES,
@@ -52,14 +53,14 @@ export function RoutingMatrix({
 }: RoutingMatrixProps) {
   const [connections, setConnections] = useState<RoutingConnection[]>([
     // Default: all tracks to master
-    ...tracks.map(track => ({ from: track.id, to: 'master', enabled: true })),
+    ...tracks.map((track) => ({ from: track.id, to: 'master', enabled: true })),
   ]);
 
   const toggleConnection = (from: string, to: string) => {
-    setConnections(prev => {
-      const existing = prev.find(c => c.from === from && c.to === to);
+    setConnections((prev) => {
+      const existing = prev.find((c) => c.from === from && c.to === to);
       if (existing) {
-        return prev.map(c =>
+        return prev.map((c) =>
           c.from === from && c.to === to ? { ...c, enabled: !c.enabled } : c
         );
       } else {
@@ -69,16 +70,16 @@ export function RoutingMatrix({
   };
 
   const isConnected = (from: string, to: string) => {
-    const connection = connections.find(c => c.from === from && c.to === to);
+    const connection = connections.find((c) => c.from === from && c.to === to);
     return connection?.enabled || false;
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div 
+      <div
         className="w-[90vw] max-w-6xl h-[80vh] rounded-lg shadow-2xl flex flex-col"
         style={{
           background: 'var(--studio-bg-medium)',
@@ -87,22 +88,19 @@ export function RoutingMatrix({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div 
+        <div
           className="h-14 px-6 flex items-center justify-between border-b"
           style={{ borderColor: 'var(--studio-border)' }}
         >
           <div className="flex items-center gap-3">
             <Radio className="h-5 w-5" style={{ color: 'var(--studio-accent)' }} />
-            <h2 
-              className="text-lg font-bold tracking-wide"
-              style={{ color: 'var(--studio-text)' }}
-            >
+            <h2 className="text-lg font-bold tracking-wide" style={{ color: 'var(--studio-text)' }}>
               ROUTING MATRIX
             </h2>
-            <Badge 
+            <Badge
               variant="outline"
               className="text-xs"
-              style={{ 
+              style={{
                 borderColor: 'var(--studio-accent)',
                 color: 'var(--studio-accent)',
               }}
@@ -110,20 +108,15 @@ export function RoutingMatrix({
               Signal Flow
             </Badge>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={onClose}
-          >
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Legend */}
-        <div 
+        <div
           className="px-6 py-3 flex items-center gap-6 border-b text-xs"
-          style={{ 
+          style={{
             background: 'var(--studio-bg-deep)',
             borderColor: 'var(--studio-border)',
             color: 'var(--studio-text-muted)',
@@ -140,16 +133,19 @@ export function RoutingMatrix({
           </div>
           <div className="ml-auto flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <div 
+              <div
                 className="h-6 w-6 rounded border-2 flex items-center justify-center"
-                style={{ borderColor: 'var(--studio-accent)', background: 'var(--studio-accent)' + '30' }}
+                style={{
+                  borderColor: 'var(--studio-accent)',
+                  background: 'var(--studio-accent)' + '30',
+                }}
               >
                 <CheckCircle2 className="h-3.5 w-3.5" style={{ color: 'var(--studio-accent)' }} />
               </div>
               <span>Connected</span>
             </div>
             <div className="flex items-center gap-2">
-              <div 
+              <div
                 className="h-6 w-6 rounded border-2"
                 style={{ borderColor: 'var(--studio-border)' }}
               />
@@ -171,11 +167,8 @@ export function RoutingMatrix({
                       key={bus.id}
                       className="w-20 flex flex-col items-center justify-center gap-1"
                     >
-                      <div
-                        className="h-2 w-12 rounded-full"
-                        style={{ background: bus.color }}
-                      />
-                      <span 
+                      <div className="h-2 w-12 rounded-full" style={{ background: bus.color }} />
+                      <span
                         className="text-xs font-medium truncate w-full text-center"
                         style={{ color: 'var(--studio-text)' }}
                       >
@@ -193,11 +186,8 @@ export function RoutingMatrix({
                   >
                     {/* Row Header */}
                     <div className="w-40 flex items-center gap-2 px-3 py-2">
-                      <div
-                        className="h-2 w-2 rounded-full"
-                        style={{ background: track.color }}
-                      />
-                      <span 
+                      <div className="h-2 w-2 rounded-full" style={{ background: track.color }} />
+                      <span
                         className="text-sm font-medium truncate"
                         style={{ color: 'var(--studio-text)' }}
                       >
@@ -208,7 +198,7 @@ export function RoutingMatrix({
                     {/* Connection Points */}
                     {buses.map((bus) => {
                       const connected = isConnected(track.id, bus.id);
-                      
+
                       return (
                         <div
                           key={`${track.id}-${bus.id}`}
@@ -223,22 +213,20 @@ export function RoutingMatrix({
                                 }`}
                                 style={{
                                   borderColor: connected ? bus.color : 'var(--studio-border)',
-                                  background: connected ? bus.color + '30' : 'var(--studio-bg-deep)',
+                                  background: connected
+                                    ? bus.color + '30'
+                                    : 'var(--studio-bg-deep)',
                                 }}
                               >
                                 {connected && (
-                                  <CheckCircle2 
-                                    className="h-5 w-5" 
-                                    style={{ color: bus.color }}
-                                  />
+                                  <CheckCircle2 className="h-5 w-5" style={{ color: bus.color }} />
                                 )}
                               </button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              {connected 
+                              {connected
                                 ? `Disconnect ${track.name} from ${bus.name}`
-                                : `Connect ${track.name} to ${bus.name}`
-                              }
+                                : `Connect ${track.name} to ${bus.name}`}
                             </TooltipContent>
                           </Tooltip>
                         </div>
@@ -248,29 +236,23 @@ export function RoutingMatrix({
                 ))}
 
                 {/* Signal Flow Visualization */}
-                <div 
+                <div
                   className="mt-8 p-4 rounded-lg"
                   style={{ background: 'var(--studio-bg-deep)' }}
                 >
-                  <h3 
-                    className="text-sm font-bold mb-3"
-                    style={{ color: 'var(--studio-text)' }}
-                  >
+                  <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--studio-text)' }}>
                     Active Signal Flow
                   </h3>
                   <div className="space-y-2">
                     {connections
-                      .filter(c => c.enabled)
+                      .filter((c) => c.enabled)
                       .map((connection, i) => {
-                        const track = tracks.find(t => t.id === connection.from);
-                        const bus = buses.find(b => b.id === connection.to);
+                        const track = tracks.find((t) => t.id === connection.from);
+                        const bus = buses.find((b) => b.id === connection.to);
                         if (!track || !bus) return null;
 
                         return (
-                          <div
-                            key={i}
-                            className="flex items-center gap-3 text-sm"
-                          >
+                          <div key={i} className="flex items-center gap-3 text-sm">
                             <div className="flex items-center gap-2">
                               <div
                                 className="h-2 w-2 rounded-full"
@@ -280,8 +262,8 @@ export function RoutingMatrix({
                                 {track.name}
                               </span>
                             </div>
-                            <ArrowRight 
-                              className="h-3.5 w-3.5" 
+                            <ArrowRight
+                              className="h-3.5 w-3.5"
                               style={{ color: 'var(--studio-text-subtle)' }}
                             />
                             <div className="flex items-center gap-2">
@@ -289,9 +271,7 @@ export function RoutingMatrix({
                                 className="h-2 w-2 rounded-full"
                                 style={{ background: bus.color }}
                               />
-                              <span style={{ color: 'var(--studio-text-muted)' }}>
-                                {bus.name}
-                              </span>
+                              <span style={{ color: 'var(--studio-text-muted)' }}>{bus.name}</span>
                             </div>
                           </div>
                         );
@@ -304,19 +284,15 @@ export function RoutingMatrix({
         </ScrollArea>
 
         {/* Footer */}
-        <div 
+        <div
           className="h-14 px-6 flex items-center justify-between border-t"
           style={{ borderColor: 'var(--studio-border)' }}
         >
           <div className="text-sm" style={{ color: 'var(--studio-text-muted)' }}>
-            {connections.filter(c => c.enabled).length} active connections
+            {connections.filter((c) => c.enabled).length} active connections
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setConnections([])}
-            >
+            <Button variant="outline" size="sm" onClick={() => setConnections([])}>
               Clear All
             </Button>
             <Button

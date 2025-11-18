@@ -23,7 +23,7 @@ import {
   Download,
   Server,
   Users,
-  Lock
+  Lock,
 } from 'lucide-react';
 
 interface SecurityMetrics {
@@ -101,11 +101,16 @@ export default function SecurityDashboard() {
   const { user } = useAuth();
   const [refreshInterval, setRefreshInterval] = useState(30000);
 
-  const { data: securityMetrics, isLoading: loadingMetrics, error: metricsError, refetch: refetchMetrics } = useQuery<SecurityMetrics>({
+  const {
+    data: securityMetrics,
+    isLoading: loadingMetrics,
+    error: metricsError,
+    refetch: refetchMetrics,
+  } = useQuery<SecurityMetrics>({
     queryKey: ['/api/security/metrics'],
     queryFn: async () => {
       const response = await fetch('/api/security/metrics', {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch security metrics');
       return response.json();
@@ -113,11 +118,15 @@ export default function SecurityDashboard() {
     refetchInterval: refreshInterval,
   });
 
-  const { data: behavioralAlertsData, isLoading: loadingAlerts, error: alertsError } = useQuery<BehavioralAlertsResponse>({
+  const {
+    data: behavioralAlertsData,
+    isLoading: loadingAlerts,
+    error: alertsError,
+  } = useQuery<BehavioralAlertsResponse>({
     queryKey: ['/api/security/behavioral-alerts'],
     queryFn: async () => {
       const response = await fetch('/api/security/behavioral-alerts', {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch behavioral alerts');
       return response.json();
@@ -125,11 +134,15 @@ export default function SecurityDashboard() {
     refetchInterval: refreshInterval,
   });
 
-  const { data: anomaliesData, isLoading: loadingAnomalies, error: anomaliesError } = useQuery<AnomaliesResponse>({
+  const {
+    data: anomaliesData,
+    isLoading: loadingAnomalies,
+    error: anomaliesError,
+  } = useQuery<AnomaliesResponse>({
     queryKey: ['/api/security/anomaly-detection'],
     queryFn: async () => {
       const response = await fetch('/api/security/anomaly-detection', {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to detect anomalies');
       return response.json();
@@ -137,11 +150,15 @@ export default function SecurityDashboard() {
     refetchInterval: refreshInterval,
   });
 
-  const { data: penTestData, isLoading: loadingPenTest, error: penTestError } = useQuery<PenTestResponse>({
+  const {
+    data: penTestData,
+    isLoading: loadingPenTest,
+    error: penTestError,
+  } = useQuery<PenTestResponse>({
     queryKey: ['/api/security/pentest-results'],
     queryFn: async () => {
       const response = await fetch('/api/security/pentest-results', {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch pentest results');
       return response.json();
@@ -178,7 +195,7 @@ export default function SecurityDashboard() {
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    
+
     if (days > 0) return `${days}d ${hours}h`;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
@@ -191,7 +208,7 @@ export default function SecurityDashboard() {
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-    
+
     if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
     if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
     if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
@@ -237,9 +254,7 @@ export default function SecurityDashboard() {
         {metricsError ? (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              Failed to load security metrics. Please try again.
-            </AlertDescription>
+            <AlertDescription>Failed to load security metrics. Please try again.</AlertDescription>
           </Alert>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -248,112 +263,141 @@ export default function SecurityDashboard() {
                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground">Loading metrics...</p>
               </div>
-            ) : securityMetrics && (
-              <>
-                <Card className={`border-l-4 ${getStatusColor(securityMetrics.systemHealth.status)}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        <Server className="w-4 h-4" />
-                        System Uptime
-                      </h3>
-                      {securityMetrics.systemHealth.status === 'healthy' ? (
+            ) : (
+              securityMetrics && (
+                <>
+                  <Card
+                    className={`border-l-4 ${getStatusColor(securityMetrics.systemHealth.status)}`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                          <Server className="w-4 h-4" />
+                          System Uptime
+                        </h3>
+                        {securityMetrics.systemHealth.status === 'healthy' ? (
+                          <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        ) : securityMetrics.systemHealth.status === 'degraded' ? (
+                          <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                        ) : (
+                          <XCircle className="w-4 h-4 text-red-600" />
+                        )}
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <p className="text-3xl font-bold">
+                          {formatUptime(securityMetrics.systemHealth.uptime)}
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Status: {securityMetrics.systemHealth.status}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-l-4 border-l-blue-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          Active Sessions
+                        </h3>
+                        <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <p className="text-3xl font-bold">
+                          {securityMetrics.authentication.activeSessions}
+                        </p>
+                        <p className="text-sm text-muted-foreground">users</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-l-4 border-l-green-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                          <Lock className="w-4 h-4" />
+                          Login Success Rate
+                        </h3>
                         <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      ) : securityMetrics.systemHealth.status === 'degraded' ? (
-                        <AlertTriangle className="w-4 h-4 text-yellow-600" />
-                      ) : (
-                        <XCircle className="w-4 h-4 text-red-600" />
-                      )}
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <p className="text-3xl font-bold">{formatUptime(securityMetrics.systemHealth.uptime)}</p>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Status: {securityMetrics.systemHealth.status}
-                    </p>
-                  </CardContent>
-                </Card>
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <p className="text-3xl font-bold">
+                          {securityMetrics.authentication.successRate.toFixed(1)}
+                        </p>
+                        <p className="text-sm text-muted-foreground">%</p>
+                      </div>
+                      <Progress
+                        value={securityMetrics.authentication.successRate}
+                        className="h-2 mt-2"
+                      />
+                    </CardContent>
+                  </Card>
 
-                <Card className="border-l-4 border-l-blue-200">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        Active Sessions
-                      </h3>
-                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <p className="text-3xl font-bold">{securityMetrics.authentication.activeSessions}</p>
-                      <p className="text-sm text-muted-foreground">users</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                  <Card
+                    className={`border-l-4 ${securityMetrics.authentication.failedLogins > 10 ? 'border-l-yellow-500' : 'border-l-green-200'}`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                          Failed Login Attempts (24h)
+                        </h3>
+                        {securityMetrics.authentication.failedLogins > 10 ? (
+                          <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                        ) : (
+                          <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        )}
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <p className="text-3xl font-bold">
+                          {securityMetrics.authentication.failedLogins}
+                        </p>
+                        <p className="text-sm text-muted-foreground">attempts</p>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                <Card className="border-l-4 border-l-green-200">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
-                        Login Success Rate
-                      </h3>
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <p className="text-3xl font-bold">{securityMetrics.authentication.successRate.toFixed(1)}</p>
-                      <p className="text-sm text-muted-foreground">%</p>
-                    </div>
-                    <Progress value={securityMetrics.authentication.successRate} className="h-2 mt-2" />
-                  </CardContent>
-                </Card>
+                  <Card className="border-l-4 border-l-blue-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                          Total Logins (24h)
+                        </h3>
+                        <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <p className="text-3xl font-bold">
+                          {securityMetrics.authentication.totalLogins}
+                        </p>
+                        <p className="text-sm text-muted-foreground">logins</p>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                <Card className={`border-l-4 ${securityMetrics.authentication.failedLogins > 10 ? 'border-l-yellow-500' : 'border-l-green-200'}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-sm font-medium text-muted-foreground">Failed Login Attempts (24h)</h3>
-                      {securityMetrics.authentication.failedLogins > 10 ? (
-                        <AlertTriangle className="w-4 h-4 text-yellow-600" />
-                      ) : (
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      )}
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <p className="text-3xl font-bold">{securityMetrics.authentication.failedLogins}</p>
-                      <p className="text-sm text-muted-foreground">attempts</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-blue-200">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-sm font-medium text-muted-foreground">Total Logins (24h)</h3>
-                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <p className="text-3xl font-bold">{securityMetrics.authentication.totalLogins}</p>
-                      <p className="text-sm text-muted-foreground">logins</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className={`border-l-4 ${securityMetrics.threats.suspiciousActivity > 5 ? 'border-l-red-500' : 'border-l-green-200'}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-sm font-medium text-muted-foreground">Suspicious Activity</h3>
-                      {securityMetrics.threats.suspiciousActivity > 5 ? (
-                        <XCircle className="w-4 h-4 text-red-600" />
-                      ) : (
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      )}
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <p className="text-3xl font-bold">{securityMetrics.threats.suspiciousActivity}</p>
-                      <p className="text-sm text-muted-foreground">events</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
+                  <Card
+                    className={`border-l-4 ${securityMetrics.threats.suspiciousActivity > 5 ? 'border-l-red-500' : 'border-l-green-200'}`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                          Suspicious Activity
+                        </h3>
+                        {securityMetrics.threats.suspiciousActivity > 5 ? (
+                          <XCircle className="w-4 h-4 text-red-600" />
+                        ) : (
+                          <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        )}
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <p className="text-3xl font-bold">
+                          {securityMetrics.threats.suspiciousActivity}
+                        </p>
+                        <p className="text-sm text-muted-foreground">events</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )
             )}
           </div>
         )}
@@ -404,7 +448,10 @@ export default function SecurityDashboard() {
                 ) : (
                   <div className="space-y-3">
                     {behavioralAlertsData?.alerts.map((alert) => (
-                      <Alert key={alert.id} variant={alert.severity === 'high' ? 'destructive' : 'default'}>
+                      <Alert
+                        key={alert.id}
+                        variant={alert.severity === 'high' ? 'destructive' : 'default'}
+                      >
                         <div className="space-y-3">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -412,7 +459,9 @@ export default function SecurityDashboard() {
                                 <Badge variant={getSeverityBadge(alert.severity)}>
                                   {alert.severity}
                                 </Badge>
-                                <h4 className="font-semibold capitalize">{alert.type.replace('_', ' ')}</h4>
+                                <h4 className="font-semibold capitalize">
+                                  {alert.type.replace('_', ' ')}
+                                </h4>
                               </div>
                               <p className="text-sm text-muted-foreground">
                                 User: {alert.username} (ID: {alert.userId})
@@ -483,13 +532,18 @@ export default function SecurityDashboard() {
                 ) : (
                   <div className="space-y-3">
                     {anomaliesData?.anomalies.map((anomaly, index) => (
-                      <Alert key={`${anomaly.type}-${index}`} variant={anomaly.severity === 'high' ? 'destructive' : 'default'}>
+                      <Alert
+                        key={`${anomaly.type}-${index}`}
+                        variant={anomaly.severity === 'high' ? 'destructive' : 'default'}
+                      >
                         <div className="space-y-3">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <AlertTriangle className="w-4 h-4" />
-                                <h4 className="font-semibold capitalize">{anomaly.type.replace('_', ' ')}</h4>
+                                <h4 className="font-semibold capitalize">
+                                  {anomaly.type.replace('_', ' ')}
+                                </h4>
                                 <Badge variant={getSeverityBadge(anomaly.severity)}>
                                   {anomaly.severity}
                                 </Badge>
@@ -510,7 +564,9 @@ export default function SecurityDashboard() {
                             </div>
                             <div>
                               <p className="text-xs font-medium mb-1">Expected vs Actual:</p>
-                              <p className="font-mono text-xs">{anomaly.expectedValue} → {anomaly.actualValue}</p>
+                              <p className="font-mono text-xs">
+                                {anomaly.expectedValue} → {anomaly.actualValue}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -556,96 +612,116 @@ export default function SecurityDashboard() {
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">Loading assessment results...</p>
                   </div>
-                ) : penTestData && (
-                  <>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-                      <Card className="border-l-4 border-l-red-500">
-                        <CardContent className="p-3">
-                          <p className="text-xs text-muted-foreground">Critical</p>
-                          <p className="text-2xl font-bold text-red-600">{penTestData.summary.critical}</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="border-l-4 border-l-orange-500">
-                        <CardContent className="p-3">
-                          <p className="text-xs text-muted-foreground">High</p>
-                          <p className="text-2xl font-bold text-orange-600">{penTestData.summary.high}</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="border-l-4 border-l-yellow-500">
-                        <CardContent className="p-3">
-                          <p className="text-xs text-muted-foreground">Medium</p>
-                          <p className="text-2xl font-bold text-yellow-600">{penTestData.summary.medium}</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="border-l-4 border-l-blue-500">
-                        <CardContent className="p-3">
-                          <p className="text-xs text-muted-foreground">Low</p>
-                          <p className="text-2xl font-bold text-blue-600">{penTestData.summary.low}</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="border-l-4 border-l-green-500">
-                        <CardContent className="p-3">
-                          <p className="text-xs text-muted-foreground">Passed</p>
-                          <p className="text-2xl font-bold text-green-600">{penTestData.summary.passed}</p>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {penTestData.vulnerabilities.length === 0 ? (
-                      <div className="text-center py-12">
-                        <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-500" />
-                        <p className="text-lg font-semibold">No Vulnerabilities Detected</p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Your system passed all security checks
-                        </p>
+                ) : (
+                  penTestData && (
+                    <>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                        <Card className="border-l-4 border-l-red-500">
+                          <CardContent className="p-3">
+                            <p className="text-xs text-muted-foreground">Critical</p>
+                            <p className="text-2xl font-bold text-red-600">
+                              {penTestData.summary.critical}
+                            </p>
+                          </CardContent>
+                        </Card>
+                        <Card className="border-l-4 border-l-orange-500">
+                          <CardContent className="p-3">
+                            <p className="text-xs text-muted-foreground">High</p>
+                            <p className="text-2xl font-bold text-orange-600">
+                              {penTestData.summary.high}
+                            </p>
+                          </CardContent>
+                        </Card>
+                        <Card className="border-l-4 border-l-yellow-500">
+                          <CardContent className="p-3">
+                            <p className="text-xs text-muted-foreground">Medium</p>
+                            <p className="text-2xl font-bold text-yellow-600">
+                              {penTestData.summary.medium}
+                            </p>
+                          </CardContent>
+                        </Card>
+                        <Card className="border-l-4 border-l-blue-500">
+                          <CardContent className="p-3">
+                            <p className="text-xs text-muted-foreground">Low</p>
+                            <p className="text-2xl font-bold text-blue-600">
+                              {penTestData.summary.low}
+                            </p>
+                          </CardContent>
+                        </Card>
+                        <Card className="border-l-4 border-l-green-500">
+                          <CardContent className="p-3">
+                            <p className="text-xs text-muted-foreground">Passed</p>
+                            <p className="text-2xl font-bold text-green-600">
+                              {penTestData.summary.passed}
+                            </p>
+                          </CardContent>
+                        </Card>
                       </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {penTestData.vulnerabilities.map((vuln) => (
-                          <Card key={vuln.id} className={`border-l-4 ${
-                            vuln.severity === 'critical' ? 'border-l-red-500' :
-                            vuln.severity === 'high' ? 'border-l-orange-500' :
-                            vuln.severity === 'medium' ? 'border-l-yellow-500' :
-                            'border-l-blue-500'
-                          }`}>
-                            <CardContent className="p-4 space-y-3">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <Badge variant="outline">{vuln.category}</Badge>
-                                    <Badge variant={getSeverityBadge(vuln.severity)}>
-                                      {vuln.severity}
-                                    </Badge>
-                                    <Badge variant="outline">
-                                      {vuln.status}
-                                    </Badge>
+
+                      {penTestData.vulnerabilities.length === 0 ? (
+                        <div className="text-center py-12">
+                          <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-500" />
+                          <p className="text-lg font-semibold">No Vulnerabilities Detected</p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Your system passed all security checks
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {penTestData.vulnerabilities.map((vuln) => (
+                            <Card
+                              key={vuln.id}
+                              className={`border-l-4 ${
+                                vuln.severity === 'critical'
+                                  ? 'border-l-red-500'
+                                  : vuln.severity === 'high'
+                                    ? 'border-l-orange-500'
+                                    : vuln.severity === 'medium'
+                                      ? 'border-l-yellow-500'
+                                      : 'border-l-blue-500'
+                              }`}
+                            >
+                              <CardContent className="p-4 space-y-3">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <Badge variant="outline">{vuln.category}</Badge>
+                                      <Badge variant={getSeverityBadge(vuln.severity)}>
+                                        {vuln.severity}
+                                      </Badge>
+                                      <Badge variant="outline">{vuln.status}</Badge>
+                                    </div>
+                                    <h4 className="font-semibold">{vuln.description}</h4>
                                   </div>
-                                  <h4 className="font-semibold">{vuln.description}</h4>
+                                  <div className="text-right text-xs text-muted-foreground">
+                                    {formatTimestamp(vuln.detectedDate)}
+                                  </div>
                                 </div>
-                                <div className="text-right text-xs text-muted-foreground">
-                                  {formatTimestamp(vuln.detectedDate)}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-
-                    {penTestData.recommendations.length > 0 && (
-                      <div className="mt-6">
-                        <h4 className="font-semibold mb-3">Recommendations</h4>
-                        <div className="space-y-2">
-                          {penTestData.recommendations.map((rec, index) => (
-                            <Alert key={index} variant="default" className="bg-blue-50 dark:bg-blue-950">
-                              <Target className="h-4 w-4 text-blue-600" />
-                              <AlertDescription>{rec}</AlertDescription>
-                            </Alert>
+                              </CardContent>
+                            </Card>
                           ))}
                         </div>
-                      </div>
-                    )}
-                  </>
+                      )}
+
+                      {penTestData.recommendations.length > 0 && (
+                        <div className="mt-6">
+                          <h4 className="font-semibold mb-3">Recommendations</h4>
+                          <div className="space-y-2">
+                            {penTestData.recommendations.map((rec, index) => (
+                              <Alert
+                                key={index}
+                                variant="default"
+                                className="bg-blue-50 dark:bg-blue-950"
+                              >
+                                <Target className="h-4 w-4 text-blue-600" />
+                                <AlertDescription>{rec}</AlertDescription>
+                              </Alert>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )
                 )}
               </CardContent>
             </Card>

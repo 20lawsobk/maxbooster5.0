@@ -5,7 +5,7 @@ const labelGridConfig = {
   providerSlug: 'labelgrid',
   baseUrl: 'https://api.labelgrid.com',
   apiVersion: 'v1',
-  
+
   endpoints: {
     createRelease: '/v1/releases',
     getReleaseStatus: '/v1/releases/:id/status',
@@ -14,35 +14,38 @@ const labelGridConfig = {
     generateISRC: '/v1/codes/isrc',
     generateUPC: '/v1/codes/upc',
     getReleaseAnalytics: '/v1/releases/:id/analytics',
-    getArtistAnalytics: '/v1/artists/:id/analytics'
+    getArtistAnalytics: '/v1/artists/:id/analytics',
   },
-  
+
   authType: 'bearer_token',
   authHeaderName: 'Authorization',
   authHeaderFormat: 'Bearer {token}',
-  
-  webhookEvents: [
-    'release.status.changed',
-    'release.live',
-    'release.failed',
-    'analytics.updated'
-  ],
-  
+
+  webhookEvents: ['release.status.changed', 'release.live', 'release.failed', 'analytics.updated'],
+
   supportedPlatforms: [
-    'spotify', 'apple', 'youtube', 'tiktok', 'instagram', 
-    'facebook', 'deezer', 'tidal', 'amazon', 'pandora'
+    'spotify',
+    'apple',
+    'youtube',
+    'tiktok',
+    'instagram',
+    'facebook',
+    'deezer',
+    'tidal',
+    'amazon',
+    'pandora',
   ],
-  
+
   features: {
     isrcGeneration: true,
     upcGeneration: true,
     analytics: true,
     royaltySplits: true,
-    byoDeals: true
+    byoDeals: true,
   },
-  
+
   isActive: true,
-  isDefault: true
+  isDefault: true,
 };
 
 async function insertConfig() {

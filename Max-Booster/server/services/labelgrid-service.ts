@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { loggingService } from './loggingService';
 import { storage } from '../storage';
+import { logger } from '../logger.js';
 
 export interface LabelGridRelease {
   title: string;
@@ -99,11 +100,13 @@ class LabelGridService {
     this.authHeaderFormat = 'Bearer {token}';
 
     if (!this.apiToken) {
-      console.warn('⚠️  LabelGrid API token not configured. Distribution features will use simulated mode.');
-      console.warn('   Set LABELGRID_API_TOKEN in your environment to enable real distribution.');
+      logger.warn(
+        '⚠️  LabelGrid API token not configured. Distribution features will use simulated mode.'
+      );
+      logger.warn('   Set LABELGRID_API_TOKEN in your environment to enable real distribution.');
     } else {
       this.isConfigured = true;
-      console.log('✅ LabelGrid API client initialized');
+      logger.info('✅ LabelGrid API client initialized');
     }
 
     this.client = axios.create({
@@ -111,7 +114,7 @@ class LabelGridService {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
-        ...(this.apiToken && { 'Authorization': `Bearer ${this.apiToken}` }),
+        ...(this.apiToken && { Authorization: `Bearer ${this.apiToken}` }),
       },
     });
 
@@ -129,24 +132,25 @@ class LabelGridService {
 
   private async loadConfig() {
     if (this.configLoaded) return;
-    
+
     try {
       const provider = await storage.getDistributionProvider('labelgrid');
-      
+
       if (provider) {
         // Use actual fields from the schema
         this.baseUrl = provider.apiBase || this.baseUrl || 'https://api.labelgrid.com';
         this.endpoints = provider.requirements?.endpoints || {};
-        this.authHeaderFormat = provider.authType === 'api_key' ? 'X-API-Key: {token}' : 'Bearer {token}';
+        this.authHeaderFormat =
+          provider.authType === 'api_key' ? 'X-API-Key: {token}' : 'Bearer {token}';
         this.webhookSecret = provider.requirements?.webhookSecret || this.webhookSecret;
         this.configLoaded = true;
-        
+
         // Update axios client base URL
         this.client.defaults.baseURL = this.baseUrl;
-        
-        console.log('✅ LabelGrid configuration loaded from database');
-        console.log(`   Base URL: ${this.baseUrl}`);
-        console.log(`   Endpoints configured: ${Object.keys(this.endpoints).length}`);
+
+        logger.info('✅ LabelGrid configuration loaded from database');
+        logger.info(`   Base URL: ${this.baseUrl}`);
+        logger.info(`   Endpoints configured: ${Object.keys(this.endpoints).length}`);
       } else {
         // Fallback to environment variables (expected until provider is configured)
         this.baseUrl = process.env.LABELGRID_API_URL || 'https://api.labelgrid.com';
@@ -155,8 +159,8 @@ class LabelGridService {
         this.configLoaded = true;
         // Silent fallback - provider will be added when distribution is configured
       }
-    } catch (error) {
-      console.error('Failed to load LabelGrid config from database:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to load LabelGrid config from database:', error);
       this.baseUrl = process.env.LABELGRID_API_URL || 'https://api.labelgrid.com';
       this.endpoints = {};
       this.authHeaderFormat = 'Bearer {token}';
@@ -174,11 +178,11 @@ class LabelGridService {
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
         return await fn();
-      } catch (error) {
+      } catch (error: unknown) {
         const isLastAttempt = attempt === retries;
         const axiosError = error as AxiosError;
-        
-        const isRetryable = 
+
+        const isRetryable =
           axiosError.code === 'ECONNABORTED' ||
           axiosError.code === 'ETIMEDOUT' ||
           (axiosError.response?.status && axiosError.response.status >= 500);
@@ -188,14 +192,14 @@ class LabelGridService {
         }
 
         const delay = Math.min(this.baseDelay * Math.pow(2, attempt), 16000);
-        console.log(`⏳ LabelGrid API retry ${attempt + 1}/${retries} after ${delay}ms`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        logger.info(`⏳ LabelGrid API retry ${attempt + 1}/${retries} after ${delay}ms`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
     throw new Error('Max retries exceeded');
   }
 
-  private logError(context: string, error: any): void {
+  private logError(context: string, error: unknown): void {
     const errorDetails = {
       context,
       message: error.message,
@@ -203,11 +207,11 @@ class LabelGridService {
       status: error.response?.status,
       data: error.response?.data,
     };
-    
+
     loggingService.logError(`${context}: ${error.message}`, errorDetails);
   }
 
-  private logApiCall(method: string, endpoint: string, data?: any): void {
+  private logApiCall(method: string, endpoint: string, data?: unknown): void {
     loggingService.logInfo(`LabelGrid API ${method} ${endpoint}`, {
       endpoint,
       method,
@@ -217,9 +221,9 @@ class LabelGridService {
 
   async createRelease(releaseData: LabelGridRelease): Promise<LabelGridReleaseResponse> {
     await this.loadConfig();
-    
+
     if (!this.isConfigured) {
-      console.warn('⚠️  LabelGrid not configured - returning simulated response');
+      logger.warn('⚠️  LabelGrid not configured - returning simulated response');
       return this.simulateCreateRelease(releaseData);
     }
 
@@ -241,7 +245,7 @@ class LabelGridService {
           territory_mode: releaseData.territoryMode || 'worldwide',
           territories: releaseData.territories || [],
           platforms: releaseData.platforms,
-          tracks: releaseData.tracks.map(track => ({
+          tracks: releaseData.tracks.map((track) => ({
             title: track.title,
             artist: track.artist,
             isrc: track.isrc,
@@ -260,23 +264,24 @@ class LabelGridService {
       });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logError('Failed to create LabelGrid release', error);
-      throw new Error(
-        `LabelGrid API error: ${error.response?.data?.message || error.message}`
-      );
+      throw new Error(`LabelGrid API error: ${error.response?.data?.message || error.message}`);
     }
   }
 
   async getReleaseStatus(releaseId: string): Promise<LabelGridReleaseResponse> {
     await this.loadConfig();
-    
+
     if (!this.isConfigured) {
-      console.warn('⚠️  LabelGrid not configured - returning simulated response');
+      logger.warn('⚠️  LabelGrid not configured - returning simulated response');
       return this.simulateGetReleaseStatus(releaseId);
     }
 
-    const endpoint = this.getEndpoint('getReleaseStatus', `/v1/releases/:id/status`).replace(':id', releaseId);
+    const endpoint = this.getEndpoint('getReleaseStatus', `/v1/releases/:id/status`).replace(
+      ':id',
+      releaseId
+    );
     this.logApiCall('GET', endpoint);
 
     try {
@@ -285,19 +290,17 @@ class LabelGridService {
       });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logError('Failed to get LabelGrid release status', error);
-      throw new Error(
-        `LabelGrid API error: ${error.response?.data?.message || error.message}`
-      );
+      throw new Error(`LabelGrid API error: ${error.response?.data?.message || error.message}`);
     }
   }
 
   async generateISRC(artist: string, title: string): Promise<LabelGridCodeResponse> {
     await this.loadConfig();
-    
+
     if (!this.isConfigured) {
-      console.warn('⚠️  LabelGrid not configured - generating local ISRC');
+      logger.warn('⚠️  LabelGrid not configured - generating local ISRC');
       return this.simulateGenerateISRC(artist, title);
     }
 
@@ -319,19 +322,17 @@ class LabelGridService {
       });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logError('Failed to generate ISRC', error);
-      throw new Error(
-        `LabelGrid API error: ${error.response?.data?.message || error.message}`
-      );
+      throw new Error(`LabelGrid API error: ${error.response?.data?.message || error.message}`);
     }
   }
 
   async generateUPC(releaseTitle: string): Promise<LabelGridCodeResponse> {
     await this.loadConfig();
-    
+
     if (!this.isConfigured) {
-      console.warn('⚠️  LabelGrid not configured - generating local UPC');
+      logger.warn('⚠️  LabelGrid not configured - generating local UPC');
       return this.simulateGenerateUPC(releaseTitle);
     }
 
@@ -351,17 +352,15 @@ class LabelGridService {
       });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logError('Failed to generate UPC', error);
-      throw new Error(
-        `LabelGrid API error: ${error.response?.data?.message || error.message}`
-      );
+      throw new Error(`LabelGrid API error: ${error.response?.data?.message || error.message}`);
     }
   }
 
   async getReleaseAnalytics(releaseId: string): Promise<LabelGridAnalytics> {
     if (!this.isConfigured) {
-      console.warn('⚠️  LabelGrid not configured - returning simulated analytics');
+      logger.warn('⚠️  LabelGrid not configured - returning simulated analytics');
       return this.simulateGetReleaseAnalytics(releaseId);
     }
 
@@ -369,17 +368,13 @@ class LabelGridService {
 
     try {
       const response = await this.retryWithBackoff(async () => {
-        return await this.client.get<LabelGridAnalytics>(
-          `/v1/releases/${releaseId}/analytics`
-        );
+        return await this.client.get<LabelGridAnalytics>(`/v1/releases/${releaseId}/analytics`);
       });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logError('Failed to get LabelGrid release analytics', error);
-      throw new Error(
-        `LabelGrid API error: ${error.response?.data?.message || error.message}`
-      );
+      throw new Error(`LabelGrid API error: ${error.response?.data?.message || error.message}`);
     }
   }
 
@@ -388,7 +383,7 @@ class LabelGridService {
     updates: Partial<LabelGridRelease>
   ): Promise<LabelGridReleaseResponse> {
     if (!this.isConfigured) {
-      console.warn('⚠️  LabelGrid not configured - returning simulated response');
+      logger.warn('⚠️  LabelGrid not configured - returning simulated response');
       return this.simulateUpdateRelease(releaseId, updates);
     }
 
@@ -407,17 +402,15 @@ class LabelGridService {
       });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logError('Failed to update LabelGrid release', error);
-      throw new Error(
-        `LabelGrid API error: ${error.response?.data?.message || error.message}`
-      );
+      throw new Error(`LabelGrid API error: ${error.response?.data?.message || error.message}`);
     }
   }
 
   async takedownRelease(releaseId: string): Promise<{ success: boolean }> {
     if (!this.isConfigured) {
-      console.warn('⚠️  LabelGrid not configured - returning simulated response');
+      logger.warn('⚠️  LabelGrid not configured - returning simulated response');
       return { success: true };
     }
 
@@ -433,17 +426,15 @@ class LabelGridService {
       });
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logError('Failed to takedown LabelGrid release', error);
-      throw new Error(
-        `LabelGrid API error: ${error.response?.data?.message || error.message}`
-      );
+      throw new Error(`LabelGrid API error: ${error.response?.data?.message || error.message}`);
     }
   }
 
   async getArtistAnalytics(artistId: string): Promise<LabelGridAnalytics> {
     if (!this.isConfigured) {
-      console.warn('⚠️  LabelGrid not configured - returning simulated analytics');
+      logger.warn('⚠️  LabelGrid not configured - returning simulated analytics');
       return this.simulateGetArtistAnalytics(artistId);
     }
 
@@ -451,23 +442,19 @@ class LabelGridService {
 
     try {
       const response = await this.retryWithBackoff(async () => {
-        return await this.client.get<LabelGridAnalytics>(
-          `/v1/artists/${artistId}/analytics`
-        );
+        return await this.client.get<LabelGridAnalytics>(`/v1/artists/${artistId}/analytics`);
       });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logError('Failed to get LabelGrid artist analytics', error);
-      throw new Error(
-        `LabelGrid API error: ${error.response?.data?.message || error.message}`
-      );
+      throw new Error(`LabelGrid API error: ${error.response?.data?.message || error.message}`);
     }
   }
 
   verifyWebhookSignature(payload: string, signature: string): boolean {
     if (!this.webhookSecret) {
-      console.warn('⚠️  LabelGrid webhook secret not configured - skipping verification');
+      logger.warn('⚠️  LabelGrid webhook secret not configured - skipping verification');
       return true;
     }
 
@@ -478,11 +465,8 @@ class LabelGridService {
         .update(payload)
         .digest('hex');
 
-      return crypto.timingSafeEqual(
-        Buffer.from(signature),
-        Buffer.from(expectedSignature)
-      );
-    } catch (error) {
+      return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
+    } catch (error: unknown) {
       this.logError('Webhook signature verification failed', error);
       return false;
     }
@@ -497,7 +481,7 @@ class LabelGridService {
       status: 'processing',
       submittedAt: new Date().toISOString(),
       estimatedLiveDate: estimatedLiveDate.toISOString(),
-      platforms: releaseData.platforms.map(platform => ({
+      platforms: releaseData.platforms.map((platform) => ({
         platform,
         status: 'processing',
       })),

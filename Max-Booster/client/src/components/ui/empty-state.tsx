@@ -1,10 +1,10 @@
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { 
-  Music, 
-  FileText, 
-  Users, 
+import {
+  Music,
+  FileText,
+  Users,
   BarChart3,
   Play,
   Plus,
@@ -24,7 +24,7 @@ import {
   Globe,
   Package,
   Zap,
-  Brain
+  Brain,
 } from 'lucide-react';
 
 interface EmptyStateProps {
@@ -133,6 +133,9 @@ const sizeClasses = {
   },
 };
 
+/**
+ * TODO: Add function documentation
+ */
 export function EmptyState({
   title,
   description,
@@ -154,75 +157,70 @@ export function EmptyState({
     <>
       <div className="relative mb-4">
         {animate && (
-          <div 
-            className={cn(
-              'absolute inset-0 rounded-full blur-2xl animate-pulse',
-              styles.glow
-            )}
+          <div
+            className={cn('absolute inset-0 rounded-full blur-2xl animate-pulse', styles.glow)}
           />
         )}
         <div
           className={cn(
             'relative rounded-full flex items-center justify-center transition-all duration-300',
             sizes.iconWrapper,
-            variant !== 'minimal' && [
-              styles.container,
-              'border-2',
-              styles.border
-            ],
+            variant !== 'minimal' && [styles.container, 'border-2', styles.border],
             animate && 'hover:scale-110 hover:rotate-3'
           )}
         >
-          <DefaultIcon className={cn(sizes.icon, styles.icon, animate && 'animate-in zoom-in-50 duration-700')} />
+          <DefaultIcon
+            className={cn(sizes.icon, styles.icon, animate && 'animate-in zoom-in-50 duration-700')}
+          />
         </div>
       </div>
-      
-      <h3 className={cn(
-        'font-semibold text-gray-900 dark:text-white mb-2 text-center',
-        sizes.title,
-        animate && 'animate-in fade-in-50 slide-in-from-bottom-2 duration-500'
-      )}>
+
+      <h3
+        className={cn(
+          'font-semibold text-gray-900 dark:text-white mb-2 text-center',
+          sizes.title,
+          animate && 'animate-in fade-in-50 slide-in-from-bottom-2 duration-500'
+        )}
+      >
         {title}
       </h3>
-      
+
       {description && (
-        <p className={cn(
-          'text-gray-600 dark:text-gray-400 text-center mb-6',
-          sizes.description,
-          sizes.maxWidth,
-          animate && 'animate-in fade-in-50 slide-in-from-bottom-3 duration-700'
-        )}>
+        <p
+          className={cn(
+            'text-gray-600 dark:text-gray-400 text-center mb-6',
+            sizes.description,
+            sizes.maxWidth,
+            animate && 'animate-in fade-in-50 slide-in-from-bottom-3 duration-700'
+          )}
+        >
           {description}
         </p>
       )}
-      
+
       {(actionLabel || secondaryActionLabel) && (
-        <div className={cn(
-          'flex flex-col sm:flex-row gap-3',
-          animate && 'animate-in fade-in-50 slide-in-from-bottom-4 duration-1000'
-        )}>
+        <div
+          className={cn(
+            'flex flex-col sm:flex-row gap-3',
+            animate && 'animate-in fade-in-50 slide-in-from-bottom-4 duration-1000'
+          )}
+        >
           {actionLabel && onAction && (
             <Button
               onClick={onAction}
               variant={variant === 'error' ? 'destructive' : 'default'}
-              className={cn(
-                animate && 'transition-all hover:scale-105',
-                'touch-target-minimum'
-              )}
+              className={cn(animate && 'transition-all hover:scale-105', 'touch-target-minimum')}
               data-testid="button-empty-state-primary"
             >
               {actionLabel}
             </Button>
           )}
-          
+
           {secondaryActionLabel && onSecondaryAction && (
             <Button
               onClick={onSecondaryAction}
               variant="outline"
-              className={cn(
-                animate && 'transition-all hover:scale-105',
-                'touch-target-minimum'
-              )}
+              className={cn(animate && 'transition-all hover:scale-105', 'touch-target-minimum')}
               data-testid="button-empty-state-secondary"
             >
               {secondaryActionLabel}

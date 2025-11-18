@@ -26,35 +26,40 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   {
     id: 2,
     title: 'Track Panel',
-    description: 'Create, organize, and manage your audio and MIDI tracks here. Drag tracks to reorder them.',
+    description:
+      'Create, organize, and manage your audio and MIDI tracks here. Drag tracks to reorder them.',
     spotlightSelector: '.track-list-container',
     arrowPosition: 'left',
   },
   {
     id: 3,
     title: 'Timeline & Arrangement',
-    description: 'Record, arrange, and edit your clips on the timeline. Zoom in/out and navigate your project here.',
+    description:
+      'Record, arrange, and edit your clips on the timeline. Zoom in/out and navigate your project here.',
     spotlightSelector: '.timeline-container',
     arrowPosition: 'top',
   },
   {
     id: 4,
     title: 'Sound Browser',
-    description: 'Browse and drag samples, loops, and plugins onto your tracks. Find everything you need to produce.',
+    description:
+      'Browse and drag samples, loops, and plugins onto your tracks. Find everything you need to produce.',
     spotlightSelector: '.browser-panel',
     arrowPosition: 'right',
   },
   {
     id: 5,
     title: 'Transport Controls',
-    description: 'Control playback, recording, tempo, and timing. Click Play to start, Record to capture audio.',
+    description:
+      'Control playback, recording, tempo, and timing. Click Play to start, Record to capture audio.',
     spotlightSelector: '.transport-container',
     arrowPosition: 'top',
   },
   {
     id: 6,
     title: 'Mixer & Effects',
-    description: 'Adjust volume, pan, and add effects to each track. Create professional mixes with precision control.',
+    description:
+      'Adjust volume, pan, and add effects to each track. Create professional mixes with precision control.',
     spotlightSelector: '.mixer-panel',
     arrowPosition: 'right',
   },
@@ -106,7 +111,9 @@ export default function StudioTutorial({ onComplete, onSkip }: StudioTutorialPro
   useEffect(() => {
     const step = TUTORIAL_STEPS[currentStep];
     if (step) {
-      announce(`Step ${currentStep + 1} of ${TUTORIAL_STEPS.length}: ${step.title}. ${step.description}`);
+      announce(
+        `Step ${currentStep + 1} of ${TUTORIAL_STEPS.length}: ${step.title}. ${step.description}`
+      );
     }
   }, [currentStep]);
 
@@ -145,12 +152,12 @@ export default function StudioTutorial({ onComplete, onSkip }: StudioTutorialPro
     setIsClosing(true);
     try {
       await saveTutorialMutation.mutateAsync();
-    } catch (error) {
-      console.error('Failed to save tutorial completion:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to save tutorial completion:', error);
       toast({
         title: 'Tutorial Completed',
         description: 'Your progress will be saved when connection is restored.',
-        variant: 'default'
+        variant: 'default',
       });
     } finally {
       setTimeout(() => {
@@ -163,12 +170,12 @@ export default function StudioTutorial({ onComplete, onSkip }: StudioTutorialPro
     setIsClosing(true);
     try {
       await saveTutorialMutation.mutateAsync();
-    } catch (error) {
-      console.error('Failed to save tutorial skip:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to save tutorial skip:', error);
       toast({
         title: 'Tutorial Skipped',
         description: 'Your preference will be saved when connection is restored.',
-        variant: 'default'
+        variant: 'default',
       });
     } finally {
       setTimeout(() => {
@@ -384,8 +391,8 @@ export default function StudioTutorial({ onComplete, onSkip }: StudioTutorialPro
                   index === currentStep
                     ? 'bg-purple-500'
                     : index < currentStep
-                    ? 'bg-purple-300'
-                    : 'bg-gray-300 dark:bg-gray-600'
+                      ? 'bg-purple-300'
+                      : 'bg-gray-300 dark:bg-gray-600'
                 }`}
               />
             ))}
@@ -407,11 +414,7 @@ export default function StudioTutorial({ onComplete, onSkip }: StudioTutorialPro
 
           {isFirstStep ? (
             <div className="flex gap-3 w-full">
-              <Button
-                onClick={handleClose}
-                variant="ghost"
-                className="flex-1"
-              >
+              <Button onClick={handleClose} variant="ghost" className="flex-1">
                 Skip Tutorial
               </Button>
               <Button
@@ -425,11 +428,7 @@ export default function StudioTutorial({ onComplete, onSkip }: StudioTutorialPro
           ) : (
             <>
               {!isFirstStep && (
-                <Button
-                  onClick={handleClose}
-                  variant="ghost"
-                  className="text-sm"
-                >
+                <Button onClick={handleClose} variant="ghost" className="text-sm">
                   Skip
                 </Button>
               )}

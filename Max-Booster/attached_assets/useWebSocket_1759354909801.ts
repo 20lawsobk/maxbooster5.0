@@ -21,11 +21,13 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     onDisconnect,
     onError,
     reconnectInterval = 3000,
-    maxReconnectAttempts = 5
+    maxReconnectAttempts = 5,
   } = options;
 
   const [isConnected, setIsConnected] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState<
+    'connecting' | 'connected' | 'disconnected' | 'error'
+  >('disconnected');
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -37,9 +39,9 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
     try {
       setConnectionStatus('connecting');
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${protocol}//${window.location.host}/ws`;
-      
+
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
@@ -63,7 +65,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         setIsConnected(false);
         setConnectionStatus('disconnected');
         onDisconnect?.();
-        
+
         // Attempt to reconnect
         if (reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current++;
@@ -88,7 +90,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
-    
+
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
@@ -105,7 +107,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
   useEffect(() => {
     connect();
-    
+
     return () => {
       disconnect();
     };

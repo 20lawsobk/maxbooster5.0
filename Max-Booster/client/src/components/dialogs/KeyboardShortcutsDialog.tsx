@@ -1,5 +1,11 @@
 import { useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -22,7 +28,7 @@ const shortcuts: KeyboardShortcut[] = [
   { keys: ['Alt', 'H'], description: 'Go to home/dashboard', category: 'Global' },
   { keys: ['Alt', 'S'], description: 'Go to Studio', category: 'Global' },
   { keys: ['Alt', 'P'], description: 'Go to Projects', category: 'Global' },
-  
+
   // Studio Controls
   { keys: ['Space'], description: 'Play/Pause', category: 'Studio' },
   { keys: ['R'], description: 'Toggle recording', category: 'Studio' },
@@ -35,7 +41,7 @@ const shortcuts: KeyboardShortcut[] = [
   { keys: ['Delete'], description: 'Delete selected', category: 'Studio' },
   { keys: ['+'], description: 'Zoom in', category: 'Studio' },
   { keys: ['-'], description: 'Zoom out', category: 'Studio' },
-  
+
   // Lists & Tables
   { keys: ['↑'], description: 'Move up in list', category: 'Lists' },
   { keys: ['↓'], description: 'Move down in list', category: 'Lists' },
@@ -45,13 +51,13 @@ const shortcuts: KeyboardShortcut[] = [
   { keys: ['End'], description: 'Go to last item', category: 'Lists' },
   { keys: ['Enter'], description: 'Activate item', category: 'Lists' },
   { keys: ['Space'], description: 'Select/Toggle item', category: 'Lists' },
-  
+
   // Forms
   { keys: ['Enter'], description: 'Submit form', category: 'Forms' },
   { keys: ['Escape'], description: 'Cancel form', category: 'Forms' },
   { keys: ['Tab'], description: 'Next field', category: 'Forms' },
   { keys: ['Shift', 'Tab'], description: 'Previous field', category: 'Forms' },
-  
+
   // Media Controls
   { keys: ['K'], description: 'Play/Pause media', category: 'Media' },
   { keys: ['J'], description: 'Rewind 10 seconds', category: 'Media' },
@@ -67,21 +73,27 @@ interface KeyboardShortcutsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function KeyboardShortcutsDialog({ open, onOpenChange }: KeyboardShortcutsDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-  
+
   // Use accessibility hook for dialog
   useDialogAccessibility(dialogRef, open, () => onOpenChange(false));
-  
+
   // Group shortcuts by category
-  const groupedShortcuts = shortcuts.reduce((acc, shortcut) => {
-    if (!acc[shortcut.category]) {
-      acc[shortcut.category] = [];
-    }
-    acc[shortcut.category].push(shortcut);
-    return acc;
-  }, {} as Record<string, KeyboardShortcut[]>);
-  
+  const groupedShortcuts = shortcuts.reduce(
+    (acc, shortcut) => {
+      if (!acc[shortcut.category]) {
+        acc[shortcut.category] = [];
+      }
+      acc[shortcut.category].push(shortcut);
+      return acc;
+    },
+    {} as Record<string, KeyboardShortcut[]>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -95,10 +107,11 @@ export function KeyboardShortcutsDialog({ open, onOpenChange }: KeyboardShortcut
             Keyboard Shortcuts
           </DialogTitle>
           <DialogDescription id="shortcuts-dialog-description">
-            Press <kbd className="px-2 py-1 bg-muted rounded text-xs">?</kbd> anytime to view this guide
+            Press <kbd className="px-2 py-1 bg-muted rounded text-xs">?</kbd> anytime to view this
+            guide
           </DialogDescription>
         </DialogHeader>
-        
+
         <ScrollArea className="h-[500px] pr-4">
           <div className="space-y-6">
             {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]) => (
@@ -109,7 +122,7 @@ export function KeyboardShortcutsDialog({ open, onOpenChange }: KeyboardShortcut
                     {categoryShortcuts.length} shortcuts
                   </Badge>
                 </div>
-                
+
                 <div className="space-y-2">
                   {categoryShortcuts.map((shortcut, index) => (
                     <div
@@ -134,22 +147,22 @@ export function KeyboardShortcutsDialog({ open, onOpenChange }: KeyboardShortcut
                     </div>
                   ))}
                 </div>
-                
-                {category !== Object.keys(groupedShortcuts)[Object.keys(groupedShortcuts).length - 1] && (
+
+                {category !==
+                  Object.keys(groupedShortcuts)[Object.keys(groupedShortcuts).length - 1] && (
                   <Separator className="mt-4" />
                 )}
               </div>
             ))}
           </div>
         </ScrollArea>
-        
+
         <div className="flex items-center justify-between pt-4 border-t">
           <div className="text-sm text-muted-foreground">
-            <strong>Tip:</strong> Most shortcuts work globally unless you&apos;re typing in a text field
+            <strong>Tip:</strong> Most shortcuts work globally unless you&apos;re typing in a text
+            field
           </div>
-          <Badge variant="outline">
-            {shortcuts.length} total shortcuts
-          </Badge>
+          <Badge variant="outline">{shortcuts.length} total shortcuts</Badge>
         </div>
       </DialogContent>
     </Dialog>

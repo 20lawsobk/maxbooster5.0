@@ -8,7 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -212,7 +218,7 @@ import {
   IvoryBilledWoodpecker,
   BachmanWarbler,
   EskimoCurlew,
-  HeathHen
+  HeathHen,
 } from 'lucide-react';
 
 interface AnalyticsData {
@@ -304,11 +310,21 @@ interface AnalyticsData {
     };
     revenueOptimization: Array<{ strategy: string; potential: number; impact: string }>;
     revenueStreams: Array<{ stream: string; revenue: number; growth: number }>;
-    revenueForecasting: Array<{ period: string; predicted: number; actual: number; accuracy: number }>;
+    revenueForecasting: Array<{
+      period: string;
+      predicted: number;
+      actual: number;
+      accuracy: number;
+    }>;
   };
   aiInsights: {
     performanceScore: number;
-    recommendations: Array<{ title: string; description: string; priority: string; impact: string }>;
+    recommendations: Array<{
+      title: string;
+      description: string;
+      priority: string;
+      impact: string;
+    }>;
     predictions: {
       nextMonthStreams: number;
       nextMonthRevenue: number;
@@ -327,20 +343,55 @@ interface AnalyticsData {
       opportunityMatrix: Array<{ opportunity: string; effort: number; impact: number }>;
       successFactors: Array<{ factor: string; importance: number; current: number }>;
       improvementAreas: Array<{ area: string; current: number; potential: number }>;
-      benchmarkComparison: Array<{ metric: string; current: number; benchmark: number; gap: number }>;
+      benchmarkComparison: Array<{
+        metric: string;
+        current: number;
+        benchmark: number;
+        gap: number;
+      }>;
       marketPosition: Array<{ dimension: string; score: number; trend: string }>;
       competitiveAdvantage: Array<{ advantage: string; strength: number; sustainability: number }>;
       growthDrivers: Array<{ driver: string; impact: number; timeframe: string }>;
-      performanceIndicators: Array<{ indicator: string; value: number; trend: string; target: number }>;
-      optimizationOpportunities: Array<{ area: string; current: number; optimized: number; improvement: number }>;
-      strategicRecommendations: Array<{ recommendation: string; priority: string; timeframe: string; resources: string }>;
-      marketIntelligence: Array<{ insight: string; source: string; confidence: number; relevance: number }>;
-      futureScenarios: Array<{ scenario: string; probability: number; impact: string; preparation: string }>;
+      performanceIndicators: Array<{
+        indicator: string;
+        value: number;
+        trend: string;
+        target: number;
+      }>;
+      optimizationOpportunities: Array<{
+        area: string;
+        current: number;
+        optimized: number;
+        improvement: number;
+      }>;
+      strategicRecommendations: Array<{
+        recommendation: string;
+        priority: string;
+        timeframe: string;
+        resources: string;
+      }>;
+      marketIntelligence: Array<{
+        insight: string;
+        source: string;
+        confidence: number;
+        relevance: number;
+      }>;
+      futureScenarios: Array<{
+        scenario: string;
+        probability: number;
+        impact: string;
+        preparation: string;
+      }>;
     };
     realTimeOptimization: {
       active: boolean;
       optimizations: Array<{ type: string; status: string; impact: number }>;
-      performance: Array<{ metric: string; current: number; optimized: number; improvement: number }>;
+      performance: Array<{
+        metric: string;
+        current: number;
+        optimized: number;
+        improvement: number;
+      }>;
       recommendations: Array<{ recommendation: string; priority: string; implementation: string }>;
     };
   };
@@ -350,13 +401,17 @@ export default function Analytics() {
   const { user, isLoading: authLoading } = useRequireSubscription();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [timeRange, setTimeRange] = useState('30d');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [selectedTab, setSelectedTab] = useState('overview');
 
   // Fetch comprehensive analytics data
-  const { data: analyticsData, isLoading: analyticsLoading, refetch } = useQuery({
+  const {
+    data: analyticsData,
+    isLoading: analyticsLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['/api/analytics/comprehensive', timeRange],
     enabled: !!user,
     refetchInterval: autoRefresh ? 30000 : false,
@@ -365,7 +420,10 @@ export default function Analytics() {
   // Export analytics mutation
   const exportAnalyticsMutation = useMutation({
     mutationFn: async (format: string) => {
-      const response = await apiRequest('POST', '/api/analytics/export', { format, filters: { timeRange }});
+      const response = await apiRequest('POST', '/api/analytics/export', {
+        format,
+        filters: { timeRange },
+      });
       return response.json();
     },
     onSuccess: (data) => {
@@ -403,59 +461,59 @@ export default function Analytics() {
 
   const overviewStats = [
     {
-      title: "Total Streams",
-      value: data?.overview?.totalStreams?.toLocaleString() || "0",
+      title: 'Total Streams',
+      value: data?.overview?.totalStreams?.toLocaleString() || '0',
       change: `+${data?.overview?.growthRate || 0}%`,
       icon: Play,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-950/20",
-      borderColor: "border-blue-200 dark:border-blue-800"
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50 dark:bg-blue-950/20',
+      borderColor: 'border-blue-200 dark:border-blue-800',
     },
     {
-      title: "Total Revenue",
-      value: `$${data?.overview?.totalRevenue?.toLocaleString() || "0"}`,
+      title: 'Total Revenue',
+      value: `$${data?.overview?.totalRevenue?.toLocaleString() || '0'}`,
       change: `+${data?.overview?.growthRate || 0}%`,
       icon: DollarSign,
-      color: "text-green-600",
-      bgColor: "bg-green-50 dark:bg-green-950/20",
-      borderColor: "border-green-200 dark:border-green-800"
+      color: 'text-green-600',
+      bgColor: 'bg-green-50 dark:bg-green-950/20',
+      borderColor: 'border-green-200 dark:border-green-800',
     },
     {
-      title: "Total Listeners",
-      value: data?.overview?.totalListeners?.toLocaleString() || "0",
+      title: 'Total Listeners',
+      value: data?.overview?.totalListeners?.toLocaleString() || '0',
       change: `+${data?.overview?.growthRate || 0}%`,
       icon: Users,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-950/20",
-      borderColor: "border-purple-200 dark:border-purple-800"
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50 dark:bg-purple-950/20',
+      borderColor: 'border-purple-200 dark:border-purple-800',
     },
     {
-      title: "Avg Listen Time",
+      title: 'Avg Listen Time',
       value: `${data?.overview?.avgListenTime || 0}m`,
       change: `+${data?.overview?.growthRate || 0}%`,
       icon: Clock,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50 dark:bg-orange-950/20",
-      borderColor: "border-orange-200 dark:border-orange-800"
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50 dark:bg-orange-950/20',
+      borderColor: 'border-orange-200 dark:border-orange-800',
     },
     {
-      title: "Completion Rate",
+      title: 'Completion Rate',
       value: `${data?.overview?.completionRate || 0}%`,
       change: `+${data?.overview?.growthRate || 0}%`,
       icon: Target,
-      color: "text-cyan-600",
-      bgColor: "bg-cyan-50 dark:bg-cyan-950/20",
-      borderColor: "border-cyan-200 dark:border-cyan-800"
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50 dark:bg-cyan-950/20',
+      borderColor: 'border-cyan-200 dark:border-cyan-800',
     },
     {
-      title: "Share Rate",
+      title: 'Share Rate',
       value: `${data?.overview?.shareRate || 0}%`,
       change: `+${data?.overview?.growthRate || 0}%`,
       icon: Share2,
-      color: "text-pink-600",
-      bgColor: "bg-pink-50 dark:bg-pink-950/20",
-      borderColor: "border-pink-200 dark:border-pink-800"
-    }
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50 dark:bg-pink-950/20',
+      borderColor: 'border-pink-200 dark:border-pink-800',
+    },
   ];
 
   return (
@@ -471,49 +529,45 @@ export default function Analytics() {
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                   📊 Advanced Analytics
                 </h1>
-                <p className="text-muted-foreground">
-                  Comprehensive insights powered by AI
-                </p>
+                <p className="text-muted-foreground">Comprehensive insights powered by AI</p>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
-                  <Label htmlFor="auto-refresh" className="text-sm">Auto Refresh</Label>
+                  <Label htmlFor="auto-refresh" className="text-sm">
+                    Auto Refresh
+                  </Label>
                   <Switch
                     id="auto-refresh"
                     checked={autoRefresh}
                     onCheckedChange={setAutoRefresh}
                   />
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => refetch()}
-                  disabled={analyticsLoading}
-                >
+                <Button variant="outline" onClick={() => refetch()} disabled={analyticsLoading}>
                   <RefreshCw className={`w-4 h-4 mr-2 ${analyticsLoading ? 'animate-spin' : ''}`} />
                   Refresh
                 </Button>
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
+                <Select value={timeRange} onValueChange={setTimeRange}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
                     <SelectItem value="7d">Last 7 days</SelectItem>
                     <SelectItem value="30d">Last 30 days</SelectItem>
                     <SelectItem value="90d">Last 90 days</SelectItem>
                     <SelectItem value="1y">Last year</SelectItem>
                     <SelectItem value="all">All time</SelectItem>
-                </SelectContent>
-              </Select>
+                  </SelectContent>
+                </Select>
                 <Button
                   onClick={() => exportAnalyticsMutation.mutate('csv')}
                   disabled={exportAnalyticsMutation.isPending}
                   className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
+                  Export
+                </Button>
+              </div>
             </div>
-          </div>
 
             {/* AI Performance Banner */}
             {data?.aiInsights && (
@@ -524,7 +578,7 @@ export default function Analytics() {
                       <div className="p-3 bg-white dark:bg-gray-900 rounded-full">
                         <Brain className="w-8 h-8 text-blue-600" />
                       </div>
-                    <div>
+                      <div>
                         <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                           AI Performance Score
                         </h3>
@@ -549,8 +603,8 @@ export default function Analytics() {
               {overviewStats.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
-                  <Card 
-                    key={index} 
+                  <Card
+                    key={index}
                     className={`${stat.bgColor} ${stat.borderColor} border-2 hover:shadow-lg transition-all duration-300`}
                   >
                     <CardContent className="p-6">
@@ -559,15 +613,15 @@ export default function Analytics() {
                           <p className="text-sm font-medium text-muted-foreground mb-1">
                             {stat.title}
                           </p>
-                          <p className={`text-2xl font-bold ${stat.color}`}>
-                            {stat.value}
-                          </p>
+                          <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
                           <p className="text-xs text-green-600 flex items-center mt-1">
                             <ArrowUp className="w-3 h-3 mr-1" />
                             {stat.change}
                           </p>
                         </div>
-                        <div className={`p-3 rounded-full ${stat.bgColor} ${stat.borderColor} border-2`}>
+                        <div
+                          className={`p-3 rounded-full ${stat.bgColor} ${stat.borderColor} border-2`}
+                        >
                           <Icon className={`w-6 h-6 ${stat.color}`} />
                         </div>
                       </div>
@@ -575,7 +629,7 @@ export default function Analytics() {
                   </Card>
                 );
               })}
-          </div>
+            </div>
 
             {/* Main Analytics Tabs */}
             <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
@@ -590,36 +644,36 @@ export default function Analytics() {
               <TabsContent value="overview" className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Streams Over Time */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
                         <LineChart className="w-5 h-5 mr-2 text-blue-600" />
-                    Streams Over Time
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+                        Streams Over Time
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
                       {analyticsLoading ? (
                         <Skeleton className="h-64 w-full" />
                       ) : (
                         <div className="h-64 flex items-center justify-center text-muted-foreground">
-                      <div className="text-center">
+                          <div className="text-center">
                             <BarChart3 className="w-16 h-16 mx-auto mb-4" />
                             <p>Streams chart will be displayed here</p>
                           </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
 
                   {/* Top Platforms */}
-              <Card>
-                <CardHeader>
+                  <Card>
+                    <CardHeader>
                       <CardTitle className="flex items-center">
                         <Globe className="w-5 h-5 mr-2 text-green-600" />
                         Top Platforms
                       </CardTitle>
-                </CardHeader>
-                <CardContent>
+                    </CardHeader>
+                    <CardContent>
                       {analyticsLoading ? (
                         <div className="space-y-3">
                           {[1, 2, 3, 4, 5].map((i) => (
@@ -627,12 +681,14 @@ export default function Analytics() {
                           ))}
                         </div>
                       ) : data?.streams?.byPlatform ? (
-                  <div className="space-y-4">
+                        <div className="space-y-4">
                           {data.streams.byPlatform.slice(0, 5).map((platform, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
+                            <div key={index} className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
                                 <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                                  <span className="text-sm font-bold text-blue-600">{index + 1}</span>
+                                  <span className="text-sm font-bold text-blue-600">
+                                    {index + 1}
+                                  </span>
                                 </div>
                                 <div>
                                   <div className="font-semibold">{platform.platform}</div>
@@ -640,14 +696,16 @@ export default function Analytics() {
                                     {platform.streams.toLocaleString()} streams
                                   </div>
                                 </div>
-                        </div>
-                        <div className="text-right">
+                              </div>
+                              <div className="text-right">
                                 <div className="font-semibold text-green-600">
                                   ${platform.revenue.toLocaleString()}
                                 </div>
-                                <div className={`text-sm flex items-center ${
-                                  platform.growth > 0 ? 'text-green-600' : 'text-red-600'
-                                }`}>
+                                <div
+                                  className={`text-sm flex items-center ${
+                                    platform.growth > 0 ? 'text-green-600' : 'text-red-600'
+                                  }`}
+                                >
                                   {platform.growth > 0 ? (
                                     <ArrowUp className="w-3 h-3 mr-1" />
                                   ) : (
@@ -655,27 +713,27 @@ export default function Analytics() {
                                   )}
                                   {Math.abs(platform.growth)}%
                                 </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    ))}
-                  </div>
                       ) : (
                         <div className="text-center py-8">
                           <Globe className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                           <p className="text-muted-foreground">No platform data available</p>
                         </div>
                       )}
-                </CardContent>
-              </Card>
-            </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
 
               <TabsContent value="ai-insights" className="space-y-6">
                 {data?.aiInsights ? (
                   <>
                     {/* AI Recommendations */}
-            <Card>
-              <CardHeader>
+                    <Card>
+                      <CardHeader>
                         <CardTitle className="flex items-center">
                           <Lightbulb className="w-5 h-5 mr-2 text-yellow-600" />
                           AI Recommendations
@@ -683,34 +741,41 @@ export default function Analytics() {
                         <p className="text-sm text-muted-foreground">
                           Personalized suggestions to optimize your music performance
                         </p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
                           {data.aiInsights.recommendations?.map((rec, index) => (
-                            <div key={index} className={`p-4 rounded-lg border-l-4 ${
-                              rec.priority === 'high' ? 'border-red-500 bg-red-50 dark:bg-red-950/20' :
-                              rec.priority === 'medium' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20' :
-                              'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-                            }`}>
+                            <div
+                              key={index}
+                              className={`p-4 rounded-lg border-l-4 ${
+                                rec.priority === 'high'
+                                  ? 'border-red-500 bg-red-50 dark:bg-red-950/20'
+                                  : rec.priority === 'medium'
+                                    ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20'
+                                    : 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                              }`}
+                            >
                               <div className="flex items-start justify-between">
-                        <div>
+                                <div>
                                   <h4 className="font-semibold">{rec.title}</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {rec.description}
+                                  </p>
                                   <div className="flex items-center space-x-2 mt-2">
                                     <Badge variant="outline">{rec.priority}</Badge>
                                     <Badge variant="outline">{rec.impact}</Badge>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                      </CardContent>
+                    </Card>
 
                     {/* AI Predictions */}
-            <Card>
-              <CardHeader>
+                    <Card>
+                      <CardHeader>
                         <CardTitle className="flex items-center">
                           <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
                           AI Predictions
@@ -718,33 +783,36 @@ export default function Analytics() {
                         <p className="text-sm text-muted-foreground">
                           Forecast your music career growth with AI
                         </p>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-lg">
                             <div className="text-2xl font-bold text-blue-600">
-                              {data.aiInsights.predictions?.nextMonthStreams?.toLocaleString() || '0'}
+                              {data.aiInsights.predictions?.nextMonthStreams?.toLocaleString() ||
+                                '0'}
                             </div>
                             <div className="text-sm text-muted-foreground">Predicted Streams</div>
                             <div className="text-xs text-green-600 mt-1">Next Month</div>
                           </div>
                           <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg">
                             <div className="text-2xl font-bold text-green-600">
-                              ${data.aiInsights.predictions?.nextMonthRevenue?.toLocaleString() || '0'}
+                              $
+                              {data.aiInsights.predictions?.nextMonthRevenue?.toLocaleString() ||
+                                '0'}
                             </div>
                             <div className="text-sm text-muted-foreground">Predicted Revenue</div>
                             <div className="text-xs text-green-600 mt-1">Next Month</div>
-                </div>
+                          </div>
                           <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 rounded-lg">
                             <div className="text-2xl font-bold text-purple-600">
                               {(data.aiInsights.predictions?.viralPotential * 100 || 0).toFixed(0)}%
-                </div>
+                            </div>
                             <div className="text-sm text-muted-foreground">Viral Potential</div>
                             <div className="text-xs text-green-600 mt-1">Current Content</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </>
                 ) : (
                   <Card>
@@ -759,8 +827,8 @@ export default function Analytics() {
                 )}
               </TabsContent>
             </Tabs>
-        </div>
-      </main>
+          </div>
+        </main>
       </div>
     </div>
   );

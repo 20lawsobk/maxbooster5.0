@@ -2,31 +2,81 @@ import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Music, Info } from 'lucide-react';
 
 const GENRES = [
-  'Pop', 'Rock', 'Hip-Hop', 'R&B', 'Country', 'Electronic', 'Jazz', 'Classical',
-  'Blues', 'Reggae', 'Folk', 'Alternative', 'Indie', 'Punk', 'Metal', 'Funk',
-  'Soul', 'Gospel', 'World', 'Latin', 'Ambient', 'Experimental', 'Lo-Fi'
+  'Pop',
+  'Rock',
+  'Hip-Hop',
+  'R&B',
+  'Country',
+  'Electronic',
+  'Jazz',
+  'Classical',
+  'Blues',
+  'Reggae',
+  'Folk',
+  'Alternative',
+  'Indie',
+  'Punk',
+  'Metal',
+  'Funk',
+  'Soul',
+  'Gospel',
+  'World',
+  'Latin',
+  'Ambient',
+  'Experimental',
+  'Lo-Fi',
 ];
 
 const LANGUAGES = [
-  'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Japanese',
-  'Korean', 'Mandarin', 'Arabic', 'Russian', 'Hindi', 'Other'
+  'English',
+  'Spanish',
+  'French',
+  'German',
+  'Italian',
+  'Portuguese',
+  'Japanese',
+  'Korean',
+  'Mandarin',
+  'Arabic',
+  'Russian',
+  'Hindi',
+  'Other',
 ];
 
 const RELEASE_TYPES = [
   { value: 'single', label: 'Single' },
   { value: 'EP', label: 'EP (4-6 tracks)' },
-  { value: 'album', label: 'Album (7+ tracks)' }
+  { value: 'album', label: 'Album (7+ tracks)' },
 ];
 
 const MOOD_TAGS = [
-  'Energetic', 'Relaxed', 'Happy', 'Sad', 'Angry', 'Romantic', 'Dark', 'Uplifting',
-  'Melancholic', 'Aggressive', 'Peaceful', 'Mysterious', 'Epic', 'Dreamy', 'Party'
+  'Energetic',
+  'Relaxed',
+  'Happy',
+  'Sad',
+  'Angry',
+  'Romantic',
+  'Dark',
+  'Uplifting',
+  'Melancholic',
+  'Aggressive',
+  'Peaceful',
+  'Mysterious',
+  'Epic',
+  'Dreamy',
+  'Party',
 ];
 
 interface MetadataFormProps {
@@ -48,12 +98,15 @@ interface MetadataFormProps {
   errors?: Record<string, string>;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function MetadataForm({ data, onChange, errors = {} }: MetadataFormProps) {
   const [selectedMoods, setSelectedMoods] = useState<string[]>(data.moodTags || []);
 
   const toggleMood = (mood: string) => {
     const newMoods = selectedMoods.includes(mood)
-      ? selectedMoods.filter(m => m !== mood)
+      ? selectedMoods.filter((m) => m !== mood)
       : [...selectedMoods, mood];
     setSelectedMoods(newMoods);
     onChange({ moodTags: newMoods });
@@ -83,9 +136,7 @@ export function MetadataForm({ data, onChange, errors = {} }: MetadataFormProps)
             onChange={(e) => onChange({ title: e.target.value })}
             className={errors.title ? 'border-destructive' : ''}
           />
-          {errors.title && (
-            <p className="text-sm text-destructive">{errors.title}</p>
-          )}
+          {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
         </div>
 
         {/* Artist Name */}
@@ -100,9 +151,7 @@ export function MetadataForm({ data, onChange, errors = {} }: MetadataFormProps)
             onChange={(e) => onChange({ artistName: e.target.value })}
             className={errors.artistName ? 'border-destructive' : ''}
           />
-          {errors.artistName && (
-            <p className="text-sm text-destructive">{errors.artistName}</p>
-          )}
+          {errors.artistName && <p className="text-sm text-destructive">{errors.artistName}</p>}
         </div>
 
         {/* Release Type */}
@@ -118,16 +167,14 @@ export function MetadataForm({ data, onChange, errors = {} }: MetadataFormProps)
               <SelectValue placeholder="Select release type" />
             </SelectTrigger>
             <SelectContent>
-              {RELEASE_TYPES.map(type => (
+              {RELEASE_TYPES.map((type) => (
                 <SelectItem key={type.value} value={type.value}>
                   {type.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.releaseType && (
-            <p className="text-sm text-destructive">{errors.releaseType}</p>
-          )}
+          {errors.releaseType && <p className="text-sm text-destructive">{errors.releaseType}</p>}
         </div>
 
         {/* Genres */}
@@ -144,7 +191,7 @@ export function MetadataForm({ data, onChange, errors = {} }: MetadataFormProps)
                 <SelectValue placeholder="Select primary genre" />
               </SelectTrigger>
               <SelectContent>
-                {GENRES.map(genre => (
+                {GENRES.map((genre) => (
                   <SelectItem key={genre} value={genre}>
                     {genre}
                   </SelectItem>
@@ -167,7 +214,7 @@ export function MetadataForm({ data, onChange, errors = {} }: MetadataFormProps)
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">None</SelectItem>
-                {GENRES.map(genre => (
+                {GENRES.map((genre) => (
                   <SelectItem key={genre} value={genre}>
                     {genre}
                   </SelectItem>
@@ -182,15 +229,12 @@ export function MetadataForm({ data, onChange, errors = {} }: MetadataFormProps)
           <Label htmlFor="language">
             Language <span className="text-destructive">*</span>
           </Label>
-          <Select
-            value={data.language}
-            onValueChange={(value) => onChange({ language: value })}
-          >
+          <Select value={data.language} onValueChange={(value) => onChange({ language: value })}>
             <SelectTrigger id="language">
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
             <SelectContent>
-              {LANGUAGES.map(lang => (
+              {LANGUAGES.map((lang) => (
                 <SelectItem key={lang} value={lang}>
                   {lang}
                 </SelectItem>
@@ -206,12 +250,14 @@ export function MetadataForm({ data, onChange, errors = {} }: MetadataFormProps)
             Help listeners find your music with mood descriptors
           </p>
           <div className="flex flex-wrap gap-2 mt-2">
-            {MOOD_TAGS.map(mood => (
+            {MOOD_TAGS.map((mood) => (
               <Badge
                 key={mood}
                 variant={selectedMoods.includes(mood) ? 'default' : 'outline'}
                 className="cursor-pointer hover:bg-primary/80"
-                onClick={() => selectedMoods.length < 5 || selectedMoods.includes(mood) ? toggleMood(mood) : null}
+                onClick={() =>
+                  selectedMoods.length < 5 || selectedMoods.includes(mood) ? toggleMood(mood) : null
+                }
               >
                 {mood}
               </Badge>

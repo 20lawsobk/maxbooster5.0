@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import { neon } from '@neondatabase/serverless';
 import os from 'os';
-import { getCachedHealthCheck, getLivenessProbe, getReadinessProbe } from '../lib/cachedHealthCheck.js';
+import {
+  getCachedHealthCheck,
+  getLivenessProbe,
+  getReadinessProbe,
+} from '../lib/cachedHealthCheck.js';
 
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -32,22 +36,26 @@ interface HealthStatus {
 }
 
 // Check database connectivity
-async function checkDatabase(): Promise<{ status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string }> {
+async function checkDatabase(): Promise<{
+  status: 'healthy' | 'unhealthy';
+  responseTime?: number;
+  error?: string;
+}> {
   try {
     const startTime = Date.now();
     // Simple query to test database connectivity
     const sql = neon(process.env.DATABASE_URL!);
     await sql`SELECT 1`;
     const responseTime = Date.now() - startTime;
-    
+
     return {
       status: 'healthy',
-      responseTime
+      responseTime,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       status: 'unhealthy',
-      error: error.message
+      error: error.message,
     };
   }
 }
@@ -56,7 +64,7 @@ async function checkDatabase(): Promise<{ status: 'healthy' | 'unhealthy'; respo
 function checkMemory(): { status: 'healthy' | 'degraded' | 'unhealthy'; usage: any } {
   const memUsage = process.memoryUsage();
   const heapPercent = (memUsage.heapUsed / memUsage.heapTotal) * 100;
-  
+
   let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
   if (heapPercent > 90) {
     status = 'unhealthy';
@@ -71,7 +79,7 @@ function checkMemory(): { status: 'healthy' | 'degraded' | 'unhealthy'; usage: a
       heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024), // MB
       heapPercent: Math.round(heapPercent),
       rss: Math.round(memUsage.rss / 1024 / 1024), // MB
-    }
+    },
   };
 }
 
@@ -90,7 +98,7 @@ function checkCPU(): { status: 'healthy' | 'degraded' | 'unhealthy'; loadAverage
 
   return {
     status,
-    loadAverage: loadAverage.map((load: number) => Math.round(load * 100) / 100)
+    loadAverage: loadAverage.map((load: number) => Math.round(load * 100) / 100),
   };
 }
 
@@ -98,21 +106,25 @@ function checkCPU(): { status: 'healthy' | 'degraded' | 'unhealthy'; loadAverage
 export async function healthCheck(req: Request, res: Response): Promise<void> {
   try {
     const startTime = Date.now();
-    
+
     // Use cached health check to reduce database load
     const cachedHealth = await getCachedHealthCheck(30);
-    
+
     // CPU check is fast, run it fresh
     const cpuCheck = checkCPU();
-    
+
     const databaseCheck = {
-      status: cachedHealth.database.connected ? 'healthy' as const : 'unhealthy' as const,
+      status: cachedHealth.database.connected ? ('healthy' as const) : ('unhealthy' as const),
       responseTime: 0, // Cached, no fresh query
     };
-    
+
     const memoryCheck = {
-      status: cachedHealth.memory.heapUsed < 1500 ? 'healthy' as const : 
-               cachedHealth.memory.heapUsed < 1800 ? 'degraded' as const : 'unhealthy' as const,
+      status:
+        cachedHealth.memory.heapUsed < 1500
+          ? ('healthy' as const)
+          : cachedHealth.memory.heapUsed < 1800
+            ? ('degraded' as const)
+            : ('unhealthy' as const),
       usage: cachedHealth.memory,
     };
 
@@ -124,9 +136,9 @@ export async function healthCheck(req: Request, res: Response): Promise<void> {
       services: {
         database: databaseCheck,
         memory: memoryCheck,
-        cpu: cpuCheck
+        cpu: cpuCheck,
       },
-      environment: process.env.NODE_ENV || 'development'
+      environment: process.env.NODE_ENV || 'development',
     };
 
     // Determine overall status
@@ -141,16 +153,15 @@ export async function healthCheck(req: Request, res: Response): Promise<void> {
     res.set('X-Response-Time', `${responseTime}ms`);
 
     // Set appropriate HTTP status
-    const httpStatus = health.status === 'healthy' ? 200 : 
-                      health.status === 'degraded' ? 200 : 503;
+    const httpStatus = health.status === 'healthy' ? 200 : health.status === 'degraded' ? 200 : 503;
 
     res.status(httpStatus).json(health);
-  } catch (error) {
+  } catch (error: unknown) {
     res.status(503).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
       error: 'Health check failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
@@ -159,25 +170,25 @@ export async function healthCheck(req: Request, res: Response): Promise<void> {
 export async function readinessCheck(req: Request, res: Response): Promise<void> {
   try {
     const probe = await getReadinessProbe();
-    
+
     if (probe.ready) {
       res.status(200).json({
         status: 'ready',
         timestamp: new Date().toISOString(),
-        checks: probe.checks
+        checks: probe.checks,
       });
     } else {
       res.status(503).json({
         status: 'not-ready',
         timestamp: new Date().toISOString(),
-        checks: probe.checks
+        checks: probe.checks,
       });
     }
-  } catch (error) {
+  } catch (error: unknown) {
     res.status(503).json({
       status: 'not-ready',
       timestamp: new Date().toISOString(),
-      error: 'Readiness check failed'
+      error: 'Readiness check failed',
     });
   }
 }
@@ -188,6 +199,6 @@ export function livenessCheck(req: Request, res: Response): void {
   res.status(200).json({
     status: probe.status,
     timestamp: new Date().toISOString(),
-    uptime: Math.floor(probe.uptime)
+    uptime: Math.floor(probe.uptime),
   });
 }

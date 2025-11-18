@@ -39,14 +39,14 @@ export default function Login() {
       await login({ username, password });
       // Navigation will be handled by useRedirectIfAuthenticated hook
       toast({
-        title: "Welcome back!",
+        title: 'Welcome back!',
         description: "You've successfully signed in.",
       });
     } catch (error: any) {
       toast({
-        title: "Login Failed",
-        description: error.message || "Invalid credentials. Please try again.",
-        variant: "destructive",
+        title: 'Login Failed',
+        description: error.message || 'Invalid credentials. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -67,9 +67,7 @@ export default function Login() {
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
             Sign In
           </CardTitle>
-          <CardDescription className="text-gray-600">
-            Welcome back to Max Booster
-          </CardDescription>
+          <CardDescription className="text-gray-600">Welcome back to Max Booster</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -89,7 +87,7 @@ export default function Login() {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -102,16 +100,12 @@ export default function Login() {
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing In..." : "Sign In"}
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
 
@@ -125,12 +119,7 @@ export default function Login() {
 
           <Separator />
 
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleGoogleLogin}
-          >
+          <Button type="button" variant="outline" className="w-full" onClick={handleGoogleLogin}>
             <FaGoogle className="mr-2 h-4 w-4" />
             Continue with Google
           </Button>
@@ -147,9 +136,7 @@ export default function Login() {
           {/* Admin Login Hint */}
           <div className="text-center pt-4 border-t">
             <p className="text-xs text-gray-500 mb-2">Admin Access</p>
-            <p className="text-xs text-gray-400">
-              Use: brandonlawson720@gmail.com / admin123!
-            </p>
+            <p className="text-xs text-gray-400">Use: brandonlawson720@gmail.com / admin123!</p>
           </div>
         </CardContent>
       </Card>

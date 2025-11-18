@@ -6,7 +6,17 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MonitorSpeaker, Search, CheckCircle } from 'lucide-react';
-import { SiSpotify, SiApple, SiYoutube, SiAmazon, SiTidal, SiSoundcloud, SiTiktok, SiInstagram, SiFacebook } from 'react-icons/si';
+import {
+  SiSpotify,
+  SiApple,
+  SiYoutube,
+  SiAmazon,
+  SiTidal,
+  SiSoundcloud,
+  SiTiktok,
+  SiInstagram,
+  SiFacebook,
+} from 'react-icons/si';
 import { useQuery } from '@tanstack/react-query';
 
 interface DSP {
@@ -21,27 +31,27 @@ interface DSP {
 }
 
 const ICON_MAP: Record<string, any> = {
-  'spotify': SiSpotify,
+  spotify: SiSpotify,
   'apple-music': SiApple,
   'youtube-music': SiYoutube,
   'amazon-music': SiAmazon,
   'amazon-mp3': SiAmazon,
-  'tidal': SiTidal,
-  'soundcloud': SiSoundcloud,
-  'tiktok': SiTiktok,
-  'instagram': SiInstagram,
-  'facebook': SiFacebook,
+  tidal: SiTidal,
+  soundcloud: SiSoundcloud,
+  tiktok: SiTiktok,
+  instagram: SiInstagram,
+  facebook: SiFacebook,
 };
 
 const COLOR_MAP: Record<string, string> = {
-  'spotify': '#1DB954',
+  spotify: '#1DB954',
   'apple-music': '#FA243C',
   'youtube-music': '#FF0000',
   'amazon-music': '#FF9900',
-  'tidal': '#000000',
-  'deezer': '#FEAA2D',
-  'pandora': '#005483',
-  'soundcloud': '#FF3300',
+  tidal: '#000000',
+  deezer: '#FEAA2D',
+  pandora: '#005483',
+  soundcloud: '#FF3300',
 };
 
 interface DSPSelectorProps {
@@ -49,6 +59,9 @@ interface DSPSelectorProps {
   onChange: (platforms: string[]) => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function DSPSelector({ selectedPlatforms, onChange }: DSPSelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -57,20 +70,32 @@ export function DSPSelector({ selectedPlatforms, onChange }: DSPSelectorProps) {
     queryKey: ['/api/distribution/platforms'],
   });
 
-  const enrichedPlatforms = platforms.map(p => ({
+  const enrichedPlatforms = platforms.map((p) => ({
     ...p,
     iconComponent: ICON_MAP[p.slug],
-    color: COLOR_MAP[p.slug]
+    color: COLOR_MAP[p.slug],
   }));
 
   const categories = [
     { value: 'all', label: 'All Platforms', count: enrichedPlatforms.length },
-    { value: 'streaming', label: 'Streaming', count: enrichedPlatforms.filter(p => p.category === 'streaming').length },
-    { value: 'social', label: 'Social', count: enrichedPlatforms.filter(p => p.category === 'social').length },
-    { value: 'store', label: 'Store', count: enrichedPlatforms.filter(p => p.category === 'store').length },
+    {
+      value: 'streaming',
+      label: 'Streaming',
+      count: enrichedPlatforms.filter((p) => p.category === 'streaming').length,
+    },
+    {
+      value: 'social',
+      label: 'Social',
+      count: enrichedPlatforms.filter((p) => p.category === 'social').length,
+    },
+    {
+      value: 'store',
+      label: 'Store',
+      count: enrichedPlatforms.filter((p) => p.category === 'store').length,
+    },
   ];
 
-  const filteredPlatforms = enrichedPlatforms.filter(p => {
+  const filteredPlatforms = enrichedPlatforms.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -78,14 +103,14 @@ export function DSPSelector({ selectedPlatforms, onChange }: DSPSelectorProps) {
 
   const togglePlatform = (slug: string) => {
     if (selectedPlatforms.includes(slug)) {
-      onChange(selectedPlatforms.filter(s => s !== slug));
+      onChange(selectedPlatforms.filter((s) => s !== slug));
     } else {
       onChange([...selectedPlatforms, slug]);
     }
   };
 
   const selectAll = () => {
-    onChange(filteredPlatforms.map(p => p.slug));
+    onChange(filteredPlatforms.map((p) => p.slug));
   };
 
   const clearAll = () => {
@@ -94,7 +119,7 @@ export function DSPSelector({ selectedPlatforms, onChange }: DSPSelectorProps) {
 
   const selectMajorPlatforms = () => {
     const major = ['spotify', 'apple-music', 'youtube-music', 'amazon-music', 'tidal', 'deezer'];
-    const majorSlugs = enrichedPlatforms.filter(p => major.includes(p.slug)).map(p => p.slug);
+    const majorSlugs = enrichedPlatforms.filter((p) => major.includes(p.slug)).map((p) => p.slug);
     onChange(majorSlugs);
   };
 
@@ -128,29 +153,14 @@ export function DSPSelector({ selectedPlatforms, onChange }: DSPSelectorProps) {
             <strong>{enrichedPlatforms.length}</strong> platforms selected
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={selectMajorPlatforms}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={selectMajorPlatforms}>
               <CheckCircle className="h-4 w-4 mr-2" />
               Major Platforms
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={selectAll}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={selectAll}>
               Select All
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={clearAll}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={clearAll}>
               Clear All
             </Button>
           </div>
@@ -158,7 +168,7 @@ export function DSPSelector({ selectedPlatforms, onChange }: DSPSelectorProps) {
 
         {/* Category Filter */}
         <div className="flex flex-wrap gap-2">
-          {categories.map(cat => (
+          {categories.map((cat) => (
             <button
               key={cat.value}
               type="button"
@@ -187,7 +197,7 @@ export function DSPSelector({ selectedPlatforms, onChange }: DSPSelectorProps) {
 
         {/* Platform Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filteredPlatforms.map(platform => {
+          {filteredPlatforms.map((platform) => {
             const Icon = platform.iconComponent;
             const isSelected = selectedPlatforms.includes(platform.slug);
 
@@ -207,20 +217,17 @@ export function DSPSelector({ selectedPlatforms, onChange }: DSPSelectorProps) {
                     onCheckedChange={() => togglePlatform(platform.slug)}
                     className="mt-0.5"
                   />
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       {Icon ? (
-                        <Icon
-                          className="h-4 w-4 flex-shrink-0"
-                          style={{ color: platform.color }}
-                        />
+                        <Icon className="h-4 w-4 flex-shrink-0" style={{ color: platform.color }} />
                       ) : (
                         <MonitorSpeaker className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                       )}
                       <span className="font-medium truncate">{platform.name}</span>
                     </div>
-                    
+
                     <div className="flex flex-wrap gap-1 mt-2">
                       <Badge variant="secondary" className="text-xs">
                         {platform.category}
@@ -231,10 +238,8 @@ export function DSPSelector({ selectedPlatforms, onChange }: DSPSelectorProps) {
                         </Badge>
                       )}
                     </div>
-                    
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {platform.processingTime}
-                    </p>
+
+                    <p className="text-xs text-muted-foreground mt-2">{platform.processingTime}</p>
                   </div>
                 </div>
               </div>
@@ -254,20 +259,14 @@ export function DSPSelector({ selectedPlatforms, onChange }: DSPSelectorProps) {
           <div className="space-y-2 pt-4 border-t">
             <Label>Selected Platforms ({selectedPlatforms.length})</Label>
             <div className="flex flex-wrap gap-2">
-              {selectedPlatforms.map(slug => {
-                const platform = enrichedPlatforms.find(p => p.slug === slug);
+              {selectedPlatforms.map((slug) => {
+                const platform = enrichedPlatforms.find((p) => p.slug === slug);
                 if (!platform) return null;
                 const Icon = platform.iconComponent;
 
                 return (
-                  <Badge
-                    key={slug}
-                    variant="secondary"
-                    className="gap-1.5 pr-1"
-                  >
-                    {Icon && (
-                      <Icon className="h-3 w-3" style={{ color: platform.color }} />
-                    )}
+                  <Badge key={slug} variant="secondary" className="gap-1.5 pr-1">
+                    {Icon && <Icon className="h-3 w-3" style={{ color: platform.color }} />}
                     {platform.name}
                     <button
                       type="button"

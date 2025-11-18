@@ -1,20 +1,10 @@
-import { useState } from "react";
-import { useAudioRecorder } from "@/hooks/useAudioRecorder";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { 
-  Mic, 
-  MicOff, 
-  Play, 
-  Pause, 
-  Square, 
-  Upload,
-  Trash2,
-  Clock,
-  FileAudio
-} from "lucide-react";
+import { useState } from 'react';
+import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Mic, MicOff, Play, Pause, Square, Upload, Trash2, Clock, FileAudio } from 'lucide-react';
 
 interface AudioRecorderProps {
   trackId?: string;
@@ -53,12 +43,12 @@ export default function AudioRecorder({ trackId, onRecordingComplete }: AudioRec
 
   const handleUpload = async () => {
     if (!trackId) return;
-    
+
     setIsUploading(true);
     try {
       const result = await uploadRecording(trackId);
       if (result && onRecordingComplete) {
-        const blob = await fetch(audioUrl!).then(r => r.blob());
+        const blob = await fetch(audioUrl!).then((r) => r.blob());
         onRecordingComplete(blob, result.analysis);
       }
     } catch (error) {
@@ -82,7 +72,8 @@ export default function AudioRecorder({ trackId, onRecordingComplete }: AudioRec
           <MicOff className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">Audio Recording Not Supported</h3>
           <p className="text-muted-foreground">
-            Your browser doesn't support audio recording. Please use a modern browser with microphone access.
+            Your browser doesn't support audio recording. Please use a modern browser with
+            microphone access.
           </p>
         </CardContent>
       </Card>
@@ -108,16 +99,20 @@ export default function AudioRecorder({ trackId, onRecordingComplete }: AudioRec
         {/* Recording Status */}
         <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg">
           <div className="flex items-center space-x-3">
-            <div className={`w-3 h-3 rounded-full ${
-              isRecording ? 'bg-red-500 animate-pulse' : 
-              audioUrl ? 'bg-green-500' : 'bg-muted-foreground/50'
-            }`} />
+            <div
+              className={`w-3 h-3 rounded-full ${
+                isRecording
+                  ? 'bg-red-500 animate-pulse'
+                  : audioUrl
+                    ? 'bg-green-500'
+                    : 'bg-muted-foreground/50'
+              }`}
+            />
             <span className="text-sm font-medium">
-              {isRecording ? 'Recording...' : 
-               audioUrl ? 'Ready to play' : 'Ready to record'}
+              {isRecording ? 'Recording...' : audioUrl ? 'Ready to play' : 'Ready to record'}
             </span>
           </div>
-          
+
           {/* Duration Display */}
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
@@ -134,8 +129,8 @@ export default function AudioRecorder({ trackId, onRecordingComplete }: AudioRec
               <span>0:00</span>
               <span>{formatTime(duration)}</span>
             </div>
-            <Progress 
-              value={duration > 0 ? (currentTime / duration) * 100 : 0} 
+            <Progress
+              value={duration > 0 ? (currentTime / duration) * 100 : 0}
               className="h-2"
               data-testid="recording-progress"
             />
@@ -180,7 +175,7 @@ export default function AudioRecorder({ trackId, onRecordingComplete }: AudioRec
                   Resume
                 </Button>
               )}
-              
+
               <Button
                 onClick={stopRecording}
                 variant="default"
@@ -201,14 +196,10 @@ export default function AudioRecorder({ trackId, onRecordingComplete }: AudioRec
                 size="lg"
                 data-testid="button-playback-toggle"
               >
-                {isPlaying ? (
-                  <Pause className="h-5 w-5 mr-2" />
-                ) : (
-                  <Play className="h-5 w-5 mr-2" />
-                )}
+                {isPlaying ? <Pause className="h-5 w-5 mr-2" /> : <Play className="h-5 w-5 mr-2" />}
                 {isPlaying ? 'Pause' : 'Play'}
               </Button>
-              
+
               <Button
                 onClick={stopPlayback}
                 variant="outline"
@@ -228,7 +219,7 @@ export default function AudioRecorder({ trackId, onRecordingComplete }: AudioRec
               <FileAudio className="h-4 w-4" />
               <span>Recording ready</span>
             </div>
-            
+
             <div className="flex space-x-2">
               <Button
                 onClick={clearRecordings}
@@ -239,7 +230,7 @@ export default function AudioRecorder({ trackId, onRecordingComplete }: AudioRec
                 <Trash2 className="h-4 w-4 mr-2" />
                 Clear
               </Button>
-              
+
               {trackId && (
                 <Button
                   onClick={handleUpload}
@@ -257,9 +248,9 @@ export default function AudioRecorder({ trackId, onRecordingComplete }: AudioRec
 
         {/* Tips */}
         <div className="text-xs text-muted-foreground bg-muted/10 p-3 rounded-lg">
-          <strong>Tips:</strong> Make sure your microphone is connected and enabled. 
-          Recording in a quiet environment will give you the best results. 
-          The AI will automatically analyze your recording for tempo and key.
+          <strong>Tips:</strong> Make sure your microphone is connected and enabled. Recording in a
+          quiet environment will give you the best results. The AI will automatically analyze your
+          recording for tempo and key.
         </div>
       </CardContent>
     </Card>

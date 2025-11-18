@@ -1,7 +1,13 @@
 import { db } from '../db.js';
-import { emailMessages, emailEvents, type InsertEmailMessage, type InsertEmailEvent } from '@shared/schema';
+import {
+  emailMessages,
+  emailEvents,
+  type InsertEmailMessage,
+  type InsertEmailEvent,
+} from '@shared/schema';
 import { eq, desc, sql, and, gte } from 'drizzle-orm';
 import nacl from 'tweetnacl';
+import { logger } from '../logger.js';
 
 export class EmailTrackingService {
   /**
@@ -10,8 +16,8 @@ export class EmailTrackingService {
   async recordSentEmail(data: InsertEmailMessage): Promise<void> {
     try {
       await db.insert(emailMessages).values(data).onConflictDoNothing();
-    } catch (error) {
-      console.error('Failed to record sent email:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to record sent email:', error);
     }
   }
 
@@ -21,8 +27,8 @@ export class EmailTrackingService {
   async recordEmailEvent(data: InsertEmailEvent): Promise<void> {
     try {
       await db.insert(emailEvents).values(data).onConflictDoNothing();
-    } catch (error) {
-      console.error('Failed to record email event:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to record email event:', error);
     }
   }
 
@@ -76,8 +82,8 @@ export class EmailTrackingService {
       });
 
       return stats;
-    } catch (error) {
-      console.error('Failed to get email stats:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to get email stats:', error);
       return {
         sent: 0,
         delivered: 0,
@@ -112,8 +118,8 @@ export class EmailTrackingService {
         .limit(limit);
 
       return bounces;
-    } catch (error) {
-      console.error('Failed to get recent bounces:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to get recent bounces:', error);
       return [];
     }
   }
@@ -125,28 +131,24 @@ export class EmailTrackingService {
   verifySendGridSignature(payload: string, signature: string, timestamp: string): boolean {
     const publicKey = process.env.SENDGRID_WEBHOOK_PUBLIC_KEY;
     if (!publicKey) {
-      console.warn('SendGrid webhook public key not configured');
+      logger.warn('SendGrid webhook public key not configured');
       return false;
     }
 
     try {
       const signedPayload = timestamp + payload;
-      
+
       const publicKeyBytes = Buffer.from(publicKey, 'base64');
-      
+
       const signatureBytes = Buffer.from(signature, 'base64');
-      
+
       const messageBytes = Buffer.from(signedPayload, 'utf-8');
-      
-      const isValid = nacl.sign.detached.verify(
-        messageBytes,
-        signatureBytes,
-        publicKeyBytes
-      );
-      
+
+      const isValid = nacl.sign.detached.verify(messageBytes, signatureBytes, publicKeyBytes);
+
       return isValid;
-    } catch (error) {
-      console.error('Ed25519 signature verification failed:', error);
+    } catch (error: unknown) {
+      logger.error('Ed25519 signature verification failed:', error);
       return false;
     }
   }

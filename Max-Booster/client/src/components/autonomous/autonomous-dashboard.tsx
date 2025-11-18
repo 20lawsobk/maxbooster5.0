@@ -1,69 +1,77 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { 
-  Sparkles, 
-  Play, 
-  Pause, 
-  TrendingUp, 
-  Users, 
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  Sparkles,
+  Play,
+  Pause,
+  TrendingUp,
+  Users,
   Target,
   Activity,
   Brain,
-  Zap
-} from "lucide-react";
+  Zap,
+} from 'lucide-react';
 
+/**
+ * TODO: Add function documentation
+ */
 export function AutonomousDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isConfiguring, setIsConfiguring] = useState(false);
 
   const { data: autonomousStatus } = useQuery({
-    queryKey: ["/api/autopilot/autonomous/status"],
+    queryKey: ['/api/autopilot/autonomous/status'],
     refetchInterval: 30000,
   });
 
   const toggleAutonomousMutation = useMutation({
     mutationFn: async (shouldStart: boolean) => {
-      const endpoint = shouldStart ? "/api/autopilot/autonomous/start" : "/api/autopilot/autonomous/stop";
+      const endpoint = shouldStart
+        ? '/api/autopilot/autonomous/start'
+        : '/api/autopilot/autonomous/stop';
       const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       });
-      if (!response.ok) throw new Error(`Failed to ${shouldStart ? 'start' : 'stop'} autonomous mode`);
+      if (!response.ok)
+        throw new Error(`Failed to ${shouldStart ? 'start' : 'stop'} autonomous mode`);
       return response.json();
     },
     onSuccess: (_, shouldStart) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/autopilot/autonomous/status"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/autopilot/autonomous/status'] });
       toast({
-        title: "Autonomous Mode Updated",
-        description: shouldStart ? "Autonomous mode activated - AI will handle everything" : "Autonomous mode paused",
+        title: 'Autonomous Mode Updated',
+        description: shouldStart
+          ? 'Autonomous mode activated - AI will handle everything'
+          : 'Autonomous mode paused',
       });
     },
   });
 
   const updateAutonomousConfigMutation = useMutation({
-    mutationFn: async (config: any) => {
-      const response = await fetch("/api/autopilot/autonomous/configure", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+    mutationFn: async (config: unknown) => {
+      const response = await fetch('/api/autopilot/autonomous/configure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
       });
-      if (!response.ok) throw new Error("Failed to update config");
+      if (!response.ok) throw new Error('Failed to update config');
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/autopilot/autonomous/status"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/autopilot/autonomous/status'] });
       toast({
-        title: "Configuration Updated",
-        description: "Autonomous settings saved successfully",
+        title: 'Configuration Updated',
+        description: 'Autonomous settings saved successfully',
       });
       setIsConfiguring(false);
     },
@@ -74,9 +82,9 @@ export function AutonomousDashboard() {
     enabled: false,
     minPostsPerDay: 3,
     maxPostsPerDay: 8,
-    businessVertical: "",
-    targetAudience: "",
-    brandPersonality: "professional",
+    businessVertical: '',
+    targetAudience: '',
+    brandPersonality: 'professional',
     autoOptimization: true,
   };
 
@@ -97,18 +105,22 @@ export function AutonomousDashboard() {
                 Fully Autonomous Social Media (24/7)
               </CardTitle>
               <CardDescription>
-                Set it once and let AI handle everything - content creation, posting, optimization, and learning
+                Set it once and let AI handle everything - content creation, posting, optimization,
+                and learning
               </CardDescription>
             </div>
             <div className="flex items-center gap-3">
-              <Badge variant={isRunning ? "default" : "secondary"} className={isRunning ? "bg-purple-600" : ""}>
-                {isRunning ? "🤖 Active" : "Paused"}
+              <Badge
+                variant={isRunning ? 'default' : 'secondary'}
+                className={isRunning ? 'bg-purple-600' : ''}
+              >
+                {isRunning ? '🤖 Active' : 'Paused'}
               </Badge>
               <Button
                 onClick={() => toggleAutonomousMutation.mutate(!isRunning)}
-                variant={isRunning ? "destructive" : "default"}
+                variant={isRunning ? 'destructive' : 'default'}
                 disabled={toggleAutonomousMutation.isPending}
-                className={!isRunning ? "bg-purple-600 hover:bg-purple-700" : ""}
+                className={!isRunning ? 'bg-purple-600 hover:bg-purple-700' : ''}
               >
                 {isRunning ? (
                   <>
@@ -135,7 +147,9 @@ export function AutonomousDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-purple-600">{stats.totalContentPublished}</div>
+                <div className="text-2xl font-bold text-purple-600">
+                  {stats.totalContentPublished}
+                </div>
                 <p className="text-xs text-muted-foreground">AI-generated posts</p>
               </CardContent>
             </Card>
@@ -161,7 +175,9 @@ export function AutonomousDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-600">{stats.connectedPlatforms || 0}</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {stats.connectedPlatforms || 0}
+                </div>
                 <p className="text-xs text-muted-foreground">Connected & posting</p>
               </CardContent>
             </Card>
@@ -173,7 +189,9 @@ export function AutonomousDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{config.minPostsPerDay}-{config.maxPostsPerDay}</div>
+                <div className="text-2xl font-bold text-orange-600">
+                  {config.minPostsPerDay}-{config.maxPostsPerDay}
+                </div>
                 <p className="text-xs text-muted-foreground">Adaptive posting</p>
               </CardContent>
             </Card>
@@ -183,7 +201,9 @@ export function AutonomousDashboard() {
             <Card className="border-purple-500">
               <CardHeader>
                 <CardTitle className="text-lg">Autonomous Configuration</CardTitle>
-                <CardDescription>Configure how the AI manages your social media presence</CardDescription>
+                <CardDescription>
+                  Configure how the AI manages your social media presence
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -194,7 +214,12 @@ export function AutonomousDashboard() {
                       min="1"
                       max="20"
                       defaultValue={config.minPostsPerDay}
-                      onChange={(e) => updateAutonomousConfigMutation.mutate({ ...config, minPostsPerDay: parseInt(e.target.value) })}
+                      onChange={(e) =>
+                        updateAutonomousConfigMutation.mutate({
+                          ...config,
+                          minPostsPerDay: parseInt(e.target.value),
+                        })
+                      }
                     />
                   </div>
                   <div className="space-y-2">
@@ -204,7 +229,12 @@ export function AutonomousDashboard() {
                       min="1"
                       max="20"
                       defaultValue={config.maxPostsPerDay}
-                      onChange={(e) => updateAutonomousConfigMutation.mutate({ ...config, maxPostsPerDay: parseInt(e.target.value) })}
+                      onChange={(e) =>
+                        updateAutonomousConfigMutation.mutate({
+                          ...config,
+                          maxPostsPerDay: parseInt(e.target.value),
+                        })
+                      }
                     />
                   </div>
                 </div>
@@ -214,7 +244,12 @@ export function AutonomousDashboard() {
                   <Input
                     placeholder="e.g., Music, Tech, Fashion"
                     defaultValue={config.businessVertical}
-                    onChange={(e) => updateAutonomousConfigMutation.mutate({ ...config, businessVertical: e.target.value })}
+                    onChange={(e) =>
+                      updateAutonomousConfigMutation.mutate({
+                        ...config,
+                        businessVertical: e.target.value,
+                      })
+                    }
                   />
                 </div>
 
@@ -223,19 +258,31 @@ export function AutonomousDashboard() {
                   <Input
                     placeholder="e.g., Musicians, Producers, Music Lovers"
                     defaultValue={config.targetAudience}
-                    onChange={(e) => updateAutonomousConfigMutation.mutate({ ...config, targetAudience: e.target.value })}
+                    onChange={(e) =>
+                      updateAutonomousConfigMutation.mutate({
+                        ...config,
+                        targetAudience: e.target.value,
+                      })
+                    }
                   />
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="auto-optimize">Auto-Optimization</Label>
-                    <p className="text-xs text-muted-foreground">AI learns and adapts based on performance</p>
+                    <p className="text-xs text-muted-foreground">
+                      AI learns and adapts based on performance
+                    </p>
                   </div>
                   <Switch
                     id="auto-optimize"
                     checked={config.autoOptimization}
-                    onCheckedChange={(checked) => updateAutonomousConfigMutation.mutate({ ...config, autoOptimization: checked })}
+                    onCheckedChange={(checked) =>
+                      updateAutonomousConfigMutation.mutate({
+                        ...config,
+                        autoOptimization: checked,
+                      })
+                    }
                   />
                 </div>
 
@@ -243,7 +290,10 @@ export function AutonomousDashboard() {
                   <Button onClick={() => setIsConfiguring(false)} variant="outline">
                     Cancel
                   </Button>
-                  <Button onClick={() => setIsConfiguring(false)} className="bg-purple-600 hover:bg-purple-700">
+                  <Button
+                    onClick={() => setIsConfiguring(false)}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
                     Save Configuration
                   </Button>
                 </div>
@@ -256,9 +306,9 @@ export function AutonomousDashboard() {
                   <div>
                     <p className="font-medium">Autonomous Mode Configuration</p>
                     <p className="text-sm text-muted-foreground">
-                      Posts: {config.minPostsPerDay}-{config.maxPostsPerDay}/day • 
-                      Target: {config.targetAudience || "Not set"} • 
-                      Industry: {config.businessVertical || "Not set"}
+                      Posts: {config.minPostsPerDay}-{config.maxPostsPerDay}/day • Target:{' '}
+                      {config.targetAudience || 'Not set'} • Industry:{' '}
+                      {config.businessVertical || 'Not set'}
                     </p>
                   </div>
                   <Button onClick={() => setIsConfiguring(true)} variant="outline">

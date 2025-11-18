@@ -52,22 +52,27 @@ export default function Documentation() {
             {[
               {
                 icon: Zap,
-                title: "Getting Started",
-                description: "Set up your account and start creating music in 5 minutes",
-                topics: ["Account Setup", "First Project", "Profile Configuration", "Payment Setup"]
+                title: 'Getting Started',
+                description: 'Set up your account and start creating music in 5 minutes',
+                topics: [
+                  'Account Setup',
+                  'First Project',
+                  'Profile Configuration',
+                  'Payment Setup',
+                ],
               },
               {
                 icon: Code,
-                title: "Studio Basics",
-                description: "Learn the DAW workspace and production tools",
-                topics: ["Track Creation", "Audio Recording", "AI Mixing", "Plugin Usage"]
+                title: 'Studio Basics',
+                description: 'Learn the DAW workspace and production tools',
+                topics: ['Track Creation', 'Audio Recording', 'AI Mixing', 'Plugin Usage'],
               },
               {
                 icon: Cloud,
-                title: "Distribution",
-                description: "Release your music to streaming platforms worldwide",
-                topics: ["Release Setup", "DSP Selection", "Royalty Tracking", "Analytics"]
-              }
+                title: 'Distribution',
+                description: 'Release your music to streaming platforms worldwide',
+                topics: ['Release Setup', 'DSP Selection', 'Royalty Tracking', 'Analytics'],
+              },
             ].map((guide, i) => (
               <Card key={i} className="hover-lift">
                 <CardContent className="p-6">
@@ -76,7 +81,9 @@ export default function Documentation() {
                   <p className="text-gray-600 mb-4">{guide.description}</p>
                   <ul className="space-y-1">
                     {guide.topics.map((topic, j) => (
-                      <li key={j} className="text-sm text-gray-500">• {topic}</li>
+                      <li key={j} className="text-sm text-gray-500">
+                        • {topic}
+                      </li>
                     ))}
                   </ul>
                 </CardContent>
@@ -89,53 +96,55 @@ export default function Documentation() {
       {/* Feature Documentation */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Feature Documentation</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+            Feature Documentation
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
               {
-                title: "AI Studio & Production",
+                title: 'AI Studio & Production',
                 topics: [
-                  "DAW Interface Overview",
-                  "AI Mixing Guide",
-                  "AI Mastering Guide",
-                  "Plugin Management",
-                  "Collaboration Features",
-                  "Cloud Storage & Autosave"
-                ]
+                  'DAW Interface Overview',
+                  'AI Mixing Guide',
+                  'AI Mastering Guide',
+                  'Plugin Management',
+                  'Collaboration Features',
+                  'Cloud Storage & Autosave',
+                ],
               },
               {
-                title: "Distribution & Royalties",
+                title: 'Distribution & Royalties',
                 topics: [
-                  "Creating Releases",
-                  "DSP Submission",
-                  "ISRC/UPC Codes",
-                  "Royalty Analytics",
-                  "Payment Processing",
-                  "Split Payments"
-                ]
+                  'Creating Releases',
+                  'DSP Submission',
+                  'ISRC/UPC Codes',
+                  'Royalty Analytics',
+                  'Payment Processing',
+                  'Split Payments',
+                ],
               },
               {
-                title: "Social Media Automation",
+                title: 'Social Media Automation',
                 topics: [
-                  "Platform Connections",
-                  "AI Content Generation",
-                  "Post Scheduling",
-                  "A/B Testing",
-                  "Analytics Dashboard",
-                  "Campaign Management"
-                ]
+                  'Platform Connections',
+                  'AI Content Generation',
+                  'Post Scheduling',
+                  'A/B Testing',
+                  'Analytics Dashboard',
+                  'Campaign Management',
+                ],
               },
               {
-                title: "Beat Marketplace",
+                title: 'Beat Marketplace',
                 topics: [
-                  "Creating Listings",
-                  "Pricing Strategy",
-                  "License Types",
-                  "Stripe Integration",
-                  "Sales Analytics",
-                  "Buyer Protection"
-                ]
-              }
+                  'Creating Listings',
+                  'Pricing Strategy',
+                  'License Types',
+                  'Stripe Integration',
+                  'Sales Analytics',
+                  'Buyer Protection',
+                ],
+              },
             ].map((section, i) => (
               <Card key={i}>
                 <CardContent className="p-6">
@@ -163,22 +172,22 @@ export default function Documentation() {
             {[
               {
                 icon: Code,
-                title: "API Reference",
-                description: "Complete REST API documentation with examples",
-                link: "/api-docs"
+                title: 'API Reference',
+                description: 'Complete REST API documentation with examples',
+                link: '/api-docs',
               },
               {
                 icon: Database,
-                title: "Webhooks",
-                description: "Real-time event notifications for integrations",
-                link: "/api-docs#webhooks"
+                title: 'Webhooks',
+                description: 'Real-time event notifications for integrations',
+                link: '/api-docs#webhooks',
               },
               {
                 icon: Lock,
-                title: "Security",
-                description: "Authentication, encryption, and best practices",
-                link: "/security"
-              }
+                title: 'Security',
+                description: 'Authentication, encryption, and best practices',
+                link: '/security',
+              },
             ].map((resource, i) => (
               <Link key={i} href={resource.link}>
                 <Card className="hover-lift cursor-pointer">
@@ -208,7 +217,11 @@ export default function Documentation() {
               </Button>
             </Link>
             <Link href="/help">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-blue-600"
+              >
                 Visit Help Center
               </Button>
             </Link>

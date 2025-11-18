@@ -14,7 +14,7 @@ import {
   Settings,
   HelpCircle,
   Menu,
-  X
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -66,10 +66,8 @@ export function Sidebar({ className }: SidebarProps) {
             key={item.name}
             href={item.href}
             className={cn(
-              "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 hover-lift",
-              isActive
-                ? "nav-active text-primary font-medium"
-                : "text-gray-600 hover:bg-gray-100"
+              'flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 hover-lift',
+              isActive ? 'nav-active text-primary font-medium' : 'text-gray-600 hover:bg-gray-100'
             )}
           >
             <item.icon className="h-5 w-5" />
@@ -77,7 +75,7 @@ export function Sidebar({ className }: SidebarProps) {
           </Link>
         );
       })}
-      
+
       <div className="pt-6 border-t border-gray-200 mt-6">
         {secondaryNavigation.map((item) => {
           const isActive = location === item.href;
@@ -86,10 +84,8 @@ export function Sidebar({ className }: SidebarProps) {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 hover-lift",
-                isActive
-                  ? "nav-active text-primary font-medium"
-                  : "text-gray-600 hover:bg-gray-100"
+                'flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 hover-lift',
+                isActive ? 'nav-active text-primary font-medium' : 'text-gray-600 hover:bg-gray-100'
               )}
             >
               <item.icon className="h-5 w-5" />
@@ -124,8 +120,8 @@ export function Sidebar({ className }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "w-64 bg-white shadow-xl border-r border-gray-200 fixed lg:relative h-full lg:h-screen overflow-y-auto z-30 transform transition-transform duration-300",
-          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          'w-64 bg-white shadow-xl border-r border-gray-200 fixed lg:relative h-full lg:h-screen overflow-y-auto z-30 transform transition-transform duration-300',
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
           className
         )}
       >

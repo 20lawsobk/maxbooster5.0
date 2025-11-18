@@ -11,6 +11,9 @@ interface TimeRulerProps {
   onTimelineClick: (time: number) => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function TimeRuler({
   duration,
   tempo,
@@ -24,15 +27,15 @@ export function TimeRuler({
   const rulerRef = useRef<HTMLDivElement>(null);
 
   const [numerator, denominator] = timeSignature.split('/').map(Number);
-  
+
   // Calculate visible time range based on zoom
   const visibleDuration = duration / zoom;
-  
+
   // Generate time markers
   const timeMarkers = useMemo(() => {
     const beatDuration = 60 / tempo;
     const barDuration = beatDuration * numerator;
-    
+
     // Determine marker interval based on zoom level
     let interval: number;
     if (zoom >= 4) {
@@ -42,50 +45,53 @@ export function TimeRuler({
     } else {
       interval = barDuration; // Show bars at low zoom
     }
-    
+
     const markers: Array<{ time: number; isBar: boolean; isBeat: boolean; label: string }> = [];
     let time = 0;
     let barCount = 1;
     let beatCount = 1;
-    
+
     while (time <= visibleDuration) {
       const isBar = time % barDuration < 0.001;
       const isBeat = time % beatDuration < 0.001;
-      
+
       markers.push({
         time,
         isBar,
         isBeat,
         label: isBar ? barCount.toString() : isBeat ? beatCount.toString() : '',
       });
-      
+
       if (isBar) {
         barCount++;
         beatCount = 1;
       } else if (isBeat) {
         beatCount++;
       }
-      
+
       time += interval;
     }
-    
+
     return markers;
   }, [tempo, numerator, zoom, visibleDuration]);
 
-  const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!rulerRef.current) return;
-    
-    const rect = rulerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    let clickTime = (x / rect.width) * visibleDuration;
-    
-    // Apply snap if enabled
-    if (snapEnabled) {
-      clickTime = Math.round(clickTime / snapResolution) * snapResolution;
-    }
-    
-    onTimelineClick(Math.max(0, Math.min(clickTime, duration)));
-  }, [visibleDuration, snapEnabled, snapResolution, duration, onTimelineClick]);
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!rulerRef.current) return;
+
+      const rect = rulerRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      let clickTime = (x / rect.width) * visibleDuration;
+
+      // Apply snap if enabled
+      if (snapEnabled) {
+        clickTime = Math.round(clickTime / snapResolution) * snapResolution;
+      }
+
+      onTimelineClick(Math.max(0, Math.min(clickTime, duration)));
+    },
+    [visibleDuration, snapEnabled, snapResolution, duration, onTimelineClick]
+  );
 
   return (
     <div
@@ -101,7 +107,7 @@ export function TimeRuler({
       <div className="absolute inset-0 flex">
         {timeMarkers.map((marker, index) => {
           const position = (marker.time / visibleDuration) * 100;
-          
+
           return (
             <div
               key={index}
@@ -111,15 +117,13 @@ export function TimeRuler({
                 borderLeft: marker.isBar
                   ? '2px solid var(--studio-border)'
                   : marker.isBeat
-                  ? '1px solid var(--studio-border-subtle)'
-                  : '1px solid var(--studio-bg-deep)',
+                    ? '1px solid var(--studio-border-subtle)'
+                    : '1px solid var(--studio-bg-deep)',
               }}
             >
               {marker.label && (
                 <div
-                  className={`pl-1 pt-1 text-xs ${
-                    marker.isBar ? 'font-semibold' : 'font-normal'
-                  }`}
+                  className={`pl-1 pt-1 text-xs ${marker.isBar ? 'font-semibold' : 'font-normal'}`}
                   style={{
                     color: marker.isBar ? 'var(--studio-text)' : 'var(--studio-text-muted)',
                   }}
@@ -158,13 +162,11 @@ export function TimeRuler({
           <div className="absolute -top-1 -left-1.5 w-3 h-3 bg-white rotate-45" />
         </div>
       )}
-      
+
       {/* Snap Indicator */}
       {snapEnabled && (
-        <div
-          className="absolute bottom-0 right-0 bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded-tl font-mono"
-        >
-          {snapResolution < 1 ? `1/${Math.round(1/snapResolution)}` : `${snapResolution}s`}
+        <div className="absolute bottom-0 right-0 bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded-tl font-mono">
+          {snapResolution < 1 ? `1/${Math.round(1 / snapResolution)}` : `${snapResolution}s`}
         </div>
       )}
     </div>

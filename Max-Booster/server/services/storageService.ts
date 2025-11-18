@@ -1,21 +1,27 @@
 /**
  * Storage Service - Abstraction layer for file storage
- * 
+ *
  * Supports local filesystem (development), S3, and Replit App Storage (production).
  * Switch between them using STORAGE_PROVIDER environment variable.
- * 
+ *
  * This enables the platform to scale without code changes:
  * - Development: Uses local filesystem
  * - Production: Uses S3 or Replit App Storage
  */
 
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Client } from '@replit/object-storage';
 import { config } from '../config/defaults.js';
 import fs from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
+import { logger } from '../logger.js';
 
 export interface StorageProvider {
   /**
@@ -89,7 +95,7 @@ class LocalStorageProvider implements StorageProvider {
     const fullPath = this.getFullPath(key);
     try {
       await fs.unlink(fullPath);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error.code !== 'ENOENT') throw error;
     }
   }
@@ -134,12 +140,13 @@ class S3StorageProvider implements StorageProvider {
     this.s3Client = new S3Client({
       region: config.storage.region,
       endpoint: config.storage.endpoint, // For MinIO/custom S3
-      credentials: config.storage.accessKeyId && config.storage.secretAccessKey
-        ? {
-            accessKeyId: config.storage.accessKeyId,
-            secretAccessKey: config.storage.secretAccessKey,
-          }
-        : undefined, // Use IAM role if no credentials provided
+      credentials:
+        config.storage.accessKeyId && config.storage.secretAccessKey
+          ? {
+              accessKeyId: config.storage.accessKeyId,
+              secretAccessKey: config.storage.secretAccessKey,
+            }
+          : undefined, // Use IAM role if no credentials provided
     });
   }
 
@@ -162,7 +169,7 @@ class S3StorageProvider implements StorageProvider {
     });
 
     const response = await this.s3Client.send(command);
-    
+
     if (!response.Body) {
       throw new Error(`File not found: ${key}`);
     }
@@ -294,13 +301,13 @@ class StorageService {
 
   constructor() {
     if (config.storage.provider === 's3') {
-      console.log('📦 Using S3 storage provider');
+      logger.info('📦 Using S3 storage provider');
       this.provider = new S3StorageProvider();
     } else if (config.storage.provider === 'replit') {
-      console.log('📦 Using Replit App Storage provider');
+      logger.info('📦 Using Replit App Storage provider');
       this.provider = new ReplitStorageProvider();
     } else {
-      console.log('📦 Using local storage provider');
+      logger.info('📦 Using local storage provider');
       this.provider = new LocalStorageProvider();
     }
   }
@@ -341,7 +348,7 @@ class StorageService {
   /**
    * Get a presigned URL for client-side upload (S3 only)
    * Returns null for local storage
-   * 
+   *
    * Usage:
    * 1. Client requests upload URL
    * 2. Client uploads directly to S3 using presigned URL
@@ -382,9 +389,9 @@ class StorageService {
     setTimeout(async () => {
       try {
         await this.deleteFile(key);
-        console.log(`🗑️  Deleted temp file: ${key}`);
-      } catch (error) {
-        console.error(`Failed to delete temp file ${key}:`, error);
+        logger.info(`🗑️  Deleted temp file: ${key}`);
+      } catch (error: unknown) {
+        logger.error(`Failed to delete temp file ${key}:`, error);
       }
     }, ttlMs);
   }

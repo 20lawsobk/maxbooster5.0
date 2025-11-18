@@ -5,7 +5,10 @@
  */
 
 import { describe, test, expect } from '@jest/globals';
-import { simulateAutonomousUpgrade, simulateLongTermAdaptation } from '../autonomousUpgradeSimulation';
+import {
+  simulateAutonomousUpgrade,
+  simulateLongTermAdaptation,
+} from '../autonomousUpgradeSimulation';
 import { simulateAdBooster, runComprehensiveSimulation } from '../adBoosterSimulation';
 
 describe('AI System KPI Verification', () => {
@@ -38,14 +41,14 @@ describe('AI System KPI Verification', () => {
     test('produces deterministic results (reproducible)', async () => {
       const run1 = await simulateAutonomousUpgrade();
       const run2 = await simulateAutonomousUpgrade();
-      
+
       // Results should be identical
       expect(run1.totalScenarios).toEqual(run2.totalScenarios);
       expect(run1.successfulUpgrades).toEqual(run2.successfulUpgrades);
       expect(run1.metrics.upgradeSuccessRate).toEqual(run2.metrics.upgradeSuccessRate);
       expect(run1.metrics.algorithmQualityAverage).toEqual(run2.metrics.algorithmQualityAverage);
       expect(run1.competitiveAdvantage).toEqual(run2.competitiveAdvantage);
-      
+
       // Verify each scenario is identical
       expect(run1.scenarios.length).toEqual(run2.scenarios.length);
       for (let i = 0; i < run1.scenarios.length; i++) {
@@ -80,7 +83,7 @@ describe('AI System KPI Verification', () => {
         platforms: ['facebook', 'instagram', 'tiktok', 'twitter', 'linkedin'],
         contentQuality: 90,
       };
-      
+
       const result = await simulateAdBooster(campaign);
       expect(result.amplificationFactor).toBeGreaterThanOrEqual(2.0);
     }, 30000);
@@ -102,10 +105,10 @@ describe('AI System KPI Verification', () => {
         platforms: ['facebook', 'instagram', 'tiktok'],
         contentQuality: 90,
       };
-      
+
       const run1 = await simulateAdBooster(campaign);
       const run2 = await simulateAdBooster(campaign);
-      
+
       // Results should be identical for deterministic calculations
       expect(run1.amplificationFactor).toEqual(run2.amplificationFactor);
       expect(run1.paidAdvertising.estimatedReach).toEqual(run2.paidAdvertising.estimatedReach);
@@ -123,7 +126,7 @@ describe('AI System KPI Verification', () => {
         platforms: ['instagram', 'tiktok'],
         contentQuality: 85,
       };
-      
+
       const result = await simulateAdBooster(campaign);
       expect(result.aiBoosterOrganic.totalCost).toBe(0);
     }, 30000);
@@ -134,13 +137,13 @@ describe('AI System KPI Verification', () => {
       // Run both simulations
       const autonomousResult = await simulateAutonomousUpgrade();
       const adBoosterResults = await runComprehensiveSimulation();
-      
+
       // Verify all critical KPIs
       expect(autonomousResult.metrics.upgradeSuccessRate).toBeGreaterThanOrEqual(95);
       expect(autonomousResult.metrics.algorithmQualityAverage).toBeGreaterThanOrEqual(100);
       expect(adBoosterResults.summary.allScenariosPass).toBe(true);
       expect(adBoosterResults.summary.minAmplification).toBeGreaterThanOrEqual(2.0);
-      
+
       // Verify system health
       expect(autonomousResult.metrics.zeroDowntime).toBe(true);
       expect(autonomousResult.metrics.detectionSpeedCompliance).toBe(true);
@@ -154,14 +157,14 @@ describe('AI System KPI Verification', () => {
       const auto1 = await simulateAutonomousUpgrade();
       const auto2 = await simulateAutonomousUpgrade();
       const auto3 = await simulateAutonomousUpgrade();
-      
+
       // All should have identical metrics
       expect(auto1.metrics.upgradeSuccessRate).toEqual(auto2.metrics.upgradeSuccessRate);
       expect(auto2.metrics.upgradeSuccessRate).toEqual(auto3.metrics.upgradeSuccessRate);
-      
+
       expect(auto1.metrics.algorithmQualityAverage).toEqual(auto2.metrics.algorithmQualityAverage);
       expect(auto2.metrics.algorithmQualityAverage).toEqual(auto3.metrics.algorithmQualityAverage);
-      
+
       expect(auto1.competitiveAdvantage).toEqual(auto2.competitiveAdvantage);
       expect(auto2.competitiveAdvantage).toEqual(auto3.competitiveAdvantage);
     }, 120000);
@@ -169,18 +172,18 @@ describe('AI System KPI Verification', () => {
     test('different seeds produce different results', async () => {
       const result1 = await simulateAutonomousUpgrade(12345);
       const result2 = await simulateAutonomousUpgrade(54321);
-      
+
       // Different seeds should produce different scenario details
       // but both should still pass KPI thresholds
       expect(result1.metrics.upgradeSuccessRate).toBeGreaterThanOrEqual(95);
       expect(result2.metrics.upgradeSuccessRate).toBeGreaterThanOrEqual(95);
-      
+
       // At least some metrics should differ with different seeds
-      const hasDifferences = 
+      const hasDifferences =
         result1.scenarios[0].detectionTime !== result2.scenarios[0].detectionTime ||
         result1.scenarios[0].upgradeTime !== result2.scenarios[0].upgradeTime ||
         result1.scenarios[0].algorithmQuality !== result2.scenarios[0].algorithmQuality;
-      
+
       expect(hasDifferences).toBe(true);
     }, 60000);
   });

@@ -1,7 +1,7 @@
 /**
  * LabelGrid Integration Service
  * Handles distribution to 34+ platforms through LabelGrid API
- * 
+ *
  * LabelGrid Features:
  * - 0% royalty take (artist keeps 100%)
  * - Spotify Preferred Partner
@@ -13,6 +13,7 @@
 import axios from 'axios';
 import { storage } from '../storage';
 import type { Release, DistributionPackage } from '@shared/schema';
+import { logger } from '../logger.js';
 
 interface LabelGridConfig {
   apiKey: string;
@@ -60,20 +61,21 @@ export class LabelGridService {
   private config: LabelGridConfig;
   private apiBaseUrl: string;
   private authToken?: string;
-  
+
   constructor() {
     this.config = {
       apiKey: process.env.LABELGRID_API_KEY || '',
       apiSecret: process.env.LABELGRID_API_SECRET || '',
       webhookUrl: process.env.LABELGRID_WEBHOOK_URL,
-      environment: (process.env.LABELGRID_ENV as 'sandbox' | 'production') || 'sandbox'
+      environment: (process.env.LABELGRID_ENV as 'sandbox' | 'production') || 'sandbox',
     };
-    
-    this.apiBaseUrl = this.config.environment === 'production' 
-      ? 'https://api.labelgrid.com/v1'
-      : 'https://sandbox-api.labelgrid.com/v1';
+
+    this.apiBaseUrl =
+      this.config.environment === 'production'
+        ? 'https://api.labelgrid.com/v1'
+        : 'https://sandbox-api.labelgrid.com/v1';
   }
-  
+
   /**
    * Authenticate with LabelGrid API
    */
@@ -81,21 +83,21 @@ export class LabelGridService {
     try {
       const response = await axios.post(`${this.apiBaseUrl}/auth/token`, {
         apiKey: this.config.apiKey,
-        apiSecret: this.config.apiSecret
+        apiSecret: this.config.apiSecret,
       });
-      
+
       this.authToken = response.data.token;
-      
+
       // Set default auth header for all requests
       axios.defaults.headers.common['Authorization'] = `Bearer ${this.authToken}`;
-      
-      console.log('[LABELGRID] Authentication successful');
-    } catch (error: any) {
-      console.error('[LABELGRID] Authentication failed:', error.response?.data || error.message);
+
+      logger.info('[LABELGRID] Authentication successful');
+    } catch (error: unknown) {
+      logger.error('[LABELGRID] Authentication failed:', error.response?.data || error.message);
       throw new Error('Failed to authenticate with LabelGrid');
     }
   }
-  
+
   /**
    * Create a new release on LabelGrid
    */
@@ -105,11 +107,11 @@ export class LabelGridService {
       if (!this.authToken) {
         await this.authenticate();
       }
-      
+
       // Prepare release data
       const labelGridRelease: LabelGridRelease = {
         id: release.id,
-        upc: release.upc || await this.generateUPC(),
+        upc: release.upc || (await this.generateUPC()),
         title: release.title,
         artist: release.artist,
         label: release.label || 'Max Booster Records',
@@ -122,57 +124,55 @@ export class LabelGridService {
           language: 'en',
           copyrightHolder: release.copyrightHolder || release.artist,
           copyrightYear: new Date().getFullYear(),
-          parentalAdvisory: release.explicit || false
-        }
+          parentalAdvisory: release.explicit || false,
+        },
       };
-      
+
       // Submit to LabelGrid
-      const response = await axios.post(
-        `${this.apiBaseUrl}/releases`,
-        labelGridRelease,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Webhook-URL': this.config.webhookUrl
-          }
-        }
-      );
-      
+      const response = await axios.post(`${this.apiBaseUrl}/releases`, labelGridRelease, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Webhook-URL': this.config.webhookUrl,
+        },
+      });
+
       const labelGridId = response.data.id;
-      
+
       // Store mapping in database
       await storage.updateRelease(release.id, release.userId, {
         distributionId: labelGridId,
         distributionStatus: 'processing',
-        submittedAt: new Date()
+        submittedAt: new Date(),
       });
-      
-      console.log(`[LABELGRID] Release ${release.title} submitted with ID: ${labelGridId}`);
+
+      logger.info(`[LABELGRID] Release ${release.title} submitted with ID: ${labelGridId}`);
       return labelGridId;
-      
-    } catch (error: any) {
-      console.error('[LABELGRID] Failed to create release:', error.response?.data || error.message);
+    } catch (error: unknown) {
+      logger.error('[LABELGRID] Failed to create release:', error.response?.data || error.message);
       throw new Error(`Distribution failed: ${error.response?.data?.message || error.message}`);
     }
   }
-  
+
   /**
    * Prepare tracks for LabelGrid submission
    */
-  private async prepareTracks(release: Release, audioFiles: Map<string, string>): Promise<LabelGridTrack[]> {
+  private async prepareTracks(
+    release: Release,
+    audioFiles: Map<string, string>
+  ): Promise<LabelGridTrack[]> {
     const tracks: LabelGridTrack[] = [];
-    
+
     // Get tracks from database
     const releaseTracks = await storage.getReleaseTracks(release.id);
-    
+
     for (const track of releaseTracks) {
       const audioUrl = audioFiles.get(track.id);
       if (!audioUrl) {
         throw new Error(`Audio file missing for track: ${track.title}`);
       }
-      
+
       tracks.push({
-        isrc: track.isrc || await this.generateISRC(track.id),
+        isrc: track.isrc || (await this.generateISRC(track.id)),
         title: track.title,
         artist: track.artist || release.artist,
         duration: track.duration || 0,
@@ -181,14 +181,14 @@ export class LabelGridService {
           genre: track.genre || release.genre,
           mood: track.mood,
           tempo: track.tempo,
-          key: track.key
-        }
+          key: track.key,
+        },
       });
     }
-    
+
     return tracks;
   }
-  
+
   /**
    * Get distribution status from LabelGrid
    */
@@ -197,25 +197,24 @@ export class LabelGridService {
       if (!this.authToken) {
         await this.authenticate();
       }
-      
+
       const response = await axios.get(`${this.apiBaseUrl}/releases/${labelGridId}/status`);
-      
-      const statuses: DistributionStatus[] = response.data.platforms.map((p: any) => ({
+
+      const statuses: DistributionStatus[] = response.data.platforms.map((p: unknown) => ({
         platform: p.name,
         status: p.status,
         deliveredAt: p.deliveredAt ? new Date(p.deliveredAt) : undefined,
         liveAt: p.liveAt ? new Date(p.liveAt) : undefined,
-        error: p.error
+        error: p.error,
       }));
-      
+
       return statuses;
-      
-    } catch (error: any) {
-      console.error('[LABELGRID] Failed to get status:', error.response?.data || error.message);
+    } catch (error: unknown) {
+      logger.error('[LABELGRID] Failed to get status:', error.response?.data || error.message);
       throw new Error('Failed to retrieve distribution status');
     }
   }
-  
+
   /**
    * Update release metadata
    */
@@ -224,17 +223,16 @@ export class LabelGridService {
       if (!this.authToken) {
         await this.authenticate();
       }
-      
+
       await axios.patch(`${this.apiBaseUrl}/releases/${labelGridId}`, updates);
-      
-      console.log(`[LABELGRID] Release ${labelGridId} updated successfully`);
-      
-    } catch (error: any) {
-      console.error('[LABELGRID] Failed to update release:', error.response?.data || error.message);
+
+      logger.info(`[LABELGRID] Release ${labelGridId} updated successfully`);
+    } catch (error: unknown) {
+      logger.error('[LABELGRID] Failed to update release:', error.response?.data || error.message);
       throw new Error('Failed to update release');
     }
   }
-  
+
   /**
    * Request takedown from specific platforms
    */
@@ -243,20 +241,22 @@ export class LabelGridService {
       if (!this.authToken) {
         await this.authenticate();
       }
-      
+
       await axios.post(`${this.apiBaseUrl}/releases/${labelGridId}/takedown`, {
         platforms: platforms || 'all',
-        reason: 'Artist request'
+        reason: 'Artist request',
       });
-      
-      console.log(`[LABELGRID] Takedown requested for release ${labelGridId}`);
-      
-    } catch (error: any) {
-      console.error('[LABELGRID] Failed to request takedown:', error.response?.data || error.message);
+
+      logger.info(`[LABELGRID] Takedown requested for release ${labelGridId}`);
+    } catch (error: unknown) {
+      logger.error(
+        '[LABELGRID] Failed to request takedown:',
+        error.response?.data || error.message
+      );
       throw new Error('Failed to request takedown');
     }
   }
-  
+
   /**
    * Get earnings report
    */
@@ -265,22 +265,21 @@ export class LabelGridService {
       if (!this.authToken) {
         await this.authenticate();
       }
-      
+
       const response = await axios.get(`${this.apiBaseUrl}/earnings`, {
         params: {
           startDate: startDate.toISOString(),
-          endDate: endDate.toISOString()
-        }
+          endDate: endDate.toISOString(),
+        },
       });
-      
+
       return response.data;
-      
-    } catch (error: any) {
-      console.error('[LABELGRID] Failed to get earnings:', error.response?.data || error.message);
+    } catch (error: unknown) {
+      logger.error('[LABELGRID] Failed to get earnings:', error.response?.data || error.message);
       throw new Error('Failed to retrieve earnings report');
     }
   }
-  
+
   /**
    * Generate UPC code
    */
@@ -288,11 +287,13 @@ export class LabelGridService {
     // In production, you would register for GS1 company prefix
     // For now, generate a valid format UPC-A (12 digits)
     const prefix = '123456'; // Company prefix (would be assigned by GS1)
-    const product = Math.floor(Math.random() * 10000).toString().padStart(5, '0');
+    const product = Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(5, '0');
     const checkDigit = this.calculateUPCCheckDigit(prefix + product);
     return prefix + product + checkDigit;
   }
-  
+
   /**
    * Generate ISRC code
    */
@@ -302,15 +303,17 @@ export class LabelGridService {
     // XXX = Registrant code (would be assigned)
     // YY = Year
     // NNNNN = Unique ID
-    
+
     const country = 'US';
     const registrant = 'MXB'; // Max Booster registrant code
     const year = new Date().getFullYear().toString().slice(-2);
-    const uniqueId = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-    
+    const uniqueId = Math.floor(Math.random() * 100000)
+      .toString()
+      .padStart(5, '0');
+
     return `${country}-${registrant}-${year}-${uniqueId}`;
   }
-  
+
   /**
    * Calculate UPC check digit
    */
@@ -322,7 +325,7 @@ export class LabelGridService {
     const checkDigit = (10 - (sum % 10)) % 10;
     return checkDigit.toString();
   }
-  
+
   /**
    * Get target territories based on release settings
    */
@@ -330,97 +333,99 @@ export class LabelGridService {
     // Default to worldwide distribution
     return release.territories || ['WW']; // WW = Worldwide
   }
-  
+
   /**
    * Get target platforms based on release settings
    */
   private getTargetPlatforms(release: Release): string[] {
     // All 34 platforms by default
-    return release.platforms || [
-      'spotify',
-      'apple-music',
-      'youtube-music',
-      'amazon-music',
-      'tidal',
-      'deezer',
-      'pandora',
-      'iheart-radio',
-      'soundcloud',
-      'tiktok',
-      'instagram',
-      'facebook',
-      'snapchat',
-      'audiomack',
-      'boomplay',
-      'anghami',
-      'jiosaavn',
-      'gaana',
-      'kkbox',
-      'line-music',
-      'netease',
-      'qq-music',
-      'kuwo',
-      'kugou',
-      'yandex-music',
-      'vk-music',
-      'napster',
-      'qobuz',
-      'triller',
-      'twitch',
-      'bandcamp',
-      'mixcloud',
-      'beatport',
-      'juno-download'
-    ];
+    return (
+      release.platforms || [
+        'spotify',
+        'apple-music',
+        'youtube-music',
+        'amazon-music',
+        'tidal',
+        'deezer',
+        'pandora',
+        'iheart-radio',
+        'soundcloud',
+        'tiktok',
+        'instagram',
+        'facebook',
+        'snapchat',
+        'audiomack',
+        'boomplay',
+        'anghami',
+        'jiosaavn',
+        'gaana',
+        'kkbox',
+        'line-music',
+        'netease',
+        'qq-music',
+        'kuwo',
+        'kugou',
+        'yandex-music',
+        'vk-music',
+        'napster',
+        'qobuz',
+        'triller',
+        'twitch',
+        'bandcamp',
+        'mixcloud',
+        'beatport',
+        'juno-download',
+      ]
+    );
   }
-  
+
   /**
    * Handle webhook from LabelGrid
    */
-  async handleWebhook(payload: any): Promise<void> {
+  async handleWebhook(payload: unknown): Promise<void> {
     const { event, releaseId, data } = payload;
-    
+
     switch (event) {
       case 'release.delivered':
-        console.log(`[LABELGRID] Release ${releaseId} delivered to ${data.platform}`);
+        logger.info(`[LABELGRID] Release ${releaseId} delivered to ${data.platform}`);
         await this.updateReleaseStatus(releaseId, data.platform, 'delivered');
         break;
-        
+
       case 'release.live':
-        console.log(`[LABELGRID] Release ${releaseId} is now live on ${data.platform}`);
+        logger.info(`[LABELGRID] Release ${releaseId} is now live on ${data.platform}`);
         await this.updateReleaseStatus(releaseId, data.platform, 'live');
         break;
-        
+
       case 'release.failed':
-        console.error(`[LABELGRID] Release ${releaseId} failed on ${data.platform}: ${data.error}`);
+        logger.error(`[LABELGRID] Release ${releaseId} failed on ${data.platform}: ${data.error}`);
         await this.updateReleaseStatus(releaseId, data.platform, 'failed', data.error);
         break;
-        
+
       case 'earnings.reported':
-        console.log(`[LABELGRID] New earnings reported for release ${releaseId}`);
+        logger.info(`[LABELGRID] New earnings reported for release ${releaseId}`);
         await this.processEarnings(data);
         break;
-        
+
       default:
-        console.log(`[LABELGRID] Unhandled webhook event: ${event}`);
+        logger.info(`[LABELGRID] Unhandled webhook event: ${event}`);
     }
   }
-  
+
   /**
    * Update release status in database
    */
   private async updateReleaseStatus(
-    releaseId: string, 
-    platform: string, 
-    status: string, 
+    releaseId: string,
+    platform: string,
+    status: string,
     error?: string
   ): Promise<void> {
     // Update platform-specific status in database
     const release = await storage.getReleaseByDistributionId(releaseId);
     if (release) {
       const platforms = (release.platforms as any[]) || [];
-      const platformIndex = platforms.findIndex(p => p.name === platform);
-      
+      const platformIndex = platforms.findIndex((p) => p.name === platform);
+
       if (platformIndex >= 0) {
         platforms[platformIndex].status = status;
         platforms[platformIndex].error = error;
@@ -430,21 +435,21 @@ export class LabelGridService {
           name: platform,
           status,
           error,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
       }
-      
+
       await storage.updateRelease(release.id, release.userId, { platforms });
     }
   }
-  
+
   /**
    * Process earnings from platforms
    */
-  private async processEarnings(data: any): Promise<void> {
+  private async processEarnings(data: unknown): Promise<void> {
     // Store earnings data for royalty calculations
     const { releaseId, platform, amount, streams, period } = data;
-    
+
     await storage.createEarningsRecord({
       releaseId,
       platform,
@@ -452,10 +457,10 @@ export class LabelGridService {
       streams,
       periodStart: new Date(period.start),
       periodEnd: new Date(period.end),
-      reportedAt: new Date()
+      reportedAt: new Date(),
     });
-    
-    console.log(`[LABELGRID] Processed earnings: ${amount} from ${platform} (${streams} streams)`);
+
+    logger.info(`[LABELGRID] Processed earnings: ${amount} from ${platform} (${streams} streams)`);
   }
 }
 

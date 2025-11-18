@@ -20,6 +20,9 @@ interface PunchRecordingMarkersProps {
   compact?: boolean;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function PunchRecordingMarkers({
   enabled,
   punchIn,
@@ -42,10 +45,10 @@ export function PunchRecordingMarkers({
   const parseTime = (timeStr: string): number => {
     const parts = timeStr.split(':');
     if (parts.length !== 2) return 0;
-    
+
     const [mins, secsMs] = parts;
     const [secs, ms = '0'] = secsMs.split('.');
-    
+
     return parseInt(mins) * 60 + parseInt(secs) + parseInt(ms) / 100;
   };
 
@@ -61,7 +64,7 @@ export function PunchRecordingMarkers({
         >
           <Scissors className="h-3 w-3" />
         </Button>
-        
+
         {enabled && (
           <>
             <div className="flex items-center gap-1 text-xs">
@@ -70,7 +73,7 @@ export function PunchRecordingMarkers({
                 {punchIn !== null ? formatTime(punchIn) : '--:--'}
               </Badge>
             </div>
-            
+
             <div className="flex items-center gap-1 text-xs">
               <span className="text-gray-500">Out:</span>
               <Badge variant="outline" className="text-xs font-mono">
@@ -109,16 +112,11 @@ export function PunchRecordingMarkers({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs">Punch In</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onSetPunchIn}
-                className="h-7 text-xs"
-              >
+              <Button variant="outline" size="sm" onClick={onSetPunchIn} className="h-7 text-xs">
                 Set at {formatTime(currentTime)}
               </Button>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Input
                 value={punchIn !== null ? formatTime(punchIn) : ''}
@@ -146,16 +144,11 @@ export function PunchRecordingMarkers({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs">Punch Out</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onSetPunchOut}
-                className="h-7 text-xs"
-              >
+              <Button variant="outline" size="sm" onClick={onSetPunchOut} className="h-7 text-xs">
                 Set at {formatTime(currentTime)}
               </Button>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Input
                 value={punchOut !== null ? formatTime(punchOut) : ''}

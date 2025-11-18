@@ -6,20 +6,28 @@ import type { User } from '@shared/schema';
 interface AuthContextType {
   user: User | null;
   login: (credentials: { username: string; password: string }) => Promise<void>;
-  register: (data: { username: string; email: string; password: string; confirmPassword: string }) => Promise<void>;
+  register: (data: {
+    username: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+/**
+ * TODO: Add function documentation
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
 
   const { data: userData, isLoading } = useQuery({
     queryKey: ['/api/auth/me'],
-    queryFn: getQueryFn({ on401: "returnNull" }),
+    queryFn: getQueryFn({ on401: 'returnNull' }),
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -41,7 +49,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
   };
 
-  const register = async (data: { username: string; email: string; password: string; confirmPassword: string }) => {
+  const register = async (data: {
+    username: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }) => {
     const response = await apiRequest('POST', '/api/auth/register', data);
     const result = await response.json();
     setUser(result.user);
@@ -61,6 +74,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

@@ -23,7 +23,7 @@ export function useAudioContext() {
     try {
       // Check for Web Audio API support
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      
+
       if (!AudioContextClass) {
         console.error('Web Audio API not supported');
         return;
@@ -31,10 +31,10 @@ export function useAudioContext() {
 
       const context = new AudioContextClass();
       const analyser = context.createAnalyser();
-      
+
       analyser.fftSize = 2048;
       analyser.smoothingTimeConstant = 0.8;
-      
+
       const frequencyData = new Uint8Array(analyser.frequencyBinCount);
 
       setState({
@@ -48,54 +48,54 @@ export function useAudioContext() {
       return context;
     } catch (error) {
       console.error('Failed to initialize AudioContext:', error);
-      setState(prev => ({ ...prev, isSupported: false }));
+      setState((prev) => ({ ...prev, isSupported: false }));
     }
   };
 
   const createOscillator = (frequency: number, type: OscillatorType = 'sine') => {
     if (!state.context) return null;
-    
+
     const oscillator = state.context.createOscillator();
     oscillator.frequency.setValueAtTime(frequency, state.context.currentTime);
     oscillator.type = type;
-    
+
     return oscillator;
   };
 
   const createGainNode = (gain: number = 1) => {
     if (!state.context) return null;
-    
+
     const gainNode = state.context.createGain();
     gainNode.gain.setValueAtTime(gain, state.context.currentTime);
-    
+
     return gainNode;
   };
 
   const createFilter = (type: BiquadFilterType, frequency: number, Q: number = 1) => {
     if (!state.context) return null;
-    
+
     const filter = state.context.createBiquadFilter();
     filter.type = type;
     filter.frequency.setValueAtTime(frequency, state.context.currentTime);
     filter.Q.setValueAtTime(Q, state.context.currentTime);
-    
+
     return filter;
   };
 
   const createDelay = (delayTime: number = 0) => {
     if (!state.context) return null;
-    
+
     const delay = state.context.createDelay();
     delay.delayTime.setValueAtTime(delayTime, state.context.currentTime);
-    
+
     return delay;
   };
 
   const createConvolver = async (impulseResponse?: ArrayBuffer) => {
     if (!state.context) return null;
-    
+
     const convolver = state.context.createConvolver();
-    
+
     if (impulseResponse) {
       try {
         const audioBuffer = await state.context.decodeAudioData(impulseResponse);
@@ -104,14 +104,14 @@ export function useAudioContext() {
         console.error('Failed to decode impulse response:', error);
       }
     }
-    
+
     return convolver;
   };
 
   const getUserMedia = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+
       if (state.context) {
         const source = state.context.createMediaStreamSource(stream);
         return { stream, source };
@@ -119,19 +119,19 @@ export function useAudioContext() {
     } catch (error) {
       console.error('Failed to get user media:', error);
     }
-    
+
     return null;
   };
 
   const startFrequencyAnalysis = (callback?: (data: Uint8Array) => void) => {
     if (!state.analyser || !state.frequencyData) return;
-    
+
     const analyze = () => {
       state.analyser!.getByteFrequencyData(state.frequencyData!);
       callback?.(state.frequencyData!);
       animationFrameRef.current = requestAnimationFrame(analyze);
     };
-    
+
     analyze();
   };
 
@@ -155,7 +155,7 @@ export function useAudioContext() {
 
   useEffect(() => {
     initializeAudioContext();
-    
+
     return () => {
       stopFrequencyAnalysis();
       if (state.context) {

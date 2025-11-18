@@ -3,34 +3,34 @@ export class DistributionService {
     try {
       // In production, this would integrate with distribution APIs like:
       // - DistroKid API
-      // - CD Baby API  
+      // - CD Baby API
       // - TuneCore API
       // - Direct platform APIs (Spotify for Artists, Apple Music for Artists, etc.)
-      
+
       // Simulated distribution process
       const platforms = [
         'spotify',
-        'apple_music', 
+        'apple_music',
         'youtube_music',
         'amazon_music',
         'deezer',
-        'tidal'
+        'tidal',
       ];
 
-      const distributionResults = platforms.map(platform => ({
+      const distributionResults = platforms.map((platform) => ({
         platform,
         status: 'processing',
-        estimatedLiveDate: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
+        estimatedLiveDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
       }));
 
       return {
         success: true,
         distributionId: `dist_${releaseId}`,
-        platforms: distributionResults
+        platforms: distributionResults,
       };
     } catch (error) {
-      console.error("Distribution error:", error);
-      throw new Error("Failed to distribute release");
+      console.error('Distribution error:', error);
+      throw new Error('Failed to distribute release');
     }
   }
 
@@ -42,21 +42,24 @@ export class DistributionService {
         totalRevenue: 0,
         platforms: {},
         demographics: {},
-        timeline: []
+        timeline: [],
       };
     } catch (error) {
-      console.error("Analytics error:", error);
-      throw new Error("Failed to fetch analytics");
+      console.error('Analytics error:', error);
+      throw new Error('Failed to fetch analytics');
     }
   }
 
-  async setupRoyaltySplit(releaseId: string, splits: Array<{ userId: string; percentage: number; role: string }>) {
+  async setupRoyaltySplit(
+    releaseId: string,
+    splits: Array<{ userId: string; percentage: number; role: string }>
+  ) {
     try {
       // Integrate with Stripe Connect for automatic royalty splits
       return { success: true, splitId: `split_${releaseId}` };
     } catch (error) {
-      console.error("Royalty split error:", error);
-      throw new Error("Failed to setup royalty split");
+      console.error('Royalty split error:', error);
+      throw new Error('Failed to setup royalty split');
     }
   }
 }

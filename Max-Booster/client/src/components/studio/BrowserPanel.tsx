@@ -7,8 +7,17 @@ import { Button } from '@/components/ui/button';
 import { useStudioStore } from '@/lib/studioStore';
 import { AssetUploadDialog } from './AssetUploadDialog';
 import {
-  Search, Folder, FolderOpen, FileAudio, Music, Box, Plug,
-  ChevronRight, ChevronDown, Play, Upload
+  Search,
+  Folder,
+  FolderOpen,
+  FileAudio,
+  Music,
+  Box,
+  Plug,
+  ChevronRight,
+  ChevronDown,
+  Play,
+  Upload,
 } from 'lucide-react';
 
 interface BrowserItem {
@@ -60,6 +69,9 @@ interface BrowserTreeItemProps {
   selectedId: string | null;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function BrowserTreeItem({ item, level, onSelect, selectedId }: BrowserTreeItemProps) {
   const [isExpanded, setIsExpanded] = useState(level === 0);
 
@@ -68,14 +80,17 @@ function BrowserTreeItem({ item, level, onSelect, selectedId }: BrowserTreeItemP
       e.preventDefault();
       return;
     }
-    
+
     e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('application/json', JSON.stringify({
-      id: item.id,
-      name: item.name,
-      type: item.type,
-      fileUrl: item.fileUrl,
-    }));
+    e.dataTransfer.setData(
+      'application/json',
+      JSON.stringify({
+        id: item.id,
+        name: item.name,
+        type: item.type,
+        fileUrl: item.fileUrl,
+      })
+    );
   };
 
   const getIcon = () => {
@@ -119,24 +134,19 @@ function BrowserTreeItem({ item, level, onSelect, selectedId }: BrowserTreeItemP
           </div>
         )}
         {item.type !== 'folder' && <div className="w-4" />}
-        
-        <div style={{ color: 'var(--studio-text-muted)' }}>
-          {getIcon()}
-        </div>
-        
-        <span 
-          className="flex-1 text-sm truncate" 
-          style={{ color: 'var(--studio-text)' }}
-        >
+
+        <div style={{ color: 'var(--studio-text-muted)' }}>{getIcon()}</div>
+
+        <span className="flex-1 text-sm truncate" style={{ color: 'var(--studio-text)' }}>
           {item.name}
         </span>
-        
+
         {item.duration && (
           <span className="text-xs" style={{ color: 'var(--studio-text-subtle)' }}>
             {item.duration}
           </span>
         )}
-        
+
         {item.type === 'sample' && (
           <Button
             variant="ghost"
@@ -168,6 +178,9 @@ function BrowserTreeItem({ item, level, onSelect, selectedId }: BrowserTreeItemP
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function BrowserPanel() {
   const {
     browserSearchQuery,
@@ -223,7 +236,7 @@ export function BrowserPanel() {
 
   // Convert user assets to browser items
   const convertAssetsToBrowserItems = (assets: UserAsset[]): BrowserItem[] => {
-    return assets.map(asset => ({
+    return assets.map((asset) => ({
       id: asset.id,
       name: asset.name,
       type: asset.assetType === 'sample' ? 'sample' : 'plugin',
@@ -233,10 +246,10 @@ export function BrowserPanel() {
   };
 
   // Convert native plugins to browser items
-  const convertNativePluginsToBrowserItems = (plugins: any[]): BrowserItem[] => {
+  const convertNativePluginsToBrowserItems = (plugins: unknown[]): BrowserItem[] => {
     const pluginsByCategory: Record<string, BrowserItem[]> = {};
-    
-    plugins.forEach(plugin => {
+
+    plugins.forEach((plugin) => {
       const category = plugin.category || 'Other';
       if (!pluginsByCategory[category]) {
         pluginsByCategory[category] = [];
@@ -258,7 +271,7 @@ export function BrowserPanel() {
 
   const filterItems = (items: BrowserItem[], query: string): BrowserItem[] => {
     if (!query) return items;
-    
+
     const lowerQuery = query.toLowerCase();
     return items.reduce<BrowserItem[]>((acc, item) => {
       if (item.name.toLowerCase().includes(lowerQuery)) {
@@ -280,7 +293,7 @@ export function BrowserPanel() {
       case 'samples': {
         const userItems = convertAssetsToBrowserItems(userSamples);
         const allItems: BrowserItem[] = [];
-        
+
         if (userItems.length > 0) {
           allItems.push({
             id: 'user-samples',
@@ -289,14 +302,14 @@ export function BrowserPanel() {
             children: userItems,
           });
         }
-        
+
         return filterItems(allItems, localSearch);
       }
       case 'plugins': {
         const userItems = convertAssetsToBrowserItems(userPlugins);
         const nativeItems = convertNativePluginsToBrowserItems(nativePlugins);
         const allItems: BrowserItem[] = [];
-        
+
         if (userItems.length > 0) {
           allItems.push({
             id: 'user-plugins',
@@ -305,9 +318,9 @@ export function BrowserPanel() {
             children: userItems,
           });
         }
-        
+
         allItems.push(...nativeItems);
-        
+
         return filterItems(allItems, localSearch);
       }
       case 'files':
@@ -319,13 +332,13 @@ export function BrowserPanel() {
 
   const content = getContentForTab();
   const showUploadButton = browserActiveTab === 'samples' || browserActiveTab === 'plugins';
-  
-  const isLoading = 
+
+  const isLoading =
     (browserActiveTab === 'samples' && samplesLoading) ||
     (browserActiveTab === 'plugins' && (pluginsLoading || nativePluginsLoading));
 
   return (
-    <div 
+    <div
       className="h-full flex flex-col border-r"
       style={{
         background: 'var(--studio-bg-medium)',
@@ -333,17 +346,14 @@ export function BrowserPanel() {
       }}
     >
       {/* Header */}
-      <div 
+      <div
         className="h-12 px-4 flex items-center justify-between border-b"
         style={{ borderColor: 'var(--studio-border)' }}
       >
-        <h3 
-          className="text-sm font-bold tracking-wide"
-          style={{ color: 'var(--studio-text)' }}
-        >
+        <h3 className="text-sm font-bold tracking-wide" style={{ color: 'var(--studio-text)' }}>
           BROWSER
         </h3>
-        
+
         {showUploadButton && (
           <Button
             variant="ghost"
@@ -360,8 +370,8 @@ export function BrowserPanel() {
       {/* Search */}
       <div className="p-3 border-b" style={{ borderColor: 'var(--studio-border)' }}>
         <div className="relative">
-          <Search 
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" 
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
             style={{ color: 'var(--studio-text-muted)' }}
           />
           <Input
@@ -379,41 +389,41 @@ export function BrowserPanel() {
       </div>
 
       {/* Tabs */}
-      <Tabs 
-        value={browserActiveTab} 
+      <Tabs
+        value={browserActiveTab}
         onValueChange={(value) => setBrowserActiveTab(value as any)}
         className="flex-1 flex flex-col"
       >
-        <TabsList 
+        <TabsList
           className="w-full h-10 grid grid-cols-4 rounded-none border-b"
           style={{
             background: 'var(--studio-bg-deep)',
             borderColor: 'var(--studio-border)',
           }}
         >
-          <TabsTrigger 
-            value="presets" 
+          <TabsTrigger
+            value="presets"
             className="text-xs data-[state=active]:bg-white/10"
             style={{ color: 'var(--studio-text-muted)' }}
           >
             Presets
           </TabsTrigger>
-          <TabsTrigger 
-            value="samples" 
+          <TabsTrigger
+            value="samples"
             className="text-xs data-[state=active]:bg-white/10"
             style={{ color: 'var(--studio-text-muted)' }}
           >
             Samples
           </TabsTrigger>
-          <TabsTrigger 
-            value="plugins" 
+          <TabsTrigger
+            value="plugins"
             className="text-xs data-[state=active]:bg-white/10"
             style={{ color: 'var(--studio-text-muted)' }}
           >
             Plugins
           </TabsTrigger>
-          <TabsTrigger 
-            value="files" 
+          <TabsTrigger
+            value="files"
             className="text-xs data-[state=active]:bg-white/10"
             style={{ color: 'var(--studio-text-muted)' }}
           >
@@ -425,7 +435,7 @@ export function BrowserPanel() {
           <div className="h-full overflow-auto">
             <div className="p-2 pb-4">
               {isLoading ? (
-                <div 
+                <div
                   className="flex flex-col items-center justify-center h-64 gap-3"
                   style={{ color: 'var(--studio-text-muted)' }}
                 >
@@ -433,7 +443,7 @@ export function BrowserPanel() {
                   <p className="text-sm">Loading...</p>
                 </div>
               ) : content.length === 0 ? (
-                <div 
+                <div
                   className="flex flex-col items-center justify-center h-64 gap-3"
                   style={{ color: 'var(--studio-text-muted)' }}
                 >
@@ -469,7 +479,7 @@ export function BrowserPanel() {
         </TabsContent>
       </Tabs>
 
-      <AssetUploadDialog 
+      <AssetUploadDialog
         open={uploadDialogOpen}
         onOpenChange={setUploadDialogOpen}
         assetType={browserActiveTab === 'samples' ? 'sample' : 'plugin'}

@@ -216,18 +216,18 @@ export function useAdvertisement() {
     // Data
     ads,
     aiInsights,
-    
+
     // Loading states
     isLoadingAds,
     isLoadingInsights,
-    
+
     // Mutations
     createCampaign,
     updateAd,
     deleteAd,
     generateAIContent,
     optimizeCampaign,
-    
+
     // Mutation states
     isCreating: createCampaignMutation.isPending,
     isUpdating: updateAdMutation.isPending,

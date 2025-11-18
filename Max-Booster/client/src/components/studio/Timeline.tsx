@@ -26,11 +26,18 @@ interface TimelineProps {
   tracks?: Track[];
   trackClips?: Map<string, AudioClip[]>;
   onTimelineClick: (e: React.MouseEvent<HTMLDivElement>) => void;
-  onClipUpdate?: (trackId: string, clipId: string, updates: { startTime?: number; duration?: number }) => void;
+  onClipUpdate?: (
+    trackId: string,
+    clipId: string,
+    updates: { startTime?: number; duration?: number }
+  ) => void;
   snapEnabled?: boolean;
   snapInterval?: number;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function Timeline({
   currentTime,
   loopEnabled,
@@ -46,82 +53,107 @@ export function Timeline({
   snapInterval = 0.25, // Quarter note at 120 BPM ≈ 0.5s, snap to 0.25s grid
 }: TimelineProps) {
   const [numerator] = timeSignature.split('/').map(Number);
-  const [draggingClip, setDraggingClip] = useState<{ clipId: string; trackId: string } | null>(null);
-  const [resizingClip, setResizingClip] = useState<{ clipId: string; trackId: string; edge: 'start' | 'end' } | null>(null);
+  const [draggingClip, setDraggingClip] = useState<{ clipId: string; trackId: string } | null>(
+    null
+  );
+  const [resizingClip, setResizingClip] = useState<{
+    clipId: string;
+    trackId: string;
+    edge: 'start' | 'end';
+  } | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
-  const [previewPosition, setPreviewPosition] = useState<{ startTime: number; endTime: number } | null>(null);
-  
+  const [previewPosition, setPreviewPosition] = useState<{
+    startTime: number;
+    endTime: number;
+  } | null>(null);
+
   const timelineRef = useRef<HTMLDivElement>(null);
 
-  const timelineMarkers = useMemo(() => 
-    Array.from({ length: 32 }).map((_, i) => {
-      const isBar = i % numerator === 0;
-      return {
-        index: i,
-        isBar,
-        label: isBar ? Math.floor(i / numerator) + 1 : ''
-      };
-    }),
+  const timelineMarkers = useMemo(
+    () =>
+      Array.from({ length: 32 }).map((_, i) => {
+        const isBar = i % numerator === 0;
+        return {
+          index: i,
+          isBar,
+          label: isBar ? Math.floor(i / numerator) + 1 : '',
+        };
+      }),
     [numerator]
   );
 
   // Convert pixel position to time
-  const pixelsToTime = useCallback((pixels: number): number => {
-    if (!timelineRef.current) return 0;
-    const width = timelineRef.current.offsetWidth;
-    return (pixels / width) * duration;
-  }, [duration]);
+  const pixelsToTime = useCallback(
+    (pixels: number): number => {
+      if (!timelineRef.current) return 0;
+      const width = timelineRef.current.offsetWidth;
+      return (pixels / width) * duration;
+    },
+    [duration]
+  );
 
   // Convert time to pixel position
-  const timeToPixels = useCallback((time: number): number => {
-    if (!timelineRef.current) return 0;
-    const width = timelineRef.current.offsetWidth;
-    return (time / duration) * width;
-  }, [duration]);
+  const timeToPixels = useCallback(
+    (time: number): number => {
+      if (!timelineRef.current) return 0;
+      const width = timelineRef.current.offsetWidth;
+      return (time / duration) * width;
+    },
+    [duration]
+  );
 
   // Snap time to grid
-  const snapToGrid = useCallback((time: number): number => {
-    if (!snapEnabled) return time;
-    return Math.round(time / snapInterval) * snapInterval;
-  }, [snapEnabled, snapInterval]);
+  const snapToGrid = useCallback(
+    (time: number): number => {
+      if (!snapEnabled) return time;
+      return Math.round(time / snapInterval) * snapInterval;
+    },
+    [snapEnabled, snapInterval]
+  );
 
   // Handle clip drag start
-  const handleClipDragStart = useCallback((e: React.MouseEvent, clipId: string, trackId: string, clip: AudioClip) => {
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickTime = pixelsToTime(clickX);
-    setDragOffset(clickTime);
-    setDraggingClip({ clipId, trackId });
-    setPreviewPosition({ startTime: clip.startTime, endTime: clip.startTime + clip.duration });
-  }, [pixelsToTime]);
+  const handleClipDragStart = useCallback(
+    (e: React.MouseEvent, clipId: string, trackId: string, clip: AudioClip) => {
+      e.stopPropagation();
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickTime = pixelsToTime(clickX);
+      setDragOffset(clickTime);
+      setDraggingClip({ clipId, trackId });
+      setPreviewPosition({ startTime: clip.startTime, endTime: clip.startTime + clip.duration });
+    },
+    [pixelsToTime]
+  );
 
   // Handle clip drag
-  const handleClipDrag = useCallback((e: React.MouseEvent) => {
-    if (!draggingClip || !timelineRef.current) return;
+  const handleClipDrag = useCallback(
+    (e: React.MouseEvent) => {
+      if (!draggingClip || !timelineRef.current) return;
 
-    const rect = timelineRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseTime = pixelsToTime(mouseX);
-    
-    // Find the clip being dragged
-    const clips = trackClips.get(draggingClip.trackId);
-    const clip = clips?.find(c => c.id === draggingClip.clipId);
-    if (!clip) return;
+      const rect = timelineRef.current.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseTime = pixelsToTime(mouseX);
 
-    const clipDuration = clip.duration;
-    let newStartTime = mouseTime - dragOffset;
-    
-    // Snap to grid
-    newStartTime = snapToGrid(newStartTime);
-    
-    // Clamp to timeline bounds
-    newStartTime = Math.max(0, Math.min(newStartTime, duration - clipDuration));
-    
-    const newEndTime = newStartTime + clipDuration;
-    
-    setPreviewPosition({ startTime: newStartTime, endTime: newEndTime });
-  }, [draggingClip, trackClips, pixelsToTime, snapToGrid, dragOffset, duration]);
+      // Find the clip being dragged
+      const clips = trackClips.get(draggingClip.trackId);
+      const clip = clips?.find((c) => c.id === draggingClip.clipId);
+      if (!clip) return;
+
+      const clipDuration = clip.duration;
+      let newStartTime = mouseTime - dragOffset;
+
+      // Snap to grid
+      newStartTime = snapToGrid(newStartTime);
+
+      // Clamp to timeline bounds
+      newStartTime = Math.max(0, Math.min(newStartTime, duration - clipDuration));
+
+      const newEndTime = newStartTime + clipDuration;
+
+      setPreviewPosition({ startTime: newStartTime, endTime: newEndTime });
+    },
+    [draggingClip, trackClips, pixelsToTime, snapToGrid, dragOffset, duration]
+  );
 
   // Handle clip drag end
   const handleClipDragEnd = useCallback(() => {
@@ -144,39 +176,51 @@ export function Timeline({
   }, [draggingClip, previewPosition, onClipUpdate]);
 
   // Handle resize start
-  const handleResizeStart = useCallback((e: React.MouseEvent, clipId: string, trackId: string, edge: 'start' | 'end', clip: AudioClip) => {
-    e.stopPropagation();
-    setResizingClip({ clipId, trackId, edge });
-    setPreviewPosition({ startTime: clip.startTime, endTime: clip.startTime + clip.duration });
-  }, []);
+  const handleResizeStart = useCallback(
+    (
+      e: React.MouseEvent,
+      clipId: string,
+      trackId: string,
+      edge: 'start' | 'end',
+      clip: AudioClip
+    ) => {
+      e.stopPropagation();
+      setResizingClip({ clipId, trackId, edge });
+      setPreviewPosition({ startTime: clip.startTime, endTime: clip.startTime + clip.duration });
+    },
+    []
+  );
 
   // Handle resize
-  const handleResize = useCallback((e: React.MouseEvent) => {
-    if (!resizingClip || !timelineRef.current) return;
+  const handleResize = useCallback(
+    (e: React.MouseEvent) => {
+      if (!resizingClip || !timelineRef.current) return;
 
-    const rect = timelineRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    let mouseTime = pixelsToTime(mouseX);
-    
-    // Snap to grid
-    mouseTime = snapToGrid(mouseTime);
-    
-    // Find the clip being resized
-    const clips = trackClips.get(resizingClip.trackId);
-    const clip = clips?.find(c => c.id === resizingClip.clipId);
-    if (!clip) return;
+      const rect = timelineRef.current.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      let mouseTime = pixelsToTime(mouseX);
 
-    let newStartTime = clip.startTime;
-    let newEndTime = clip.startTime + clip.duration;
+      // Snap to grid
+      mouseTime = snapToGrid(mouseTime);
 
-    if (resizingClip.edge === 'start') {
-      newStartTime = Math.max(0, Math.min(mouseTime, (clip.startTime + clip.duration) - 0.1)); // Min 0.1s clip
-    } else {
-      newEndTime = Math.max(clip.startTime + 0.1, Math.min(mouseTime, duration));
-    }
+      // Find the clip being resized
+      const clips = trackClips.get(resizingClip.trackId);
+      const clip = clips?.find((c) => c.id === resizingClip.clipId);
+      if (!clip) return;
 
-    setPreviewPosition({ startTime: newStartTime, endTime: newEndTime });
-  }, [resizingClip, trackClips, pixelsToTime, snapToGrid, duration]);
+      let newStartTime = clip.startTime;
+      let newEndTime = clip.startTime + clip.duration;
+
+      if (resizingClip.edge === 'start') {
+        newStartTime = Math.max(0, Math.min(mouseTime, clip.startTime + clip.duration - 0.1)); // Min 0.1s clip
+      } else {
+        newEndTime = Math.max(clip.startTime + 0.1, Math.min(mouseTime, duration));
+      }
+
+      setPreviewPosition({ startTime: newStartTime, endTime: newEndTime });
+    },
+    [resizingClip, trackClips, pixelsToTime, snapToGrid, duration]
+  );
 
   // Handle resize end
   const handleResizeEnd = useCallback(() => {
@@ -225,15 +269,22 @@ export function Timeline({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [draggingClip, resizingClip, handleClipDrag, handleClipDragEnd, handleResize, handleResizeEnd]);
+  }, [
+    draggingClip,
+    resizingClip,
+    handleClipDrag,
+    handleClipDragEnd,
+    handleResize,
+    handleResizeEnd,
+  ]);
 
   return (
     <div className="border-b" style={{ borderColor: 'var(--studio-border)' }}>
       {/* Time Ruler */}
-      <div 
+      <div
         ref={timelineRef}
         className="h-10 border-b relative cursor-pointer select-none"
-        style={{ 
+        style={{
           borderColor: 'var(--studio-border)',
           backgroundColor: 'var(--studio-bg-medium)',
         }}
@@ -247,7 +298,9 @@ export function Timeline({
               key={index}
               className="flex-1 text-xs pl-1 pt-1"
               style={{
-                borderRight: isBar ? '1px solid var(--studio-border)' : '1px solid var(--studio-bg-deep)',
+                borderRight: isBar
+                  ? '1px solid var(--studio-border)'
+                  : '1px solid var(--studio-bg-deep)',
                 color: isBar ? 'var(--studio-text)' : 'var(--studio-text-muted)',
               }}
             >
@@ -255,7 +308,7 @@ export function Timeline({
             </div>
           ))}
         </div>
-        
+
         {/* Loop Region Visualization */}
         {loopEnabled && (
           <div
@@ -271,7 +324,7 @@ export function Timeline({
             </div>
           </div>
         )}
-        
+
         {/* Playhead Position Indicator */}
         {duration > 0 && (
           <div
@@ -295,7 +348,7 @@ export function Timeline({
               <div
                 key={track.id}
                 className="h-16 border-b relative"
-                style={{ 
+                style={{
                   backgroundColor: `${track.color}10`,
                   borderColor: 'var(--studio-border)',
                 }}
@@ -306,17 +359,23 @@ export function Timeline({
                   const isDragging = draggingClip?.clipId === clip.id;
                   const isResizing = resizingClip?.clipId === clip.id;
                   const showPreview = isDragging || isResizing;
-                  
+
                   // Use preview position if dragging/resizing, otherwise use actual position
-                  const displayStartTime = showPreview && previewPosition ? previewPosition.startTime : clip.startTime;
-                  const displayEndTime = showPreview && previewPosition ? previewPosition.endTime : clip.startTime + clip.duration;
+                  const displayStartTime =
+                    showPreview && previewPosition ? previewPosition.startTime : clip.startTime;
+                  const displayEndTime =
+                    showPreview && previewPosition
+                      ? previewPosition.endTime
+                      : clip.startTime + clip.duration;
                   const displayDuration = displayEndTime - displayStartTime;
 
                   return (
                     <div
                       key={clip.id}
                       className={`absolute top-1 bottom-1 rounded overflow-hidden cursor-move transition-opacity ${
-                        isDragging || isResizing ? 'opacity-50 ring-2 ring-white' : 'hover:ring-2 hover:ring-blue-400'
+                        isDragging || isResizing
+                          ? 'opacity-50 ring-2 ring-white'
+                          : 'hover:ring-2 hover:ring-blue-400'
                       }`}
                       style={{
                         left: `${(displayStartTime / duration) * 100}%`,
@@ -335,7 +394,9 @@ export function Timeline({
                         {/* Resize handles */}
                         <div
                           className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/30 active:bg-white/50"
-                          onMouseDown={(e) => handleResizeStart(e, clip.id, track.id, 'start', clip)}
+                          onMouseDown={(e) =>
+                            handleResizeStart(e, clip.id, track.id, 'start', clip)
+                          }
                           data-testid={`clip-${clip.id}-resize-start`}
                         />
                         <div

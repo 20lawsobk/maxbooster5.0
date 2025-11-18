@@ -1,15 +1,21 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
   User,
   Lock,
   Bell,
@@ -21,26 +27,26 @@ import {
   Trash2,
   Upload,
   Eye,
-  EyeOff
-} from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { isUnauthorizedError } from "@/lib/authUtils";
+  EyeOff,
+} from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { isUnauthorizedError } from '@/lib/authUtils';
 
 export default function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.email || "",
-    bio: "",
-    website: "",
-    location: ""
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
+    bio: '',
+    website: '',
+    location: '',
   });
 
   const [notificationSettings, setNotificationSettings] = useState({
@@ -49,46 +55,46 @@ export default function Settings() {
     weeklyReports: true,
     newCollaborations: true,
     salesAlerts: true,
-    royaltyUpdates: true
+    royaltyUpdates: true,
   });
 
   const [preferences, setPreferences] = useState({
-    theme: "dark",
+    theme: 'dark',
     defaultBPM: 120,
-    defaultKey: "C",
+    defaultKey: 'C',
     autoSave: true,
-    betaFeatures: false
+    betaFeatures: false,
   });
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PUT", "/api/auth/profile", data);
+      const response = await apiRequest('PUT', '/api/auth/profile', data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       toast({
-        title: "Profile Updated",
-        description: "Your profile has been updated successfully.",
+        title: 'Profile Updated',
+        description: 'Your profile has been updated successfully.',
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error as Error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
+          title: 'Unauthorized',
+          description: 'You are logged out. Logging in again...',
+          variant: 'destructive',
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = '/api/login';
         }, 500);
         return;
       }
       toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update profile. Please try again.',
+        variant: 'destructive',
       });
     },
   });
@@ -99,12 +105,12 @@ export default function Settings() {
   };
 
   const handleNotificationChange = (key: string, value: boolean) => {
-    setNotificationSettings(prev => ({ ...prev, [key]: value }));
+    setNotificationSettings((prev) => ({ ...prev, [key]: value }));
     // TODO: Save notification settings to backend
   };
 
   const handlePreferenceChange = (key: string, value: any) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
+    setPreferences((prev) => ({ ...prev, [key]: value }));
     // TODO: Save preferences to backend
   };
 
@@ -116,9 +122,7 @@ export default function Settings() {
           <h1 className="text-3xl font-bold gradient-text mb-2" data-testid="text-settings-title">
             Settings
           </h1>
-          <p className="text-muted-foreground">
-            Manage your account settings and preferences
-          </p>
+          <p className="text-muted-foreground">Manage your account settings and preferences</p>
         </div>
       </div>
 
@@ -163,7 +167,8 @@ export default function Settings() {
                   <Avatar className="w-24 h-24">
                     <AvatarImage src={user?.profileImageUrl} />
                     <AvatarFallback className="text-2xl">
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      {user?.firstName?.[0]}
+                      {user?.lastName?.[0]}
                     </AvatarFallback>
                   </Avatar>
                   <div className="space-y-2">
@@ -185,7 +190,9 @@ export default function Settings() {
                     <Input
                       id="firstName"
                       value={profileData.firstName}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+                      onChange={(e) =>
+                        setProfileData((prev) => ({ ...prev, firstName: e.target.value }))
+                      }
                       data-testid="input-first-name"
                     />
                   </div>
@@ -194,7 +201,9 @@ export default function Settings() {
                     <Input
                       id="lastName"
                       value={profileData.lastName}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+                      onChange={(e) =>
+                        setProfileData((prev) => ({ ...prev, lastName: e.target.value }))
+                      }
                       data-testid="input-last-name"
                     />
                   </div>
@@ -206,7 +215,7 @@ export default function Settings() {
                     id="email"
                     type="email"
                     value={profileData.email}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) => setProfileData((prev) => ({ ...prev, email: e.target.value }))}
                     data-testid="input-email"
                   />
                 </div>
@@ -217,7 +226,7 @@ export default function Settings() {
                     id="bio"
                     placeholder="Tell us about yourself and your music..."
                     value={profileData.bio}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                    onChange={(e) => setProfileData((prev) => ({ ...prev, bio: e.target.value }))}
                     data-testid="textarea-bio"
                   />
                 </div>
@@ -229,7 +238,9 @@ export default function Settings() {
                       id="website"
                       placeholder="https://yourwebsite.com"
                       value={profileData.website}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, website: e.target.value }))}
+                      onChange={(e) =>
+                        setProfileData((prev) => ({ ...prev, website: e.target.value }))
+                      }
                       data-testid="input-website"
                     />
                   </div>
@@ -239,14 +250,20 @@ export default function Settings() {
                       id="location"
                       placeholder="City, Country"
                       value={profileData.location}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
+                      onChange={(e) =>
+                        setProfileData((prev) => ({ ...prev, location: e.target.value }))
+                      }
                       data-testid="input-location"
                     />
                   </div>
                 </div>
 
-                <Button type="submit" disabled={updateProfileMutation.isPending} data-testid="button-save-profile">
-                  {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+                <Button
+                  type="submit"
+                  disabled={updateProfileMutation.isPending}
+                  data-testid="button-save-profile"
+                >
+                  {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
                 </Button>
               </form>
             </CardContent>
@@ -268,7 +285,7 @@ export default function Settings() {
                     <div className="relative">
                       <Input
                         id="currentPassword"
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                         data-testid="input-current-password"
                       />
                       <Button
@@ -279,17 +296,17 @@ export default function Settings() {
                         onClick={() => setShowPassword(!showPassword)}
                         data-testid="button-toggle-password"
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
                   <div>
                     <Label htmlFor="newPassword">New Password</Label>
-                    <Input
-                      id="newPassword"
-                      type="password"
-                      data-testid="input-new-password"
-                    />
+                    <Input id="newPassword" type="password" data-testid="input-new-password" />
                   </div>
                   <div>
                     <Label htmlFor="confirmPassword">Confirm New Password</Label>
@@ -299,9 +316,7 @@ export default function Settings() {
                       data-testid="input-confirm-password"
                     />
                   </div>
-                  <Button data-testid="button-change-password">
-                    Change Password
-                  </Button>
+                  <Button data-testid="button-change-password">Change Password</Button>
                 </div>
               </div>
 
@@ -311,7 +326,9 @@ export default function Settings() {
                 <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg">
                   <div>
                     <p className="font-medium">Authenticator App</p>
-                    <p className="text-sm text-muted-foreground">Use an authenticator app for additional security</p>
+                    <p className="text-sm text-muted-foreground">
+                      Use an authenticator app for additional security
+                    </p>
                   </div>
                   <Button variant="outline" data-testid="button-setup-2fa">
                     Setup
@@ -354,10 +371,26 @@ export default function Settings() {
                 <h3 className="text-lg font-semibold mb-4">Email Notifications</h3>
                 <div className="space-y-4">
                   {[
-                    { key: "emailNotifications", label: "Email Notifications", description: "Receive notifications via email" },
-                    { key: "weeklyReports", label: "Weekly Reports", description: "Get weekly performance summaries" },
-                    { key: "royaltyUpdates", label: "Royalty Updates", description: "Notifications about new royalty payments" },
-                    { key: "salesAlerts", label: "Sales Alerts", description: "Instant notifications for beat sales" }
+                    {
+                      key: 'emailNotifications',
+                      label: 'Email Notifications',
+                      description: 'Receive notifications via email',
+                    },
+                    {
+                      key: 'weeklyReports',
+                      label: 'Weekly Reports',
+                      description: 'Get weekly performance summaries',
+                    },
+                    {
+                      key: 'royaltyUpdates',
+                      label: 'Royalty Updates',
+                      description: 'Notifications about new royalty payments',
+                    },
+                    {
+                      key: 'salesAlerts',
+                      label: 'Sales Alerts',
+                      description: 'Instant notifications for beat sales',
+                    },
                   ].map((setting) => (
                     <div key={setting.key} className="flex items-center justify-between">
                       <div>
@@ -365,8 +398,12 @@ export default function Settings() {
                         <p className="text-sm text-muted-foreground">{setting.description}</p>
                       </div>
                       <Switch
-                        checked={notificationSettings[setting.key as keyof typeof notificationSettings]}
-                        onCheckedChange={(checked) => handleNotificationChange(setting.key, checked)}
+                        checked={
+                          notificationSettings[setting.key as keyof typeof notificationSettings]
+                        }
+                        onCheckedChange={(checked) =>
+                          handleNotificationChange(setting.key, checked)
+                        }
                         data-testid={`switch-${setting.key}`}
                       />
                     </div>
@@ -379,8 +416,16 @@ export default function Settings() {
                 <h3 className="text-lg font-semibold mb-4">Push Notifications</h3>
                 <div className="space-y-4">
                   {[
-                    { key: "pushNotifications", label: "Push Notifications", description: "Receive push notifications on your devices" },
-                    { key: "newCollaborations", label: "Collaboration Requests", description: "Notifications for new collaboration invites" }
+                    {
+                      key: 'pushNotifications',
+                      label: 'Push Notifications',
+                      description: 'Receive push notifications on your devices',
+                    },
+                    {
+                      key: 'newCollaborations',
+                      label: 'Collaboration Requests',
+                      description: 'Notifications for new collaboration invites',
+                    },
                   ].map((setting) => (
                     <div key={setting.key} className="flex items-center justify-between">
                       <div>
@@ -388,8 +433,12 @@ export default function Settings() {
                         <p className="text-sm text-muted-foreground">{setting.description}</p>
                       </div>
                       <Switch
-                        checked={notificationSettings[setting.key as keyof typeof notificationSettings]}
-                        onCheckedChange={(checked) => handleNotificationChange(setting.key, checked)}
+                        checked={
+                          notificationSettings[setting.key as keyof typeof notificationSettings]
+                        }
+                        onCheckedChange={(checked) =>
+                          handleNotificationChange(setting.key, checked)
+                        }
                         data-testid={`switch-${setting.key}`}
                       />
                     </div>
@@ -414,7 +463,10 @@ export default function Settings() {
                     <p className="font-medium">Theme</p>
                     <p className="text-sm text-muted-foreground">Choose your preferred theme</p>
                   </div>
-                  <Select value={preferences.theme} onValueChange={(value) => handlePreferenceChange("theme", value)}>
+                  <Select
+                    value={preferences.theme}
+                    onValueChange={(value) => handlePreferenceChange('theme', value)}
+                  >
                     <SelectTrigger className="w-32" data-testid="select-theme">
                       <SelectValue />
                     </SelectTrigger>
@@ -434,23 +486,32 @@ export default function Settings() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">Default BPM</p>
-                      <p className="text-sm text-muted-foreground">Default tempo for new projects</p>
+                      <p className="text-sm text-muted-foreground">
+                        Default tempo for new projects
+                      </p>
                     </div>
                     <Input
                       type="number"
                       className="w-24"
                       value={preferences.defaultBPM}
-                      onChange={(e) => handlePreferenceChange("defaultBPM", parseInt(e.target.value))}
+                      onChange={(e) =>
+                        handlePreferenceChange('defaultBPM', parseInt(e.target.value))
+                      }
                       data-testid="input-default-bpm"
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">Default Key</p>
-                      <p className="text-sm text-muted-foreground">Default key signature for new projects</p>
+                      <p className="text-sm text-muted-foreground">
+                        Default key signature for new projects
+                      </p>
                     </div>
-                    <Select value={preferences.defaultKey} onValueChange={(value) => handlePreferenceChange("defaultKey", value)}>
+                    <Select
+                      value={preferences.defaultKey}
+                      onValueChange={(value) => handlePreferenceChange('defaultKey', value)}
+                    >
                       <SelectTrigger className="w-32" data-testid="select-default-key">
                         <SelectValue />
                       </SelectTrigger>
@@ -473,23 +534,27 @@ export default function Settings() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">Auto-save Projects</p>
-                      <p className="text-sm text-muted-foreground">Automatically save your work every few minutes</p>
+                      <p className="text-sm text-muted-foreground">
+                        Automatically save your work every few minutes
+                      </p>
                     </div>
                     <Switch
                       checked={preferences.autoSave}
-                      onCheckedChange={(checked) => handlePreferenceChange("autoSave", checked)}
+                      onCheckedChange={(checked) => handlePreferenceChange('autoSave', checked)}
                       data-testid="switch-auto-save"
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">Beta Features</p>
-                      <p className="text-sm text-muted-foreground">Enable experimental features and early access</p>
+                      <p className="text-sm text-muted-foreground">
+                        Enable experimental features and early access
+                      </p>
                     </div>
                     <Switch
                       checked={preferences.betaFeatures}
-                      onCheckedChange={(checked) => handlePreferenceChange("betaFeatures", checked)}
+                      onCheckedChange={(checked) => handlePreferenceChange('betaFeatures', checked)}
                       data-testid="switch-beta-features"
                     />
                   </div>
@@ -556,18 +621,26 @@ export default function Settings() {
                 <h3 className="text-lg font-semibold mb-4">Billing History</h3>
                 <div className="space-y-3">
                   {[
-                    { date: "Dec 1, 2024", amount: "$49.00", status: "Paid", invoice: "INV-001" },
-                    { date: "Nov 1, 2024", amount: "$49.00", status: "Paid", invoice: "INV-002" },
-                    { date: "Oct 1, 2024", amount: "$49.00", status: "Paid", invoice: "INV-003" }
+                    { date: 'Dec 1, 2024', amount: '$49.00', status: 'Paid', invoice: 'INV-001' },
+                    { date: 'Nov 1, 2024', amount: '$49.00', status: 'Paid', invoice: 'INV-002' },
+                    { date: 'Oct 1, 2024', amount: '$49.00', status: 'Paid', invoice: 'INV-003' },
                   ].map((billing, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted/20 rounded" data-testid={`billing-${index}`}>
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-muted/20 rounded"
+                      data-testid={`billing-${index}`}
+                    >
                       <div>
                         <p className="font-medium">{billing.date}</p>
                         <p className="text-sm text-muted-foreground">{billing.invoice}</p>
                       </div>
                       <div className="text-right">
                         <p className="font-medium">{billing.amount}</p>
-                        <Button variant="ghost" size="sm" data-testid={`button-download-invoice-${index}`}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          data-testid={`button-download-invoice-${index}`}
+                        >
                           <Download className="w-4 h-4" />
                         </Button>
                       </div>
@@ -590,21 +663,48 @@ export default function Settings() {
                 <h3 className="text-lg font-semibold mb-4">Recent Login Activity</h3>
                 <div className="space-y-3">
                   {[
-                    { device: "Chrome on Mac", location: "New York, US", time: "2 hours ago", current: true },
-                    { device: "Safari on iPhone", location: "New York, US", time: "1 day ago", current: false },
-                    { device: "Chrome on Windows", location: "Los Angeles, US", time: "3 days ago", current: false }
+                    {
+                      device: 'Chrome on Mac',
+                      location: 'New York, US',
+                      time: '2 hours ago',
+                      current: true,
+                    },
+                    {
+                      device: 'Safari on iPhone',
+                      location: 'New York, US',
+                      time: '1 day ago',
+                      current: false,
+                    },
+                    {
+                      device: 'Chrome on Windows',
+                      location: 'Los Angeles, US',
+                      time: '3 days ago',
+                      current: false,
+                    },
                   ].map((session, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted/20 rounded" data-testid={`session-${index}`}>
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-muted/20 rounded"
+                      data-testid={`session-${index}`}
+                    >
                       <div>
                         <p className="font-medium">{session.device}</p>
-                        <p className="text-sm text-muted-foreground">{session.location} • {session.time}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {session.location} • {session.time}
+                        </p>
                       </div>
                       <div className="flex items-center space-x-2">
                         {session.current && (
-                          <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">Current</span>
+                          <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">
+                            Current
+                          </span>
                         )}
                         {!session.current && (
-                          <Button variant="ghost" size="sm" data-testid={`button-terminate-session-${index}`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            data-testid={`button-terminate-session-${index}`}
+                          >
                             Terminate
                           </Button>
                         )}
@@ -628,11 +728,12 @@ export default function Settings() {
                       Request Data Export
                     </Button>
                   </div>
-                  
+
                   <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
                     <p className="font-medium mb-2 text-destructive">Delete Account</p>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Permanently delete your account and all associated data. This action cannot be undone.
+                      Permanently delete your account and all associated data. This action cannot be
+                      undone.
                     </p>
                     <Button variant="destructive" data-testid="button-delete-account">
                       <Trash2 className="w-4 h-4 mr-2" />

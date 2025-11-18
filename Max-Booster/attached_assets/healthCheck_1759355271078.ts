@@ -31,22 +31,26 @@ interface HealthStatus {
 }
 
 // Check database connectivity
-async function checkDatabase(): Promise<{ status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string }> {
+async function checkDatabase(): Promise<{
+  status: 'healthy' | 'unhealthy';
+  responseTime?: number;
+  error?: string;
+}> {
   try {
     const startTime = Date.now();
     // Simple query to test database connectivity
     const sql = neon(process.env.DATABASE_URL!);
     await sql`SELECT 1`;
     const responseTime = Date.now() - startTime;
-    
+
     return {
       status: 'healthy',
-      responseTime
+      responseTime,
     };
   } catch (error: any) {
     return {
       status: 'unhealthy',
-      error: error.message
+      error: error.message,
     };
   }
 }
@@ -55,7 +59,7 @@ async function checkDatabase(): Promise<{ status: 'healthy' | 'unhealthy'; respo
 function checkMemory(): { status: 'healthy' | 'degraded' | 'unhealthy'; usage: any } {
   const memUsage = process.memoryUsage();
   const heapPercent = (memUsage.heapUsed / memUsage.heapTotal) * 100;
-  
+
   let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
   if (heapPercent > 90) {
     status = 'unhealthy';
@@ -70,7 +74,7 @@ function checkMemory(): { status: 'healthy' | 'degraded' | 'unhealthy'; usage: a
       heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024), // MB
       heapPercent: Math.round(heapPercent),
       rss: Math.round(memUsage.rss / 1024 / 1024), // MB
-    }
+    },
   };
 }
 
@@ -89,7 +93,7 @@ function checkCPU(): { status: 'healthy' | 'degraded' | 'unhealthy'; loadAverage
 
   return {
     status,
-    loadAverage: loadAverage.map((load: number) => Math.round(load * 100) / 100)
+    loadAverage: loadAverage.map((load: number) => Math.round(load * 100) / 100),
   };
 }
 
@@ -97,12 +101,12 @@ function checkCPU(): { status: 'healthy' | 'degraded' | 'unhealthy'; loadAverage
 export async function healthCheck(req: Request, res: Response): Promise<void> {
   try {
     const startTime = Date.now();
-    
+
     // Run all health checks
     const [databaseCheck, memoryCheck, cpuCheck] = await Promise.all([
       checkDatabase(),
       Promise.resolve(checkMemory()),
-      Promise.resolve(checkCPU())
+      Promise.resolve(checkCPU()),
     ]);
 
     const health: HealthStatus = {
@@ -113,9 +117,9 @@ export async function healthCheck(req: Request, res: Response): Promise<void> {
       services: {
         database: databaseCheck,
         memory: memoryCheck,
-        cpu: cpuCheck
+        cpu: cpuCheck,
       },
-      environment: process.env.NODE_ENV || 'development'
+      environment: process.env.NODE_ENV || 'development',
     };
 
     // Determine overall status
@@ -130,8 +134,7 @@ export async function healthCheck(req: Request, res: Response): Promise<void> {
     res.set('X-Response-Time', `${responseTime}ms`);
 
     // Set appropriate HTTP status
-    const httpStatus = health.status === 'healthy' ? 200 : 
-                      health.status === 'degraded' ? 200 : 503;
+    const httpStatus = health.status === 'healthy' ? 200 : health.status === 'degraded' ? 200 : 503;
 
     res.status(httpStatus).json(health);
   } catch (error) {
@@ -139,7 +142,7 @@ export async function healthCheck(req: Request, res: Response): Promise<void> {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
       error: 'Health check failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
@@ -149,26 +152,26 @@ export async function readinessCheck(req: Request, res: Response): Promise<void>
   try {
     // Check only critical dependencies
     const dbCheck = await checkDatabase();
-    
+
     if (dbCheck.status === 'healthy') {
       res.status(200).json({
         status: 'ready',
         timestamp: new Date().toISOString(),
-        database: dbCheck.status
+        database: dbCheck.status,
       });
     } else {
       res.status(503).json({
         status: 'not-ready',
         timestamp: new Date().toISOString(),
         database: dbCheck.status,
-        error: dbCheck.error
+        error: dbCheck.error,
       });
     }
   } catch (error) {
     res.status(503).json({
       status: 'not-ready',
       timestamp: new Date().toISOString(),
-      error: 'Readiness check failed'
+      error: 'Readiness check failed',
     });
   }
 }
@@ -178,6 +181,6 @@ export function livenessCheck(req: Request, res: Response): void {
   res.status(200).json({
     status: 'alive',
     timestamp: new Date().toISOString(),
-    uptime: Math.floor(process.uptime())
+    uptime: Math.floor(process.uptime()),
   });
 }

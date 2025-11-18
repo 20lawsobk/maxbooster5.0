@@ -22,12 +22,12 @@ function logTest(name: string, status: 'PASS' | 'FAIL', duration: number, error?
   if (error) {
     console.log(`   Error: ${error}`);
   }
-  
+
   results.push({
     name,
     passed: status === 'PASS',
     duration,
-    error
+    error,
   });
 }
 
@@ -36,11 +36,11 @@ async function testStripeConnection() {
   try {
     const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-11-20.acacia' });
     const account = await stripe.accounts.retrieve();
-    
+
     if (!account) {
       throw new Error('Failed to retrieve Stripe account');
     }
-    
+
     logTest('Stripe Connection', 'PASS', Date.now() - startTime);
     return stripe;
   } catch (error: any) {
@@ -54,28 +54,28 @@ async function testProductsAndPrices(stripe: Stripe) {
   try {
     // Check if our products exist
     const products = await stripe.products.list({ limit: 10 });
-    const maxBoosterProduct = products.data.find(p => p.name.includes('Max Booster'));
-    
+    const maxBoosterProduct = products.data.find((p) => p.name.includes('Max Booster'));
+
     if (!maxBoosterProduct) {
       throw new Error('Max Booster product not found in Stripe');
     }
-    
+
     // Check prices
     const prices = await stripe.prices.list({ product: maxBoosterProduct.id });
-    
-    const monthlyPrice = prices.data.find(p => p.unit_amount === 4900);
-    const yearlyPrice = prices.data.find(p => p.unit_amount === 46800);
-    const lifetimePrice = prices.data.find(p => p.unit_amount === 69900);
-    
+
+    const monthlyPrice = prices.data.find((p) => p.unit_amount === 4900);
+    const yearlyPrice = prices.data.find((p) => p.unit_amount === 46800);
+    const lifetimePrice = prices.data.find((p) => p.unit_amount === 69900);
+
     if (!monthlyPrice || !yearlyPrice || !lifetimePrice) {
       throw new Error('Not all price tiers found (expected $49, $468, $699)');
     }
-    
+
     console.log('   Found prices:');
     console.log(`   - Monthly: $${monthlyPrice.unit_amount! / 100} (${monthlyPrice.id})`);
     console.log(`   - Yearly: $${yearlyPrice.unit_amount! / 100} (${yearlyPrice.id})`);
     console.log(`   - Lifetime: $${lifetimePrice.unit_amount! / 100} (${lifetimePrice.id})`);
-    
+
     logTest('Products and Prices Validation', 'PASS', Date.now() - startTime);
     return { monthlyPrice, yearlyPrice, lifetimePrice };
   } catch (error: any) {
@@ -84,7 +84,12 @@ async function testProductsAndPrices(stripe: Stripe) {
   }
 }
 
-async function testCheckoutSession(stripe: Stripe, priceId: string, planName: string, isRecurring: boolean = true) {
+async function testCheckoutSession(
+  stripe: Stripe,
+  priceId: string,
+  planName: string,
+  isRecurring: boolean = true
+) {
   const startTime = Date.now();
   try {
     const session = await stripe.checkout.sessions.create({
@@ -99,21 +104,26 @@ async function testCheckoutSession(stripe: Stripe, priceId: string, planName: st
       cancel_url: `${BASE_URL}/cancel`,
       metadata: {
         test: 'true',
-        plan: planName
-      }
+        plan: planName,
+      },
     });
-    
+
     if (!session.id || !session.url) {
       throw new Error('Checkout session created but missing required fields');
     }
-    
+
     console.log(`   Session ID: ${session.id}`);
     console.log(`   Checkout URL: ${session.url}`);
-    
+
     logTest(`Checkout Session Creation (${planName})`, 'PASS', Date.now() - startTime);
     return session;
   } catch (error: any) {
-    logTest(`Checkout Session Creation (${planName})`, 'FAIL', Date.now() - startTime, error.message);
+    logTest(
+      `Checkout Session Creation (${planName})`,
+      'FAIL',
+      Date.now() - startTime,
+      error.message
+    );
     return null;
   }
 }
@@ -125,10 +135,10 @@ async function testSubscriptionCreation(stripe: Stripe, priceId: string, planNam
     const customer = await stripe.customers.create({
       email: `test-${Date.now()}@maxbooster.test`,
       metadata: {
-        test: 'true'
-      }
+        test: 'true',
+      },
     });
-    
+
     // Create test payment method
     const paymentMethod = await stripe.paymentMethods.create({
       type: 'card',
@@ -136,37 +146,37 @@ async function testSubscriptionCreation(stripe: Stripe, priceId: string, planNam
         token: 'tok_visa', // Stripe test token
       },
     });
-    
+
     // Attach payment method to customer
     await stripe.paymentMethods.attach(paymentMethod.id, {
       customer: customer.id,
     });
-    
+
     // Set as default payment method
     await stripe.customers.update(customer.id, {
       invoice_settings: {
         default_payment_method: paymentMethod.id,
       },
     });
-    
+
     // Create subscription
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
       items: [{ price: priceId }],
       metadata: {
         test: 'true',
-        plan: planName
-      }
+        plan: planName,
+      },
     });
-    
+
     console.log(`   Subscription ID: ${subscription.id}`);
     console.log(`   Status: ${subscription.status}`);
     console.log(`   Customer: ${customer.id}`);
-    
+
     // Clean up test data
     await stripe.subscriptions.cancel(subscription.id);
     await stripe.customers.del(customer.id);
-    
+
     logTest(`Subscription Creation (${planName})`, 'PASS', Date.now() - startTime);
     return subscription;
   } catch (error: any) {
@@ -180,14 +190,14 @@ async function testWebhookEventRetrieval(stripe: Stripe) {
   try {
     // List recent webhook events
     const events = await stripe.events.list({ limit: 5 });
-    
+
     console.log(`   Found ${events.data.length} recent events`);
-    
+
     if (events.data.length > 0) {
       const latestEvent = events.data[0];
       console.log(`   Latest event: ${latestEvent.type} (${latestEvent.id})`);
     }
-    
+
     logTest('Webhook Event Retrieval', 'PASS', Date.now() - startTime);
     return events;
   } catch (error: any) {
@@ -209,17 +219,17 @@ async function testStripeConnect(stripe: Stripe) {
         transfers: { requested: true },
       },
       metadata: {
-        test: 'true'
-      }
+        test: 'true',
+      },
     });
-    
+
     console.log(`   Connect Account ID: ${account.id}`);
     console.log(`   Type: ${account.type}`);
     console.log(`   Capabilities: ${Object.keys(account.capabilities || {}).join(', ')}`);
-    
+
     // Clean up
     await stripe.accounts.del(account.id);
-    
+
     logTest('Stripe Connect Account Creation', 'PASS', Date.now() - startTime);
     return account;
   } catch (error: any) {
@@ -241,19 +251,19 @@ async function testInstantPayout(stripe: Stripe) {
         transfers: { requested: true },
       },
       metadata: {
-        test: 'true'
-      }
+        test: 'true',
+      },
     });
-    
+
     console.log(`   Created Connect account: ${account.id}`);
-    
+
     // Note: In test mode, we can't actually create transfers without a real charge
     // But we can verify the transfer creation structure
     console.log('   Transfer structure validated (requires live charges for actual transfer)');
-    
+
     // Clean up
     await stripe.accounts.del(account.id);
-    
+
     logTest('Instant Payout Structure Validation', 'PASS', Date.now() - startTime);
     return true;
   } catch (error: any) {
@@ -271,14 +281,14 @@ async function testRefundCapability(stripe: Stripe) {
       currency: 'usd',
       payment_method_types: ['card'],
       metadata: {
-        test: 'true'
-      }
+        test: 'true',
+      },
     });
-    
+
     console.log(`   Payment Intent ID: ${paymentIntent.id}`);
     console.log(`   Status: ${paymentIntent.status}`);
     console.log(`   Refund capability validated`);
-    
+
     logTest('Refund Capability Validation', 'PASS', Date.now() - startTime);
     return paymentIntent;
   } catch (error: any) {
@@ -294,22 +304,22 @@ async function testCustomerPortal(stripe: Stripe) {
     const customer = await stripe.customers.create({
       email: `portal-test-${Date.now()}@maxbooster.test`,
       metadata: {
-        test: 'true'
-      }
+        test: 'true',
+      },
     });
-    
+
     // Create billing portal session
     const session = await stripe.billingPortal.sessions.create({
       customer: customer.id,
       return_url: `${BASE_URL}/settings`,
     });
-    
+
     console.log(`   Portal Session ID: ${session.id}`);
     console.log(`   Portal URL: ${session.url}`);
-    
+
     // Clean up
     await stripe.customers.del(customer.id);
-    
+
     logTest('Customer Portal Session Creation', 'PASS', Date.now() - startTime);
     return session;
   } catch (error: any) {
@@ -322,39 +332,39 @@ async function runAllTests() {
   console.log('\n💳 Max Booster Platform - Payment Processing Tests\n');
   console.log('='.repeat(60));
   console.log('Testing Stripe integration and payment features...\n');
-  
+
   if (!STRIPE_SECRET_KEY) {
     console.log('❌ STRIPE_SECRET_KEY not found in environment variables');
     console.log('   Please set your Stripe secret key to run payment tests');
     process.exit(1);
   }
-  
+
   const keyType = STRIPE_SECRET_KEY.startsWith('sk_live') ? 'LIVE' : 'TEST';
   console.log(`🔑 Using Stripe ${keyType} key: ${STRIPE_SECRET_KEY.substring(0, 15)}...\n`);
-  
+
   if (keyType === 'LIVE') {
     console.log('⚠️  WARNING: Using LIVE Stripe key - tests will create real data!');
     console.log('   Consider using a test key (sk_test_...) for testing\n');
   }
-  
+
   try {
     console.log('🔌 Testing Stripe Connection...');
     console.log('-'.repeat(60));
     const stripe = await testStripeConnection();
     console.log();
-    
+
     console.log('💰 Testing Products and Prices...');
     console.log('-'.repeat(60));
     const { monthlyPrice, yearlyPrice, lifetimePrice } = await testProductsAndPrices(stripe);
     console.log();
-    
+
     console.log('🛒 Testing Checkout Sessions...');
     console.log('-'.repeat(60));
     await testCheckoutSession(stripe, monthlyPrice.id, 'Monthly', true);
     await testCheckoutSession(stripe, yearlyPrice.id, 'Yearly', true);
     await testCheckoutSession(stripe, lifetimePrice.id, 'Lifetime', false);
     console.log();
-    
+
     if (keyType === 'TEST') {
       console.log('📋 Testing Subscription Creation (Test Mode Only)...');
       console.log('-'.repeat(60));
@@ -363,61 +373,60 @@ async function runAllTests() {
     } else {
       console.log('⏭️  Skipping subscription creation tests (LIVE mode)\n');
     }
-    
+
     console.log('🪝 Testing Webhook Events...');
     console.log('-'.repeat(60));
     await testWebhookEventRetrieval(stripe);
     console.log();
-    
+
     console.log('🔗 Testing Stripe Connect...');
     console.log('-'.repeat(60));
     await testStripeConnect(stripe);
     console.log();
-    
+
     console.log('⚡ Testing Instant Payouts...');
     console.log('-'.repeat(60));
     await testInstantPayout(stripe);
     console.log();
-    
+
     console.log('💸 Testing Refund Capabilities...');
     console.log('-'.repeat(60));
     await testRefundCapability(stripe);
     console.log();
-    
+
     console.log('🎫 Testing Customer Portal...');
     console.log('-'.repeat(60));
     await testCustomerPortal(stripe);
     console.log();
-    
   } catch (error: any) {
     console.log(`\n❌ Critical error during testing: ${error.message}\n`);
   }
-  
+
   // Print summary
   console.log('='.repeat(60));
   console.log('📊 TEST SUMMARY');
   console.log('='.repeat(60));
   console.log();
-  
+
   const totalTests = results.length;
-  const passedTests = results.filter(r => r.passed).length;
-  const failedTests = results.filter(r => !r.passed).length;
+  const passedTests = results.filter((r) => r.passed).length;
+  const failedTests = results.filter((r) => !r.passed).length;
   const successRate = ((passedTests / totalTests) * 100).toFixed(1);
-  
+
   console.log(`Total Tests: ${totalTests}`);
   console.log(`✅ Passed: ${passedTests}`);
   console.log(`❌ Failed: ${failedTests}`);
   console.log(`Success Rate: ${successRate}%\n`);
-  
+
   console.log('Detailed Results:');
-  results.forEach(result => {
+  results.forEach((result) => {
     const icon = result.passed ? '✅' : '❌';
     const paddedName = result.name.padEnd(45);
     console.log(`  ${icon} ${paddedName} ${result.duration}ms`);
   });
-  
+
   console.log();
-  
+
   if (failedTests === 0) {
     console.log('🎉 All payment processing tests passed!');
     console.log('Max Booster payment system is ready for production.\n');
@@ -429,7 +438,7 @@ async function runAllTests() {
 }
 
 // Run tests
-runAllTests().catch(error => {
+runAllTests().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

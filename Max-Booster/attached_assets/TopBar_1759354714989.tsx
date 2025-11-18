@@ -34,39 +34,32 @@ export function TopBar({ title, subtitle }: TopBarProps) {
       <div className="flex items-center space-x-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-          {subtitle && (
-            <p className="text-gray-500">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-gray-500">{subtitle}</p>}
         </div>
       </div>
-      
+
       <div className="flex items-center space-x-4">
         {/* Search Bar */}
         <div className="hidden md:flex relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search projects, analytics..."
-            className="pl-10 w-80"
-          />
+          <Input placeholder="Search projects, analytics..." className="pl-10 w-80" />
         </div>
-        
+
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
-          <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-red-500">
-            3
-          </Badge>
+          <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-red-500">3</Badge>
         </Button>
-        
+
         {/* User Profile */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center space-x-3 h-auto p-2">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username}`} />
-                <AvatarFallback>
-                  {user?.username?.charAt(0)?.toUpperCase()}
-                </AvatarFallback>
+                <AvatarImage
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username}`}
+                />
+                <AvatarFallback>{user?.username?.charAt(0)?.toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="hidden md:block text-left">
                 <p className="text-sm font-medium text-gray-900">{user?.username}</p>
@@ -90,9 +83,7 @@ export function TopBar({ title, subtitle }: TopBarProps) {
                 <DropdownMenuSeparator />
               </>
             )}
-            <DropdownMenuItem onClick={handleLogout}>
-              Log out
-            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

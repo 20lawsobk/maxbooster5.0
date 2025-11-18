@@ -16,7 +16,7 @@ import {
   Brain,
   Rocket,
   Shield,
-  Crown
+  Crown,
 } from 'lucide-react';
 
 interface AdCampaign {
@@ -70,14 +70,14 @@ const objectiveIcons = {
   traffic: MousePointerClick,
   engagement: Users,
   conversions: Play,
-  followers: TrendingUp
+  followers: TrendingUp,
 };
 
 export default function AdCard({ ad, onEdit, onDelete, onView }: AdCardProps) {
   const { deleteAd, isDeleting } = useAdvertisement();
-  
+
   const ObjectiveIcon = objectiveIcons[ad.objective as keyof typeof objectiveIcons] || Eye;
-  
+
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this campaign?')) {
       deleteAd(ad.id);
@@ -105,15 +105,13 @@ export default function AdCard({ ad, onEdit, onDelete, onView }: AdCardProps) {
             <ObjectiveIcon className="w-5 h-5 text-blue-600" />
             <CardTitle className="text-lg">{ad.name}</CardTitle>
           </div>
-          <Badge className={getStatusColor(ad.status)}>
-            {ad.status}
-          </Badge>
+          <Badge className={getStatusColor(ad.status)}>{ad.status}</Badge>
         </div>
         <p className="text-sm text-muted-foreground capitalize">
           {ad.objective.replace(/([A-Z])/g, ' $1').trim()}
         </p>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* AI Optimization Badge */}
         {ad.aiOptimizations && (
@@ -128,11 +126,15 @@ export default function AdCard({ ad, onEdit, onDelete, onView }: AdCardProps) {
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
                 <span className="text-muted-foreground">Performance:</span>
-                <div className="font-semibold text-green-600">{ad.aiOptimizations.performanceBoost}</div>
+                <div className="font-semibold text-green-600">
+                  {ad.aiOptimizations.performanceBoost}
+                </div>
               </div>
               <div>
                 <span className="text-muted-foreground">Cost:</span>
-                <div className="font-semibold text-green-600">{ad.aiOptimizations.costReduction}</div>
+                <div className="font-semibold text-green-600">
+                  {ad.aiOptimizations.costReduction}
+                </div>
               </div>
               <div>
                 <span className="text-muted-foreground">Viral Score:</span>
@@ -162,12 +164,15 @@ export default function AdCard({ ad, onEdit, onDelete, onView }: AdCardProps) {
               <div>
                 <span className="text-muted-foreground">Connected:</span>
                 <div className="font-semibold text-blue-600">
-                  {ad.personalAdNetwork.connectedAccounts}/{ad.personalAdNetwork.totalPlatforms} Platforms
+                  {ad.personalAdNetwork.connectedAccounts}/{ad.personalAdNetwork.totalPlatforms}{' '}
+                  Platforms
                 </div>
               </div>
               <div>
                 <span className="text-muted-foreground">Network Strength:</span>
-                <div className="font-semibold text-green-600">{ad.personalAdNetwork.networkStrength}%</div>
+                <div className="font-semibold text-green-600">
+                  {ad.personalAdNetwork.networkStrength}%
+                </div>
               </div>
             </div>
             <div className="text-xs text-muted-foreground">
@@ -216,7 +221,9 @@ export default function AdCard({ ad, onEdit, onDelete, onView }: AdCardProps) {
             <div className="grid grid-cols-4 gap-2">
               {Object.entries(ad.connectedPlatforms).map(([platform, status]) => (
                 <div key={platform} className="flex items-center space-x-1">
-                  <div className={`w-2 h-2 rounded-full ${status === 'Connected' ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  <div
+                    className={`w-2 h-2 rounded-full ${status === 'Connected' ? 'bg-green-500' : 'bg-gray-400'}`}
+                  />
                   <span className="text-xs capitalize">{platform}</span>
                 </div>
               ))}
@@ -226,8 +233,8 @@ export default function AdCard({ ad, onEdit, onDelete, onView }: AdCardProps) {
 
         {/* Action Buttons */}
         <div className="flex justify-end space-x-2 pt-3 border-t border-blue-200 dark:border-blue-700">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => onView(ad.id)}
             className="border-blue-200 text-blue-600 hover:bg-blue-50"
@@ -235,8 +242,8 @@ export default function AdCard({ ad, onEdit, onDelete, onView }: AdCardProps) {
             <Eye className="w-3 h-3 mr-1" />
             View
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => onEdit(ad.id)}
             className="border-blue-200 text-blue-600 hover:bg-blue-50"
@@ -244,8 +251,8 @@ export default function AdCard({ ad, onEdit, onDelete, onView }: AdCardProps) {
             <Edit2 className="w-3 h-3 mr-1" />
             Edit
           </Button>
-          <Button 
-            variant="destructive" 
+          <Button
+            variant="destructive"
             size="sm"
             onClick={handleDelete}
             disabled={isDeleting}

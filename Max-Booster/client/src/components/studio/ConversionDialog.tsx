@@ -11,22 +11,19 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Download, 
-  X, 
-  RefreshCw, 
-  FileAudio, 
-  Check,
-  Loader2,
-  Plus,
-  AlertCircle
-} from 'lucide-react';
+import { Download, X, RefreshCw, FileAudio, Check, Loader2, Plus, AlertCircle } from 'lucide-react';
 
 interface ConversionDialogProps {
   open: boolean;
@@ -62,13 +59,41 @@ const FORMAT_OPTIONS = [
 ];
 
 const QUALITY_OPTIONS = [
-  { value: 'low', label: 'Low', description: '128 kbps / 44.1 kHz', formats: ['mp3', 'aac', 'm4a', 'ogg'] },
-  { value: 'medium', label: 'Medium', description: '192 kbps / 44.1 kHz', formats: ['mp3', 'aac', 'm4a', 'ogg'] },
-  { value: 'high', label: 'High', description: '320 kbps / 48 kHz', formats: ['mp3', 'aac', 'm4a', 'ogg'] },
-  { value: 'lossless', label: 'Lossless', description: '48 kHz uncompressed', formats: ['wav', 'flac'] },
+  {
+    value: 'low',
+    label: 'Low',
+    description: '128 kbps / 44.1 kHz',
+    formats: ['mp3', 'aac', 'm4a', 'ogg'],
+  },
+  {
+    value: 'medium',
+    label: 'Medium',
+    description: '192 kbps / 44.1 kHz',
+    formats: ['mp3', 'aac', 'm4a', 'ogg'],
+  },
+  {
+    value: 'high',
+    label: 'High',
+    description: '320 kbps / 48 kHz',
+    formats: ['mp3', 'aac', 'm4a', 'ogg'],
+  },
+  {
+    value: 'lossless',
+    label: 'Lossless',
+    description: '48 kHz uncompressed',
+    formats: ['wav', 'flac'],
+  },
 ];
 
-export function ConversionDialog({ open, onOpenChange, projectId, availableFiles = [] }: ConversionDialogProps) {
+/**
+ * TODO: Add function documentation
+ */
+export function ConversionDialog({
+  open,
+  onOpenChange,
+  projectId,
+  availableFiles = [],
+}: ConversionDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [targetFormat, setTargetFormat] = useState<string>('mp3');
@@ -78,7 +103,7 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
   // Fetch conversion history
   const { data: conversions = [], isLoading: conversionsLoading } = useQuery<Conversion[]>({
     queryKey: projectId ? ['/api/studio/conversions', projectId] : ['/api/studio/conversions'],
-    queryFn: projectId 
+    queryFn: projectId
       ? async () => {
           const response = await fetch(`/api/studio/conversions?projectId=${projectId}`);
           if (!response.ok) throw new Error('Failed to fetch conversions');
@@ -88,7 +113,9 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
     refetchInterval: (query) => {
       // Poll every 1 second if there are active conversions
       const data = query.state.data;
-      const hasActive = Array.isArray(data) && data.some(c => c.status === 'pending' || c.status === 'processing');
+      const hasActive =
+        Array.isArray(data) &&
+        data.some((c) => c.status === 'pending' || c.status === 'processing');
       return hasActive ? 1000 : false;
     },
     enabled: open,
@@ -96,7 +123,11 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
 
   // Create conversion mutation
   const createConversion = useMutation({
-    mutationFn: async (data: { sourceFilePath: string; targetFormat: string; qualityPreset: string }) => {
+    mutationFn: async (data: {
+      sourceFilePath: string;
+      targetFormat: string;
+      qualityPreset: string;
+    }) => {
       return await apiRequest('/api/studio/conversions', {
         method: 'POST',
         body: JSON.stringify({
@@ -112,7 +143,7 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
         description: 'Your file is being converted in the background.',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Conversion failed',
         description: error.message || 'Failed to start conversion',
@@ -134,7 +165,7 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
         title: 'Conversion cancelled',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Cancellation failed',
         description: error.message,
@@ -156,7 +187,7 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
 
   // Handle select all/none
   const selectAll = () => {
-    setSelectedFiles(new Set(availableFiles.map(f => f.path)));
+    setSelectedFiles(new Set(availableFiles.map((f) => f.path)));
   };
 
   const selectNone = () => {
@@ -220,7 +251,7 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
         description: 'Converted file has been added as a clip.',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Failed to add to project',
         description: error.message,
@@ -230,20 +261,23 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
   });
 
   // Filter quality options based on selected format
-  const availableQualityOptions = QUALITY_OPTIONS.filter(option =>
+  const availableQualityOptions = QUALITY_OPTIONS.filter((option) =>
     option.formats.includes(targetFormat)
   );
 
   // Auto-adjust quality preset when format changes
   useEffect(() => {
-    if (!availableQualityOptions.some(opt => opt.value === qualityPreset)) {
+    if (!availableQualityOptions.some((opt) => opt.value === qualityPreset)) {
       setQualityPreset(availableQualityOptions[0]?.value || 'high');
     }
   }, [targetFormat, qualityPreset, availableQualityOptions]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col" data-testid="dialog-conversion">
+      <DialogContent
+        className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+        data-testid="dialog-conversion"
+      >
         <DialogHeader>
           <DialogTitle data-testid="text-conversion-title">Audio Format Conversion</DialogTitle>
           <DialogDescription data-testid="text-conversion-description">
@@ -255,14 +289,20 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
           {/* Conversion Settings */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="target-format" data-testid="label-target-format">Target Format</Label>
+              <Label htmlFor="target-format" data-testid="label-target-format">
+                Target Format
+              </Label>
               <Select value={targetFormat} onValueChange={setTargetFormat}>
                 <SelectTrigger id="target-format" data-testid="select-target-format">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent data-testid="select-content-format">
                   {FORMAT_OPTIONS.map((format) => (
-                    <SelectItem key={format.value} value={format.value} data-testid={`option-format-${format.value}`}>
+                    <SelectItem
+                      key={format.value}
+                      value={format.value}
+                      data-testid={`option-format-${format.value}`}
+                    >
                       <div>
                         <div className="font-medium">{format.label}</div>
                         <div className="text-xs text-muted-foreground">{format.description}</div>
@@ -274,14 +314,20 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="quality-preset" data-testid="label-quality-preset">Quality Preset</Label>
+              <Label htmlFor="quality-preset" data-testid="label-quality-preset">
+                Quality Preset
+              </Label>
               <Select value={qualityPreset} onValueChange={setQualityPreset}>
                 <SelectTrigger id="quality-preset" data-testid="select-quality-preset">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent data-testid="select-content-quality">
                   {availableQualityOptions.map((quality) => (
-                    <SelectItem key={quality.value} value={quality.value} data-testid={`option-quality-${quality.value}`}>
+                    <SelectItem
+                      key={quality.value}
+                      value={quality.value}
+                      data-testid={`option-quality-${quality.value}`}
+                    >
                       <div>
                         <div className="font-medium">{quality.label}</div>
                         <div className="text-xs text-muted-foreground">{quality.description}</div>
@@ -342,7 +388,10 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
                         {file.name}
                       </span>
                       {file.size && (
-                        <span className="text-xs text-muted-foreground" data-testid={`text-filesize-${file.path}`}>
+                        <span
+                          className="text-xs text-muted-foreground"
+                          data-testid={`text-filesize-${file.path}`}
+                        >
                           {(file.size / 1024 / 1024).toFixed(2)} MB
                         </span>
                       )}
@@ -366,7 +415,9 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
               </>
             ) : (
               <>
-                Convert {selectedFiles.size > 0 && `(${selectedFiles.size} file${selectedFiles.size > 1 ? 's' : ''})`}
+                Convert{' '}
+                {selectedFiles.size > 0 &&
+                  `(${selectedFiles.size} file${selectedFiles.size > 1 ? 's' : ''})`}
               </>
             )}
           </Button>
@@ -376,13 +427,22 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
           {/* Conversion Queue */}
           <div className="space-y-2 flex-1 overflow-hidden flex flex-col">
             <Label data-testid="label-conversion-queue">Conversion Queue</Label>
-            <ScrollArea className="flex-1 border rounded-md p-4" data-testid="scroll-conversion-queue">
+            <ScrollArea
+              className="flex-1 border rounded-md p-4"
+              data-testid="scroll-conversion-queue"
+            >
               {conversionsLoading ? (
-                <div className="flex items-center justify-center py-8" data-testid="loading-conversions">
+                <div
+                  className="flex items-center justify-center py-8"
+                  data-testid="loading-conversions"
+                >
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
               ) : conversions.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8" data-testid="text-no-conversions">
+                <div
+                  className="text-center text-muted-foreground py-8"
+                  data-testid="text-no-conversions"
+                >
                   No conversions yet
                 </div>
               ) : (
@@ -395,19 +455,28 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium truncate" data-testid={`text-conversion-source-${conversion.id}`}>
+                          <div
+                            className="text-sm font-medium truncate"
+                            data-testid={`text-conversion-source-${conversion.id}`}
+                          >
                             {conversion.sourceFilePath.split('/').pop()}
                           </div>
-                          <div className="text-xs text-muted-foreground" data-testid={`text-conversion-format-${conversion.id}`}>
+                          <div
+                            className="text-xs text-muted-foreground"
+                            data-testid={`text-conversion-format-${conversion.id}`}
+                          >
                             {conversion.targetFormat.toUpperCase()} · {conversion.qualityPreset}
                           </div>
                         </div>
                         <Badge
                           variant={
-                            conversion.status === 'completed' ? 'default' :
-                            conversion.status === 'failed' ? 'destructive' :
-                            conversion.status === 'cancelled' ? 'secondary' :
-                            'outline'
+                            conversion.status === 'completed'
+                              ? 'default'
+                              : conversion.status === 'failed'
+                                ? 'destructive'
+                                : conversion.status === 'cancelled'
+                                  ? 'secondary'
+                                  : 'outline'
                           }
                           data-testid={`badge-status-${conversion.id}`}
                         >
@@ -417,9 +486,14 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
 
                       {(conversion.status === 'pending' || conversion.status === 'processing') && (
                         <div className="space-y-1">
-                          <Progress value={conversion.progress} data-testid={`progress-${conversion.id}`} />
+                          <Progress
+                            value={conversion.progress}
+                            data-testid={`progress-${conversion.id}`}
+                          />
                           <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span data-testid={`text-progress-${conversion.id}`}>{conversion.progress}%</span>
+                            <span data-testid={`text-progress-${conversion.id}`}>
+                              {conversion.progress}%
+                            </span>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -438,7 +512,12 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDownload(conversion.id, conversion.outputFilePath!.split('/').pop() || 'converted.mp3')}
+                            onClick={() =>
+                              handleDownload(
+                                conversion.id,
+                                conversion.outputFilePath!.split('/').pop() || 'converted.mp3'
+                              )
+                            }
                             data-testid={`button-download-${conversion.id}`}
                           >
                             <Download className="w-3 h-3 mr-1" />
@@ -448,10 +527,12 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => addToProject.mutate({
-                                outputFilePath: conversion.outputFilePath!,
-                                name: conversion.outputFilePath!.split('/').pop() || 'converted',
-                              })}
+                              onClick={() =>
+                                addToProject.mutate({
+                                  outputFilePath: conversion.outputFilePath!,
+                                  name: conversion.outputFilePath!.split('/').pop() || 'converted',
+                                })
+                              }
                               data-testid={`button-add-to-project-${conversion.id}`}
                             >
                               <Plus className="w-3 h-3 mr-1" />
@@ -462,7 +543,10 @@ export function ConversionDialog({ open, onOpenChange, projectId, availableFiles
                       )}
 
                       {conversion.status === 'failed' && conversion.errorMessage && (
-                        <div className="flex items-start gap-2 text-xs text-destructive" data-testid={`error-message-${conversion.id}`}>
+                        <div
+                          className="flex items-start gap-2 text-xs text-destructive"
+                          data-testid={`error-message-${conversion.id}`}
+                        >
                           <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
                           <span>{conversion.errorMessage}</span>
                         </div>

@@ -6,16 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Upload, 
-  FileText, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  AlertTriangle, 
+import {
+  Upload,
+  FileText,
+  CheckCircle,
+  XCircle,
+  Clock,
+  AlertTriangle,
   Download,
   Trash2,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -55,11 +55,16 @@ interface BatchStatus {
   completedAt?: string;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function BulkScheduler() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [parsedPosts, setParsedPosts] = useState<BulkPost[]>([]);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
-  const [validationWarnings, setValidationWarnings] = useState<Array<{ index: number; message: string }>>([]);
+  const [validationWarnings, setValidationWarnings] = useState<
+    Array<{ index: number; message: string }>
+  >([]);
   const [currentBatchId, setCurrentBatchId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -89,7 +94,7 @@ export function BulkScheduler() {
     onSuccess: (data) => {
       setValidationErrors(data.errors || []);
       setValidationWarnings(data.warnings || []);
-      
+
       if (data.valid) {
         toast({
           title: 'Validation Passed',
@@ -125,12 +130,12 @@ export function BulkScheduler() {
       setSelectedFile(null);
       setValidationErrors([]);
       setValidationWarnings([]);
-      
+
       toast({
         title: 'Batch Scheduled',
         description: `${data.totalPosts} posts are being processed`,
       });
-      
+
       refetchBatches();
     },
     onError: (error: Error) => {
@@ -161,66 +166,69 @@ export function BulkScheduler() {
     },
   });
 
-  const parseCSV = useCallback((file: File) => {
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const lines = text.split('\n').filter(line => line.trim());
-      
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      const posts: BulkPost[] = [];
-      
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim());
-        const post: BulkPost = {
-          platform: '',
-          content: '',
-        };
-        
-        headers.forEach((header, index) => {
-          const value = values[index];
-          
-          switch (header) {
-            case 'platform':
-              post.platform = value;
-              break;
-            case 'content':
-              post.content = value;
-              break;
-            case 'mediaurls':
-            case 'media_urls':
-              post.mediaUrls = value ? value.split('|') : [];
-              break;
-            case 'scheduledat':
-            case 'scheduled_at':
-              post.scheduledAt = value;
-              break;
-            case 'socialaccountid':
-            case 'social_account_id':
-              post.socialAccountId = value;
-              break;
-            case 'campaignid':
-            case 'campaign_id':
-              post.campaignId = value;
-              break;
+  const parseCSV = useCallback(
+    (file: File) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        const lines = text.split('\n').filter((line) => line.trim());
+
+        const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
+        const posts: BulkPost[] = [];
+
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map((v) => v.trim());
+          const post: BulkPost = {
+            platform: '',
+            content: '',
+          };
+
+          headers.forEach((header, index) => {
+            const value = values[index];
+
+            switch (header) {
+              case 'platform':
+                post.platform = value;
+                break;
+              case 'content':
+                post.content = value;
+                break;
+              case 'mediaurls':
+              case 'media_urls':
+                post.mediaUrls = value ? value.split('|') : [];
+                break;
+              case 'scheduledat':
+              case 'scheduled_at':
+                post.scheduledAt = value;
+                break;
+              case 'socialaccountid':
+              case 'social_account_id':
+                post.socialAccountId = value;
+                break;
+              case 'campaignid':
+              case 'campaign_id':
+                post.campaignId = value;
+                break;
+            }
+          });
+
+          if (post.platform && post.content) {
+            posts.push(post);
           }
-        });
-        
-        if (post.platform && post.content) {
-          posts.push(post);
         }
-      }
-      
-      setParsedPosts(posts);
-      toast({
-        title: 'CSV Parsed',
-        description: `${posts.length} posts loaded from CSV`,
-      });
-    };
-    
-    reader.readAsText(file);
-  }, [toast]);
+
+        setParsedPosts(posts);
+        toast({
+          title: 'CSV Parsed',
+          description: `${posts.length} posts loaded from CSV`,
+        });
+      };
+
+      reader.readAsText(file);
+    },
+    [toast]
+  );
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -231,7 +239,8 @@ export function BulkScheduler() {
   };
 
   const downloadTemplate = () => {
-    const template = 'platform,content,media_urls,scheduled_at,social_account_id,campaign_id\ntwitter,"Check out our new track!","","2025-01-01T12:00:00Z","",""';
+    const template =
+      'platform,content,media_urls,scheduled_at,social_account_id,campaign_id\ntwitter,"Check out our new track!","","2025-01-01T12:00:00Z","",""';
     const blob = new Blob([template], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -261,12 +270,7 @@ export function BulkScheduler() {
                   </p>
                   <p className="text-xs text-muted-foreground">CSV file (MAX. 500 posts)</p>
                 </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".csv"
-                  onChange={handleFileSelect}
-                />
+                <input type="file" className="hidden" accept=".csv" onChange={handleFileSelect} />
               </label>
               {selectedFile && (
                 <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
@@ -276,7 +280,7 @@ export function BulkScheduler() {
                 </div>
               )}
             </div>
-            
+
             <div className="flex flex-col gap-2">
               <Button variant="outline" onClick={downloadTemplate}>
                 <Download className="w-4 h-4 mr-2" />
@@ -345,33 +349,31 @@ export function BulkScheduler() {
             <div className="flex items-center justify-between">
               <CardTitle>Current Batch Progress</CardTitle>
               <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => refetchCurrentBatch()}
-                >
+                <Button size="sm" variant="outline" onClick={() => refetchCurrentBatch()}>
                   <RefreshCw className="w-4 h-4" />
                 </Button>
                 <Button
                   size="sm"
                   variant="destructive"
                   onClick={() => cancelMutation.mutate(currentBatch.batchId)}
-                  disabled={currentBatch.status === 'completed' || currentBatch.status === 'cancelled'}
+                  disabled={
+                    currentBatch.status === 'completed' || currentBatch.status === 'cancelled'
+                  }
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Cancel
                 </Button>
               </div>
             </div>
-            <CardDescription>
-              Batch ID: {currentBatch.batchId}
-            </CardDescription>
+            <CardDescription>Batch ID: {currentBatch.batchId}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Progress</span>
-                <span>{currentBatch.processedPosts} / {currentBatch.totalPosts}</span>
+                <span>
+                  {currentBatch.processedPosts} / {currentBatch.totalPosts}
+                </span>
               </div>
               <Progress
                 value={(currentBatch.processedPosts / currentBatch.totalPosts) * 100}
@@ -418,7 +420,7 @@ export function BulkScheduler() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {batches?.batches?.map((batch: any) => (
+            {batches?.batches?.map((batch: unknown) => (
               <div
                 key={batch.id}
                 className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/5 cursor-pointer"

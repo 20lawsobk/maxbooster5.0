@@ -4,6 +4,7 @@ import { db } from '../db';
 import { projects, markers } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
+import { logger } from '../logger.js';
 
 const router = Router();
 
@@ -24,10 +25,7 @@ router.get('/projects/:projectId/markers', requireAuth, async (req, res) => {
 
     // Verify project ownership
     const project = await db.query.projects.findFirst({
-      where: and(
-        eq(projects.id, projectId),
-        eq(projects.userId, userId)
-      ),
+      where: and(eq(projects.id, projectId), eq(projects.userId, userId)),
     });
 
     if (!project) {
@@ -40,8 +38,8 @@ router.get('/projects/:projectId/markers', requireAuth, async (req, res) => {
     });
 
     res.json({ markers: projectMarkers });
-  } catch (error: any) {
-    console.error('Error fetching markers:', error);
+  } catch (error: unknown) {
+    logger.error('Error fetching markers:', error);
     res.status(500).json({ error: 'Failed to fetch markers' });
   }
 });
@@ -57,17 +55,15 @@ router.post('/projects/:projectId/markers', requireAuth, async (req, res) => {
 
     // Verify project ownership
     const project = await db.query.projects.findFirst({
-      where: and(
-        eq(projects.id, projectId),
-        eq(projects.userId, userId)
-      ),
+      where: and(eq(projects.id, projectId), eq(projects.userId, userId)),
     });
 
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const [newMarker] = await db.insert(markers)
+    const [newMarker] = await db
+      .insert(markers)
       .values({
         projectId,
         ...markerData,
@@ -75,8 +71,8 @@ router.post('/projects/:projectId/markers', requireAuth, async (req, res) => {
       .returning();
 
     res.status(201).json(newMarker);
-  } catch (error: any) {
-    console.error('Error creating marker:', error);
+  } catch (error: unknown) {
+    logger.error('Error creating marker:', error);
     if (error.name === 'ZodError') {
       return res.status(400).json({ error: 'Invalid marker data', details: error.errors });
     }
@@ -104,24 +100,22 @@ router.patch('/markers/:markerId', requireAuth, async (req, res) => {
 
     // Verify project ownership
     const project = await db.query.projects.findFirst({
-      where: and(
-        eq(projects.id, marker.projectId),
-        eq(projects.userId, userId)
-      ),
+      where: and(eq(projects.id, marker.projectId), eq(projects.userId, userId)),
     });
 
     if (!project) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    const [updatedMarker] = await db.update(markers)
+    const [updatedMarker] = await db
+      .update(markers)
       .set(updates)
       .where(eq(markers.id, markerId))
       .returning();
 
     res.json(updatedMarker);
-  } catch (error: any) {
-    console.error('Error updating marker:', error);
+  } catch (error: unknown) {
+    logger.error('Error updating marker:', error);
     if (error.name === 'ZodError') {
       return res.status(400).json({ error: 'Invalid marker data', details: error.errors });
     }
@@ -146,22 +140,18 @@ router.delete('/markers/:markerId', requireAuth, async (req, res) => {
 
     // Verify project ownership
     const project = await db.query.projects.findFirst({
-      where: and(
-        eq(projects.id, marker.projectId),
-        eq(projects.userId, userId)
-      ),
+      where: and(eq(projects.id, marker.projectId), eq(projects.userId, userId)),
     });
 
     if (!project) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    await db.delete(markers)
-      .where(eq(markers.id, markerId));
+    await db.delete(markers).where(eq(markers.id, markerId));
 
     res.status(204).send();
-  } catch (error: any) {
-    console.error('Error deleting marker:', error);
+  } catch (error: unknown) {
+    logger.error('Error deleting marker:', error);
     res.status(500).json({ error: 'Failed to delete marker' });
   }
 });

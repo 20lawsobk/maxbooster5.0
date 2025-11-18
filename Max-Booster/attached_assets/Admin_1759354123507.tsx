@@ -8,7 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
@@ -30,7 +36,7 @@ import {
   UserX,
   Crown,
   Calendar,
-  Mail
+  Mail,
 } from 'lucide-react';
 
 export default function Admin() {
@@ -58,85 +64,96 @@ export default function Admin() {
   }
 
   const filteredUsers = (users as any)?.filter((user: any) => {
-    const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || user.subscriptionStatus === statusFilter;
     const matchesPlan = planFilter === 'all' || user.subscriptionPlan === planFilter;
-    
+
     return matchesSearch && matchesStatus && matchesPlan;
   });
 
   const statsCards = [
     {
-      title: "Total Users",
-      value: (adminAnalytics as any)?.totalUsers?.toLocaleString() || "0",
+      title: 'Total Users',
+      value: (adminAnalytics as any)?.totalUsers?.toLocaleString() || '0',
       change: `+${(adminAnalytics as any)?.recentSignups || 0} this month`,
       icon: Users,
-      color: "from-blue-500 to-cyan-500"
+      color: 'from-blue-500 to-cyan-500',
     },
     {
-      title: "Total Revenue",
-      value: `$${(adminAnalytics as any)?.totalRevenue?.toLocaleString() || "0"}`,
-      change: "+12.5% from last month",
+      title: 'Total Revenue',
+      value: `$${(adminAnalytics as any)?.totalRevenue?.toLocaleString() || '0'}`,
+      change: '+12.5% from last month',
       icon: DollarSign,
-      color: "from-green-500 to-emerald-500"
+      color: 'from-green-500 to-emerald-500',
     },
     {
-      title: "Total Projects",
-      value: (adminAnalytics as any)?.totalProjects?.toLocaleString() || "0",
-      change: "+8.2% from last month",
+      title: 'Total Projects',
+      value: (adminAnalytics as any)?.totalProjects?.toLocaleString() || '0',
+      change: '+8.2% from last month',
       icon: Music,
-      color: "from-purple-500 to-indigo-500"
+      color: 'from-purple-500 to-indigo-500',
     },
     {
-      title: "Growth Rate",
-      value: "15.8%",
-      change: "Monthly active users",
+      title: 'Growth Rate',
+      value: '15.8%',
+      change: 'Monthly active users',
       icon: TrendingUp,
-      color: "from-pink-500 to-rose-500"
-    }
+      color: 'from-pink-500 to-rose-500',
+    },
   ];
 
   const subscriptionStats = (adminAnalytics as any)?.subscriptionStats || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 border-green-200';
-      case 'inactive': return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
-      case 'past_due': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'active':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'past_due':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getPlanColor = (plan: string) => {
     switch (plan) {
-      case 'lifetime': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'yearly': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'monthly': return 'bg-green-100 text-green-800 border-green-200';
-      case 'free': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'lifetime':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'yearly':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'monthly':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'free':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'admin': return <Crown className="h-4 w-4 text-yellow-600" />;
-      case 'user': return <UserCheck className="h-4 w-4 text-green-600" />;
-      default: return <UserX className="h-4 w-4 text-gray-600" />;
+      case 'admin':
+        return <Crown className="h-4 w-4 text-yellow-600" />;
+      case 'user':
+        return <UserCheck className="h-4 w-4 text-green-600" />;
+      default:
+        return <UserX className="h-4 w-4 text-gray-600" />;
     }
   };
 
   return (
     <div className="min-h-screen flex bg-gray-50">
       <Sidebar />
-      
+
       <main className="flex-1">
-        <TopBar 
-          title="Admin Portal" 
-          subtitle="Manage users, analytics, and platform settings"
-        />
-        
+        <TopBar title="Admin Portal" subtitle="Manage users, analytics, and platform settings" />
+
         <div className="p-6 space-y-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -149,7 +166,9 @@ export default function Admin() {
                       <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                       <p className="text-green-600 text-sm font-medium">{stat.change}</p>
                     </div>
-                    <div className={`w-12 h-12 bg-gradient-to-r ${stat.color} rounded-lg flex items-center justify-center`}>
+                    <div
+                      className={`w-12 h-12 bg-gradient-to-r ${stat.color} rounded-lg flex items-center justify-center`}
+                    >
                       <stat.icon className="h-6 w-6 text-white" />
                     </div>
                   </div>
@@ -179,7 +198,7 @@ export default function Admin() {
                       </Button>
                     </div>
                   </div>
-                  
+
                   {/* Filters */}
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1">
@@ -191,7 +210,7 @@ export default function Admin() {
                         className="pl-10"
                       />
                     </div>
-                    
+
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger className="w-40">
                         <SelectValue placeholder="Filter by status" />
@@ -204,7 +223,7 @@ export default function Admin() {
                         <SelectItem value="past_due">Past Due</SelectItem>
                       </SelectContent>
                     </Select>
-                    
+
                     <Select value={planFilter} onValueChange={setPlanFilter}>
                       <SelectTrigger className="w-40">
                         <SelectValue placeholder="Filter by plan" />
@@ -259,12 +278,18 @@ export default function Admin() {
                                 </div>
                               </TableCell>
                               <TableCell>
-                                <Badge variant="secondary" className={getPlanColor(user.subscriptionPlan)}>
+                                <Badge
+                                  variant="secondary"
+                                  className={getPlanColor(user.subscriptionPlan)}
+                                >
                                   {user.subscriptionPlan?.toUpperCase() || 'FREE'}
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                <Badge variant="secondary" className={getStatusColor(user.subscriptionStatus)}>
+                                <Badge
+                                  variant="secondary"
+                                  className={getStatusColor(user.subscriptionStatus)}
+                                >
                                   {user.subscriptionStatus?.toUpperCase() || 'INACTIVE'}
                                 </Badge>
                               </TableCell>
@@ -311,7 +336,9 @@ export default function Admin() {
                     <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center border">
                       <div className="text-center">
                         <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">User Growth Chart</h3>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          User Growth Chart
+                        </h3>
                         <p className="text-gray-500 mb-4">Track platform growth over time</p>
                         <div className="text-sm text-gray-600">
                           <p>• {adminAnalytics?.totalUsers || 0} total users</p>
@@ -330,10 +357,14 @@ export default function Admin() {
                     <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center border">
                       <div className="text-center">
                         <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Revenue Breakdown</h3>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Revenue Breakdown
+                        </h3>
                         <p className="text-gray-500 mb-4">Monthly recurring revenue and growth</p>
                         <div className="text-sm text-gray-600">
-                          <p>• ${adminAnalytics?.totalRevenue?.toLocaleString() || 0} total revenue</p>
+                          <p>
+                            • ${adminAnalytics?.totalRevenue?.toLocaleString() || 0} total revenue
+                          </p>
                           <p>• Monthly recurring revenue tracking</p>
                         </div>
                       </div>
@@ -353,32 +384,42 @@ export default function Admin() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {subscriptionStats.map((stat: any, index: number) => (
                       <div key={index} className="text-center p-6 bg-gray-50 rounded-lg">
-                        <h3 className="text-lg font-semibold text-gray-900 capitalize">{stat.plan} Plan</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 capitalize">
+                          {stat.plan} Plan
+                        </h3>
                         <p className="text-3xl font-bold text-primary mt-2">{stat.count}</p>
                         <p className="text-sm text-gray-500 mt-1">
-                          {((stat.count / (adminAnalytics?.totalUsers || 1)) * 100).toFixed(1)}% of users
+                          {((stat.count / (adminAnalytics?.totalUsers || 1)) * 100).toFixed(1)}% of
+                          users
                         </p>
                       </div>
                     ))}
                   </div>
-                  
+
                   <div className="mt-8">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4">Plan Distribution</h4>
                     <div className="space-y-3">
                       {subscriptionStats.map((stat: any, index: number) => (
                         <div key={index} className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
-                            <div className={`w-4 h-4 rounded-full ${
-                              stat.plan === 'lifetime' ? 'bg-purple-500' :
-                              stat.plan === 'yearly' ? 'bg-blue-500' :
-                              stat.plan === 'monthly' ? 'bg-green-500' : 'bg-gray-500'
-                            }`} />
+                            <div
+                              className={`w-4 h-4 rounded-full ${
+                                stat.plan === 'lifetime'
+                                  ? 'bg-purple-500'
+                                  : stat.plan === 'yearly'
+                                    ? 'bg-blue-500'
+                                    : stat.plan === 'monthly'
+                                      ? 'bg-green-500'
+                                      : 'bg-gray-500'
+                              }`}
+                            />
                             <span className="capitalize font-medium">{stat.plan} Plan</span>
                           </div>
                           <div className="text-right">
                             <span className="font-bold">{stat.count} users</span>
                             <span className="text-sm text-gray-500 ml-2">
-                              ({((stat.count / (adminAnalytics?.totalUsers || 1)) * 100).toFixed(1)}%)
+                              ({((stat.count / (adminAnalytics?.totalUsers || 1)) * 100).toFixed(1)}
+                              %)
                             </span>
                           </div>
                         </div>
@@ -405,23 +446,33 @@ export default function Admin() {
                             <h4 className="font-medium">User Registration</h4>
                             <p className="text-sm text-gray-500">Allow new users to register</p>
                           </div>
-                          <Button variant="outline" size="sm">Enabled</Button>
+                          <Button variant="outline" size="sm">
+                            Enabled
+                          </Button>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <div>
                             <h4 className="font-medium">Email Notifications</h4>
-                            <p className="text-sm text-gray-500">Send system notifications via email</p>
+                            <p className="text-sm text-gray-500">
+                              Send system notifications via email
+                            </p>
                           </div>
-                          <Button variant="outline" size="sm">Enabled</Button>
+                          <Button variant="outline" size="sm">
+                            Enabled
+                          </Button>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <div>
                             <h4 className="font-medium">Maintenance Mode</h4>
-                            <p className="text-sm text-gray-500">Put platform in maintenance mode</p>
+                            <p className="text-sm text-gray-500">
+                              Put platform in maintenance mode
+                            </p>
                           </div>
-                          <Button variant="outline" size="sm">Disabled</Button>
+                          <Button variant="outline" size="sm">
+                            Disabled
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -434,15 +485,19 @@ export default function Admin() {
                             <h4 className="font-medium">API Rate Limiting</h4>
                             <p className="text-sm text-gray-500">Limit API requests per user</p>
                           </div>
-                          <Button variant="outline" size="sm">Configure</Button>
+                          <Button variant="outline" size="sm">
+                            Configure
+                          </Button>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <div>
                             <h4 className="font-medium">Webhook Endpoints</h4>
                             <p className="text-sm text-gray-500">Manage webhook configurations</p>
                           </div>
-                          <Button variant="outline" size="sm">Manage</Button>
+                          <Button variant="outline" size="sm">
+                            Manage
+                          </Button>
                         </div>
                       </div>
                     </div>

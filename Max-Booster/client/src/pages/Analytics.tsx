@@ -10,7 +10,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -101,7 +107,7 @@ import {
   Phone,
   MessageCircle,
   ThumbsUp,
-  ThumbsDown
+  ThumbsDown,
 } from 'lucide-react';
 
 interface AnalyticsData {
@@ -193,11 +199,21 @@ interface AnalyticsData {
     };
     revenueOptimization: Array<{ strategy: string; potential: number; impact: string }>;
     revenueStreams: Array<{ stream: string; revenue: number; growth: number }>;
-    revenueForecasting: Array<{ period: string; predicted: number; actual: number; accuracy: number }>;
+    revenueForecasting: Array<{
+      period: string;
+      predicted: number;
+      actual: number;
+      accuracy: number;
+    }>;
   };
   aiInsights: {
     performanceScore: number;
-    recommendations: Array<{ title: string; description: string; priority: string; impact: string }>;
+    recommendations: Array<{
+      title: string;
+      description: string;
+      priority: string;
+      impact: string;
+    }>;
     predictions: {
       nextMonthStreams: number;
       nextMonthRevenue: number;
@@ -216,20 +232,55 @@ interface AnalyticsData {
       opportunityMatrix: Array<{ opportunity: string; effort: number; impact: number }>;
       successFactors: Array<{ factor: string; importance: number; current: number }>;
       improvementAreas: Array<{ area: string; current: number; potential: number }>;
-      benchmarkComparison: Array<{ metric: string; current: number; benchmark: number; gap: number }>;
+      benchmarkComparison: Array<{
+        metric: string;
+        current: number;
+        benchmark: number;
+        gap: number;
+      }>;
       marketPosition: Array<{ dimension: string; score: number; trend: string }>;
       competitiveAdvantage: Array<{ advantage: string; strength: number; sustainability: number }>;
       growthDrivers: Array<{ driver: string; impact: number; timeframe: string }>;
-      performanceIndicators: Array<{ indicator: string; value: number; trend: string; target: number }>;
-      optimizationOpportunities: Array<{ area: string; current: number; optimized: number; improvement: number }>;
-      strategicRecommendations: Array<{ recommendation: string; priority: string; timeframe: string; resources: string }>;
-      marketIntelligence: Array<{ insight: string; source: string; confidence: number; relevance: number }>;
-      futureScenarios: Array<{ scenario: string; probability: number; impact: string; preparation: string }>;
+      performanceIndicators: Array<{
+        indicator: string;
+        value: number;
+        trend: string;
+        target: number;
+      }>;
+      optimizationOpportunities: Array<{
+        area: string;
+        current: number;
+        optimized: number;
+        improvement: number;
+      }>;
+      strategicRecommendations: Array<{
+        recommendation: string;
+        priority: string;
+        timeframe: string;
+        resources: string;
+      }>;
+      marketIntelligence: Array<{
+        insight: string;
+        source: string;
+        confidence: number;
+        relevance: number;
+      }>;
+      futureScenarios: Array<{
+        scenario: string;
+        probability: number;
+        impact: string;
+        preparation: string;
+      }>;
     };
     realTimeOptimization: {
       active: boolean;
       optimizations: Array<{ type: string; status: string; impact: number }>;
-      performance: Array<{ metric: string; current: number; optimized: number; improvement: number }>;
+      performance: Array<{
+        metric: string;
+        current: number;
+        optimized: number;
+        improvement: number;
+      }>;
       recommendations: Array<{ recommendation: string; priority: string; implementation: string }>;
     };
   };
@@ -239,7 +290,7 @@ export default function Analytics() {
   const { user, isLoading: authLoading } = useRequireSubscription();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [timeRange, setTimeRange] = useState('30d');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [selectedTab, setSelectedTab] = useState('overview');
@@ -249,7 +300,11 @@ export default function Analytics() {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch comprehensive analytics data (fallback polling)
-  const { data: analyticsData, isLoading: analyticsLoading, refetch } = useQuery({
+  const {
+    data: analyticsData,
+    isLoading: analyticsLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['/api/analytics/dashboard', timeRange],
     enabled: !!user,
     refetchInterval: autoRefresh ? 30000 : false,
@@ -266,15 +321,15 @@ export default function Analytics() {
       }
     },
     onConnect: () => {
-      console.log('📊 Analytics WebSocket connected');
+      logger.info('📊 Analytics WebSocket connected');
       // Subscribe to analytics stream
       sendMessage({ type: 'subscribe_analytics' });
       setConnectionLostTime(null);
     },
     onDisconnect: () => {
-      console.log('📊 Analytics WebSocket disconnected');
+      logger.info('📊 Analytics WebSocket disconnected');
       setConnectionLostTime(Date.now());
-      
+
       // Start polling fallback
       if (!pollingIntervalRef.current) {
         pollingIntervalRef.current = setInterval(() => {
@@ -283,7 +338,7 @@ export default function Analytics() {
       }
     },
     onError: (error) => {
-      console.error('Analytics WebSocket error:', error);
+      logger.error('Analytics WebSocket error:', error);
     },
     reconnectInterval: 3000,
     maxReconnectAttempts: 10,
@@ -303,7 +358,7 @@ export default function Analytics() {
           clearInterval(checkInterval);
         }
       }, 5000);
-      
+
       return () => clearInterval(checkInterval);
     }
   }, [connectionLostTime, isConnected, toast]);
@@ -328,14 +383,18 @@ export default function Analytics() {
   });
 
   // Fetch anomalies with filters
-  const { data: anomalyData, isLoading: anomaliesLoading, refetch: refetchAnomalies } = useQuery({
+  const {
+    data: anomalyData,
+    isLoading: anomaliesLoading,
+    refetch: refetchAnomalies,
+  } = useQuery({
     queryKey: ['/api/analytics/anomalies', anomalyMetricFilter, anomalySeverityFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (anomalyMetricFilter !== 'all') params.append('metricType', anomalyMetricFilter);
       if (anomalySeverityFilter !== 'all') params.append('severity', anomalySeverityFilter);
       const response = await fetch(`/api/analytics/anomalies?${params.toString()}`, {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch anomalies');
       const result = await response.json();
@@ -359,7 +418,7 @@ export default function Analytics() {
         description: 'The anomaly has been marked as acknowledged.',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -370,7 +429,7 @@ export default function Analytics() {
 
   // WebSocket handler for new anomalies
   useEffect(() => {
-    const handleAnomalyDetected = (message: any) => {
+    const handleAnomalyDetected = (message: unknown) => {
       if (message.type === 'anomaly_detected') {
         queryClient.invalidateQueries({ queryKey: ['/api/analytics/anomalies'] });
         queryClient.invalidateQueries({ queryKey: ['/api/analytics/anomalies/summary'] });
@@ -397,7 +456,10 @@ export default function Analytics() {
   // Export analytics mutation
   const exportAnalyticsMutation = useMutation({
     mutationFn: async (format: string) => {
-      const response = await apiRequest('POST', '/api/analytics/export', { format, filters: { timeRange }});
+      const response = await apiRequest('POST', '/api/analytics/export', {
+        format,
+        filters: { timeRange },
+      });
       return response.json();
     },
     onSuccess: (data) => {
@@ -447,640 +509,712 @@ export default function Analytics() {
 
   const overviewStats = [
     {
-      title: "Total Streams",
+      title: 'Total Streams',
       value: (currentData?.totalStreams || 0).toLocaleString(),
       change: `+${currentData?.monthlyGrowth?.streams || data?.overview?.growthRate || 0}%`,
       icon: Play,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-950/20",
-      borderColor: "border-blue-200 dark:border-blue-800"
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50 dark:bg-blue-950/20',
+      borderColor: 'border-blue-200 dark:border-blue-800',
     },
     {
-      title: "Total Revenue",
+      title: 'Total Revenue',
       value: `$${(currentData?.totalRevenue || 0).toLocaleString()}`,
       change: `+${currentData?.monthlyGrowth?.revenue || data?.overview?.growthRate || 0}%`,
       icon: DollarSign,
-      color: "text-green-600",
-      bgColor: "bg-green-50 dark:bg-green-950/20",
-      borderColor: "border-green-200 dark:border-green-800"
+      color: 'text-green-600',
+      bgColor: 'bg-green-50 dark:bg-green-950/20',
+      borderColor: 'border-green-200 dark:border-green-800',
     },
     {
-      title: "Total Listeners",
+      title: 'Total Listeners',
       value: (currentData?.totalListeners || 0).toLocaleString(),
       change: `+${currentData?.monthlyGrowth?.listeners || data?.overview?.growthRate || 0}%`,
       icon: Users,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-950/20",
-      borderColor: "border-purple-200 dark:border-purple-800"
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50 dark:bg-purple-950/20',
+      borderColor: 'border-purple-200 dark:border-purple-800',
     },
     {
-      title: "Avg Listen Time",
+      title: 'Avg Listen Time',
       value: `${data?.overview?.avgListenTime || 0}m`,
       change: `+${data?.overview?.growthRate || 0}%`,
       icon: Clock,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50 dark:bg-orange-950/20",
-      borderColor: "border-orange-200 dark:border-orange-800"
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50 dark:bg-orange-950/20',
+      borderColor: 'border-orange-200 dark:border-orange-800',
     },
     {
-      title: "Completion Rate",
+      title: 'Completion Rate',
       value: `${data?.overview?.completionRate || 0}%`,
       change: `+${data?.overview?.growthRate || 0}%`,
       icon: Target,
-      color: "text-cyan-600",
-      bgColor: "bg-cyan-50 dark:bg-cyan-950/20",
-      borderColor: "border-cyan-200 dark:border-cyan-800"
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50 dark:bg-cyan-950/20',
+      borderColor: 'border-cyan-200 dark:border-cyan-800',
     },
     {
-      title: "Share Rate",
+      title: 'Share Rate',
       value: `${data?.overview?.shareRate || 0}%`,
       change: `+${data?.overview?.growthRate || 0}%`,
       icon: Share2,
-      color: "text-pink-600",
-      bgColor: "bg-pink-50 dark:bg-pink-950/20",
-      borderColor: "border-pink-200 dark:border-pink-800"
-    }
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50 dark:bg-pink-950/20',
+      borderColor: 'border-pink-200 dark:border-pink-800',
+    },
   ];
 
   return (
     <AppLayout>
-          <div className="max-w-7xl mx-auto space-y-6">
-            {/* Header */}
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                    📊 Analytics Dashboard
-                  </h1>
-                  {/* Live/Offline Badge */}
-                  <Badge 
-                    variant="outline" 
-                    className={`${
-                      isConnected 
-                        ? 'bg-green-50 dark:bg-green-950/20 text-green-600 border-green-200 dark:border-green-800' 
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 border-gray-200 dark:border-gray-700'
-                    } flex items-center gap-1.5`}
-                    data-testid={isConnected ? "badge-live" : "badge-offline"}
-                  >
-                    <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
-                    {isConnected ? 'Live' : 'Offline'}
-                  </Badge>
-                </div>
-                <p className="text-muted-foreground mt-1">
-                  {isConnected 
-                    ? `Real-time updates • Updated ${getTimeSinceUpdate()}` 
-                    : 'Start creating to see your comprehensive insights'}
-                </p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="auto-refresh" className="text-sm">Auto Refresh</Label>
-                  <Switch
-                    id="auto-refresh"
-                    checked={autoRefresh}
-                    onCheckedChange={setAutoRefresh}
-                    data-testid="switch-auto-refresh"
-                  />
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => refetch()}
-                  disabled={analyticsLoading}
-                  data-testid="button-refresh"
-                >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${analyticsLoading ? 'animate-spin' : ''}`} />
-                  Refresh
-                </Button>
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="w-32" data-testid="select-time-range">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="7d">Last 7 days</SelectItem>
-                    <SelectItem value="30d">Last 30 days</SelectItem>
-                    <SelectItem value="90d">Last 90 days</SelectItem>
-                    <SelectItem value="1y">Last year</SelectItem>
-                    <SelectItem value="all">All time</SelectItem>
-                </SelectContent>
-              </Select>
-                <Button
-                  onClick={() => exportAnalyticsMutation.mutate('csv')}
-                  disabled={exportAnalyticsMutation.isPending}
-                  className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
-                  data-testid="button-export"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                📊 Analytics Dashboard
+              </h1>
+              {/* Live/Offline Badge */}
+              <Badge
+                variant="outline"
+                className={`${
+                  isConnected
+                    ? 'bg-green-50 dark:bg-green-950/20 text-green-600 border-green-200 dark:border-green-800'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 border-gray-200 dark:border-gray-700'
+                } flex items-center gap-1.5`}
+                data-testid={isConnected ? 'badge-live' : 'badge-offline'}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}
+                ></span>
+                {isConnected ? 'Live' : 'Offline'}
+              </Badge>
             </div>
+            <p className="text-muted-foreground mt-1">
+              {isConnected
+                ? `Real-time updates • Updated ${getTimeSinceUpdate()}`
+                : 'Start creating to see your comprehensive insights'}
+            </p>
           </div>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="auto-refresh" className="text-sm">
+                Auto Refresh
+              </Label>
+              <Switch
+                id="auto-refresh"
+                checked={autoRefresh}
+                onCheckedChange={setAutoRefresh}
+                data-testid="switch-auto-refresh"
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              disabled={analyticsLoading}
+              data-testid="button-refresh"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${analyticsLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-32" data-testid="select-time-range">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">Last 7 days</SelectItem>
+                <SelectItem value="30d">Last 30 days</SelectItem>
+                <SelectItem value="90d">Last 90 days</SelectItem>
+                <SelectItem value="1y">Last year</SelectItem>
+                <SelectItem value="all">All time</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={() => exportAnalyticsMutation.mutate('csv')}
+              disabled={exportAnalyticsMutation.isPending}
+              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
+              data-testid="button-export"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+          </div>
+        </div>
 
-            {/* AI Performance Banner */}
-            {data?.aiInsights && (
-              <Card className="border-2 border-gradient-to-r from-blue-500 to-purple-600 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="p-3 bg-white dark:bg-gray-900 rounded-full">
-                        <Brain className="w-8 h-8 text-blue-600" />
-                      </div>
-                    <div>
-                        <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                          AI Performance Score
-                        </h3>
-                        <p className="text-muted-foreground">
-                          Your music performance is optimized with AI insights
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      {data?.aiInsights?.performanceScore !== undefined ? (
-                        <>
-                          <div className="text-4xl font-bold text-purple-600">
-                            {data.aiInsights.performanceScore}%
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Based on your current performance
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <div className="text-4xl font-bold text-gray-400">--</div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Upload music to get your AI score
-                          </p>
-                        </>
-                      )}
-                    </div>
+        {/* AI Performance Banner */}
+        {data?.aiInsights && (
+          <Card className="border-2 border-gradient-to-r from-blue-500 to-purple-600 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-white dark:bg-gray-900 rounded-full">
+                    <Brain className="w-8 h-8 text-blue-600" />
                   </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Overview Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-              {overviewStats.map((stat, index) => {
-                const Icon = stat.icon;
-                return (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                  >
-                    <Card 
-                      className={`${stat.bgColor} ${stat.borderColor} border-2 hover:shadow-lg transition-all duration-300`}
-                      data-testid={`stat-card-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}
-                    >
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-muted-foreground mb-1">
-                              {stat.title}
-                            </p>
-                            <AnimatePresence mode="wait">
-                              <motion.p 
-                                key={stat.value}
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                transition={{ duration: 0.2 }}
-                                className={`text-2xl font-bold ${stat.color}`}
-                                data-testid={`stat-value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}
-                              >
-                                {stat.value}
-                              </motion.p>
-                            </AnimatePresence>
-                            <p className="text-xs text-green-600 flex items-center mt-1">
-                              <ArrowUp className="w-3 h-3 mr-1" />
-                              {stat.change}
-                            </p>
-                          </div>
-                          <div className={`p-3 rounded-full ${stat.bgColor} ${stat.borderColor} border-2`}>
-                            <Icon className={`w-6 h-6 ${stat.color}`} />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-          </div>
-
-            {/* Main Analytics Tabs */}
-            <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
-                <TabsTrigger value="streams" data-testid="tab-streams">Streams</TabsTrigger>
-                <TabsTrigger value="audience" data-testid="tab-audience">Audience</TabsTrigger>
-                <TabsTrigger value="revenue" data-testid="tab-revenue">Revenue</TabsTrigger>
-                <TabsTrigger value="ai-insights" data-testid="tab-ai-insights">AI Insights</TabsTrigger>
-                <TabsTrigger value="anomalies" data-testid="tab-anomalies" className="relative">
-                  Anomalies
-                  {anomalyData?.summary?.unacknowledged > 0 && (
-                    <Badge variant="destructive" className="ml-2 px-2 py-0.5 text-xs">
-                      {anomalyData?.summary?.unacknowledged}
-                    </Badge>
+                  <div>
+                    <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      AI Performance Score
+                    </h3>
+                    <p className="text-muted-foreground">
+                      Your music performance is optimized with AI insights
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  {data?.aiInsights?.performanceScore !== undefined ? (
+                    <>
+                      <div className="text-4xl font-bold text-purple-600">
+                        {data.aiInsights.performanceScore}%
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Based on your current performance
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-4xl font-bold text-gray-400">--</div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Upload music to get your AI score
+                      </p>
+                    </>
                   )}
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Streams Over Time */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                        <LineChart className="w-5 h-5 mr-2 text-blue-600" />
-                    Streams Over Time
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                      {analyticsLoading ? (
-                        <Skeleton className="h-64 w-full" />
-                      ) : data?.streams?.daily && data.streams.daily.length > 0 ? (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-7 gap-2">
-                            {data.streams.daily.slice(-7).map((day: any, index: number) => (
-                              <div key={index} className="text-center">
-                                <div className="text-xs text-muted-foreground mb-1">
-                                  {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
-                                </div>
-                                <div className="h-32 bg-blue-100 dark:bg-blue-950/20 rounded-t flex items-end justify-center p-2" 
-                                     style={{ height: `${Math.max(32, (day.streams / Math.max(...data.streams.daily.map((d: any) => d.streams))) * 128)}px` }}>
-                                  <div className="text-xs font-semibold text-blue-600">{day.streams}</div>
-                                </div>
-                                <div className="text-xs text-green-600 mt-1">${day.revenue}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="h-64 flex items-center justify-center text-muted-foreground">
-                          <div className="text-center">
-                            <BarChart3 className="w-16 h-16 mx-auto mb-4" />
-                            <p>No stream data available yet</p>
-                            <p className="text-sm">Start uploading music to see your analytics</p>
-                          </div>
-                        </div>
-                      )}
-                </CardContent>
-              </Card>
-
-                  {/* Top Platforms */}
-              <Card>
-                <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Globe className="w-5 h-5 mr-2 text-green-600" />
-                        Top Platforms
-                      </CardTitle>
-                </CardHeader>
-                <CardContent>
-                      {analyticsLoading ? (
-                        <div className="space-y-3">
-                          {[1, 2, 3, 4, 5].map((i) => (
-                            <Skeleton key={i} className="h-12 w-full" />
-                          ))}
-                        </div>
-                      ) : data?.streams?.byPlatform && data.streams.byPlatform.length > 0 ? (
-                  <div className="space-y-4">
-                          {data.streams.byPlatform.slice(0, 5).map((platform, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                                <Globe className="w-5 h-5 text-blue-600" />
-                                <div>
-                                  <div className="font-semibold">{platform.platform}</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {platform.streams.toLocaleString()} streams
-                                  </div>
-                                </div>
-                        </div>
-                        <div className="text-right">
-                                <div className="font-semibold text-green-600">
-                                  ${platform.revenue.toLocaleString()}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {platform.growth > 0 ? '+' : ''}{platform.growth}%
-                                </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <Globe className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                          <p className="text-muted-foreground">No platform data available yet</p>
-                          <p className="text-sm text-muted-foreground">Distribute your music to see platform analytics</p>
-                        </div>
-                      )}
-                </CardContent>
-              </Card>
-            </div>
-              </TabsContent>
-
-              <TabsContent value="ai-insights" className="space-y-6">
-                {data?.aiInsights ? (
-                  <>
-                    {/* AI Predictions */}
-            <Card>
-              <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
-                          AI Predictions
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Forecast your music career growth with AI
-                        </p>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-lg">
-                            <div className="text-2xl font-bold text-blue-600">
-                              {data.aiInsights.predictions?.nextMonthStreams?.toLocaleString() || '0'}
-                            </div>
-                            <div className="text-sm text-muted-foreground">Predicted Streams</div>
-                            <div className="text-xs text-green-600 mt-1">Next Month</div>
-                          </div>
-                          <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg">
-                            <div className="text-2xl font-bold text-green-600">
-                              ${data.aiInsights.predictions?.nextMonthRevenue?.toLocaleString() || '0'}
-                            </div>
-                            <div className="text-sm text-muted-foreground">Predicted Revenue</div>
-                            <div className="text-xs text-green-600 mt-1">Next Month</div>
-                </div>
-                          <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 rounded-lg">
-                            <div className="text-2xl font-bold text-purple-600">
-                              {(data.aiInsights.predictions?.viralPotential * 100 || 0).toFixed(0)}%
-                </div>
-                            <div className="text-sm text-muted-foreground">Viral Potential</div>
-                            <div className="text-xs text-green-600 mt-1">Current Content</div>
                 </div>
               </div>
             </CardContent>
           </Card>
+        )}
 
-                    {/* AI Recommendations */}
-                    {data.aiInsights.recommendations && data.aiInsights.recommendations.length > 0 && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <Lightbulb className="w-5 h-5 mr-2 text-yellow-600" />
-                            AI Recommendations
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            {data.aiInsights.recommendations.slice(0, 5).map((rec: any, index: number) => (
-                              <div key={index} className="p-4 bg-muted/50 rounded-lg">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <h4 className="font-semibold">{rec.title}</h4>
-                                    <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
-                                  </div>
-                                  <Badge variant={rec.priority === 'high' ? 'destructive' : rec.priority === 'medium' ? 'default' : 'secondary'}>
-                                    {rec.priority}
-                                  </Badge>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </>
-                ) : (
-                  <Card>
-                    <CardContent className="p-12 text-center">
-                      <Brain className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No AI Insights Available</h3>
-                      <p className="text-muted-foreground">
-                        Upload music and get streams to receive AI-powered insights
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-
-              {/* Anomalies Tab */}
-              <TabsContent value="anomalies" className="space-y-6">
-                {/* Filters and Summary */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Total Anomalies</p>
-                          <p className="text-2xl font-bold">{anomalySummary?.total || 0}</p>
-                        </div>
-                        <Activity className="w-8 h-8 text-blue-600" />
+        {/* Overview Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+          {overviewStats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                <Card
+                  className={`${stat.bgColor} ${stat.borderColor} border-2 hover:shadow-lg transition-all duration-300`}
+                  data-testid={`stat-card-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">
+                          {stat.title}
+                        </p>
+                        <AnimatePresence mode="wait">
+                          <motion.p
+                            key={stat.value}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            transition={{ duration: 0.2 }}
+                            className={`text-2xl font-bold ${stat.color}`}
+                            data-testid={`stat-value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}
+                          >
+                            {stat.value}
+                          </motion.p>
+                        </AnimatePresence>
+                        <p className="text-xs text-green-600 flex items-center mt-1">
+                          <ArrowUp className="w-3 h-3 mr-1" />
+                          {stat.change}
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Unacknowledged</p>
-                          <p className="text-2xl font-bold text-red-600">{anomalySummary?.unacknowledged || 0}</p>
-                        </div>
-                        <Bell className="w-8 h-8 text-red-600" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">By Severity</p>
-                        <div className="flex gap-2 flex-wrap">
-                          {anomalySummary?.bySeverity && Object.entries(anomalySummary.bySeverity).map(([severity, count]) => (
-                            <Badge 
-                              key={severity}
-                              variant={severity === 'critical' ? 'destructive' : severity === 'high' ? 'default' : 'secondary'}
-                              data-testid={`severity-badge-${severity}`}
-                            >
-                              {severity}: {count as number}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Filters */}
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex gap-4 flex-wrap items-center">
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="metric-filter">Metric Type:</Label>
-                        <Select value={anomalyMetricFilter} onValueChange={setAnomalyMetricFilter}>
-                          <SelectTrigger id="metric-filter" className="w-40" data-testid="select-metric-filter">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="streams">Streams</SelectItem>
-                            <SelectItem value="revenue">Revenue</SelectItem>
-                            <SelectItem value="listeners">Listeners</SelectItem>
-                            <SelectItem value="engagement">Engagement</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="severity-filter">Severity:</Label>
-                        <Select value={anomalySeverityFilter} onValueChange={setAnomalySeverityFilter}>
-                          <SelectTrigger id="severity-filter" className="w-40" data-testid="select-severity-filter">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="critical">Critical</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="low">Low</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => refetchAnomalies()}
-                        data-testid="button-refresh-anomalies"
+                      <div
+                        className={`p-3 rounded-full ${stat.bgColor} ${stat.borderColor} border-2`}
                       >
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        Refresh
-                      </Button>
+                        <Icon className={`w-6 h-6 ${stat.color}`} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Main Analytics Tabs */}
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="overview" data-testid="tab-overview">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="streams" data-testid="tab-streams">
+              Streams
+            </TabsTrigger>
+            <TabsTrigger value="audience" data-testid="tab-audience">
+              Audience
+            </TabsTrigger>
+            <TabsTrigger value="revenue" data-testid="tab-revenue">
+              Revenue
+            </TabsTrigger>
+            <TabsTrigger value="ai-insights" data-testid="tab-ai-insights">
+              AI Insights
+            </TabsTrigger>
+            <TabsTrigger value="anomalies" data-testid="tab-anomalies" className="relative">
+              Anomalies
+              {anomalyData?.summary?.unacknowledged > 0 && (
+                <Badge variant="destructive" className="ml-2 px-2 py-0.5 text-xs">
+                  {anomalyData?.summary?.unacknowledged}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Streams Over Time */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <LineChart className="w-5 h-5 mr-2 text-blue-600" />
+                    Streams Over Time
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {analyticsLoading ? (
+                    <Skeleton className="h-64 w-full" />
+                  ) : data?.streams?.daily && data.streams.daily.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-7 gap-2">
+                        {data.streams.daily.slice(-7).map((day: unknown, index: number) => (
+                          <div key={index} className="text-center">
+                            <div className="text-xs text-muted-foreground mb-1">
+                              {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                            </div>
+                            <div
+                              className="h-32 bg-blue-100 dark:bg-blue-950/20 rounded-t flex items-end justify-center p-2"
+                              style={{
+                                height: `${Math.max(32, (day.streams / Math.max(...data.streams.daily.map((d: unknown) => d.streams))) * 128)}px`,
+                              }}
+                            >
+                              <div className="text-xs font-semibold text-blue-600">
+                                {day.streams}
+                              </div>
+                            </div>
+                            <div className="text-xs text-green-600 mt-1">${day.revenue}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-64 flex items-center justify-center text-muted-foreground">
+                      <div className="text-center">
+                        <BarChart3 className="w-16 h-16 mx-auto mb-4" />
+                        <p>No stream data available yet</p>
+                        <p className="text-sm">Start uploading music to see your analytics</p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Top Platforms */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Globe className="w-5 h-5 mr-2 text-green-600" />
+                    Top Platforms
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {analyticsLoading ? (
+                    <div className="space-y-3">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Skeleton key={i} className="h-12 w-full" />
+                      ))}
+                    </div>
+                  ) : data?.streams?.byPlatform && data.streams.byPlatform.length > 0 ? (
+                    <div className="space-y-4">
+                      {data.streams.byPlatform.slice(0, 5).map((platform, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-blue-600" />
+                            <div>
+                              <div className="font-semibold">{platform.platform}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {platform.streams.toLocaleString()} streams
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-semibold text-green-600">
+                              ${platform.revenue.toLocaleString()}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {platform.growth > 0 ? '+' : ''}
+                              {platform.growth}%
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Globe className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No platform data available yet</p>
+                      <p className="text-sm text-muted-foreground">
+                        Distribute your music to see platform analytics
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ai-insights" className="space-y-6">
+            {data?.aiInsights ? (
+              <>
+                {/* AI Predictions */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
+                      AI Predictions
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Forecast your music career growth with AI
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {data.aiInsights.predictions?.nextMonthStreams?.toLocaleString() || '0'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Predicted Streams</div>
+                        <div className="text-xs text-green-600 mt-1">Next Month</div>
+                      </div>
+                      <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">
+                          ${data.aiInsights.predictions?.nextMonthRevenue?.toLocaleString() || '0'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Predicted Revenue</div>
+                        <div className="text-xs text-green-600 mt-1">Next Month</div>
+                      </div>
+                      <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 rounded-lg">
+                        <div className="text-2xl font-bold text-purple-600">
+                          {(data.aiInsights.predictions?.viralPotential * 100 || 0).toFixed(0)}%
+                        </div>
+                        <div className="text-sm text-muted-foreground">Viral Potential</div>
+                        <div className="text-xs text-green-600 mt-1">Current Content</div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Anomaly Cards */}
-                {anomaliesLoading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-32 w-full" />
-                    ))}
-                  </div>
-                ) : anomalyData?.anomalies && anomalyData.anomalies.length > 0 ? (
-                  <div className="space-y-4">
-                    {anomalyData.anomalies.map((anomaly: any) => {
-                      const severityColors = {
-                        critical: 'border-red-500 bg-red-50 dark:bg-red-950/20',
-                        high: 'border-orange-500 bg-orange-50 dark:bg-orange-950/20',
-                        medium: 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20',
-                        low: 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-                      };
-                      
-                      const severityBadgeColors = {
-                        critical: 'destructive',
-                        high: 'default',
-                        medium: 'secondary',
-                        low: 'outline'
-                      };
-                      
-                      const anomalyIcons = {
-                        spike: ArrowUp,
-                        drop: ArrowDown,
-                        unusual_pattern: Activity
-                      };
-                      
-                      const AnomalyIcon = anomalyIcons[anomaly.anomalyType as keyof typeof anomalyIcons] || Activity;
-                      
-                      return (
-                        <motion.div
-                          key={anomaly.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <Card 
-                            className={`border-2 ${severityColors[anomaly.severity as keyof typeof severityColors]}`}
-                            data-testid={`anomaly-card-${anomaly.id}`}
-                          >
-                            <CardContent className="p-6">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 space-y-3">
-                                  <div className="flex items-center gap-3">
-                                    <Badge variant={severityBadgeColors[anomaly.severity as keyof typeof severityBadgeColors] as any}>
-                                      {anomaly.severity}
-                                    </Badge>
-                                    <Badge variant="outline">
-                                      {anomaly.metricType}
-                                    </Badge>
-                                    <div className="flex items-center gap-1 text-muted-foreground">
-                                      <AnomalyIcon className="w-4 h-4" />
-                                      <span className="text-sm capitalize">{anomaly.anomalyType.replace('_', ' ')}</span>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="grid grid-cols-3 gap-4">
-                                    <div>
-                                      <p className="text-xs text-muted-foreground">Baseline</p>
-                                      <p className="text-lg font-semibold">{parseFloat(anomaly.baselineValue).toLocaleString()}</p>
-                                    </div>
-                                    <div>
-                                      <p className="text-xs text-muted-foreground">Actual</p>
-                                      <p className="text-lg font-semibold">{parseFloat(anomaly.actualValue).toLocaleString()}</p>
-                                    </div>
-                                    <div>
-                                      <p className="text-xs text-muted-foreground">Deviation</p>
-                                      <p className={`text-lg font-semibold ${parseFloat(anomaly.deviationPercentage) > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {parseFloat(anomaly.deviationPercentage) > 0 ? '+' : ''}{parseFloat(anomaly.deviationPercentage).toFixed(1)}%
-                                      </p>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                    <div className="flex items-center gap-1">
-                                      <Clock className="w-4 h-4" />
-                                      {new Date(anomaly.detectedAt).toLocaleString()}
-                                    </div>
-                                    {anomaly.acknowledgedAt && (
-                                      <div className="flex items-center gap-1 text-green-600">
-                                        <CheckCircle className="w-4 h-4" />
-                                        Acknowledged
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                                
-                                {!anomaly.acknowledgedAt && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => acknowledgeMutation.mutate(anomaly.id)}
-                                    disabled={acknowledgeMutation.isPending}
-                                    data-testid={`button-acknowledge-${anomaly.id}`}
-                                  >
-                                    <CheckCircle className="w-4 h-4 mr-2" />
-                                    Acknowledge
-                                  </Button>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                ) : (
+                {/* AI Recommendations */}
+                {data.aiInsights.recommendations && data.aiInsights.recommendations.length > 0 && (
                   <Card>
-                    <CardContent className="p-12 text-center">
-                      <CheckCircle className="w-16 h-16 mx-auto text-green-600 mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No Anomalies Detected</h3>
-                      <p className="text-muted-foreground">
-                        All metrics are within normal ranges. We'll alert you if any unusual patterns are detected.
-                      </p>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Lightbulb className="w-5 h-5 mr-2 text-yellow-600" />
+                        AI Recommendations
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {data.aiInsights.recommendations
+                          .slice(0, 5)
+                          .map((rec: unknown, index: number) => (
+                            <div key={index} className="p-4 bg-muted/50 rounded-lg">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold">{rec.title}</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {rec.description}
+                                  </p>
+                                </div>
+                                <Badge
+                                  variant={
+                                    rec.priority === 'high'
+                                      ? 'destructive'
+                                      : rec.priority === 'medium'
+                                        ? 'default'
+                                        : 'secondary'
+                                  }
+                                >
+                                  {rec.priority}
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
                     </CardContent>
                   </Card>
                 )}
-              </TabsContent>
-            </Tabs>
-        </div>
-      </AppLayout>
+              </>
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Brain className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No AI Insights Available</h3>
+                  <p className="text-muted-foreground">
+                    Upload music and get streams to receive AI-powered insights
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Anomalies Tab */}
+          <TabsContent value="anomalies" className="space-y-6">
+            {/* Filters and Summary */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Anomalies</p>
+                      <p className="text-2xl font-bold">{anomalySummary?.total || 0}</p>
+                    </div>
+                    <Activity className="w-8 h-8 text-blue-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Unacknowledged</p>
+                      <p className="text-2xl font-bold text-red-600">
+                        {anomalySummary?.unacknowledged || 0}
+                      </p>
+                    </div>
+                    <Bell className="w-8 h-8 text-red-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">By Severity</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {anomalySummary?.bySeverity &&
+                        Object.entries(anomalySummary.bySeverity).map(([severity, count]) => (
+                          <Badge
+                            key={severity}
+                            variant={
+                              severity === 'critical'
+                                ? 'destructive'
+                                : severity === 'high'
+                                  ? 'default'
+                                  : 'secondary'
+                            }
+                            data-testid={`severity-badge-${severity}`}
+                          >
+                            {severity}: {count as number}
+                          </Badge>
+                        ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Filters */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex gap-4 flex-wrap items-center">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="metric-filter">Metric Type:</Label>
+                    <Select value={anomalyMetricFilter} onValueChange={setAnomalyMetricFilter}>
+                      <SelectTrigger
+                        id="metric-filter"
+                        className="w-40"
+                        data-testid="select-metric-filter"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="streams">Streams</SelectItem>
+                        <SelectItem value="revenue">Revenue</SelectItem>
+                        <SelectItem value="listeners">Listeners</SelectItem>
+                        <SelectItem value="engagement">Engagement</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="severity-filter">Severity:</Label>
+                    <Select value={anomalySeverityFilter} onValueChange={setAnomalySeverityFilter}>
+                      <SelectTrigger
+                        id="severity-filter"
+                        className="w-40"
+                        data-testid="select-severity-filter"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="critical">Critical</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => refetchAnomalies()}
+                    data-testid="button-refresh-anomalies"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Anomaly Cards */}
+            {anomaliesLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-32 w-full" />
+                ))}
+              </div>
+            ) : anomalyData?.anomalies && anomalyData.anomalies.length > 0 ? (
+              <div className="space-y-4">
+                {anomalyData.anomalies.map((anomaly: unknown) => {
+                  const severityColors = {
+                    critical: 'border-red-500 bg-red-50 dark:bg-red-950/20',
+                    high: 'border-orange-500 bg-orange-50 dark:bg-orange-950/20',
+                    medium: 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20',
+                    low: 'border-blue-500 bg-blue-50 dark:bg-blue-950/20',
+                  };
+
+                  const severityBadgeColors = {
+                    critical: 'destructive',
+                    high: 'default',
+                    medium: 'secondary',
+                    low: 'outline',
+                  };
+
+                  const anomalyIcons = {
+                    spike: ArrowUp,
+                    drop: ArrowDown,
+                    unusual_pattern: Activity,
+                  };
+
+                  const AnomalyIcon =
+                    anomalyIcons[anomaly.anomalyType as keyof typeof anomalyIcons] || Activity;
+
+                  return (
+                    <motion.div
+                      key={anomaly.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Card
+                        className={`border-2 ${severityColors[anomaly.severity as keyof typeof severityColors]}`}
+                        data-testid={`anomaly-card-${anomaly.id}`}
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 space-y-3">
+                              <div className="flex items-center gap-3">
+                                <Badge
+                                  variant={
+                                    severityBadgeColors[
+                                      anomaly.severity as keyof typeof severityBadgeColors
+                                    ] as any
+                                  }
+                                >
+                                  {anomaly.severity}
+                                </Badge>
+                                <Badge variant="outline">{anomaly.metricType}</Badge>
+                                <div className="flex items-center gap-1 text-muted-foreground">
+                                  <AnomalyIcon className="w-4 h-4" />
+                                  <span className="text-sm capitalize">
+                                    {anomaly.anomalyType.replace('_', ' ')}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Baseline</p>
+                                  <p className="text-lg font-semibold">
+                                    {parseFloat(anomaly.baselineValue).toLocaleString()}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Actual</p>
+                                  <p className="text-lg font-semibold">
+                                    {parseFloat(anomaly.actualValue).toLocaleString()}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Deviation</p>
+                                  <p
+                                    className={`text-lg font-semibold ${parseFloat(anomaly.deviationPercentage) > 0 ? 'text-green-600' : 'text-red-600'}`}
+                                  >
+                                    {parseFloat(anomaly.deviationPercentage) > 0 ? '+' : ''}
+                                    {parseFloat(anomaly.deviationPercentage).toFixed(1)}%
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-4 h-4" />
+                                  {new Date(anomaly.detectedAt).toLocaleString()}
+                                </div>
+                                {anomaly.acknowledgedAt && (
+                                  <div className="flex items-center gap-1 text-green-600">
+                                    <CheckCircle className="w-4 h-4" />
+                                    Acknowledged
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {!anomaly.acknowledgedAt && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => acknowledgeMutation.mutate(anomaly.id)}
+                                disabled={acknowledgeMutation.isPending}
+                                data-testid={`button-acknowledge-${anomaly.id}`}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Acknowledge
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <CheckCircle className="w-16 h-16 mx-auto text-green-600 mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Anomalies Detected</h3>
+                  <p className="text-muted-foreground">
+                    All metrics are within normal ranges. We'll alert you if any unusual patterns
+                    are detected.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AppLayout>
   );
 }

@@ -1,6 +1,7 @@
-import Stripe from "stripe";
-import { storage } from "../storage";
-import { getStripePriceIds } from "./stripeSetup.js";
+import Stripe from 'stripe';
+import { storage } from '../storage';
+import { getStripePriceIds } from './stripeSetup.js';
+import { logger } from '../logger.js';
 
 // Support both production and testing Stripe keys (same logic as routes.ts)
 let actualStripeKey: string | undefined;
@@ -19,15 +20,17 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 if (!actualStripeKey) {
-  console.error('❌ STRIPE CONFIGURATION ERROR in stripeService.ts:');
-  console.error('   Missing or invalid Stripe secret key.');
-  console.error('   Expected: STRIPE_SECRET_KEY (production) or TESTING_STRIPE_SECRET_KEY (development)');
-  console.error('   Format: sk_test_... or sk_live_...');
+  logger.error('❌ STRIPE CONFIGURATION ERROR in stripeService.ts:');
+  logger.error('   Missing or invalid Stripe secret key.');
+  logger.error(
+    '   Expected: STRIPE_SECRET_KEY (production) or TESTING_STRIPE_SECRET_KEY (development)'
+  );
+  logger.error('   Format: sk_test_... or sk_live_...');
   throw new Error('Invalid Stripe configuration - cannot initialize payment service');
 }
 
 const stripe = new Stripe(actualStripeKey, {
-  apiVersion: "2025-08-27.basil",
+  apiVersion: '2025-08-27.basil',
 });
 
 export class StripeService {
@@ -40,16 +43,18 @@ export class StripeService {
 
       if (user.stripeSubscriptionId && tier !== 'lifetime') {
         const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId, {
-          expand: ['latest_invoice.payment_intent']
+          expand: ['latest_invoice.payment_intent'],
         });
         const latestInvoice = subscription.latest_invoice as Stripe.Invoice | null;
-        const paymentIntent = latestInvoice ? (latestInvoice as any).payment_intent as Stripe.PaymentIntent | null : null;
+        const paymentIntent = latestInvoice
+          ? ((latestInvoice as any).payment_intent as Stripe.PaymentIntent | null)
+          : null;
         return {
           subscriptionId: subscription.id,
           clientSecret: paymentIntent?.client_secret,
         };
       }
-      
+
       if (!user.email) {
         throw new Error('No user email on file');
       }
@@ -75,13 +80,13 @@ export class StripeService {
           customer: customerId,
           metadata: {
             userId,
-            tier: 'lifetime'
-          }
+            tier: 'lifetime',
+          },
         });
 
         return {
           clientSecret: paymentIntent.client_secret,
-          tier: 'lifetime'
+          tier: 'lifetime',
         };
       } else {
         // Create subscription
@@ -93,21 +98,28 @@ export class StripeService {
         });
 
         await storage.updateUserStripeInfo(userId, customerId, subscription.id);
-  
+
         const latestInvoice = subscription.latest_invoice as Stripe.Invoice | null;
-        const paymentIntent = latestInvoice ? (latestInvoice as any).payment_intent as Stripe.PaymentIntent | null : null;
+        const paymentIntent = latestInvoice
+          ? ((latestInvoice as any).payment_intent as Stripe.PaymentIntent | null)
+          : null;
         return {
           subscriptionId: subscription.id,
           clientSecret: paymentIntent?.client_secret,
         };
       }
-    } catch (error: any) {
-      console.error('Subscription error:', error);
+    } catch (error: unknown) {
+      logger.error('Subscription error:', error);
       throw error;
     }
   }
 
-  async createBeatPurchaseIntent(beatId: string, buyerId: string, licenseType: 'standard' | 'exclusive', price: number) {
+  async createBeatPurchaseIntent(
+    beatId: string,
+    buyerId: string,
+    licenseType: 'standard' | 'exclusive',
+    price: number
+  ) {
     try {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(price * 100), // Convert to cents
@@ -115,13 +127,13 @@ export class StripeService {
         metadata: {
           beatId,
           buyerId,
-          licenseType
-        }
+          licenseType,
+        },
       });
 
       return paymentIntent;
-    } catch (error) {
-      console.error('Beat purchase intent error:', error);
+    } catch (error: unknown) {
+      logger.error('Beat purchase intent error:', error);
       throw error;
     }
   }
@@ -174,22 +186,33 @@ export class StripeService {
           break;
 
         default:
-          console.log(`Unhandled webhook event type: ${event.type}`);
+          logger.info(`Unhandled webhook event type: ${event.type}`);
       }
-    } catch (error) {
-      console.error('Webhook error:', error);
+    } catch (error: unknown) {
+      logger.error('Webhook error:', error);
       throw error;
     }
   }
 
   private async handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
-    const { userId, tier, beatId, buyerId, licenseType, type, stemId, sellerId, listingId, stemFileUrl } = paymentIntent.metadata;
+    const {
+      userId,
+      tier,
+      beatId,
+      buyerId,
+      licenseType,
+      type,
+      stemId,
+      sellerId,
+      listingId,
+      stemFileUrl,
+    } = paymentIntent.metadata;
 
     if (tier === 'lifetime' && userId) {
       // Update user subscription status
-      await storage.updateUser(userId, { 
+      await storage.updateUser(userId, {
         subscriptionPlan: 'lifetime',
-        subscriptionStatus: 'active'
+        subscriptionStatus: 'active',
       });
     } else if (type === 'stem_purchase' && stemId && buyerId && sellerId && listingId) {
       // Handle stem purchase completion
@@ -204,7 +227,7 @@ export class StripeService {
     } else if (beatId && buyerId && licenseType) {
       // Beat purchase webhook handler reserved for future beat-specific purchases
       // Currently marketplace uses stem purchase flow above
-      console.log('Beat purchase completed:', { beatId, buyerId, licenseType });
+      logger.info('Beat purchase completed:', { beatId, buyerId, licenseType });
     }
   }
 
@@ -222,16 +245,19 @@ export class StripeService {
     const crypto = await import('crypto');
 
     // Create order record
-    const [order] = await db.insert(orders).values({
-      buyerId: data.buyerId,
-      sellerId: data.sellerId,
-      listingId: parseInt(data.listingId),
-      licenseType: 'stem_purchase',
-      amountCents: data.amountCents,
-      currency: 'usd',
-      status: 'completed',
-      downloadUrl: data.stemFileUrl
-    }).returning();
+    const [order] = await db
+      .insert(orders)
+      .values({
+        buyerId: data.buyerId,
+        sellerId: data.sellerId,
+        listingId: parseInt(data.listingId),
+        licenseType: 'stem_purchase',
+        amountCents: data.amountCents,
+        currency: 'usd',
+        status: 'completed',
+        downloadUrl: data.stemFileUrl,
+      })
+      .returning();
 
     // Generate download token
     const downloadToken = crypto.randomBytes(32).toString('hex');
@@ -242,7 +268,7 @@ export class StripeService {
       stemId: data.stemId,
       price: (data.amountCents / 100).toString(),
       downloadToken,
-      downloadCount: 0
+      downloadCount: 0,
     });
 
     // Update stem download count
@@ -251,26 +277,28 @@ export class StripeService {
       .set({ downloadCount: sql`${listingStems.downloadCount} + 1` })
       .where(eq(listingStems.id, data.stemId));
 
-    console.log(`✅ Stem purchase completed: ${data.stemId} by ${data.buyerId}`);
+    logger.info(`✅ Stem purchase completed: ${data.stemId} by ${data.buyerId}`);
   }
 
   private async handleSubscriptionPayment(invoice: Stripe.Invoice) {
     const invoiceSubscription = (invoice as any).subscription;
     if (invoice.customer && invoiceSubscription) {
       const customerId = invoice.customer as string;
-      const subscriptionId = typeof invoiceSubscription === 'string' ? invoiceSubscription : invoiceSubscription.id;
-      
+      const subscriptionId =
+        typeof invoiceSubscription === 'string' ? invoiceSubscription : invoiceSubscription.id;
+
       // Find user by Stripe customer ID
       const users = await storage.getAllUsers();
-      const user = users.find(u => u.stripeCustomerId === customerId);
-      
+      const user = users.find((u) => u.stripeCustomerId === customerId);
+
       if (user && subscriptionId) {
         // Update subscription status
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        const tier = subscription.items.data[0].price.recurring?.interval === 'year' ? 'yearly' : 'monthly';
+        const tier =
+          subscription.items.data[0].price.recurring?.interval === 'year' ? 'yearly' : 'monthly';
         await storage.updateUser(user.id, {
           subscriptionPlan: tier,
-          subscriptionStatus: subscription.status
+          subscriptionStatus: subscription.status,
         });
       }
     }
@@ -279,11 +307,11 @@ export class StripeService {
   private async handleSubscriptionCanceled(subscription: Stripe.Subscription) {
     const customerId = subscription.customer as string;
     const users = await storage.getAllUsers();
-    const user = users.find(u => u.stripeCustomerId === customerId);
-    
+    const user = users.find((u) => u.stripeCustomerId === customerId);
+
     if (user) {
       await storage.updateUser(user.id, {
-        subscriptionStatus: 'canceled'
+        subscriptionStatus: 'canceled',
       });
     }
   }

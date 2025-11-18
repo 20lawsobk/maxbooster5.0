@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Card, CardContent } from "@/components/ui/card";
-import { useAudioContext } from "@/hooks/useAudioContext";
-import { Play, Pause, Volume2, VolumeX, Download, AudioWaveform } from "lucide-react";
+import { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Card, CardContent } from '@/components/ui/card';
+import { useAudioContext } from '@/hooks/useAudioContext';
+import { Play, Pause, Volume2, VolumeX, Download, AudioWaveform } from 'lucide-react';
 
 interface BeatPlayerProps {
   audioUrl: string;
@@ -39,7 +39,8 @@ export function BeatPlayer({
   const [waveformData, setWaveformData] = useState<number[]>([]);
 
   const audioRef = useRef<HTMLAudioElement>(null);
-  const { context, analyser, frequencyData, startFrequencyAnalysis, stopFrequencyAnalysis } = useAudioContext();
+  const { context, analyser, frequencyData, startFrequencyAnalysis, stopFrequencyAnalysis } =
+    useAudioContext();
   const animationFrameRef = useRef<number>();
 
   // Initialize audio element
@@ -47,7 +48,7 @@ export function BeatPlayer({
     if (!audioRef.current) return;
 
     const audio = audioRef.current;
-    
+
     const handleLoadedMetadata = () => {
       setAudioDuration(audio.duration);
       setIsLoading(false);
@@ -102,16 +103,16 @@ export function BeatPlayer({
       const generateWaveform = () => {
         analyser.getByteFrequencyData(frequencyData);
         const dataArray = Array.from(frequencyData);
-        
+
         // Downsample for visualization (take every 4th value)
         const waveform = dataArray.filter((_, index) => index % 4 === 0).slice(0, 64);
         setWaveformData(waveform);
-        
+
         if (isPlaying) {
           animationFrameRef.current = requestAnimationFrame(generateWaveform);
         }
       };
-      
+
       if (isPlaying) {
         generateWaveform();
       }
@@ -131,11 +132,11 @@ export function BeatPlayer({
       if (context && context.state === 'suspended') {
         await context.resume();
       }
-      
+
       await audioRef.current.play();
       setIsPlaying(true);
       onPlay?.();
-      
+
       if (showWaveform) {
         startFrequencyAnalysis?.();
       }
@@ -150,7 +151,7 @@ export function BeatPlayer({
     audioRef.current.pause();
     setIsPlaying(false);
     onPause?.();
-    
+
     if (showWaveform) {
       stopFrequencyAnalysis?.();
     }
@@ -158,7 +159,7 @@ export function BeatPlayer({
 
   const handleSeek = (value: number[]) => {
     if (!audioRef.current) return;
-    
+
     const newTime = (value[0] / 100) * audioDuration;
     audioRef.current.currentTime = newTime;
     setCurrentTime(newTime);
@@ -183,12 +184,7 @@ export function BeatPlayer({
 
   return (
     <div className="w-full" data-testid="beat-player">
-      <audio
-        ref={audioRef}
-        src={audioUrl}
-        preload="metadata"
-        crossOrigin="anonymous"
-      />
+      <audio ref={audioRef} src={audioUrl} preload="metadata" crossOrigin="anonymous" />
 
       {/* Compact Player (for marketplace cards) */}
       {!title && (
@@ -218,9 +214,13 @@ export function BeatPlayer({
               {/* Track Info */}
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-medium text-sm" data-testid="text-player-title">{title}</h4>
+                  <h4 className="font-medium text-sm" data-testid="text-player-title">
+                    {title}
+                  </h4>
                   {artist && (
-                    <p className="text-xs text-muted-foreground" data-testid="text-player-artist">{artist}</p>
+                    <p className="text-xs text-muted-foreground" data-testid="text-player-artist">
+                      {artist}
+                    </p>
                   )}
                 </div>
                 {showDownload && (
@@ -232,32 +232,33 @@ export function BeatPlayer({
 
               {/* AudioWaveform Visualization */}
               {showWaveform && (
-                <div className="h-16 bg-background rounded flex items-end justify-center space-x-0.5 p-2" data-testid="waveform-container">
-                  {waveformData.length > 0 ? (
-                    waveformData.map((value, index) => (
-                      <div
-                        key={index}
-                        className="frequency-bar bg-gradient-to-t from-primary via-accent to-secondary rounded-sm opacity-70"
-                        style={{
-                          height: `${Math.max((value / 255) * 100, 8)}%`,
-                          width: '2px',
-                        }}
-                        data-testid={`waveform-bar-${index}`}
-                      />
-                    ))
-                  ) : (
-                    // Static waveform when not playing
-                    Array.from({ length: 64 }).map((_, index) => (
-                      <div
-                        key={index}
-                        className="bg-muted/40 rounded-sm"
-                        style={{
-                          height: `${Math.random() * 60 + 20}%`,
-                          width: '2px',
-                        }}
-                      />
-                    ))
-                  )}
+                <div
+                  className="h-16 bg-background rounded flex items-end justify-center space-x-0.5 p-2"
+                  data-testid="waveform-container"
+                >
+                  {waveformData.length > 0
+                    ? waveformData.map((value, index) => (
+                        <div
+                          key={index}
+                          className="frequency-bar bg-gradient-to-t from-primary via-accent to-secondary rounded-sm opacity-70"
+                          style={{
+                            height: `${Math.max((value / 255) * 100, 8)}%`,
+                            width: '2px',
+                          }}
+                          data-testid={`waveform-bar-${index}`}
+                        />
+                      ))
+                    : // Static waveform when not playing
+                      Array.from({ length: 64 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className="bg-muted/40 rounded-sm"
+                          style={{
+                            height: `${Math.random() * 60 + 20}%`,
+                            width: '2px',
+                          }}
+                        />
+                      ))}
                 </div>
               )}
 
@@ -296,12 +297,7 @@ export function BeatPlayer({
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleMute}
-                    data-testid="button-mute"
-                  >
+                  <Button variant="ghost" size="sm" onClick={toggleMute} data-testid="button-mute">
                     {isMuted || volume === 0 ? (
                       <VolumeX className="h-4 w-4" />
                     ) : (

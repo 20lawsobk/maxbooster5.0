@@ -21,48 +21,50 @@ const tests = [
   { name: 'Advertising', file: 'test-advertising.ts', icon: '📢' },
   { name: 'Marketplace', file: 'test-marketplace.ts', icon: '🛒' },
   { name: 'Studio/Audio', file: 'test-studio.ts', icon: '🎛️' },
-  { name: 'Distribution', file: 'test-distribution.ts', icon: '🌍' }
+  { name: 'Distribution', file: 'test-distribution.ts', icon: '🌍' },
 ];
 
-async function runTest(testFile: string): Promise<{ passed: boolean; duration: number; error?: string }> {
+async function runTest(
+  testFile: string
+): Promise<{ passed: boolean; duration: number; error?: string }> {
   const startTime = Date.now();
-  
+
   try {
     await execAsync(`npx tsx ${testFile}`, {
-      timeout: 60000 // 60 second timeout per test
+      timeout: 60000, // 60 second timeout per test
     });
-    
+
     return {
       passed: true,
-      duration: Date.now() - startTime
+      duration: Date.now() - startTime,
     };
   } catch (error: any) {
     return {
       passed: false,
       duration: Date.now() - startTime,
-      error: error.message
+      error: error.message,
     };
   }
 }
 
 async function runAllTests() {
   console.log('🚀 Max Booster Platform - Comprehensive System Tests\n');
-  console.log('=' .repeat(60));
+  console.log('='.repeat(60));
   console.log('Testing all major platform systems...\n');
 
   const results: TestResult[] = [];
-  
+
   for (const test of tests) {
     console.log(`\n${test.icon} Testing ${test.name}...`);
     console.log('-'.repeat(60));
-    
+
     const result = await runTest(test.file);
-    
+
     results.push({
       system: test.name,
-      ...result
+      ...result,
     });
-    
+
     if (result.passed) {
       console.log(`✅ ${test.name} PASSED (${result.duration}ms)`);
     } else {
@@ -71,10 +73,10 @@ async function runAllTests() {
         console.log(`   Error: ${result.error}`);
       }
     }
-    
+
     // Add 2 second delay between tests to avoid rate limiting
     if (tests.indexOf(test) < tests.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   }
 
@@ -83,8 +85,8 @@ async function runAllTests() {
   console.log('📊 TEST SUMMARY');
   console.log('='.repeat(60) + '\n');
 
-  const passed = results.filter(r => r.passed).length;
-  const failed = results.filter(r => !r.passed).length;
+  const passed = results.filter((r) => r.passed).length;
+  const failed = results.filter((r) => !r.passed).length;
   const total = results.length;
   const successRate = ((passed / total) * 100).toFixed(1);
 
@@ -94,7 +96,7 @@ async function runAllTests() {
   console.log(`Success Rate: ${successRate}%`);
 
   console.log('\nDetailed Results:');
-  results.forEach(r => {
+  results.forEach((r) => {
     const status = r.passed ? '✅' : '❌';
     console.log(`  ${status} ${r.system.padEnd(20)} ${r.duration}ms`);
   });
@@ -114,7 +116,7 @@ async function runAllTests() {
 }
 
 // Run all tests
-runAllTests().catch(error => {
+runAllTests().catch((error) => {
   console.error('\n❌ Test runner failed:', error);
   process.exit(1);
 });

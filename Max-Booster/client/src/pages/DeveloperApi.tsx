@@ -10,10 +10,24 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import {
@@ -76,7 +90,9 @@ export default function DeveloperApi() {
   const [createdApiKey, setCreatedApiKey] = useState<string | null>(null);
   const [selectedKeyForDeletion, setSelectedKeyForDeletion] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<'curl' | 'javascript' | 'python'>('curl');
+  const [selectedLanguage, setSelectedLanguage] = useState<'curl' | 'javascript' | 'python'>(
+    'curl'
+  );
 
   // Fetch API keys
   const { data: apiKeysData, isLoading: keysLoading } = useQuery({
@@ -108,7 +124,7 @@ export default function DeveloperApi() {
         description: 'Your new API key has been generated successfully.',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to create API key',
@@ -134,7 +150,7 @@ export default function DeveloperApi() {
         description: 'The API key has been revoked successfully.',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to revoke API key',
@@ -193,7 +209,7 @@ const response = await fetch('https://your-domain.com/api/v1/analytics/streams?t
 });
 
 const data = await response.json();
-console.log('Stream data:', data);
+logger.info('Stream data:', data);
 
 // Get engagement metrics
 const engagement = await fetch('https://your-domain.com/api/v1/analytics/engagement', {
@@ -202,7 +218,7 @@ const engagement = await fetch('https://your-domain.com/api/v1/analytics/engagem
   }
 }).then(res => res.json());
 
-console.log('Engagement:', engagement);`,
+logger.info('Engagement:', engagement);`,
     python: `import requests
 
 API_KEY = 'YOUR_API_KEY_HERE'
@@ -303,18 +319,15 @@ print('Demographics:', demographics)`,
                           <Alert>
                             <AlertCircle className="h-4 w-4" />
                             <AlertDescription>
-                              <strong>Save this API key securely!</strong> You won't be able to view it again.
+                              <strong>Save this API key securely!</strong> You won't be able to view
+                              it again.
                             </AlertDescription>
                           </Alert>
 
                           <div className="space-y-2">
                             <Label>Your API Key</Label>
                             <div className="flex gap-2">
-                              <Input
-                                value={createdApiKey}
-                                readOnly
-                                className="font-mono text-sm"
-                              />
+                              <Input value={createdApiKey} readOnly className="font-mono text-sm" />
                               <Button
                                 variant="outline"
                                 size="icon"
@@ -357,7 +370,9 @@ print('Demographics:', demographics)`,
                             <Label htmlFor="tier">Tier</Label>
                             <Select
                               value={newKeyTier}
-                              onValueChange={(value) => setNewKeyTier(value as 'free' | 'pro' | 'enterprise')}
+                              onValueChange={(value) =>
+                                setNewKeyTier(value as 'free' | 'pro' | 'enterprise')
+                              }
                             >
                               <SelectTrigger id="tier">
                                 <SelectValue />
@@ -365,7 +380,9 @@ print('Demographics:', demographics)`,
                               <SelectContent>
                                 <SelectItem value="free">Free (100 req/sec)</SelectItem>
                                 <SelectItem value="pro">Pro (1,000 req/sec)</SelectItem>
-                                <SelectItem value="enterprise">Enterprise (5,000 req/sec)</SelectItem>
+                                <SelectItem value="enterprise">
+                                  Enterprise (5,000 req/sec)
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -419,7 +436,11 @@ print('Demographics:', demographics)`,
                                 {key.isActive ? 'Active' : 'Inactive'}
                               </Badge>
                               <Badge variant={key.tier === 'free' ? 'outline' : 'default'}>
-                                {key.tier === 'enterprise' ? '🚀 Enterprise' : key.tier === 'pro' ? '⚡ Pro' : '🆓 Free'}
+                                {key.tier === 'enterprise'
+                                  ? '🚀 Enterprise'
+                                  : key.tier === 'pro'
+                                    ? '⚡ Pro'
+                                    : '🆓 Free'}
                               </Badge>
                             </div>
 
@@ -485,9 +506,7 @@ print('Demographics:', demographics)`,
                   <div className="text-3xl font-bold">
                     {apiKeys.filter((k: ApiKey) => k.isActive).length}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    of {apiKeys.length} total keys
-                  </p>
+                  <p className="text-xs text-muted-foreground">of {apiKeys.length} total keys</p>
                 </CardContent>
               </Card>
 
@@ -512,7 +531,7 @@ print('Demographics:', demographics)`,
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {usageData.byApiKey.map((keyUsage: any) => (
+                    {usageData.byApiKey.map((keyUsage: unknown) => (
                       <div key={keyUsage.keyId} className="border-b last:border-0 pb-4 last:pb-0">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-medium">{keyUsage.keyName}</h4>
@@ -543,7 +562,8 @@ print('Demographics:', demographics)`,
                 <div>
                   <h3 className="font-semibold mb-2">Authentication</h3>
                   <p className="text-sm text-muted-foreground mb-2">
-                    All API requests require authentication using an API key in the Authorization header:
+                    All API requests require authentication using an API key in the Authorization
+                    header:
                   </p>
                   <code className="block bg-muted p-3 rounded text-sm">
                     Authorization: Bearer YOUR_API_KEY_HERE
@@ -638,7 +658,10 @@ print('Demographics:', demographics)`,
                     <CardTitle>Code Examples</CardTitle>
                     <CardDescription>Example requests in different languages</CardDescription>
                   </div>
-                  <Select value={selectedLanguage} onValueChange={(value: any) => setSelectedLanguage(value)}>
+                  <Select
+                    value={selectedLanguage}
+                    onValueChange={(value: unknown) => setSelectedLanguage(value)}
+                  >
                     <SelectTrigger className="w-32">
                       <SelectValue />
                     </SelectTrigger>
@@ -673,7 +696,10 @@ print('Demographics:', demographics)`,
         </Tabs>
 
         {/* Delete Confirmation Dialog */}
-        <Dialog open={!!selectedKeyForDeletion} onOpenChange={() => setSelectedKeyForDeletion(null)}>
+        <Dialog
+          open={!!selectedKeyForDeletion}
+          onOpenChange={() => setSelectedKeyForDeletion(null)}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Revoke API Key</DialogTitle>
@@ -688,7 +714,9 @@ print('Demographics:', demographics)`,
               </Button>
               <Button
                 variant="destructive"
-                onClick={() => selectedKeyForDeletion && deleteKeyMutation.mutate(selectedKeyForDeletion)}
+                onClick={() =>
+                  selectedKeyForDeletion && deleteKeyMutation.mutate(selectedKeyForDeletion)
+                }
                 disabled={deleteKeyMutation.isPending}
               >
                 {deleteKeyMutation.isPending ? 'Revoking...' : 'Revoke Key'}

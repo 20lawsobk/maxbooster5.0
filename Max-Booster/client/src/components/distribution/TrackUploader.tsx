@@ -22,6 +22,9 @@ interface TrackUploaderProps {
   maxFiles?: number;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function TrackUploader({ files, onChange, maxFiles = 20 }: TrackUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -45,12 +48,12 @@ export function TrackUploader({ files, onChange, maxFiles = 20 }: TrackUploaderP
     if (!newFiles) return;
 
     const fileArray = Array.from(newFiles);
-    
+
     if (files.length + fileArray.length > maxFiles) {
       toast({
         title: 'Too many files',
         description: `Maximum ${maxFiles} tracks allowed`,
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -59,12 +62,12 @@ export function TrackUploader({ files, onChange, maxFiles = 20 }: TrackUploaderP
 
     for (const file of fileArray) {
       const error = validateFile(file);
-      
+
       if (error) {
         toast({
           title: 'Invalid file',
           description: `${file.name}: ${error}`,
-          variant: 'destructive'
+          variant: 'destructive',
         });
         continue;
       }
@@ -73,15 +76,15 @@ export function TrackUploader({ files, onChange, maxFiles = 20 }: TrackUploaderP
         file,
         id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         status: 'complete',
-        progress: 100
+        progress: 100,
       };
 
       // Extract audio duration
       try {
         const duration = await getAudioDuration(file);
         audioFile.duration = duration;
-      } catch (err) {
-        console.error('Error getting audio duration:', err);
+      } catch (err: unknown) {
+        logger.error('Error getting audio duration:', err);
       }
 
       audioFiles.push(audioFile);
@@ -91,7 +94,7 @@ export function TrackUploader({ files, onChange, maxFiles = 20 }: TrackUploaderP
 
     toast({
       title: 'Files added',
-      description: `${audioFiles.length} track(s) ready for upload`
+      description: `${audioFiles.length} track(s) ready for upload`,
     });
   };
 
@@ -107,7 +110,7 @@ export function TrackUploader({ files, onChange, maxFiles = 20 }: TrackUploaderP
   };
 
   const removeFile = (id: string) => {
-    onChange(files.filter(f => f.id !== id));
+    onChange(files.filter((f) => f.id !== id));
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -163,17 +166,9 @@ export function TrackUploader({ files, onChange, maxFiles = 20 }: TrackUploaderP
           onDragLeave={handleDragLeave}
         >
           <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-lg font-medium mb-2">
-            Drag and drop audio files here
-          </p>
-          <p className="text-sm text-muted-foreground mb-4">
-            or click to browse
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-          >
+          <p className="text-lg font-medium mb-2">Drag and drop audio files here</p>
+          <p className="text-sm text-muted-foreground mb-4">or click to browse</p>
+          <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
             <Upload className="h-4 w-4 mr-2" />
             Select Files
           </Button>
@@ -194,11 +189,9 @@ export function TrackUploader({ files, onChange, maxFiles = 20 }: TrackUploaderP
         {files.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium">
-                Uploaded Tracks ({files.length})
-              </h3>
+              <h3 className="font-medium">Uploaded Tracks ({files.length})</h3>
             </div>
-            
+
             <div className="space-y-2">
               {files.map((audioFile, index) => (
                 <div
@@ -208,19 +201,21 @@ export function TrackUploader({ files, onChange, maxFiles = 20 }: TrackUploaderP
                   <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
                     <span className="text-sm font-medium">{index + 1}</span>
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{audioFile.file.name}</p>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>{formatFileSize(audioFile.file.size)}</span>
                       <span>{formatDuration(audioFile.duration)}</span>
-                      <span className="capitalize">{audioFile.file.type.split('/')[1] || 'audio'}</span>
+                      <span className="capitalize">
+                        {audioFile.file.type.split('/')[1] || 'audio'}
+                      </span>
                     </div>
-                    
+
                     {audioFile.status === 'uploading' && (
                       <Progress value={audioFile.progress} className="h-1 mt-2" />
                     )}
-                    
+
                     {audioFile.error && (
                       <p className="text-xs text-destructive mt-1">{audioFile.error}</p>
                     )}

@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from '../db';
 import {
   supportTickets,
   supportTicketMessages,
@@ -8,22 +8,25 @@ import {
   type UpdateSupportTicket,
   type InsertSupportTicketMessage,
   type InsertSupportTicketTag,
-} from "@shared/schema";
-import { eq, and, desc, or, inArray, sql } from "drizzle-orm";
-import { emailService } from "./emailService";
-import { notificationService } from "./notificationService";
+} from '@shared/schema';
+import { eq, and, desc, or, inArray, sql } from 'drizzle-orm';
+import { emailService } from './emailService';
+import { notificationService } from './notificationService';
 
 export class SupportTicketService {
   async createTicket(userId: string, ticketData: InsertSupportTicket) {
-    const [ticket] = await db.insert(supportTickets).values({
-      ...ticketData,
-      userId,
-    }).returning();
+    const [ticket] = await db
+      .insert(supportTickets)
+      .values({
+        ...ticketData,
+        userId,
+      })
+      .returning();
 
     await notificationService.createNotification({
       userId,
-      type: "support",
-      title: "Support Ticket Created",
+      type: 'support',
+      title: 'Support Ticket Created',
       message: `Your support ticket "${ticketData.subject}" has been created. Our team will respond shortly.`,
       link: `/support/tickets/${ticket.id}`,
     });
@@ -65,7 +68,7 @@ export class SupportTicketService {
     if (userId && result[0].ticket.userId !== userId) {
       const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
       if (!userRecord[0]?.isAdmin) {
-        throw new Error("Unauthorized to view this ticket");
+        throw new Error('Unauthorized to view this ticket');
       }
     }
 
@@ -80,15 +83,15 @@ export class SupportTicketService {
     };
   }
 
-  async getUserTickets(userId: string, filters?: {
-    status?: string[];
-    priority?: string[];
-    category?: string;
-  }) {
-    let query = db
-      .select()
-      .from(supportTickets)
-      .where(eq(supportTickets.userId, userId));
+  async getUserTickets(
+    userId: string,
+    filters?: {
+      status?: string[];
+      priority?: string[];
+      category?: string;
+    }
+  ) {
+    let query = db.select().from(supportTickets).where(eq(supportTickets.userId, userId));
 
     if (filters?.status && filters.status.length > 0) {
       query = query.where(inArray(supportTickets.status, filters.status as any));
@@ -150,16 +153,20 @@ export class SupportTicketService {
   }
 
   async updateTicket(ticketId: string, userId: string, updates: UpdateSupportTicket) {
-    const ticket = await db.select().from(supportTickets).where(eq(supportTickets.id, ticketId)).limit(1);
-    
+    const ticket = await db
+      .select()
+      .from(supportTickets)
+      .where(eq(supportTickets.id, ticketId))
+      .limit(1);
+
     if (!ticket.length) {
-      throw new Error("Ticket not found");
+      throw new Error('Ticket not found');
     }
 
     if (ticket[0].userId !== userId) {
       const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
       if (!userRecord[0]?.isAdmin) {
-        throw new Error("Unauthorized to update this ticket");
+        throw new Error('Unauthorized to update this ticket');
       }
     }
 
@@ -195,8 +202,8 @@ export class SupportTicketService {
 
     await notificationService.createNotification({
       userId: ticket[0].userId,
-      type: "support",
-      title: "Support Ticket Updated",
+      type: 'support',
+      title: 'Support Ticket Updated',
       message: `Your support ticket "${ticket[0].subject}" has been updated.`,
       link: `/support/tickets/${ticketId}`,
     });
@@ -204,20 +211,33 @@ export class SupportTicketService {
     return updatedTicket;
   }
 
-  async addMessage(ticketId: string, userId: string, message: string, isStaffReply: boolean = false, attachments?: any) {
-    const ticket = await db.select().from(supportTickets).where(eq(supportTickets.id, ticketId)).limit(1);
-    
+  async addMessage(
+    ticketId: string,
+    userId: string,
+    message: string,
+    isStaffReply: boolean = false,
+    attachments?: unknown
+  ) {
+    const ticket = await db
+      .select()
+      .from(supportTickets)
+      .where(eq(supportTickets.id, ticketId))
+      .limit(1);
+
     if (!ticket.length) {
-      throw new Error("Ticket not found");
+      throw new Error('Ticket not found');
     }
 
-    const [messageRecord] = await db.insert(supportTicketMessages).values({
-      ticketId,
-      userId,
-      message,
-      isStaffReply,
-      attachments,
-    }).returning();
+    const [messageRecord] = await db
+      .insert(supportTicketMessages)
+      .values({
+        ticketId,
+        userId,
+        message,
+        isStaffReply,
+        attachments,
+      })
+      .returning();
 
     await db
       .update(supportTickets)
@@ -238,8 +258,8 @@ export class SupportTicketService {
 
       await notificationService.createNotification({
         userId: ticket[0].userId,
-        type: "support",
-        title: "New Support Reply",
+        type: 'support',
+        title: 'New Support Reply',
         message: `You have a new reply on your support ticket "${ticket[0].subject}"`,
         link: `/support/tickets/${ticketId}`,
       });
@@ -268,7 +288,7 @@ export class SupportTicketService {
   }
 
   async addTags(ticketId: string, tags: string[]) {
-    const tagRecords = tags.map(tag => ({
+    const tagRecords = tags.map((tag) => ({
       ticketId,
       tag,
     }));

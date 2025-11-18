@@ -1,4 +1,4 @@
-import type { AdCreative } from "@shared/schema";
+import type { AdCreative } from '@shared/schema';
 
 /**
  * Advertisement Content Normalization Service
@@ -8,41 +8,41 @@ import type { AdCreative } from "@shared/schema";
 export class AdvertisingNormalizationService {
   // Platform content requirements for optimal organic performance
   private platformLimits = {
-    facebook: { 
+    facebook: {
       textMax: 125, // Short text performs best organically
-      hashtagMax: 30, 
-      imageRatio: [1.91, 1, 4/5],
-      optimalLength: 80 // Engagement sweet spot
+      hashtagMax: 30,
+      imageRatio: [1.91, 1, 4 / 5],
+      optimalLength: 80, // Engagement sweet spot
     },
-    instagram: { 
-      textMax: 2200, 
-      hashtagMax: 30, 
-      imageRatio: [1.91, 1, 4/5],
-      optimalLength: 138 // Research-backed engagement length
+    instagram: {
+      textMax: 2200,
+      hashtagMax: 30,
+      imageRatio: [1.91, 1, 4 / 5],
+      optimalLength: 138, // Research-backed engagement length
     },
-    twitter: { 
-      textMax: 280, 
-      hashtagMax: 10, 
-      imageRatio: [2, 1, 16/9],
-      optimalLength: 100 // Highest RT rate
+    twitter: {
+      textMax: 280,
+      hashtagMax: 10,
+      imageRatio: [2, 1, 16 / 9],
+      optimalLength: 100, // Highest RT rate
     },
-    linkedin: { 
-      textMax: 3000, 
-      hashtagMax: 5, 
+    linkedin: {
+      textMax: 3000,
+      hashtagMax: 5,
       imageRatio: [1.91, 1],
-      optimalLength: 150 // Professional engagement length
+      optimalLength: 150, // Professional engagement length
     },
-    tiktok: { 
-      textMax: 2200, 
-      hashtagMax: 10, 
-      videoRatio: [9/16],
-      optimalLength: 100 // Short hooks perform best
+    tiktok: {
+      textMax: 2200,
+      hashtagMax: 10,
+      videoRatio: [9 / 16],
+      optimalLength: 100, // Short hooks perform best
     },
-    youtube: { 
-      textMax: 5000, 
-      hashtagMax: 15, 
-      videoRatio: [16/9],
-      optimalLength: 200 // Description engagement length
+    youtube: {
+      textMax: 5000,
+      hashtagMax: 15,
+      videoRatio: [16 / 9],
+      optimalLength: 200, // Description engagement length
     },
   };
 
@@ -52,14 +52,22 @@ export class AdvertisingNormalizationService {
    */
   async normalizeContent(creative: AdCreative, platforms: string[]): Promise<Record<string, any>> {
     const variants: Record<string, any> = {};
-    
+
     for (const platform of platforms) {
       const limits = this.platformLimits[platform as keyof typeof this.platformLimits];
       if (!limits) continue;
-      
+
       variants[platform] = {
-        text: this.optimizeText(creative.normalizedContent || creative.rawContent || '', platform, limits),
-        hashtags: this.extractAndOptimizeHashtags(creative.rawContent || '', limits.hashtagMax, platform),
+        text: this.optimizeText(
+          creative.normalizedContent || creative.rawContent || '',
+          platform,
+          limits
+        ),
+        hashtags: this.extractAndOptimizeHashtags(
+          creative.rawContent || '',
+          limits.hashtagMax,
+          platform
+        ),
         mediaUrls: creative.assetUrls || [],
         aspectRatio: limits.imageRatio || limits.videoRatio,
         callToAction: this.generateCTA(platform),
@@ -67,14 +75,17 @@ export class AdvertisingNormalizationService {
         engagementHooks: this.generateEngagementHooks(creative.rawContent || '', platform),
       };
     }
-    
+
     return variants;
   }
 
   /**
    * Check content compliance for brand safety and platform policies
    */
-  async checkCompliance(content: string, assets: string[]): Promise<{ status: string; issues: any }> {
+  async checkCompliance(
+    content: string,
+    assets: string[]
+  ): Promise<{ status: string; issues: any }> {
     const issues = {
       offensive: this.detectOffensiveContent(content),
       spam: this.detectSpamPatterns(content),
@@ -82,11 +93,11 @@ export class AdvertisingNormalizationService {
       brandSafety: this.checkBrandSafety(content),
       engagement: this.validateEngagementQuality(content),
     };
-    
-    const hasIssues = Object.entries(issues).some(([key, value]) => 
-      key !== 'engagement' && value === true
+
+    const hasIssues = Object.entries(issues).some(
+      ([key, value]) => key !== 'engagement' && value === true
     );
-    
+
     const status = hasIssues ? 'rejected' : 'approved';
     return { status, issues };
   }
@@ -94,12 +105,13 @@ export class AdvertisingNormalizationService {
   /**
    * Optimize text for maximum organic engagement
    */
-  private optimizeText(text: string, platform: string, limits: any): string {
+  private optimizeText(text: string, platform: string, limits: unknown): string {
     // Truncate to optimal length for engagement
-    let optimized = text.length > limits.optimalLength 
-      ? text.substring(0, limits.optimalLength - 3) + '...' 
-      : text;
-    
+    let optimized =
+      text.length > limits.optimalLength
+        ? text.substring(0, limits.optimalLength - 3) + '...'
+        : text;
+
     // Add platform-specific formatting
     switch (platform) {
       case 'twitter':
@@ -115,7 +127,7 @@ export class AdvertisingNormalizationService {
         optimized = this.addTikTokFormatting(optimized);
         break;
     }
-    
+
     return optimized;
   }
 
@@ -125,13 +137,13 @@ export class AdvertisingNormalizationService {
   private extractAndOptimizeHashtags(text: string, maxCount: number, platform: string): string[] {
     // Extract existing hashtags
     const existingHashtags = text.match(/#\w+/g) || [];
-    
+
     // Add platform-optimized discovery hashtags
     const platformHashtags = this.getPlatformOptimizedHashtags(platform);
-    
+
     // Combine and deduplicate
     const allHashtags = [...new Set([...existingHashtags, ...platformHashtags])];
-    
+
     // Return top performing hashtags up to limit
     return allHashtags.slice(0, maxCount);
   }
@@ -148,7 +160,7 @@ export class AdvertisingNormalizationService {
       linkedin: ['#MusicIndustry', '#ArtistDevelopment', '#MusicBusiness'],
       youtube: ['#NewMusic', '#MusicVideo', '#IndieArtist', '#MusicDiscovery'],
     };
-    
+
     return musicDiscoveryHashtags[platform as keyof typeof musicDiscoveryHashtags] || [];
   }
 
@@ -164,7 +176,7 @@ export class AdvertisingNormalizationService {
       linkedin: 'Available on all major streaming platforms',
       youtube: 'Watch the full video!',
     };
-    
+
     return ctas[platform as keyof typeof ctas] || 'Check it out!';
   }
 
@@ -181,7 +193,7 @@ export class AdvertisingNormalizationService {
       linkedin: '7:30 AM - 8:30 AM weekdays',
       youtube: '2:00 PM - 4:00 PM weekends',
     };
-    
+
     return optimalTimes[platform as keyof typeof optimalTimes] || '12:00 PM weekdays';
   }
 
@@ -190,27 +202,27 @@ export class AdvertisingNormalizationService {
    */
   private generateEngagementHooks(content: string, platform: string): string[] {
     const hooks: string[] = [];
-    
+
     // Question hooks (drive comments)
     if (!content.includes('?')) {
       hooks.push('What do you think of this track? 💭');
     }
-    
+
     // Emoji engagement
     if (!/[\u{1F300}-\u{1F9FF}]/u.test(content)) {
       hooks.push('React with 🔥 if you love this!');
     }
-    
+
     // Tag engagement
     hooks.push('Tag someone who needs to hear this!');
-    
+
     // Platform-specific hooks
     if (platform === 'tiktok') {
       hooks.push('Duet this! 🎤');
     } else if (platform === 'instagram') {
       hooks.push('Save this for later! 📌');
     }
-    
+
     return hooks;
   }
 
@@ -224,14 +236,14 @@ export class AdvertisingNormalizationService {
     // Check for excessive caps
     const capsRatio = (text.match(/[A-Z]/g) || []).length / Math.max(text.length, 1);
     if (capsRatio > 0.5) return true;
-    
+
     // Check for excessive exclamation marks
     const exclamationCount = (text.match(/!/g) || []).length;
     if (exclamationCount > 5) return true;
-    
+
     // Check for repetitive text
     if (/(.)\1{4,}/.test(text)) return true;
-    
+
     return false;
   }
 
@@ -243,10 +255,10 @@ export class AdvertisingNormalizationService {
   private validateEngagementQuality(text: string): boolean {
     // Text should be substantial
     if (text.length < 20) return false;
-    
+
     // Should have some variation
     if (!/[.!?]/.test(text)) return false;
-    
+
     return true;
   }
 

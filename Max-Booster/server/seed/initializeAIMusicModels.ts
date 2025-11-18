@@ -1,14 +1,19 @@
 import { storage } from '../storage';
+import { logger } from '../logger.js';
 
+/**
+ * TODO: Add function documentation
+ */
 export async function initializeAIMusicModels() {
-  console.log('🎵 Initializing AI Music Intelligence Models...');
-  
+  logger.info('🎵 Initializing AI Music Intelligence Models...');
+
   try {
     const models = [
       {
         modelName: 'stem_separator_v1',
         modelType: 'music_processing',
-        description: 'Professional-grade stem separation engine using deterministic frequency-based analysis',
+        description:
+          'Professional-grade stem separation engine using deterministic frequency-based analysis',
         category: 'audio',
         isActive: true,
         isBeta: false,
@@ -41,14 +46,14 @@ export async function initializeAIMusicModels() {
 
     for (const modelData of models) {
       const existing = await storage.getAIModelByName(modelData.modelName);
-      
+
       if (existing) {
-        console.log(`✓ AI Model ${modelData.modelName} already exists`);
+        logger.info(`✓ AI Model ${modelData.modelName} already exists`);
         continue;
       }
 
       const model = await storage.createAIModel(modelData);
-      console.log(`✓ Created AI Model: ${model.modelName}`);
+      logger.info(`✓ Created AI Model: ${model.modelName}`);
 
       const version = await storage.createAIModelVersion({
         modelId: model.id,
@@ -73,7 +78,7 @@ export async function initializeAIMusicModels() {
         currentVersionId: version.id,
       });
 
-      console.log(`  ✓ Created version: ${version.versionNumber}`);
+      logger.info(`  ✓ Created version: ${version.versionNumber}`);
 
       await storage.createPerformanceMetric({
         modelId: model.id,
@@ -97,17 +102,20 @@ export async function initializeAIMusicModels() {
         metadata: { baseline: true },
       });
 
-      console.log(`  ✓ Created baseline performance metrics`);
+      logger.info(`  ✓ Created baseline performance metrics`);
     }
 
-    console.log('✅ AI Music Intelligence Models initialized successfully!');
+    logger.info('✅ AI Music Intelligence Models initialized successfully!');
     return true;
-  } catch (error) {
-    console.error('❌ Failed to initialize AI Music Models:', error);
+  } catch (error: unknown) {
+    logger.error('❌ Failed to initialize AI Music Models:', error);
     throw error;
   }
 }
 
+/**
+ * TODO: Add function documentation
+ */
 function getModelFeatures(modelName: string): string[] {
   const features: Record<string, string[]> = {
     stem_separator_v1: [
@@ -147,10 +155,10 @@ function getModelFeatures(modelName: string): string[] {
 // Auto-run if executed directly
 initializeAIMusicModels()
   .then(() => {
-    console.log('Script completed successfully');
+    logger.info('Script completed successfully');
     process.exit(0);
   })
   .catch((error) => {
-    console.error('Script failed:', error);
+    logger.error('Script failed:', error);
     process.exit(1);
   });

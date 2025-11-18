@@ -1,12 +1,12 @@
-import Stripe from "stripe";
-import { storage } from "../storage";
+import Stripe from 'stripe';
+import { storage } from '../storage';
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16",
+  apiVersion: '2023-10-16',
 });
 
 export class StripeService {
@@ -24,7 +24,7 @@ export class StripeService {
           clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
         };
       }
-      
+
       if (!user.email) {
         throw new Error('No user email on file');
       }
@@ -50,13 +50,13 @@ export class StripeService {
           customer: customerId,
           metadata: {
             userId,
-            tier: 'lifetime'
-          }
+            tier: 'lifetime',
+          },
         });
 
         return {
           clientSecret: paymentIntent.client_secret,
-          tier: 'lifetime'
+          tier: 'lifetime',
         };
       } else {
         // Create subscription
@@ -68,7 +68,7 @@ export class StripeService {
         });
 
         await storage.updateUserStripeInfo(userId, customerId, subscription.id);
-  
+
         return {
           subscriptionId: subscription.id,
           clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
@@ -80,7 +80,12 @@ export class StripeService {
     }
   }
 
-  async createBeatPurchaseIntent(beatId: string, buyerId: string, licenseType: 'standard' | 'exclusive', price: number) {
+  async createBeatPurchaseIntent(
+    beatId: string,
+    buyerId: string,
+    licenseType: 'standard' | 'exclusive',
+    price: number
+  ) {
     try {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(price * 100), // Convert to cents
@@ -88,8 +93,8 @@ export class StripeService {
         metadata: {
           beatId,
           buyerId,
-          licenseType
-        }
+          licenseType,
+        },
       });
 
       return paymentIntent;
@@ -104,7 +109,7 @@ export class StripeService {
     const priceIds = {
       monthly: process.env.STRIPE_MONTHLY_PRICE_ID || 'price_monthly',
       yearly: process.env.STRIPE_YEARLY_PRICE_ID || 'price_yearly',
-      lifetime: process.env.STRIPE_LIFETIME_PRICE_ID || 'price_lifetime'
+      lifetime: process.env.STRIPE_LIFETIME_PRICE_ID || 'price_lifetime',
     };
 
     return priceIds[tier];
@@ -148,7 +153,7 @@ export class StripeService {
           sellerId: beat.userId,
           licenseType: licenseType as 'standard' | 'exclusive',
           price: (paymentIntent.amount / 100).toString(),
-          stripePaymentIntentId: paymentIntent.id
+          stripePaymentIntentId: paymentIntent.id,
         });
       }
     }
@@ -161,7 +166,8 @@ export class StripeService {
       if (user) {
         // Update subscription status
         const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
-        const tier = subscription.items.data[0].price.recurring?.interval === 'year' ? 'yearly' : 'monthly';
+        const tier =
+          subscription.items.data[0].price.recurring?.interval === 'year' ? 'yearly' : 'monthly';
         await storage.updateUserSubscription(user.id, tier);
       }
     }

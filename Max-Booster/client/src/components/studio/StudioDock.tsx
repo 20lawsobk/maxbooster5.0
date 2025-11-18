@@ -29,6 +29,9 @@ interface StudioDockProps {
   memoryUsage?: number;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function StudioDock({
   isPlaying,
   isRecording,
@@ -55,7 +58,7 @@ export function StudioDock({
   memoryUsage = 0,
 }: StudioDockProps) {
   return (
-    <div 
+    <div
       className="h-full flex items-center justify-between px-4"
       style={{ backgroundColor: 'var(--studio-transport)' }}
     >
@@ -65,11 +68,11 @@ export function StudioDock({
           <Activity className="h-3.5 w-3.5" style={{ color: 'var(--studio-text-muted)' }} />
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-1.5">
-              <div 
-                className="h-1 w-16 rounded-full overflow-hidden" 
+              <div
+                className="h-1 w-16 rounded-full overflow-hidden"
                 style={{ backgroundColor: 'var(--studio-bg-deep)' }}
               >
-                <div 
+                <div
                   className="h-full transition-all duration-300"
                   style={{
                     width: `${cpuUsage}%`,
@@ -84,14 +87,18 @@ export function StudioDock({
           </div>
         </div>
 
-        <Separator orientation="vertical" className="h-8" style={{ backgroundColor: 'var(--studio-border)' }} />
+        <Separator
+          orientation="vertical"
+          className="h-8"
+          style={{ backgroundColor: 'var(--studio-border)' }}
+        />
 
         <div className="flex items-center gap-2">
           <HardDrive className="h-3.5 w-3.5" style={{ color: 'var(--studio-text-muted)' }} />
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className="h-5 px-2 text-xs"
-            style={{ 
+            style={{
               borderColor: 'var(--studio-border)',
               color: 'var(--studio-text-muted)',
               backgroundColor: 'transparent',
@@ -132,8 +139,8 @@ export function StudioDock({
       {/* Right: Additional Info */}
       <div className="min-w-[180px] flex justify-end">
         {isRecording && (
-          <Badge 
-            variant="destructive" 
+          <Badge
+            variant="destructive"
             className="h-6 px-3 animate-pulse"
             data-testid="badge-recording-status"
           >

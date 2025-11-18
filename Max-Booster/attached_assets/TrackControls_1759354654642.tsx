@@ -1,25 +1,25 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Switch } from "@/components/ui/switch";
-import { 
-  Play, 
-  Pause, 
-  Square, 
-  SkipBack, 
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
+import {
+  Play,
+  Pause,
+  Square,
+  SkipBack,
   SkipForward,
-  Volume2, 
+  Volume2,
   VolumeX,
   Mic,
   Upload,
   Settings,
-  Zap
-} from "lucide-react";
-import { useAudioPlayer, Track } from "@/hooks/useAudioPlayer";
-import AudioRecorder from "./AudioRecorder";
+  Zap,
+} from 'lucide-react';
+import { useAudioPlayer, Track } from '@/hooks/useAudioPlayer';
+import AudioRecorder from './AudioRecorder';
 
 interface TrackControlsProps {
   projectId?: string;
@@ -27,15 +27,15 @@ interface TrackControlsProps {
   onTracksChange?: (tracks: Track[]) => void;
 }
 
-export default function TrackControls({ 
-  projectId, 
-  initialTracks = [], 
-  onTracksChange 
+export default function TrackControls({
+  projectId,
+  initialTracks = [],
+  onTracksChange,
 }: TrackControlsProps) {
   const [showRecorder, setShowRecorder] = useState(false);
   const [isLooping, setIsLooping] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
-  
+
   const {
     isPlaying,
     isPaused,
@@ -75,7 +75,7 @@ export default function TrackControls({
       const url = URL.createObjectURL(file);
       const track: Track = {
         id: `track_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-        name: file.name.replace(/\.[^/.]+$/, ""),
+        name: file.name.replace(/\.[^/.]+$/, ''),
         url,
         duration: 0, // Will be set after loading
         gain: 1.0,
@@ -83,7 +83,7 @@ export default function TrackControls({
         isMuted: false,
         isSolo: false,
       };
-      
+
       try {
         await addTrack(track);
         onTracksChange?.(tracks);
@@ -91,7 +91,7 @@ export default function TrackControls({
         console.error('Error adding track:', error);
       }
     }
-    
+
     // Reset input
     event.target.value = '';
   };
@@ -112,7 +112,7 @@ export default function TrackControls({
       isMuted: false,
       isSolo: false,
     };
-    
+
     try {
       await addTrack(track);
       onTracksChange?.(tracks);
@@ -144,7 +144,9 @@ export default function TrackControls({
           <CardTitle className="flex items-center justify-between">
             <span>Transport</span>
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+              <span>
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </span>
               <Badge variant="outline">{bpm} BPM</Badge>
             </div>
           </CardTitle>
@@ -161,23 +163,19 @@ export default function TrackControls({
             >
               <SkipBack className="h-5 w-5" />
             </Button>
-            
+
             <Button
-              variant={isPlaying ? "destructive" : "default"}
+              variant={isPlaying ? 'destructive' : 'default'}
               size="lg"
               onClick={isPlaying ? pause : play}
               disabled={isLoading || tracks.length === 0}
               className="px-8"
               data-testid="button-play-pause"
             >
-              {isPlaying ? (
-                <Pause className="h-6 w-6 mr-2" />
-              ) : (
-                <Play className="h-6 w-6 mr-2" />
-              )}
+              {isPlaying ? <Pause className="h-6 w-6 mr-2" /> : <Play className="h-6 w-6 mr-2" />}
               {isPlaying ? 'Pause' : 'Play'}
             </Button>
-            
+
             <Button
               variant="outline"
               size="lg"
@@ -187,7 +185,7 @@ export default function TrackControls({
             >
               <Square className="h-5 w-5" />
             </Button>
-            
+
             <Button
               variant="outline"
               size="lg"
@@ -228,7 +226,7 @@ export default function TrackControls({
                 />
                 <span className="text-sm">Loop</span>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <span className="text-sm">Speed:</span>
                 <Slider
@@ -245,7 +243,7 @@ export default function TrackControls({
                 </span>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Volume2 className="h-4 w-4" />
               <Slider
@@ -279,7 +277,7 @@ export default function TrackControls({
                 <Mic className="h-4 w-4 mr-2" />
                 Record
               </Button>
-              
+
               <Button
                 onClick={() => document.getElementById('file-upload')?.click()}
                 variant="outline"
@@ -289,7 +287,7 @@ export default function TrackControls({
                 <Upload className="h-4 w-4 mr-2" />
                 Import
               </Button>
-              
+
               <input
                 id="file-upload"
                 type="file"
@@ -314,8 +312,8 @@ export default function TrackControls({
                 <div
                   key={track.id}
                   className={`p-4 rounded-lg border transition-colors ${
-                    selectedTrack === track.id 
-                      ? 'border-primary bg-primary/5' 
+                    selectedTrack === track.id
+                      ? 'border-primary bg-primary/5'
                       : 'border-border bg-muted/20'
                   }`}
                   onClick={() => setSelectedTrack(track.id)}
@@ -331,27 +329,31 @@ export default function TrackControls({
                           e.stopPropagation();
                           muteTrack(track.id);
                         }}
-                        variant={track.isMuted ? "destructive" : "outline"}
+                        variant={track.isMuted ? 'destructive' : 'outline'}
                         size="sm"
                         className="w-8 h-8 p-0"
                         data-testid={`button-mute-${index}`}
                       >
-                        {track.isMuted ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+                        {track.isMuted ? (
+                          <VolumeX className="h-3 w-3" />
+                        ) : (
+                          <Volume2 className="h-3 w-3" />
+                        )}
                       </Button>
-                      
+
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
                           soloTrack(track.id);
                         }}
-                        variant={track.isSolo ? "default" : "outline"}
+                        variant={track.isSolo ? 'default' : 'outline'}
                         size="sm"
                         className="w-8 h-8 p-0"
                         data-testid={`button-solo-${index}`}
                       >
                         S
                       </Button>
-                      
+
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -366,7 +368,7 @@ export default function TrackControls({
                       </Button>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <label className="text-muted-foreground mb-1 block">Gain</label>
@@ -383,7 +385,7 @@ export default function TrackControls({
                         {(track.gain * 100).toFixed(0)}%
                       </span>
                     </div>
-                    
+
                     <div>
                       <label className="text-muted-foreground mb-1 block">Pan</label>
                       <Slider
@@ -396,9 +398,11 @@ export default function TrackControls({
                         data-testid={`pan-slider-${index}`}
                       />
                       <span className="text-xs text-muted-foreground">
-                        {track.pan === 0 ? 'Center' : 
-                         track.pan < 0 ? `L${Math.abs(track.pan * 100).toFixed(0)}` :
-                         `R${Math.abs(track.pan * 100).toFixed(0)}`}
+                        {track.pan === 0
+                          ? 'Center'
+                          : track.pan < 0
+                            ? `L${Math.abs(track.pan * 100).toFixed(0)}`
+                            : `R${Math.abs(track.pan * 100).toFixed(0)}`}
                       </span>
                     </div>
                   </div>
@@ -416,7 +420,7 @@ export default function TrackControls({
           onRecordingComplete={handleRecordingComplete}
         />
       )}
-      
+
       {/* Loading State */}
       {isLoading && (
         <div className="flex items-center justify-center p-4">

@@ -4,24 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Logo } from '@/components/ui/Logo';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { 
-  Sparkles, 
-  BarChart3, 
-  Share2, 
-  Megaphone, 
+  Sparkles,
+  BarChart3,
+  Share2,
+  Megaphone,
   DollarSign,
   Check,
   ArrowRight,
@@ -31,14 +20,14 @@ import {
   TrendingUp,
   Music,
   Shield,
-  Menu
+  Menu,
 } from 'lucide-react';
 import blawzLogo from '@assets/B-Lawz Music.png_1753050127860_1759355918465.jpeg';
 
 export default function Landing() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       {/* Navigation */}
@@ -46,7 +35,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Logo size="md" />
-            
+
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
               <Link href="/features">
@@ -76,17 +65,29 @@ export default function Landing() {
                 </SheetHeader>
                 <div className="flex flex-col space-y-4 mt-8">
                   <Link href="/features">
-                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
                       Features
                     </Button>
                   </Link>
                   <Link href="/pricing">
-                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
                       Pricing
                     </Button>
                   </Link>
                   <Link href="/login">
-                    <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
                       Sign In
                     </Button>
                   </Link>
@@ -116,8 +117,8 @@ export default function Landing() {
             </span>
           </h1>
           <p className="text-xl text-gray-600 mb-6 max-w-3xl mx-auto">
-            Professional AI Studio • AI-Assisted Social Media • Organic Marketing Tools • 
-            Beat Marketplace • Analytics • Distribution
+            Professional AI Studio • AI-Assisted Social Media • Organic Marketing Tools • Beat
+            Marketplace • Analytics • Distribution
           </p>
           <p className="text-lg font-medium text-green-600 mb-8">
             Purchase with confidence • 90-day money-back guarantee
@@ -129,9 +130,9 @@ export default function Landing() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button 
-              size="lg" 
-              variant="outline" 
+            <Button
+              size="lg"
+              variant="outline"
               className="px-8 py-4 text-lg"
               onClick={() => setIsVideoOpen(true)}
               data-testid="button-watch-demo"
@@ -173,8 +174,8 @@ export default function Landing() {
               Everything You Need to Succeed
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              From creation to monetization, Max Booster provides all the tools you need 
-              to build a successful music career.
+              From creation to monetization, Max Booster provides all the tools you need to build a
+              successful music career.
             </p>
           </div>
 
@@ -182,44 +183,55 @@ export default function Landing() {
             {[
               {
                 icon: Sparkles,
-                title: "AI Studio & Mastering",
-                description: "Create, mix, and master your tracks with AI assistance. Professional quality results in minutes.",
-                color: "from-blue-500 to-cyan-500"
+                title: 'AI Studio & Mastering',
+                description:
+                  'Create, mix, and master your tracks with AI assistance. Professional quality results in minutes.',
+                color: 'from-blue-500 to-cyan-500',
               },
               {
                 icon: BarChart3,
-                title: "Advanced Analytics",
-                description: "Track your performance across all platforms with detailed insights and revenue forecasts.",
-                color: "from-purple-500 to-pink-500"
+                title: 'Advanced Analytics',
+                description:
+                  'Track your performance across all platforms with detailed insights and revenue forecasts.',
+                color: 'from-purple-500 to-pink-500',
               },
               {
                 icon: Share2,
-                title: "AI Social Media Manager",
-                description: "AI-powered content creation and scheduling for Facebook, Instagram, X, TikTok, LinkedIn, and Threads with approval workflows.",
-                color: "from-green-500 to-teal-500"
+                title: 'AI Social Media Manager',
+                description:
+                  'AI-powered content creation and scheduling for Facebook, Instagram, X, TikTok, LinkedIn, and Threads with approval workflows.',
+                color: 'from-green-500 to-teal-500',
               },
               {
                 icon: Megaphone,
-                title: "Organic Marketing Tools",
-                description: "AI-assisted campaign creation and optimization through your connected social accounts — no paid advertising required.",
-                color: "from-orange-500 to-red-500"
+                title: 'Organic Marketing Tools',
+                description:
+                  'AI-assisted campaign creation and optimization through your connected social accounts — no paid advertising required.',
+                color: 'from-orange-500 to-red-500',
               },
               {
                 icon: DollarSign,
-                title: "Royalty Management",
-                description: "Automated royalty collection and distribution with Stripe integration for instant payouts.",
-                color: "from-indigo-500 to-blue-500"
+                title: 'Royalty Management',
+                description:
+                  'Automated royalty collection and distribution with Stripe integration for instant payouts.',
+                color: 'from-indigo-500 to-blue-500',
               },
               {
                 icon: Music,
-                title: "Beat Marketplace",
-                description: "Buy and sell beats with integrated peer-to-peer transactions and licensing management.",
-                color: "from-pink-500 to-purple-500"
+                title: 'Beat Marketplace',
+                description:
+                  'Buy and sell beats with integrated peer-to-peer transactions and licensing management.',
+                color: 'from-pink-500 to-purple-500',
               },
             ].map((feature, index) => (
-              <Card key={index} className="relative overflow-hidden group hover-lift transition-all duration-300">
+              <Card
+                key={index}
+                className="relative overflow-hidden group hover-lift transition-all duration-300"
+              >
                 <CardContent className="p-6">
-                  <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-lg flex items-center justify-center mb-4`}>
+                  <div
+                    className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-lg flex items-center justify-center mb-4`}
+                  >
                     <feature.icon className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
@@ -244,32 +256,50 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
               {
-                name: "Monthly",
-                price: "$49",
-                period: "/month",
-                description: "Perfect for getting started",
-                features: ["All AI Tools", "Unlimited Projects", "Advanced Analytics", "Cloud Storage"],
-                popular: false
+                name: 'Monthly',
+                price: '$49',
+                period: '/month',
+                description: 'Perfect for getting started',
+                features: [
+                  'All AI Tools',
+                  'Unlimited Projects',
+                  'Advanced Analytics',
+                  'Cloud Storage',
+                ],
+                popular: false,
               },
               {
-                name: "Yearly",
-                price: "$468",
-                period: "/year",
-                originalPrice: "$588",
-                description: "Billed annually ($39/month)",
-                features: ["All AI Tools", "Unlimited Projects", "Advanced Analytics", "Cloud Storage"],
-                popular: true
+                name: 'Yearly',
+                price: '$468',
+                period: '/year',
+                originalPrice: '$588',
+                description: 'Billed annually ($39/month)',
+                features: [
+                  'All AI Tools',
+                  'Unlimited Projects',
+                  'Advanced Analytics',
+                  'Cloud Storage',
+                ],
+                popular: true,
               },
               {
-                name: "Lifetime",
-                price: "$699",
-                period: "once",
-                description: "Pay once, access forever",
-                features: ["All AI Tools", "Unlimited Projects", "Advanced Analytics", "Cloud Storage"],
-                popular: false
-              }
+                name: 'Lifetime',
+                price: '$699',
+                period: 'once',
+                description: 'Pay once, access forever',
+                features: [
+                  'All AI Tools',
+                  'Unlimited Projects',
+                  'Advanced Analytics',
+                  'Cloud Storage',
+                ],
+                popular: false,
+              },
             ].map((plan, index) => (
-              <Card key={index} className={`relative ${plan.popular ? 'border-primary shadow-xl scale-105' : ''}`}>
+              <Card
+                key={index}
+                className={`relative ${plan.popular ? 'border-primary shadow-xl scale-105' : ''}`}
+              >
                 {plan.popular && (
                   <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
                     Most Popular
@@ -291,7 +321,7 @@ export default function Landing() {
                     ))}
                   </ul>
                   <Link href={`/subscribe/${plan.name.toLowerCase()}`}>
-                    <Button 
+                    <Button
                       className={`w-full ${plan.popular ? 'gradient-bg' : ''}`}
                       variant={plan.popular ? 'default' : 'outline'}
                     >
@@ -318,9 +348,7 @@ export default function Landing() {
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              What's Included
-            </h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">What's Included</h2>
             <p className="text-xl text-gray-600">
               Everything you need to create, promote, and monetize your music
             </p>
@@ -330,19 +358,22 @@ export default function Landing() {
             {[
               {
                 icon: Sparkles,
-                title: "AI-Powered Studio",
-                content: "Professional DAW with AI mixing and mastering tools, multi-track editing, effects, and cloud storage for all your projects."
+                title: 'AI-Powered Studio',
+                content:
+                  'Professional DAW with AI mixing and mastering tools, multi-track editing, effects, and cloud storage for all your projects.',
               },
               {
                 icon: Share2,
-                title: "Social Media Manager",
-                content: "Connect Facebook, Instagram, X, TikTok, LinkedIn, Threads, and YouTube. AI-assisted content creation with approval workflows."
+                title: 'Social Media Manager',
+                content:
+                  'Connect Facebook, Instagram, X, TikTok, LinkedIn, Threads, and YouTube. AI-assisted content creation with approval workflows.',
               },
               {
                 icon: BarChart3,
-                title: "Advanced Analytics",
-                content: "Track performance across all platforms with AI-powered predictions, churn detection, revenue forecasts, and detailed insights."
-              }
+                title: 'Advanced Analytics',
+                content:
+                  'Track performance across all platforms with AI-powered predictions, churn detection, revenue forecasts, and detailed insights.',
+              },
             ].map((feature, index) => (
               <Card key={index}>
                 <CardContent className="p-6">
@@ -367,12 +398,10 @@ export default function Landing() {
               90-Day Money Back Guarantee
             </Badge>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Ready to Boost Your Music Career?
-          </h2>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to Boost Your Music Career?</h2>
           <p className="text-xl mb-8 opacity-90">
-            Start growing your music career today with our comprehensive platform.
-            Protected by our 90-day money-back guarantee!
+            Start growing your music career today with our comprehensive platform. Protected by our
+            90-day money-back guarantee!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register">
@@ -381,7 +410,11 @@ export default function Landing() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="px-8 py-4 text-lg border-white text-white hover:bg-white hover:text-primary">
+            <Button
+              size="lg"
+              variant="outline"
+              className="px-8 py-4 text-lg border-white text-white hover:bg-white hover:text-primary"
+            >
               Contact Sales
             </Button>
           </div>
@@ -398,15 +431,10 @@ export default function Landing() {
             <DialogTitle>Max Booster Platform Demo</DialogTitle>
           </DialogHeader>
           <div className="aspect-video w-full bg-black rounded-b-lg overflow-hidden">
-            <video 
-              controls 
-              autoPlay
-              className="w-full h-full"
-              data-testid="demo-video"
-            >
-              <source 
-                src="https://videos.pexels.com/video-files/7534231/7534231-uhd_2560_1440_25fps.mp4" 
-                type="video/mp4" 
+            <video controls autoPlay className="w-full h-full" data-testid="demo-video">
+              <source
+                src="https://videos.pexels.com/video-files/7534231/7534231-uhd_2560_1440_25fps.mp4"
+                type="video/mp4"
               />
               Your browser does not support the video tag.
             </video>
@@ -420,47 +448,99 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="mb-4 flex items-center space-x-2">
-                <img 
-                  src={blawzLogo} 
-                  alt="B-Lawz Music" 
+                <img
+                  src={blawzLogo}
+                  alt="B-Lawz Music"
                   className="h-6 w-6 object-contain rounded-md"
                 />
                 <span className="font-bold text-xl text-white">Max Booster</span>
               </div>
               <p className="text-gray-400">
-                Built by a musician for musicians. Independently operated with personal attention to every artist's success.
+                Built by a musician for musicians. Independently operated with personal attention to
+                every artist's success.
               </p>
             </div>
             <div>
               <h3 className="font-semibold mb-4">Platform</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/features"><span className="hover:text-white cursor-pointer">Features</span></Link></li>
-                <li><Link href="/pricing"><span className="hover:text-white cursor-pointer">Pricing</span></Link></li>
-                <li><Link href="/api-docs"><span className="hover:text-white cursor-pointer">API</span></Link></li>
-                <li><Link href="/documentation"><span className="hover:text-white cursor-pointer">Documentation</span></Link></li>
+                <li>
+                  <Link href="/features">
+                    <span className="hover:text-white cursor-pointer">Features</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/pricing">
+                    <span className="hover:text-white cursor-pointer">Pricing</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/api-docs">
+                    <span className="hover:text-white cursor-pointer">API</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/documentation">
+                    <span className="hover:text-white cursor-pointer">Documentation</span>
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold mb-4">About</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/about"><span className="hover:text-white cursor-pointer">The Platform</span></Link></li>
-                <li><Link href="/blog"><span className="hover:text-white cursor-pointer">Blog</span></Link></li>
-                <li><Link href="/solo-founder-story"><span className="hover:text-white cursor-pointer">Solo Founder Story</span></Link></li>
-                <li><Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link></li>
+                <li>
+                  <Link href="/about">
+                    <span className="hover:text-white cursor-pointer">The Platform</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog">
+                    <span className="hover:text-white cursor-pointer">Blog</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/solo-founder-story">
+                    <span className="hover:text-white cursor-pointer">Solo Founder Story</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact">
+                    <span className="hover:text-white cursor-pointer">Contact</span>
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold mb-4">Legal</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/privacy"><span className="hover:text-white cursor-pointer">Privacy</span></Link></li>
-                <li><Link href="/terms"><span className="hover:text-white cursor-pointer">Terms</span></Link></li>
-                <li><Link href="/security"><span className="hover:text-white cursor-pointer">Security</span></Link></li>
-                <li><Link href="/dmca"><span className="hover:text-white cursor-pointer">DMCA</span></Link></li>
+                <li>
+                  <Link href="/privacy">
+                    <span className="hover:text-white cursor-pointer">Privacy</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms">
+                    <span className="hover:text-white cursor-pointer">Terms</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/security">
+                    <span className="hover:text-white cursor-pointer">Security</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dmca">
+                    <span className="hover:text-white cursor-pointer">DMCA</span>
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 mt-8 text-center text-gray-400">
-            <p>&copy; 2025 Max Booster. All rights reserved. • Solo founded & operated with ❤️ for artists</p>
+            <p>
+              &copy; 2025 Max Booster. All rights reserved. • Solo founded & operated with ❤️ for
+              artists
+            </p>
           </div>
         </div>
       </footer>

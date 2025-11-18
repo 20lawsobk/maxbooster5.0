@@ -28,8 +28,8 @@ class AudioAnalysisService {
       const EssentiaModule = await EssentiaWASM();
       this.essentia = new Essentia(EssentiaModule);
       this.initialized = true;
-    } catch (error) {
-      console.error('Failed to initialize Essentia.js:', error);
+    } catch (error: unknown) {
+      logger.error('Failed to initialize Essentia.js:', error);
       throw new Error('Failed to initialize audio analysis engine');
     }
   }
@@ -39,7 +39,7 @@ class AudioAnalysisService {
    */
   async analyzeAudioFile(audioFile: File): Promise<AudioAnalysisResult> {
     await this.initialize();
-    
+
     if (!this.essentia) {
       throw new Error('Essentia not initialized');
     }
@@ -51,7 +51,7 @@ class AudioAnalysisService {
 
     // Convert to mono Float32Array
     const audioData = this.convertToMono(audioBuffer);
-    
+
     // Create Essentia vector
     const audioVector = this.essentia.arrayToVector(audioData);
 
@@ -64,7 +64,7 @@ class AudioAnalysisService {
       loudness: this.extractLoudness(audioVector),
       spectralCentroid: this.extractSpectralCentroid(audioVector),
       durationSeconds: audioBuffer.duration,
-      beatPositions: this.extractBeatPositions(audioVector)
+      beatPositions: this.extractBeatPositions(audioVector),
     };
 
     // Clean up
@@ -77,12 +77,12 @@ class AudioAnalysisService {
   /**
    * Extract BPM using RhythmExtractor
    */
-  private extractBPM(audioVector: any): number {
+  private extractBPM(audioVector: unknown): number {
     try {
       const rhythm = this.essentia!.RhythmExtractor2013(audioVector);
       return Math.round(rhythm.bpm * 100) / 100;
-    } catch (error) {
-      console.error('BPM extraction error:', error);
+    } catch (error: unknown) {
+      logger.error('BPM extraction error:', error);
       return 120; // Default fallback
     }
   }
@@ -90,15 +90,15 @@ class AudioAnalysisService {
   /**
    * Extract musical key and scale
    */
-  private extractKey(audioVector: any): { musicalKey: string; scale: string } {
+  private extractKey(audioVector: unknown): { musicalKey: string; scale: string } {
     try {
       const keyData = this.essentia!.KeyExtractor(audioVector, true, true, true, true, true, true);
       return {
         musicalKey: keyData.key,
-        scale: keyData.scale
+        scale: keyData.scale,
       };
-    } catch (error) {
-      console.error('Key extraction error:', error);
+    } catch (error: unknown) {
+      logger.error('Key extraction error:', error);
       return { musicalKey: 'C', scale: 'major' };
     }
   }
@@ -106,13 +106,13 @@ class AudioAnalysisService {
   /**
    * Extract energy level
    */
-  private extractEnergy(audioVector: any): number {
+  private extractEnergy(audioVector: unknown): number {
     try {
       const rms = this.essentia!.RMS(audioVector);
       // Normalize to 0-1 range
       return Math.min(1, rms.rms * 10);
-    } catch (error) {
-      console.error('Energy extraction error:', error);
+    } catch (error: unknown) {
+      logger.error('Energy extraction error:', error);
       return 0.5;
     }
   }
@@ -120,12 +120,12 @@ class AudioAnalysisService {
   /**
    * Extract danceability
    */
-  private extractDanceability(audioVector: any): number {
+  private extractDanceability(audioVector: unknown): number {
     try {
       const danceability = this.essentia!.Danceability(audioVector);
       return Math.round(danceability.danceability * 100) / 100;
-    } catch (error) {
-      console.error('Danceability extraction error:', error);
+    } catch (error: unknown) {
+      logger.error('Danceability extraction error:', error);
       return 0.5;
     }
   }
@@ -133,12 +133,12 @@ class AudioAnalysisService {
   /**
    * Extract loudness (approximation)
    */
-  private extractLoudness(audioVector: any): number {
+  private extractLoudness(audioVector: unknown): number {
     try {
       const loudness = this.essentia!.Loudness(audioVector);
       return Math.round(loudness.loudness * 100) / 100;
-    } catch (error) {
-      console.error('Loudness extraction error:', error);
+    } catch (error: unknown) {
+      logger.error('Loudness extraction error:', error);
       return -14.0; // Default LUFS target
     }
   }
@@ -146,12 +146,12 @@ class AudioAnalysisService {
   /**
    * Extract spectral centroid (brightness measure)
    */
-  private extractSpectralCentroid(audioVector: any): number {
+  private extractSpectralCentroid(audioVector: unknown): number {
     try {
       const centroid = this.essentia!.Centroid(audioVector);
       return Math.round(centroid.centroid * 100) / 100;
-    } catch (error) {
-      console.error('Spectral centroid extraction error:', error);
+    } catch (error: unknown) {
+      logger.error('Spectral centroid extraction error:', error);
       return 1500; // Default value
     }
   }
@@ -159,7 +159,7 @@ class AudioAnalysisService {
   /**
    * Extract beat positions (timestamps)
    */
-  private extractBeatPositions(audioVector: any): number[] {
+  private extractBeatPositions(audioVector: unknown): number[] {
     try {
       const beats = this.essentia!.BeatTrackerMultiFeature(audioVector);
       // Convert to array and round to 2 decimal places
@@ -168,8 +168,8 @@ class AudioAnalysisService {
         positions.push(Math.round(beats.ticks.get(i) * 100) / 100);
       }
       return positions;
-    } catch (error) {
-      console.error('Beat extraction error:', error);
+    } catch (error: unknown) {
+      logger.error('Beat extraction error:', error);
       return [];
     }
   }

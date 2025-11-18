@@ -1,6 +1,9 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 
+/**
+ * TODO: Add function documentation
+ */
 export function StudioSkeleton() {
   return (
     <div className="flex h-screen bg-background">
@@ -13,7 +16,7 @@ export function StudioSkeleton() {
           ))}
         </div>
       </div>
-      
+
       {/* Main content skeleton */}
       <div className="flex-1 flex flex-col">
         {/* Top bar skeleton */}
@@ -29,7 +32,7 @@ export function StudioSkeleton() {
             <Skeleton className="h-10 w-10 rounded-full" />
           </div>
         </div>
-        
+
         {/* Transport controls skeleton */}
         <div className="h-20 border-b px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -40,7 +43,7 @@ export function StudioSkeleton() {
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-8 w-32" />
         </div>
-        
+
         {/* Track list skeleton */}
         <div className="flex-1 overflow-hidden">
           <div className="h-full flex">
@@ -60,7 +63,7 @@ export function StudioSkeleton() {
                 </div>
               ))}
             </div>
-            
+
             {/* Timeline skeleton */}
             <div className="flex-1">
               <div className="h-12 border-b px-4">
@@ -79,6 +82,9 @@ export function StudioSkeleton() {
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function TrackLoadingSkeleton() {
   return (
     <div className="flex items-center gap-4 p-4 border rounded-lg animate-pulse">
@@ -96,6 +102,9 @@ export function TrackLoadingSkeleton() {
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function ProjectListSkeleton() {
   return (
     <div className="space-y-2">
@@ -114,6 +123,9 @@ export function ProjectListSkeleton() {
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function FileBrowserSkeleton() {
   return (
     <div className="space-y-2 p-4">
@@ -128,6 +140,9 @@ export function FileBrowserSkeleton() {
   );
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function MixerPanelSkeleton() {
   return (
     <div className="flex gap-4 p-4">

@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Logo } from '@/components/ui/Logo';
-import { 
-  Sparkles, 
-  BarChart3, 
-  Share2, 
-  Megaphone, 
+import {
+  Sparkles,
+  BarChart3,
+  Share2,
+  Megaphone,
   DollarSign,
   Check,
   ArrowRight,
@@ -15,7 +15,7 @@ import {
   Star,
   Users,
   TrendingUp,
-  Music
+  Music,
 } from 'lucide-react';
 
 export default function Landing() {
@@ -54,8 +54,8 @@ export default function Landing() {
             </span>
           </h1>
           <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
-            The complete platform for music artists. Create, distribute, promote, and monetize your music 
-            with cutting-edge AI assistance, analytics, and automation tools.
+            The complete platform for music artists. Create, distribute, promote, and monetize your
+            music with cutting-edge AI assistance, analytics, and automation tools.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/pricing">
@@ -102,8 +102,8 @@ export default function Landing() {
               Everything You Need to Succeed
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              From creation to monetization, Max Booster provides all the tools you need 
-              to build a successful music career.
+              From creation to monetization, Max Booster provides all the tools you need to build a
+              successful music career.
             </p>
           </div>
 
@@ -111,44 +111,55 @@ export default function Landing() {
             {[
               {
                 icon: Sparkles,
-                title: "AI Studio & Mastering",
-                description: "Create, mix, and master your tracks with AI assistance. Professional quality results in minutes.",
-                color: "from-blue-500 to-cyan-500"
+                title: 'AI Studio & Mastering',
+                description:
+                  'Create, mix, and master your tracks with AI assistance. Professional quality results in minutes.',
+                color: 'from-blue-500 to-cyan-500',
               },
               {
                 icon: BarChart3,
-                title: "Advanced Analytics",
-                description: "Track your performance across all platforms with detailed insights and revenue forecasts.",
-                color: "from-purple-500 to-pink-500"
+                title: 'Advanced Analytics',
+                description:
+                  'Track your performance across all platforms with detailed insights and revenue forecasts.',
+                color: 'from-purple-500 to-pink-500',
               },
               {
                 icon: Share2,
-                title: "Social Media Automation",
-                description: "Auto-generate and schedule optimized posts across Facebook, Instagram, TikTok, and more.",
-                color: "from-green-500 to-teal-500"
+                title: 'Social Media Automation',
+                description:
+                  'Auto-generate and schedule optimized posts across Facebook, Instagram, TikTok, and more.',
+                color: 'from-green-500 to-teal-500',
               },
               {
                 icon: Megaphone,
-                title: "Smart Advertising",
-                description: "AI-powered ad campaigns that boost performance by 100% across all major platforms.",
-                color: "from-orange-500 to-red-500"
+                title: 'Smart Advertising',
+                description:
+                  'AI-powered ad campaigns that boost performance by 100% across all major platforms.',
+                color: 'from-orange-500 to-red-500',
               },
               {
                 icon: DollarSign,
-                title: "Royalty Management",
-                description: "Automated royalty collection and distribution with Stripe integration for instant payouts.",
-                color: "from-indigo-500 to-blue-500"
+                title: 'Royalty Management',
+                description:
+                  'Automated royalty collection and distribution with Stripe integration for instant payouts.',
+                color: 'from-indigo-500 to-blue-500',
               },
               {
                 icon: Music,
-                title: "Beat Marketplace",
-                description: "Buy and sell beats with integrated peer-to-peer transactions and licensing management.",
-                color: "from-pink-500 to-purple-500"
+                title: 'Beat Marketplace',
+                description:
+                  'Buy and sell beats with integrated peer-to-peer transactions and licensing management.',
+                color: 'from-pink-500 to-purple-500',
               },
             ].map((feature, index) => (
-              <Card key={index} className="relative overflow-hidden group hover-lift transition-all duration-300">
+              <Card
+                key={index}
+                className="relative overflow-hidden group hover-lift transition-all duration-300"
+              >
                 <CardContent className="p-6">
-                  <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-lg flex items-center justify-center mb-4`}>
+                  <div
+                    className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-lg flex items-center justify-center mb-4`}
+                  >
                     <feature.icon className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
@@ -173,32 +184,45 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
               {
-                name: "Monthly",
-                price: "$49",
-                period: "/month",
-                description: "Perfect for getting started",
-                features: ["All AI Tools", "5 Projects", "Basic Analytics", "Email Support"],
-                popular: false
+                name: 'Monthly',
+                price: '$49',
+                period: '/month',
+                description: 'Perfect for getting started',
+                features: ['All AI Tools', '5 Projects', 'Basic Analytics', 'Email Support'],
+                popular: false,
               },
               {
-                name: "Yearly",
-                price: "$39",
-                period: "/month",
-                originalPrice: "$49",
-                description: "Best value for serious artists",
-                features: ["All AI Tools", "Unlimited Projects", "Advanced Analytics", "Priority Support"],
-                popular: true
+                name: 'Yearly',
+                price: '$39',
+                period: '/month',
+                originalPrice: '$49',
+                description: 'Best value for serious artists',
+                features: [
+                  'All AI Tools',
+                  'Unlimited Projects',
+                  'Advanced Analytics',
+                  'Priority Support',
+                ],
+                popular: true,
               },
               {
-                name: "Lifetime",
-                price: "$699",
-                period: "once",
-                description: "Complete access forever",
-                features: ["Everything Included", "Unlimited Everything", "Premium Support", "Future Updates"],
-                popular: false
-              }
+                name: 'Lifetime',
+                price: '$699',
+                period: 'once',
+                description: 'Complete access forever',
+                features: [
+                  'Everything Included',
+                  'Unlimited Everything',
+                  'Premium Support',
+                  'Future Updates',
+                ],
+                popular: false,
+              },
             ].map((plan, index) => (
-              <Card key={index} className={`relative ${plan.popular ? 'border-primary shadow-xl scale-105' : ''}`}>
+              <Card
+                key={index}
+                className={`relative ${plan.popular ? 'border-primary shadow-xl scale-105' : ''}`}
+              >
                 {plan.popular && (
                   <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
                     Most Popular
@@ -220,7 +244,7 @@ export default function Landing() {
                     ))}
                   </ul>
                   <Link href={`/subscribe/${plan.name.toLowerCase()}`}>
-                    <Button 
+                    <Button
                       className={`w-full ${plan.popular ? 'gradient-bg' : ''}`}
                       variant={plan.popular ? 'default' : 'outline'}
                     >
@@ -255,23 +279,26 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                name: "Sarah Johnson",
-                role: "Independent Artist",
-                content: "Max Booster transformed my music career. The AI tools helped me create professional-quality tracks, and the analytics showed me exactly where to focus my efforts.",
-                rating: 5
+                name: 'Sarah Johnson',
+                role: 'Independent Artist',
+                content:
+                  'Max Booster transformed my music career. The AI tools helped me create professional-quality tracks, and the analytics showed me exactly where to focus my efforts.',
+                rating: 5,
               },
               {
-                name: "Mike Chen",
-                role: "Producer",
-                content: "The marketplace feature is incredible. I've sold over $10k worth of beats in just 3 months. The platform handles everything seamlessly.",
-                rating: 5
+                name: 'Mike Chen',
+                role: 'Producer',
+                content:
+                  "The marketplace feature is incredible. I've sold over $10k worth of beats in just 3 months. The platform handles everything seamlessly.",
+                rating: 5,
               },
               {
-                name: "Luna Rodriguez",
-                role: "Singer-Songwriter",
-                content: "From creation to promotion, Max Booster has everything I need. The social media automation alone saves me 10+ hours per week.",
-                rating: 5
-              }
+                name: 'Luna Rodriguez',
+                role: 'Singer-Songwriter',
+                content:
+                  'From creation to promotion, Max Booster has everything I need. The social media automation alone saves me 10+ hours per week.',
+                rating: 5,
+              },
             ].map((testimonial, index) => (
               <Card key={index}>
                 <CardContent className="p-6">
@@ -293,9 +320,7 @@ export default function Landing() {
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Ready to Boost Your Music Career?
-          </h2>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to Boost Your Music Career?</h2>
           <p className="text-xl mb-8 opacity-90">
             Join thousands of artists who are already using Max Booster to grow their careers.
           </p>
@@ -306,7 +331,11 @@ export default function Landing() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="px-8 py-4 text-lg border-white text-white hover:bg-white hover:text-primary">
+            <Button
+              size="lg"
+              variant="outline"
+              className="px-8 py-4 text-lg border-white text-white hover:bg-white hover:text-primary"
+            >
               Contact Sales
             </Button>
           </div>
@@ -322,34 +351,83 @@ export default function Landing() {
                 <Logo size="sm" variant="text" className="text-white" />
               </div>
               <p className="text-gray-400">
-                Empowering music artists with AI-powered tools for creation, distribution, and promotion.
+                Empowering music artists with AI-powered tools for creation, distribution, and
+                promotion.
               </p>
             </div>
             <div>
               <h3 className="font-semibold mb-4">Platform</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">Features</a></li>
-                <li><a href="#" className="hover:text-white">Pricing</a></li>
-                <li><a href="#" className="hover:text-white">API</a></li>
-                <li><a href="#" className="hover:text-white">Documentation</a></li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    API
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Documentation
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">About</a></li>
-                <li><a href="#" className="hover:text-white">Blog</a></li>
-                <li><a href="#" className="hover:text-white">Careers</a></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    About
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Contact
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold mb-4">Legal</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">Privacy</a></li>
-                <li><a href="#" className="hover:text-white">Terms</a></li>
-                <li><a href="#" className="hover:text-white">Security</a></li>
-                <li><a href="#" className="hover:text-white">DMCA</a></li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Privacy
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Terms
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    Security
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white">
+                    DMCA
+                  </a>
+                </li>
               </ul>
             </div>
           </div>

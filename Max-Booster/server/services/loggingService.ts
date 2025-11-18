@@ -1,5 +1,6 @@
 import { storage } from '../storage';
 import type { InsertLogEvent, LogEvent } from '@shared/schema';
+import { logger } from '../logger.js';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'critical';
 
@@ -18,7 +19,7 @@ export class LoggingService {
     level: LogLevel,
     service: string,
     message: string,
-    context?: any,
+    context?: unknown,
     userId?: string,
     stackTrace?: string
   ): Promise<LogEvent> {
@@ -34,15 +35,30 @@ export class LoggingService {
     return storage.createLogEvent(logData);
   }
 
-  async logDebug(service: string, message: string, context?: any, userId?: string): Promise<LogEvent> {
+  async logDebug(
+    service: string,
+    message: string,
+    context?: unknown,
+    userId?: string
+  ): Promise<LogEvent> {
     return this.log('debug', service, message, context, userId);
   }
 
-  async logInfo(service: string, message: string, context?: any, userId?: string): Promise<LogEvent> {
+  async logInfo(
+    service: string,
+    message: string,
+    context?: unknown,
+    userId?: string
+  ): Promise<LogEvent> {
     return this.log('info', service, message, context, userId);
   }
 
-  async logWarn(service: string, message: string, context?: any, userId?: string): Promise<LogEvent> {
+  async logWarn(
+    service: string,
+    message: string,
+    context?: unknown,
+    userId?: string
+  ): Promise<LogEvent> {
     return this.log('warn', service, message, context, userId);
   }
 
@@ -50,7 +66,7 @@ export class LoggingService {
     service: string,
     message: string,
     error?: Error | any,
-    context?: any,
+    context?: unknown,
     userId?: string
   ): Promise<LogEvent> {
     const stackTrace = error?.stack || (error instanceof Error ? error.stack : undefined);
@@ -59,7 +75,7 @@ export class LoggingService {
       errorMessage: error?.message,
       errorName: error?.name,
     };
-    
+
     return this.log('error', service, message, errorContext, userId, stackTrace);
   }
 
@@ -67,7 +83,7 @@ export class LoggingService {
     service: string,
     message: string,
     error?: Error | any,
-    context?: any,
+    context?: unknown,
     userId?: string
   ): Promise<LogEvent> {
     const stackTrace = error?.stack || (error instanceof Error ? error.stack : undefined);
@@ -76,7 +92,7 @@ export class LoggingService {
       errorMessage: error?.message,
       errorName: error?.name,
     };
-    
+
     return this.log('critical', service, message, errorContext, userId, stackTrace);
   }
 
@@ -98,7 +114,7 @@ export class LoggingService {
 
   streamLogs(filters: LogFilters, callback: (log: LogEvent) => void): () => void {
     let isActive = true;
-    
+
     const pollInterval = setInterval(async () => {
       if (!isActive) {
         clearInterval(pollInterval);
@@ -114,9 +130,9 @@ export class LoggingService {
           50
         );
 
-        logs.forEach(log => callback(log));
-      } catch (error) {
-        console.error('Error streaming logs:', error);
+        logs.forEach((log) => callback(log));
+      } catch (error: unknown) {
+        logger.error('Error streaming logs:', error);
       }
     }, 2000);
 

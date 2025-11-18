@@ -2,6 +2,9 @@ import { useAuth } from './useAuth';
 import { useLocation } from 'wouter';
 import { useEffect } from 'react';
 
+/**
+ * TODO: Add function documentation
+ */
 export function useRequireAuth() {
   const { user, isLoading } = useAuth();
   const [, navigate] = useLocation();
@@ -15,6 +18,9 @@ export function useRequireAuth() {
   return { user, isLoading };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function useRequireSubscription() {
   const { user, isLoading } = useAuth();
   const [, navigate] = useLocation();
@@ -24,8 +30,8 @@ export function useRequireSubscription() {
       if (!user) {
         navigate('/login');
       } else if (
-        user.subscriptionStatus !== 'active' && 
-        user.subscriptionStatus !== 'trialing' && 
+        user.subscriptionStatus !== 'active' &&
+        user.subscriptionStatus !== 'trialing' &&
         user.role !== 'admin'
       ) {
         navigate('/pricing');
@@ -36,6 +42,9 @@ export function useRequireSubscription() {
   return { user, isLoading };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function useRequireAdmin() {
   const { user, isLoading } = useAuth();
   const [, navigate] = useLocation();
@@ -53,6 +62,9 @@ export function useRequireAdmin() {
   return { user, isLoading };
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function useRedirectIfAuthenticated() {
   const { user, isLoading } = useAuth();
   const [, navigate] = useLocation();

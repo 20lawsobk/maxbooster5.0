@@ -49,7 +49,7 @@ interface AIGeneratorDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projectId?: string;
-  onAddToProject?: (audioUrl: string, parameters: any) => void;
+  onAddToProject?: (audioUrl: string, parameters: unknown) => void;
 }
 
 // Helper function to get state badge
@@ -58,13 +58,29 @@ function getStateBadge(state: string) {
     case 'idle':
       return <Badge variant="secondary">Ready</Badge>;
     case 'requesting':
-      return <Badge variant="default" className="animate-pulse">Requesting...</Badge>;
+      return (
+        <Badge variant="default" className="animate-pulse">
+          Requesting...
+        </Badge>
+      );
     case 'processing':
-      return <Badge variant="default" className="animate-pulse">Processing...</Badge>;
+      return (
+        <Badge variant="default" className="animate-pulse">
+          Processing...
+        </Badge>
+      );
     case 'success':
-      return <Badge variant="outline" className="text-green-600 border-green-600">Complete</Badge>;
+      return (
+        <Badge variant="outline" className="text-green-600 border-green-600">
+          Complete
+        </Badge>
+      );
     case 'integrated':
-      return <Badge variant="outline" className="text-blue-600 border-blue-600">Integrated</Badge>;
+      return (
+        <Badge variant="outline" className="text-blue-600 border-blue-600">
+          Integrated
+        </Badge>
+      );
     case 'error':
       return <Badge variant="destructive">Error</Badge>;
     default:
@@ -72,6 +88,9 @@ function getStateBadge(state: string) {
   }
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function AIGeneratorDialog({
   open,
   onOpenChange,
@@ -87,26 +106,19 @@ export function AIGeneratorDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use the AI workflow hook
-  const {
-    startWorkflow,
-    cancel,
-    retry,
-    reset,
-    integrate,
-    textToMusic,
-    audioToMusic,
-  } = useAIWorkflow({
-    onStateChange: (type, state) => {
-      console.log(`[AI Generator] ${type} state changed to: ${state}`);
-    },
-    onError: (type, error) => {
-      console.error(`[AI Generator] ${type} error:`, error);
-    },
-    onSuccess: (type, data) => {
-      console.log(`[AI Generator] ${type} success:`, data);
-      queryClient.invalidateQueries({ queryKey: ['/api/studio/generation', projectId] });
-    },
-  });
+  const { startWorkflow, cancel, retry, reset, integrate, textToMusic, audioToMusic } =
+    useAIWorkflow({
+      onStateChange: (type, state) => {
+        logger.info(`[AI Generator] ${type} state changed to: ${state}`);
+      },
+      onError: (type, error) => {
+        logger.error(`[AI Generator] ${type} error:`, error);
+      },
+      onSuccess: (type, data) => {
+        logger.info(`[AI Generator] ${type} success:`, data);
+        queryClient.invalidateQueries({ queryKey: ['/api/studio/generation', projectId] });
+      },
+    });
 
   const form = useForm({
     resolver: zodResolver(textToMusicSchema),
@@ -259,12 +271,17 @@ export function AIGeneratorDialog({
     'dark mysterious blues in D minor',
   ];
 
-  const isProcessing = activeWorkflow.currentState === 'requesting' || activeWorkflow.currentState === 'processing';
-  const hasResult = activeWorkflow.currentState === 'success' || activeWorkflow.currentState === 'integrated';
+  const isProcessing =
+    activeWorkflow.currentState === 'requesting' || activeWorkflow.currentState === 'processing';
+  const hasResult =
+    activeWorkflow.currentState === 'success' || activeWorkflow.currentState === 'integrated';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="ai-generator-dialog">
+      <DialogContent
+        className="max-w-3xl max-h-[90vh] overflow-y-auto"
+        data-testid="ai-generator-dialog"
+      >
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2" data-testid="dialog-title">
@@ -283,7 +300,8 @@ export function AIGeneratorDialog({
             )}
           </div>
           <DialogDescription data-testid="dialog-description">
-            Generate melodies and chords from text descriptions or analyze audio to create complementary music.
+            Generate melodies and chords from text descriptions or analyze audio to create
+            complementary music.
           </DialogDescription>
         </DialogHeader>
 
@@ -292,7 +310,9 @@ export function AIGeneratorDialog({
           <div className="space-y-2" data-testid="progress-container">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                {activeWorkflow.currentState === 'requesting' ? 'Sending request...' : 'Processing AI generation...'}
+                {activeWorkflow.currentState === 'requesting'
+                  ? 'Sending request...'
+                  : 'Processing AI generation...'}
               </span>
               <span className="font-medium">{Math.round(activeWorkflow.progress)}%</span>
             </div>
@@ -330,7 +350,11 @@ export function AIGeneratorDialog({
           </Alert>
         )}
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'text' | 'audio')} data-testid="generator-tabs">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as 'text' | 'audio')}
+          data-testid="generator-tabs"
+        >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="text" data-testid="tab-text-to-music">
               <Wand2 className="w-4 h-4 mr-2" />
@@ -381,7 +405,10 @@ export function AIGeneratorDialog({
 
             {textToMusic.resultData && textToMusic.resultData.sourceType === 'text' && (
               <Card className="p-4 space-y-3" data-testid="card-generated-params">
-                <h4 className="font-medium flex items-center gap-2" data-testid="heading-detected-params">
+                <h4
+                  className="font-medium flex items-center gap-2"
+                  data-testid="heading-detected-params"
+                >
                   <Music className="w-4 h-4" />
                   Detected Parameters
                 </h4>
@@ -389,20 +416,27 @@ export function AIGeneratorDialog({
                   <div data-testid="param-key">
                     <span className="text-muted-foreground">Key:</span>{' '}
                     <span className="font-medium">
-                      {textToMusic.resultData.parameters.key} {textToMusic.resultData.parameters.scale}
+                      {textToMusic.resultData.parameters.key}{' '}
+                      {textToMusic.resultData.parameters.scale}
                     </span>
                   </div>
                   <div data-testid="param-tempo">
                     <span className="text-muted-foreground">Tempo:</span>{' '}
-                    <span className="font-medium">{textToMusic.resultData.parameters.tempo} BPM</span>
+                    <span className="font-medium">
+                      {textToMusic.resultData.parameters.tempo} BPM
+                    </span>
                   </div>
                   <div data-testid="param-mood">
                     <span className="text-muted-foreground">Mood:</span>{' '}
-                    <span className="font-medium capitalize">{textToMusic.resultData.parameters.mood}</span>
+                    <span className="font-medium capitalize">
+                      {textToMusic.resultData.parameters.mood}
+                    </span>
                   </div>
                   <div data-testid="param-genre">
                     <span className="text-muted-foreground">Genre:</span>{' '}
-                    <span className="font-medium capitalize">{textToMusic.resultData.parameters.genre}</span>
+                    <span className="font-medium capitalize">
+                      {textToMusic.resultData.parameters.genre}
+                    </span>
                   </div>
                 </div>
               </Card>
@@ -479,7 +513,10 @@ export function AIGeneratorDialog({
 
             {audioToMusic.resultData && audioToMusic.resultData.sourceType === 'audio' && (
               <Card className="p-4 space-y-3" data-testid="card-analysis-results">
-                <h4 className="font-medium flex items-center gap-2" data-testid="heading-analysis-results">
+                <h4
+                  className="font-medium flex items-center gap-2"
+                  data-testid="heading-analysis-results"
+                >
                   <AudioWaveform className="w-4 h-4" />
                   Analysis Results
                 </h4>
@@ -487,7 +524,8 @@ export function AIGeneratorDialog({
                   <div data-testid="analysis-key">
                     <span className="text-muted-foreground">Detected Key:</span>{' '}
                     <span className="font-medium">
-                      {audioToMusic.resultData.parameters.key} {audioToMusic.resultData.parameters.scale}
+                      {audioToMusic.resultData.parameters.key}{' '}
+                      {audioToMusic.resultData.parameters.scale}
                     </span>
                   </div>
                   <div data-testid="analysis-tempo">
@@ -496,11 +534,15 @@ export function AIGeneratorDialog({
                   </div>
                   <div data-testid="analysis-mood">
                     <span className="text-muted-foreground">Mood:</span>{' '}
-                    <span className="font-medium capitalize">{audioToMusic.resultData.parameters.mood}</span>
+                    <span className="font-medium capitalize">
+                      {audioToMusic.resultData.parameters.mood}
+                    </span>
                   </div>
                   <div data-testid="analysis-genre">
                     <span className="text-muted-foreground">Genre:</span>{' '}
-                    <span className="font-medium capitalize">{audioToMusic.resultData.parameters.genre}</span>
+                    <span className="font-medium capitalize">
+                      {audioToMusic.resultData.parameters.genre}
+                    </span>
                   </div>
                 </div>
               </Card>
@@ -516,7 +558,9 @@ export function AIGeneratorDialog({
                 {isProcessing ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {audioToMusic.currentState === 'requesting' ? 'Requesting...' : 'Analyzing & Generating...'}
+                    {audioToMusic.currentState === 'requesting'
+                      ? 'Requesting...'
+                      : 'Analyzing & Generating...'}
                   </>
                 ) : audioToMusic.currentState === 'integrated' ? (
                   <>
@@ -547,7 +591,7 @@ export function AIGeneratorDialog({
         {hasResult && activeWorkflow.resultData && (
           <>
             <Separator />
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium flex items-center gap-2" data-testid="heading-preview">
@@ -570,15 +614,13 @@ export function AIGeneratorDialog({
                     onClick={togglePlayback}
                     data-testid="button-playback"
                   >
-                    {isPlaying ? (
-                      <Pause className="w-4 h-4" />
-                    ) : (
-                      <Play className="w-4 h-4" />
-                    )}
+                    {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                   </Button>
                   <div className="flex-1">
                     <div className="text-sm font-medium mb-1" data-testid="text-preview-title">
-                      {activeWorkflow.resultData.parameters.key} {activeWorkflow.resultData.parameters.scale} - {activeWorkflow.resultData.parameters.tempo} BPM
+                      {activeWorkflow.resultData.parameters.key}{' '}
+                      {activeWorkflow.resultData.parameters.scale} -{' '}
+                      {activeWorkflow.resultData.parameters.tempo} BPM
                     </div>
                     <Progress value={0} className="h-2" data-testid="progress-playback" />
                   </div>
@@ -593,11 +635,7 @@ export function AIGeneratorDialog({
                 />
 
                 <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={handleDownload}
-                    data-testid="button-download"
-                  >
+                  <Button variant="outline" onClick={handleDownload} data-testid="button-download">
                     <Download className="w-4 h-4 mr-2" />
                     Download WAV
                   </Button>
@@ -625,13 +663,17 @@ export function AIGeneratorDialog({
 
               <Card className="p-4 space-y-2" data-testid="card-music-info">
                 <div className="text-sm">
-                  <span className="text-muted-foreground" data-testid="text-notes-label">Notes Generated:</span>{' '}
+                  <span className="text-muted-foreground" data-testid="text-notes-label">
+                    Notes Generated:
+                  </span>{' '}
                   <span className="font-medium" data-testid="text-notes-count">
                     {activeWorkflow.resultData.generatedNotes?.length || 0}
                   </span>
                 </div>
                 <div className="text-sm">
-                  <span className="text-muted-foreground" data-testid="text-chords-label">Chords Generated:</span>{' '}
+                  <span className="text-muted-foreground" data-testid="text-chords-label">
+                    Chords Generated:
+                  </span>{' '}
                   <span className="font-medium" data-testid="text-chords-count">
                     {activeWorkflow.resultData.generatedChords?.length || 0}
                   </span>

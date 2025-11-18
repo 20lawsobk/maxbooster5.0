@@ -1,28 +1,35 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { 
-  AlertCircle, 
-  Home, 
-  RefreshCw, 
-  AlertTriangle, 
-  Info, 
+import {
+  AlertCircle,
+  Home,
+  RefreshCw,
+  AlertTriangle,
+  Info,
   Bug,
   WifiOff,
   Shield,
   Database,
   Clock,
-  HardDrive
+  HardDrive,
 } from 'lucide-react';
-import { 
-  errorService, 
-  ErrorSeverity, 
-  ErrorCategory, 
+import {
+  errorService,
+  ErrorSeverity,
+  ErrorCategory,
   ErrorRecoveryAction,
-  captureException 
+  captureException,
 } from '@/lib/errorService';
 
 interface Props {
@@ -69,9 +76,9 @@ export class ErrorBoundary extends Component<Props, State> {
     const category = ErrorBoundary.categorizeError(error);
     const severity = ErrorBoundary.determineSeverity(error, category);
     const isTransient = ErrorBoundary.isTransientError(category);
-    
-    return { 
-      hasError: true, 
+
+    return {
+      hasError: true,
       error,
       category,
       severity,
@@ -83,7 +90,7 @@ export class ErrorBoundary extends Component<Props, State> {
   private static categorizeError(error: Error): ErrorCategory {
     const message = error.message.toLowerCase();
     const name = error.name.toLowerCase();
-    
+
     if (message.includes('network') || message.includes('fetch') || name.includes('network')) {
       return 'network';
     }
@@ -121,43 +128,47 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private static getUserMessage(category: ErrorCategory, error: Error): string {
     const messages: Record<ErrorCategory, string> = {
-      network: 'We\'re having trouble connecting. Please check your internet connection.',
+      network: "We're having trouble connecting. Please check your internet connection.",
       auth: 'Your session has expired. Please log in again to continue.',
       validation: 'Some information appears to be incorrect. Please review and try again.',
       system: 'System resources are temporarily limited. This should resolve shortly.',
       timeout: 'The operation is taking longer than expected. Please try again.',
-      permission: 'You don\'t have permission to access this feature.',
+      permission: "You don't have permission to access this feature.",
       storage: 'Storage space is running low. Please free up some space to continue.',
       media: 'There was an issue processing audio/video. Please try a different file or format.',
-      unknown: 'Something unexpected happened. We\'re working to fix it.',
+      unknown: "Something unexpected happened. We're working to fix it.",
     };
-    
+
     return messages[category] || messages.unknown;
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Report error to our error service
     if (!this.state.hasReportedError) {
-      errorService.handleError(error, {
-        component: 'ErrorBoundary',
-        action: 'component-error',
-        metadata: {
-          componentStack: errorInfo.componentStack,
-          errorBoundary: true,
+      errorService.handleError(
+        error,
+        {
+          component: 'ErrorBoundary',
+          action: 'component-error',
+          metadata: {
+            componentStack: errorInfo.componentStack,
+            errorBoundary: true,
+          },
         },
-      }, {
-        severity: this.state.severity,
-        showToast: false, // Don't show toast since we're showing the error UI
-        retryable: this.state.maxRetries > 0,
-      });
-      
+        {
+          severity: this.state.severity,
+          showToast: false, // Don't show toast since we're showing the error UI
+          retryable: this.state.maxRetries > 0,
+        }
+      );
+
       this.setState({ hasReportedError: true });
     }
 
     // Set up recovery actions based on error category
     const recoveryActions = this.getRecoveryActions();
-    
-    this.setState({ 
+
+    this.setState({
       errorInfo,
       recoveryActions,
     });
@@ -176,7 +187,7 @@ export class ErrorBoundary extends Component<Props, State> {
   private getRecoveryActions(): ErrorRecoveryAction[] {
     const actions: ErrorRecoveryAction[] = [];
     const { category } = this.state;
-    
+
     switch (category) {
       case 'network':
       case 'timeout':
@@ -186,7 +197,7 @@ export class ErrorBoundary extends Component<Props, State> {
           action: () => this.handleManualRetry(),
         });
         break;
-      
+
       case 'auth':
         actions.push({
           label: 'Log In',
@@ -197,7 +208,7 @@ export class ErrorBoundary extends Component<Props, State> {
           },
         });
         break;
-      
+
       case 'storage':
         actions.push({
           label: 'Clear Cache',
@@ -205,13 +216,13 @@ export class ErrorBoundary extends Component<Props, State> {
           action: async () => {
             if ('caches' in window) {
               const cacheNames = await caches.keys();
-              await Promise.all(cacheNames.map(name => caches.delete(name)));
+              await Promise.all(cacheNames.map((name) => caches.delete(name)));
               this.handleReset();
             }
           },
         });
         break;
-      
+
       default:
         actions.push({
           label: 'Try Again',
@@ -219,35 +230,35 @@ export class ErrorBoundary extends Component<Props, State> {
           action: () => this.handleReset(),
         });
     }
-    
+
     // Always add secondary actions
     actions.push({
       label: 'Go Home',
       type: 'secondary',
       action: () => this.handleGoHome(),
     });
-    
+
     actions.push({
       label: 'Report Issue',
       type: 'secondary',
       action: () => this.handleReportIssue(),
     });
-    
+
     return actions;
   }
 
   private scheduleRetry() {
     const retryDelay = Math.min(1000 * Math.pow(2, this.state.retryCount), 30000);
     const countdownSeconds = Math.ceil(retryDelay / 1000);
-    
-    this.setState({ 
+
+    this.setState({
       isRetrying: true,
       retryCountdown: countdownSeconds,
     });
-    
+
     // Update countdown every second
     this.countdownTimer = setInterval(() => {
-      this.setState(prev => {
+      this.setState((prev) => {
         if (prev.retryCountdown <= 1) {
           if (this.countdownTimer) {
             clearInterval(this.countdownTimer);
@@ -258,11 +269,11 @@ export class ErrorBoundary extends Component<Props, State> {
         return { retryCountdown: prev.retryCountdown - 1 };
       });
     }, 1000);
-    
+
     // Schedule the actual retry
     this.retryTimer = setTimeout(() => {
       this.handleReset();
-      this.setState(prev => ({
+      this.setState((prev) => ({
         retryCount: prev.retryCount + 1,
         isRetrying: false,
       }));
@@ -278,20 +289,20 @@ export class ErrorBoundary extends Component<Props, State> {
       clearInterval(this.countdownTimer);
       this.countdownTimer = null;
     }
-    
-    this.setState(prev => ({
+
+    this.setState((prev) => ({
       retryCount: prev.retryCount + 1,
       isRetrying: false,
       retryCountdown: 0,
     }));
-    
+
     this.handleReset();
   };
 
   private handleReset = () => {
-    this.setState({ 
-      hasError: false, 
-      error: null, 
+    this.setState({
+      hasError: false,
+      error: null,
       errorInfo: null,
       hasReportedError: false,
     });
@@ -303,13 +314,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleReportIssue = () => {
     const { error, errorInfo } = this.state;
-    
+
     errorService.addBreadcrumb('error-boundary-report', {
       error: error?.message,
       stack: error?.stack,
       componentStack: errorInfo?.componentStack,
     });
-    
+
     // This will trigger the error service's report dialog
     errorService.captureException(error || new Error('Unknown error'), {
       component: 'ErrorBoundary',
@@ -329,7 +340,7 @@ export class ErrorBoundary extends Component<Props, State> {
       media: <AlertCircle className="h-6 w-6" />,
       unknown: <Bug className="h-6 w-6" />,
     };
-    
+
     return icons[category] || <AlertCircle className="h-6 w-6" />;
   }
 
@@ -340,7 +351,7 @@ export class ErrorBoundary extends Component<Props, State> {
       warning: 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400',
       info: 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
     };
-    
+
     return colors[severity] || colors.error;
   }
 
@@ -359,11 +370,11 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      const { 
-        error, 
-        severity, 
-        category, 
-        userMessage, 
+      const {
+        error,
+        severity,
+        category,
+        userMessage,
         recoveryActions,
         isRetrying,
         retryCountdown,
@@ -376,23 +387,25 @@ export class ErrorBoundary extends Component<Props, State> {
           <Card className="max-w-lg w-full">
             <CardHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className={`h-12 w-12 rounded-full flex items-center justify-center ${this.getSeverityColor(severity)}`}>
+                <div
+                  className={`h-12 w-12 rounded-full flex items-center justify-center ${this.getSeverityColor(severity)}`}
+                >
                   {this.getIconForCategory(category)}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <CardTitle className="text-2xl">
-                      {severity === 'critical' ? 'Critical Error' : 
-                       severity === 'warning' ? 'Warning' : 
-                       'Something went wrong'}
+                      {severity === 'critical'
+                        ? 'Critical Error'
+                        : severity === 'warning'
+                          ? 'Warning'
+                          : 'Something went wrong'}
                     </CardTitle>
                     <Badge variant={severity === 'critical' ? 'destructive' : 'secondary'}>
                       {category}
                     </Badge>
                   </div>
-                  <CardDescription>
-                    {userMessage}
-                  </CardDescription>
+                  <CardDescription>{userMessage}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -401,23 +414,28 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Alert>
                   <RefreshCw className="h-4 w-4 animate-spin" />
                   <AlertDescription>
-                    Automatically retrying in {retryCountdown} seconds... (Attempt {retryCount + 1} of {maxRetries})
+                    Automatically retrying in {retryCountdown} seconds... (Attempt {retryCount + 1}{' '}
+                    of {maxRetries})
                   </AlertDescription>
-                  <Progress value={(1 - retryCountdown / Math.ceil(1000 * Math.pow(2, retryCount) / 1000)) * 100} className="mt-2" />
+                  <Progress
+                    value={
+                      (1 - retryCountdown / Math.ceil((1000 * Math.pow(2, retryCount)) / 1000)) *
+                      100
+                    }
+                    className="mt-2"
+                  />
                 </Alert>
               )}
-              
+
               {retryCount > 0 && (
                 <p className="text-sm text-muted-foreground">
                   Retry attempt {retryCount} of {maxRetries}
                 </p>
               )}
-              
+
               {error && (
                 <details className="text-xs text-muted-foreground bg-muted p-3 rounded-md">
-                  <summary className="cursor-pointer font-medium mb-2">
-                    Technical details
-                  </summary>
+                  <summary className="cursor-pointer font-medium mb-2">Technical details</summary>
                   <pre className="whitespace-pre-wrap break-words mt-2">
                     {error.message}
                     {error.stack && (
@@ -435,8 +453,13 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button
                   key={index}
                   onClick={action.action}
-                  variant={action.type === 'primary' ? 'default' : 
-                          action.type === 'danger' ? 'destructive' : 'outline'}
+                  variant={
+                    action.type === 'primary'
+                      ? 'default'
+                      : action.type === 'danger'
+                        ? 'destructive'
+                        : 'outline'
+                  }
                   disabled={isRetrying}
                   data-testid={`button-recovery-${index}`}
                   className="flex-1 min-w-[120px]"

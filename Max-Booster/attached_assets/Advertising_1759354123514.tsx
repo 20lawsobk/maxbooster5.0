@@ -10,10 +10,23 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Link } from 'wouter';
@@ -33,7 +46,7 @@ import {
   Music,
   Headphones,
   Radio,
-  Tv
+  Tv,
 } from 'lucide-react';
 
 interface AdCampaign {
@@ -79,7 +92,7 @@ export default function Advertising() {
   const { user, isLoading: authLoading } = useRequireSubscription();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [isCreateCampaignOpen, setIsCreateCampaignOpen] = useState(false);
   const [campaignForm, setCampaignForm] = useState({
     name: '',
@@ -91,8 +104,8 @@ export default function Advertising() {
       ageMax: 65,
       interests: [] as string[],
       locations: [] as string[],
-      platforms: [] as string[]
-    }
+      platforms: [] as string[],
+    },
   });
 
   // Fetch ad campaigns
@@ -135,8 +148,8 @@ export default function Advertising() {
           ageMax: 65,
           interests: [],
           locations: [],
-          platforms: []
-        }
+          platforms: [],
+        },
       });
       queryClient.invalidateQueries({ queryKey: ['/api/advertising/campaigns'] });
     },
@@ -162,21 +175,61 @@ export default function Advertising() {
     { value: 'traffic', label: 'Drive Traffic', icon: MousePointerClick },
     { value: 'engagement', label: 'Increase Engagement', icon: Users },
     { value: 'conversions', label: 'Get More Streams', icon: Play },
-    { value: 'followers', label: 'Grow Following', icon: TrendingUp }
+    { value: 'followers', label: 'Grow Following', icon: TrendingUp },
   ];
 
   const platforms = [
-    { value: 'spotify', label: 'Spotify Personal Network', icon: Music, description: 'Use your Spotify for Artists profile for organic promotion' },
-    { value: 'youtube', label: 'YouTube Channel Network', icon: Tv, description: 'Leverage your YouTube channel for cross-promotion' },
-    { value: 'instagram', label: 'Instagram Profile Power', icon: Users, description: 'Transform your Instagram into a promotional hub' },
-    { value: 'facebook', label: 'Facebook Profile Amplification', icon: Users, description: 'Use your Facebook profile and connections' },
-    { value: 'tiktok', label: 'TikTok Personal Brand', icon: Play, description: 'Amplify through your TikTok presence' },
-    { value: 'twitter', label: 'Twitter Personal Network', icon: Radio, description: 'Leverage your Twitter following and engagement' }
+    {
+      value: 'spotify',
+      label: 'Spotify Personal Network',
+      icon: Music,
+      description: 'Use your Spotify for Artists profile for organic promotion',
+    },
+    {
+      value: 'youtube',
+      label: 'YouTube Channel Network',
+      icon: Tv,
+      description: 'Leverage your YouTube channel for cross-promotion',
+    },
+    {
+      value: 'instagram',
+      label: 'Instagram Profile Power',
+      icon: Users,
+      description: 'Transform your Instagram into a promotional hub',
+    },
+    {
+      value: 'facebook',
+      label: 'Facebook Profile Amplification',
+      icon: Users,
+      description: 'Use your Facebook profile and connections',
+    },
+    {
+      value: 'tiktok',
+      label: 'TikTok Personal Brand',
+      icon: Play,
+      description: 'Amplify through your TikTok presence',
+    },
+    {
+      value: 'twitter',
+      label: 'Twitter Personal Network',
+      icon: Radio,
+      description: 'Leverage your Twitter following and engagement',
+    },
   ];
 
   const musicInterests = [
-    'Hip Hop', 'Pop', 'R&B', 'Rock', 'Electronic', 'Country',
-    'Jazz', 'Classical', 'Reggae', 'Alternative', 'Indie', 'Folk'
+    'Hip Hop',
+    'Pop',
+    'R&B',
+    'Rock',
+    'Electronic',
+    'Country',
+    'Jazz',
+    'Classical',
+    'Reggae',
+    'Alternative',
+    'Indie',
+    'Folk',
   ];
 
   const handleCreateCampaign = () => {
@@ -201,9 +254,18 @@ export default function Advertising() {
     createCampaignMutation.mutate(campaignForm);
   };
 
-  const totalSpent = campaigns.reduce((acc: number, campaign: AdCampaign) => acc + campaign.spent, 0);
-  const totalImpressions = campaigns.reduce((acc: number, campaign: AdCampaign) => acc + campaign.impressions, 0);
-  const totalClicks = campaigns.reduce((acc: number, campaign: AdCampaign) => acc + campaign.clicks, 0);
+  const totalSpent = campaigns.reduce(
+    (acc: number, campaign: AdCampaign) => acc + campaign.spent,
+    0
+  );
+  const totalImpressions = campaigns.reduce(
+    (acc: number, campaign: AdCampaign) => acc + campaign.impressions,
+    0
+  );
+  const totalClicks = campaigns.reduce(
+    (acc: number, campaign: AdCampaign) => acc + campaign.clicks,
+    0
+  );
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
 
   return (
@@ -242,7 +304,9 @@ export default function Advertising() {
                         id="campaign-name"
                         placeholder="e.g., Summer Single Promotion"
                         value={campaignForm.name}
-                        onChange={(e) => setCampaignForm(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) =>
+                          setCampaignForm((prev) => ({ ...prev, name: e.target.value }))
+                        }
                       />
                     </div>
 
@@ -257,7 +321,9 @@ export default function Advertising() {
                                 ? 'border-primary bg-primary/10'
                                 : 'border-border hover:border-primary/50'
                             }`}
-                            onClick={() => setCampaignForm(prev => ({ ...prev, objective: value }))}
+                            onClick={() =>
+                              setCampaignForm((prev) => ({ ...prev, objective: value }))
+                            }
                           >
                             <Icon className="w-5 h-5" />
                             <span className="text-sm font-medium">{label}</span>
@@ -288,7 +354,9 @@ export default function Advertising() {
                         <div className="space-y-3">
                           <Slider
                             value={[campaignForm.duration]}
-                            onValueChange={(value) => setCampaignForm(prev => ({ ...prev, duration: value[0] }))}
+                            onValueChange={(value) =>
+                              setCampaignForm((prev) => ({ ...prev, duration: value[0] }))
+                            }
                             max={30}
                             min={1}
                             step={1}
@@ -303,7 +371,8 @@ export default function Advertising() {
                     <div className="space-y-3">
                       <Label>Personal Ad Network Platforms</Label>
                       <p className="text-xs text-muted-foreground mb-3">
-                        Select your connected social media profiles to use as personal advertising channels
+                        Select your connected social media profiles to use as personal advertising
+                        channels
                       </p>
                       <div className="grid grid-cols-1 gap-3">
                         {platforms.map(({ value, label, icon: Icon, description }) => (
@@ -315,14 +384,14 @@ export default function Advertising() {
                                 : 'border-border hover:border-green-400'
                             }`}
                             onClick={() => {
-                              setCampaignForm(prev => ({
+                              setCampaignForm((prev) => ({
                                 ...prev,
                                 targetAudience: {
                                   ...prev.targetAudience,
                                   platforms: prev.targetAudience.platforms.includes(value)
-                                    ? prev.targetAudience.platforms.filter(p => p !== value)
-                                    : [...prev.targetAudience.platforms, value]
-                                }
+                                    ? prev.targetAudience.platforms.filter((p) => p !== value)
+                                    : [...prev.targetAudience.platforms, value],
+                                },
                               }));
                             }}
                           >
@@ -343,26 +412,34 @@ export default function Advertising() {
                       <Label>Target Age Range</Label>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-sm">Min Age: {campaignForm.targetAudience.ageMin}</Label>
+                          <Label className="text-sm">
+                            Min Age: {campaignForm.targetAudience.ageMin}
+                          </Label>
                           <Slider
                             value={[campaignForm.targetAudience.ageMin]}
-                            onValueChange={(value) => setCampaignForm(prev => ({
-                              ...prev,
-                              targetAudience: { ...prev.targetAudience, ageMin: value[0] }
-                            }))}
+                            onValueChange={(value) =>
+                              setCampaignForm((prev) => ({
+                                ...prev,
+                                targetAudience: { ...prev.targetAudience, ageMin: value[0] },
+                              }))
+                            }
                             max={65}
                             min={13}
                             step={1}
                           />
                         </div>
                         <div>
-                          <Label className="text-sm">Max Age: {campaignForm.targetAudience.ageMax}</Label>
+                          <Label className="text-sm">
+                            Max Age: {campaignForm.targetAudience.ageMax}
+                          </Label>
                           <Slider
                             value={[campaignForm.targetAudience.ageMax]}
-                            onValueChange={(value) => setCampaignForm(prev => ({
-                              ...prev,
-                              targetAudience: { ...prev.targetAudience, ageMax: value[0] }
-                            }))}
+                            onValueChange={(value) =>
+                              setCampaignForm((prev) => ({
+                                ...prev,
+                                targetAudience: { ...prev.targetAudience, ageMax: value[0] },
+                              }))
+                            }
                             max={65}
                             min={13}
                             step={1}
@@ -383,14 +460,14 @@ export default function Advertising() {
                                 : 'border-border hover:border-primary/50'
                             }`}
                             onClick={() => {
-                              setCampaignForm(prev => ({
+                              setCampaignForm((prev) => ({
                                 ...prev,
                                 targetAudience: {
                                   ...prev.targetAudience,
                                   interests: prev.targetAudience.interests.includes(interest)
-                                    ? prev.targetAudience.interests.filter(i => i !== interest)
-                                    : [...prev.targetAudience.interests, interest]
-                                }
+                                    ? prev.targetAudience.interests.filter((i) => i !== interest)
+                                    : [...prev.targetAudience.interests, interest],
+                                },
                               }));
                             }}
                           >
@@ -401,10 +478,7 @@ export default function Advertising() {
                     </div>
 
                     <div className="flex justify-end space-x-3">
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsCreateCampaignOpen(false)}
-                      >
+                      <Button variant="outline" onClick={() => setIsCreateCampaignOpen(false)}>
                         Cancel
                       </Button>
                       <Button
@@ -412,7 +486,9 @@ export default function Advertising() {
                         disabled={createCampaignMutation.isPending}
                         className="gradient-bg"
                       >
-                        {createCampaignMutation.isPending ? 'Activating AI...' : 'Activate AI Campaign'}
+                        {createCampaignMutation.isPending
+                          ? 'Activating AI...'
+                          : 'Activate AI Campaign'}
                       </Button>
                     </div>
                   </div>
@@ -425,40 +501,58 @@ export default function Advertising() {
               <Card className="border-2 border-gradient-to-r from-blue-500 to-purple-600 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
                 <CardContent className="p-6">
                   <div className="text-center space-y-4">
-                    <h2 className="text-2xl font-bold gradient-text">🚀 Personal Ad Network System</h2>
+                    <h2 className="text-2xl font-bold gradient-text">
+                      🚀 Personal Ad Network System
+                    </h2>
                     <p className="text-lg text-muted-foreground">
-                      Transform your connected social media profiles into a powerful personal advertising network
+                      Transform your connected social media profiles into a powerful personal
+                      advertising network
                     </p>
-                    
+
                     {/* Personal Ad Network Status */}
                     <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-blue-200 dark:border-blue-800 mb-6">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold">Your Personal Ad Network</h3>
-                        <Link to="/social-media" className="text-blue-600 hover:text-blue-800 text-sm">
+                        <Link
+                          to="/social-media"
+                          className="text-blue-600 hover:text-blue-800 text-sm"
+                        >
                           Manage Connections →
                         </Link>
                       </div>
-                      
+
                       {socialConnections && (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                           {Object.entries(socialConnections).map(([platform, status]) => (
-                            <div key={platform} className={`p-3 rounded-lg border text-center ${
-                              status.connected ? 'border-green-200 bg-green-50 dark:bg-green-950/20' : 'border-gray-200 bg-gray-50 dark:bg-gray-900'
-                            }`}>
-                              <div className={`w-3 h-3 rounded-full mx-auto mb-2 ${status.connected ? 'bg-green-500' : 'bg-gray-400'}`} />
+                            <div
+                              key={platform}
+                              className={`p-3 rounded-lg border text-center ${
+                                status.connected
+                                  ? 'border-green-200 bg-green-50 dark:bg-green-950/20'
+                                  : 'border-gray-200 bg-gray-50 dark:bg-gray-900'
+                              }`}
+                            >
+                              <div
+                                className={`w-3 h-3 rounded-full mx-auto mb-2 ${status.connected ? 'bg-green-500' : 'bg-gray-400'}`}
+                              />
                               <div className="text-xs font-medium capitalize">{platform}</div>
-                              <div className={`text-xs ${status.connected ? 'text-green-600' : 'text-gray-500'}`}>
+                              <div
+                                className={`text-xs ${status.connected ? 'text-green-600' : 'text-gray-500'}`}
+                              >
                                 {status.connected ? 'Active' : 'Not Connected'}
                               </div>
                             </div>
                           ))}
                         </div>
                       )}
-                      
+
                       {connectionsLoading && (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                           {[...Array(8)].map((_, i) => (
-                            <div key={i} className="p-3 rounded-lg border border-gray-200 bg-gray-50 dark:bg-gray-900 animate-pulse">
+                            <div
+                              key={i}
+                              className="p-3 rounded-lg border border-gray-200 bg-gray-50 dark:bg-gray-900 animate-pulse"
+                            >
                               <div className="w-3 h-3 rounded-full mx-auto mb-2 bg-gray-400" />
                               <div className="h-3 bg-gray-300 rounded mb-1" />
                               <div className="h-2 bg-gray-200 rounded" />
@@ -475,7 +569,9 @@ export default function Advertising() {
                       </div>
                       <div className="text-center">
                         <div className="text-3xl font-bold text-blue-600">
-                          {socialConnections ? Object.values(socialConnections).filter(s => s.connected).length : 0}
+                          {socialConnections
+                            ? Object.values(socialConnections).filter((s) => s.connected).length
+                            : 0}
                         </div>
                         <div className="text-sm">Connected Profiles</div>
                       </div>
@@ -507,26 +603,33 @@ export default function Advertising() {
                   <>
                     {/* Revolutionary Features */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {Object.entries(aiInsights.revolutionaryFeatures).map(([key, feature]: [string, any]) => (
-                        <Card key={key} className="relative overflow-hidden">
-                          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10" />
-                          <CardHeader className="relative">
-                            <CardTitle className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-                              <span>{feature.title}</span>
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="relative space-y-3">
-                            <p className="text-muted-foreground">{feature.description}</p>
-                            <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-lg">
-                              <div className="text-sm font-semibold text-green-800 dark:text-green-200">
-                                {feature.savings || feature.improvement || feature.viralRate || feature.advantage}
+                      {Object.entries(aiInsights.revolutionaryFeatures).map(
+                        ([key, feature]: [string, any]) => (
+                          <Card key={key} className="relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10" />
+                            <CardHeader className="relative">
+                              <CardTitle className="flex items-center space-x-2">
+                                <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+                                <span>{feature.title}</span>
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="relative space-y-3">
+                              <p className="text-muted-foreground">{feature.description}</p>
+                              <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-lg">
+                                <div className="text-sm font-semibold text-green-800 dark:text-green-200">
+                                  {feature.savings ||
+                                    feature.improvement ||
+                                    feature.viralRate ||
+                                    feature.advantage}
+                                </div>
                               </div>
-                            </div>
-                            <p className="text-xs text-muted-foreground italic">{feature.howItWorks}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
+                              <p className="text-xs text-muted-foreground italic">
+                                {feature.howItWorks}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        )
+                      )}
                     </div>
 
                     {/* Platform Replacement */}
@@ -539,15 +642,27 @@ export default function Advertising() {
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {aiInsights.platformReplacement?.replacedPlatforms && Object.entries(aiInsights.platformReplacement.replacedPlatforms).map(([platform, status]) => (
-                            <div key={platform} className="bg-gradient-to-r from-red-50 to-green-50 dark:from-red-950/20 dark:to-green-950/20 p-4 rounded-lg border-l-4 border-green-500">
-                              <div className="font-semibold text-lg flex items-center">
-                                <span className="line-through text-red-500 mr-2">{platform}</span>
-                                <Badge className="bg-green-100 text-green-800 text-xs">REPLACED</Badge>
-                              </div>
-                              <div className="text-sm text-green-600 dark:text-green-400 font-medium mt-1">{status}</div>
-                            </div>
-                          )) || (
+                          {(aiInsights.platformReplacement?.replacedPlatforms &&
+                            Object.entries(aiInsights.platformReplacement.replacedPlatforms).map(
+                              ([platform, status]) => (
+                                <div
+                                  key={platform}
+                                  className="bg-gradient-to-r from-red-50 to-green-50 dark:from-red-950/20 dark:to-green-950/20 p-4 rounded-lg border-l-4 border-green-500"
+                                >
+                                  <div className="font-semibold text-lg flex items-center">
+                                    <span className="line-through text-red-500 mr-2">
+                                      {platform}
+                                    </span>
+                                    <Badge className="bg-green-100 text-green-800 text-xs">
+                                      REPLACED
+                                    </Badge>
+                                  </div>
+                                  <div className="text-sm text-green-600 dark:text-green-400 font-medium mt-1">
+                                    {status}
+                                  </div>
+                                </div>
+                              )
+                            )) || (
                             <div className="col-span-2 text-center text-muted-foreground">
                               Loading platform replacement status...
                             </div>
@@ -566,23 +681,32 @@ export default function Advertising() {
                           <div className="space-y-3">
                             <div className="flex justify-between items-center">
                               <span>Optimization Status</span>
-                              <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                              <Badge
+                                variant="outline"
+                                className="bg-green-100 text-green-800 border-green-300"
+                              >
                                 Active
                               </Badge>
                             </div>
                             <div className="flex justify-between items-center">
                               <span>Update Interval</span>
-                              <span className="font-semibold">{aiInsights.realTimeOptimizations.optimizationInterval}</span>
+                              <span className="font-semibold">
+                                {aiInsights.realTimeOptimizations.optimizationInterval}
+                              </span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span>Performance Tracking</span>
-                              <span className="font-semibold">{aiInsights.realTimeOptimizations.performanceTracking}</span>
+                              <span className="font-semibold">
+                                {aiInsights.realTimeOptimizations.performanceTracking}
+                              </span>
                             </div>
                           </div>
                           <div className="space-y-3">
                             <div className="flex justify-between items-center">
                               <span>Auto Adjustments</span>
-                              <span className="font-semibold">{aiInsights.realTimeOptimizations.automaticAdjustments}</span>
+                              <span className="font-semibold">
+                                {aiInsights.realTimeOptimizations.automaticAdjustments}
+                              </span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span>ROI Guarantee</span>
@@ -605,12 +729,17 @@ export default function Advertising() {
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {aiInsights.platformReplacement?.revolutionaryCapabilities?.map((capability: string, index: number) => (
-                            <div key={index} className="flex items-center space-x-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                              <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
-                              <span className="text-sm font-medium">{capability}</span>
-                            </div>
-                          )) || (
+                          {aiInsights.platformReplacement?.revolutionaryCapabilities?.map(
+                            (capability: string, index: number) => (
+                              <div
+                                key={index}
+                                className="flex items-center space-x-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-lg border border-purple-200 dark:border-purple-800"
+                              >
+                                <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                                <span className="text-sm font-medium">{capability}</span>
+                              </div>
+                            )
+                          ) || (
                             <div className="col-span-2 text-center text-muted-foreground">
                               Loading replacement capabilities...
                             </div>
@@ -637,7 +766,7 @@ export default function Advertising() {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex items-center space-x-2">
@@ -645,12 +774,14 @@ export default function Advertising() {
                         <span className="text-sm font-medium">Impressions</span>
                       </div>
                       <div className="mt-2">
-                        <div className="text-2xl font-bold">{totalImpressions.toLocaleString()}</div>
+                        <div className="text-2xl font-bold">
+                          {totalImpressions.toLocaleString()}
+                        </div>
                         <div className="text-sm text-green-600">+15.3% vs last month</div>
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex items-center space-x-2">
@@ -663,7 +794,7 @@ export default function Advertising() {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex items-center space-x-2">
@@ -700,7 +831,7 @@ export default function Advertising() {
                           Set Up Campaign
                         </Button>
                       </div>
-                      
+
                       <div className="p-4 border rounded-lg hover:border-primary/50 transition-colors cursor-pointer">
                         <div className="flex items-center space-x-3 mb-3">
                           <Users className="w-6 h-6 text-green-500" />
@@ -713,7 +844,7 @@ export default function Advertising() {
                           Set Up Campaign
                         </Button>
                       </div>
-                      
+
                       <div className="p-4 border rounded-lg hover:border-primary/50 transition-colors cursor-pointer">
                         <div className="flex items-center space-x-3 mb-3">
                           <Play className="w-6 h-6 text-purple-500" />
@@ -755,7 +886,7 @@ export default function Advertising() {
                         <p className="text-muted-foreground mb-6">
                           Create your first advertising campaign to start promoting your music
                         </p>
-                        <Button 
+                        <Button
                           onClick={() => setIsCreateCampaignOpen(true)}
                           className="gradient-bg"
                         >
@@ -772,51 +903,64 @@ export default function Advertising() {
                               <h3 className="text-lg font-semibold">{campaign.name}</h3>
                               <p className="text-sm text-muted-foreground">{campaign.objective}</p>
                             </div>
-                            <Badge 
-                              variant={campaign.status === 'active' ? 'default' : 'secondary'}
-                            >
+                            <Badge variant={campaign.status === 'active' ? 'default' : 'secondary'}>
                               {campaign.status}
                             </Badge>
                           </div>
-                          
+
                           {/* Personal Ad Network Display */}
                           {campaign.personalAdNetwork && (
                             <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
                               <div className="flex items-center space-x-2 mb-3">
                                 <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
-                                <span className="text-sm font-semibold text-blue-800 dark:text-blue-200">PERSONAL AD NETWORK</span>
+                                <span className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+                                  PERSONAL AD NETWORK
+                                </span>
                               </div>
-                              
+
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs mb-3">
                                 <div>
                                   <span className="text-muted-foreground">Connected:</span>
-                                  <div className="font-semibold text-blue-600">{campaign.personalAdNetwork.connectedAccounts}/{campaign.personalAdNetwork.totalPlatforms} Platforms</div>
+                                  <div className="font-semibold text-blue-600">
+                                    {campaign.personalAdNetwork.connectedAccounts}/
+                                    {campaign.personalAdNetwork.totalPlatforms} Platforms
+                                  </div>
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground">Network Strength:</span>
-                                  <div className="font-semibold text-green-600">{campaign.personalAdNetwork.networkStrength}%</div>
+                                  <div className="font-semibold text-green-600">
+                                    {campaign.personalAdNetwork.networkStrength}%
+                                  </div>
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground">Cost:</span>
-                                  <div className="font-semibold text-green-600">$0 (Personal Network)</div>
+                                  <div className="font-semibold text-green-600">
+                                    $0 (Personal Network)
+                                  </div>
                                 </div>
                               </div>
-                              
+
                               <div className="text-xs text-muted-foreground">
                                 <div>{campaign.personalAdNetwork.personalizedReach}</div>
-                                <div className="mt-1">{campaign.personalAdNetwork.organicAmplification}</div>
+                                <div className="mt-1">
+                                  {campaign.personalAdNetwork.organicAmplification}
+                                </div>
                               </div>
-                              
+
                               {/* Connected Platforms Status */}
                               {campaign.connectedPlatforms && (
                                 <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
                                   <div className="grid grid-cols-4 gap-2">
-                                    {Object.entries(campaign.connectedPlatforms).map(([platform, status]) => (
-                                      <div key={platform} className="flex items-center space-x-1">
-                                        <div className={`w-2 h-2 rounded-full ${status === 'Connected' ? 'bg-green-500' : 'bg-gray-400'}`} />
-                                        <span className="text-xs capitalize">{platform}</span>
-                                      </div>
-                                    ))}
+                                    {Object.entries(campaign.connectedPlatforms).map(
+                                      ([platform, status]) => (
+                                        <div key={platform} className="flex items-center space-x-1">
+                                          <div
+                                            className={`w-2 h-2 rounded-full ${status === 'Connected' ? 'bg-green-500' : 'bg-gray-400'}`}
+                                          />
+                                          <span className="text-xs capitalize">{platform}</span>
+                                        </div>
+                                      )
+                                    )}
                                   </div>
                                 </div>
                               )}
@@ -828,20 +972,28 @@ export default function Advertising() {
                             <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg border border-green-200 dark:border-green-800">
                               <div className="flex items-center space-x-2 mb-2">
                                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                                <span className="text-sm font-semibold text-green-800 dark:text-green-200">AI ENHANCED</span>
+                                <span className="text-sm font-semibold text-green-800 dark:text-green-200">
+                                  AI ENHANCED
+                                </span>
                               </div>
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                                 <div>
                                   <span className="text-muted-foreground">Performance:</span>
-                                  <div className="font-semibold text-green-600">{campaign.aiOptimizations.performanceBoost}</div>
+                                  <div className="font-semibold text-green-600">
+                                    {campaign.aiOptimizations.performanceBoost}
+                                  </div>
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground">Cost:</span>
-                                  <div className="font-semibold text-green-600">{campaign.aiOptimizations.costReduction}</div>
+                                  <div className="font-semibold text-green-600">
+                                    {campaign.aiOptimizations.costReduction}
+                                  </div>
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground">Viral Score:</span>
-                                  <div className="font-semibold text-purple-600">{(campaign.aiOptimizations.viralityScore * 100).toFixed(0)}%</div>
+                                  <div className="font-semibold text-purple-600">
+                                    {(campaign.aiOptimizations.viralityScore * 100).toFixed(0)}%
+                                  </div>
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground">AI Status:</span>
@@ -874,14 +1026,18 @@ export default function Advertising() {
                             </div>
                             <div>
                               <div className="text-sm text-muted-foreground">Impressions</div>
-                              <div className="font-semibold">{campaign.impressions.toLocaleString()}</div>
+                              <div className="font-semibold">
+                                {campaign.impressions.toLocaleString()}
+                              </div>
                             </div>
                             <div>
                               <div className="text-sm text-muted-foreground">Clicks</div>
-                              <div className="font-semibold">{campaign.clicks.toLocaleString()}</div>
+                              <div className="font-semibold">
+                                {campaign.clicks.toLocaleString()}
+                              </div>
                             </div>
                           </div>
-                          
+
                           <div className="mb-4">
                             <div className="flex justify-between text-sm mb-1">
                               <span>Budget Used</span>
@@ -893,12 +1049,14 @@ export default function Advertising() {
                                 )}
                               </span>
                             </div>
-                            <Progress 
-                              value={campaign.budget === 0 ? 0 : (campaign.spent / campaign.budget) * 100} 
-                              className="h-2" 
+                            <Progress
+                              value={
+                                campaign.budget === 0 ? 0 : (campaign.spent / campaign.budget) * 100
+                              }
+                              className="h-2"
                             />
                           </div>
-                          
+
                           <div className="flex justify-end space-x-2">
                             <Button variant="outline" size="sm">
                               View Details
@@ -906,8 +1064,8 @@ export default function Advertising() {
                             <Button variant="outline" size="sm">
                               Edit
                             </Button>
-                            <Button 
-                              variant={campaign.status === 'active' ? 'destructive' : 'default'} 
+                            <Button
+                              variant={campaign.status === 'active' ? 'destructive' : 'default'}
                               size="sm"
                             >
                               {campaign.status === 'active' ? 'Pause' : 'Resume'}
@@ -927,7 +1085,8 @@ export default function Advertising() {
                   </CardHeader>
                   <CardContent>
                     <div className="h-64 flex items-center justify-center text-muted-foreground">
-                      Detailed analytics will be available once you connect your advertising accounts
+                      Detailed analytics will be available once you connect your advertising
+                      accounts
                     </div>
                   </CardContent>
                 </Card>
@@ -948,9 +1107,7 @@ export default function Advertising() {
                       <p className="text-muted-foreground mb-6">
                         Create targeted audiences based on demographics, interests, and behaviors
                       </p>
-                      <Button className="gradient-bg">
-                        Create Audience
-                      </Button>
+                      <Button className="gradient-bg">Create Audience</Button>
                     </div>
                   </CardContent>
                 </Card>

@@ -1,15 +1,21 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
-import { Upload, Calendar as CalendarIcon, Music, Image } from "lucide-react";
-import { format } from "date-fns";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
+import { Upload, Calendar as CalendarIcon, Music, Image } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface ReleaseManagerProps {
   onSubmit: (releaseData: any) => void;
@@ -17,24 +23,42 @@ interface ReleaseManagerProps {
 
 export default function ReleaseManager({ onSubmit }: ReleaseManagerProps) {
   const [formData, setFormData] = useState({
-    title: "",
-    artist: "",
-    releaseType: "",
-    genre: "",
-    description: "",
+    title: '',
+    artist: '',
+    releaseType: '',
+    genre: '',
+    description: '',
     releaseDate: null as Date | null,
     artwork: null as File | null,
-    songs: [] as any[]
+    songs: [] as any[],
   });
 
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([
-    'spotify', 'apple', 'youtube', 'amazon'
+    'spotify',
+    'apple',
+    'youtube',
+    'amazon',
   ]);
 
   const genres = [
-    "Pop", "Rock", "Hip-Hop", "Electronic", "R&B", "Country", 
-    "Jazz", "Classical", "Reggae", "Folk", "Blues", "Punk",
-    "Metal", "Alternative", "Indie", "Dance", "House", "Techno"
+    'Pop',
+    'Rock',
+    'Hip-Hop',
+    'Electronic',
+    'R&B',
+    'Country',
+    'Jazz',
+    'Classical',
+    'Reggae',
+    'Folk',
+    'Blues',
+    'Punk',
+    'Metal',
+    'Alternative',
+    'Indie',
+    'Dance',
+    'House',
+    'Techno',
   ];
 
   const platforms = [
@@ -45,65 +69,61 @@ export default function ReleaseManager({ onSubmit }: ReleaseManagerProps) {
     { id: 'tidal', name: 'Tidal', icon: '🌊' },
     { id: 'deezer', name: 'Deezer', icon: '🎶' },
     { id: 'soundcloud', name: 'SoundCloud', icon: '☁️' },
-    { id: 'bandcamp', name: 'Bandcamp', icon: '🎪' }
+    { id: 'bandcamp', name: 'Bandcamp', icon: '🎪' },
   ];
 
   const togglePlatform = (platformId: string) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platformId)
-        ? prev.filter(id => id !== platformId)
-        : [...prev, platformId]
+    setSelectedPlatforms((prev) =>
+      prev.includes(platformId) ? prev.filter((id) => id !== platformId) : [...prev, platformId]
     );
   };
 
   const handleArtworkUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setFormData(prev => ({ ...prev, artwork: file }));
+      setFormData((prev) => ({ ...prev, artwork: file }));
     }
   };
 
   const addSong = () => {
     const newSong = {
       id: Date.now().toString(),
-      title: "",
+      title: '',
       duration: 0,
-      audioFile: null as File | null
+      audioFile: null as File | null,
     };
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      songs: [...prev.songs, newSong]
+      songs: [...prev.songs, newSong],
     }));
   };
 
   const updateSong = (index: number, updates: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      songs: prev.songs.map((song, i) => 
-        i === index ? { ...song, ...updates } : song
-      )
+      songs: prev.songs.map((song, i) => (i === index ? { ...song, ...updates } : song)),
     }));
   };
 
   const removeSong = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      songs: prev.songs.filter((_, i) => i !== index)
+      songs: prev.songs.filter((_, i) => i !== index),
     }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const releaseData = {
       ...formData,
       platforms: selectedPlatforms,
       metadata: {
         upc: generateUPC(),
-        isrc: formData.songs.map(() => generateISRC())
-      }
+        isrc: formData.songs.map(() => generateISRC()),
+      },
     };
-    
+
     onSubmit(releaseData);
   };
 
@@ -124,19 +144,19 @@ export default function ReleaseManager({ onSubmit }: ReleaseManagerProps) {
           <Input
             id="title"
             value={formData.title}
-            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
             placeholder="Enter release title"
             required
             data-testid="input-release-title"
           />
         </div>
-        
+
         <div>
           <Label htmlFor="artist">Artist Name *</Label>
           <Input
             id="artist"
             value={formData.artist}
-            onChange={(e) => setFormData(prev => ({ ...prev, artist: e.target.value }))}
+            onChange={(e) => setFormData((prev) => ({ ...prev, artist: e.target.value }))}
             placeholder="Enter artist name"
             required
             data-testid="input-artist-name"
@@ -147,7 +167,10 @@ export default function ReleaseManager({ onSubmit }: ReleaseManagerProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="releaseType">Release Type *</Label>
-          <Select value={formData.releaseType} onValueChange={(value) => setFormData(prev => ({ ...prev, releaseType: value }))}>
+          <Select
+            value={formData.releaseType}
+            onValueChange={(value) => setFormData((prev) => ({ ...prev, releaseType: value }))}
+          >
             <SelectTrigger data-testid="select-release-type">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
@@ -159,21 +182,26 @@ export default function ReleaseManager({ onSubmit }: ReleaseManagerProps) {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div>
           <Label htmlFor="genre">Genre</Label>
-          <Select value={formData.genre} onValueChange={(value) => setFormData(prev => ({ ...prev, genre: value }))}>
+          <Select
+            value={formData.genre}
+            onValueChange={(value) => setFormData((prev) => ({ ...prev, genre: value }))}
+          >
             <SelectTrigger data-testid="select-genre">
               <SelectValue placeholder="Select genre" />
             </SelectTrigger>
             <SelectContent>
               {genres.map((genre) => (
-                <SelectItem key={genre} value={genre.toLowerCase()}>{genre}</SelectItem>
+                <SelectItem key={genre} value={genre.toLowerCase()}>
+                  {genre}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        
+
         <div>
           <Label>Release Date</Label>
           <Popover>
@@ -184,14 +212,14 @@ export default function ReleaseManager({ onSubmit }: ReleaseManagerProps) {
                 data-testid="button-release-date"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.releaseDate ? format(formData.releaseDate, "PPP") : "Pick a date"}
+                {formData.releaseDate ? format(formData.releaseDate, 'PPP') : 'Pick a date'}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
                 selected={formData.releaseDate}
-                onSelect={(date) => setFormData(prev => ({ ...prev, releaseDate: date }))}
+                onSelect={(date) => setFormData((prev) => ({ ...prev, releaseDate: date }))}
                 initialFocus
               />
             </PopoverContent>
@@ -205,7 +233,7 @@ export default function ReleaseManager({ onSubmit }: ReleaseManagerProps) {
         <Textarea
           id="description"
           value={formData.description}
-          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
           placeholder="Describe your release..."
           className="min-h-20"
           data-testid="textarea-description"
@@ -226,7 +254,7 @@ export default function ReleaseManager({ onSubmit }: ReleaseManagerProps) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setFormData(prev => ({ ...prev, artwork: null }))}
+                    onClick={() => setFormData((prev) => ({ ...prev, artwork: null }))}
                     data-testid="button-remove-artwork"
                   >
                     Remove
@@ -277,7 +305,7 @@ export default function ReleaseManager({ onSubmit }: ReleaseManagerProps) {
             Add Song
           </Button>
         </div>
-        
+
         <div className="space-y-3">
           {formData.songs.map((song, index) => (
             <Card key={song.id}>
@@ -292,7 +320,7 @@ export default function ReleaseManager({ onSubmit }: ReleaseManagerProps) {
                       data-testid={`input-song-title-${index}`}
                     />
                   </div>
-                  
+
                   <div>
                     <Label>Audio File</Label>
                     <input
@@ -303,7 +331,7 @@ export default function ReleaseManager({ onSubmit }: ReleaseManagerProps) {
                       data-testid={`input-song-file-${index}`}
                     />
                   </div>
-                  
+
                   <div className="flex items-end">
                     <Button
                       type="button"
@@ -341,7 +369,9 @@ export default function ReleaseManager({ onSubmit }: ReleaseManagerProps) {
                 <div className="text-2xl mb-1">{platform.icon}</div>
                 <p className="text-sm font-medium">{platform.name}</p>
                 {selectedPlatforms.includes(platform.id) && (
-                  <Badge className="mt-1" size="sm">Selected</Badge>
+                  <Badge className="mt-1" size="sm">
+                    Selected
+                  </Badge>
                 )}
               </CardContent>
             </Card>

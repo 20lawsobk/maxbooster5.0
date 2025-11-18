@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Sparkles, 
-  Zap, 
-  Target, 
-  Music, 
-  TrendingUp, 
-  Share2, 
-  BarChart3, 
+import {
+  Sparkles,
+  Zap,
+  Target,
+  Music,
+  TrendingUp,
+  Share2,
+  BarChart3,
   Crown,
   Play,
   ArrowRight,
@@ -28,7 +28,7 @@ import {
   Mic,
   Video,
   Image,
-  Link
+  Link,
 } from 'lucide-react';
 
 interface SpotlightFeature {
@@ -62,15 +62,15 @@ const spotlightFeatures: SpotlightFeature[] = [
       'Eliminate all ad spend',
       '15% viral success rate',
       'Algorithm domination',
-      '1000% better performance than native ads'
+      '1000% better performance than native ads',
     ],
     stats: {
       timeSaved: '10+ hours/week',
       costSaved: '$5000+/month',
-      performanceBoost: '1000%'
+      performanceBoost: '1000%',
     },
     isNew: true,
-    isPopular: true
+    isPopular: true,
   },
   {
     id: 'ai-mixing',
@@ -83,14 +83,14 @@ const spotlightFeatures: SpotlightFeature[] = [
       'Studio-quality results',
       'Save $1000s in studio costs',
       'Learn from AI feedback',
-      'Professional-grade output'
+      'Professional-grade output',
     ],
     stats: {
       timeSaved: '5+ hours/track',
       costSaved: '$2000+/track',
-      performanceBoost: '95% quality'
+      performanceBoost: '95% quality',
     },
-    isPopular: true
+    isPopular: true,
   },
   {
     id: 'social-automation',
@@ -103,14 +103,14 @@ const spotlightFeatures: SpotlightFeature[] = [
       '10x engagement increase',
       'Save 5+ hours weekly',
       'Professional presence',
-      'Automated scheduling'
+      'Automated scheduling',
     ],
     stats: {
       timeSaved: '5+ hours/week',
       costSaved: '$500+/month',
-      performanceBoost: '1000% engagement'
+      performanceBoost: '1000% engagement',
     },
-    isPopular: true
+    isPopular: true,
   },
   {
     id: 'ai-content-generation',
@@ -123,16 +123,16 @@ const spotlightFeatures: SpotlightFeature[] = [
       'Professional content creation',
       'Save hours of work',
       'Increase engagement',
-      'Platform-optimized output'
+      'Platform-optimized output',
     ],
     stats: {
       timeSaved: '3+ hours/post',
       costSaved: '$200+/post',
-      performanceBoost: '500% engagement'
+      performanceBoost: '500% engagement',
     },
     isNew: true,
-    isPopular: true
-  }
+    isPopular: true,
+  },
 ];
 
 interface FeatureSpotlightProps {
@@ -162,7 +162,9 @@ export default function FeatureSpotlight({ onClose, onExploreFeature }: FeatureS
   };
 
   const handlePrevious = () => {
-    setCurrentFeatureIndex((prev) => (prev - 1 + spotlightFeatures.length) % spotlightFeatures.length);
+    setCurrentFeatureIndex(
+      (prev) => (prev - 1 + spotlightFeatures.length) % spotlightFeatures.length
+    );
   };
 
   const handleExplore = () => {
@@ -171,9 +173,12 @@ export default function FeatureSpotlight({ onClose, onExploreFeature }: FeatureS
 
   const getImpactColor = (impact: string) => {
     switch (impact) {
-      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'revolutionary': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'high':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'revolutionary':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -192,11 +197,7 @@ export default function FeatureSpotlight({ onClose, onExploreFeature }: FeatureS
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setIsAutoPlaying(!isAutoPlaying)}>
               {isAutoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             </Button>
             <Button variant="ghost" onClick={onClose}>

@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -19,31 +19,30 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+} from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
-import { Package, Download, Loader2, Upload, Music, FileText, Info } from "lucide-react";
-import type { DistributionPackage, DistributionTrack, StudioTrack } from "@shared/schema";
+} from '@/components/ui/accordion';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
+import { Package, Download, Loader2, Upload, Music, FileText, Info } from 'lucide-react';
+import type { DistributionPackage, DistributionTrack, StudioTrack } from '@shared/schema';
 
 const packageSchema = z.object({
-  upc: z.string().regex(/^\d{12,13}$/, "UPC must be 12-13 digits").optional().or(z.literal("")),
-  albumTitle: z.string().min(1, "Album title is required"),
+  upc: z
+    .string()
+    .regex(/^\d{12,13}$/, 'UPC must be 12-13 digits')
+    .optional()
+    .or(z.literal('')),
+  albumTitle: z.string().min(1, 'Album title is required'),
   releaseDate: z.string().optional(),
   label: z.string().optional(),
   artworkUrl: z.string().optional(),
@@ -52,8 +51,12 @@ const packageSchema = z.object({
 });
 
 const trackSchema = z.object({
-  isrc: z.string().regex(/^[A-Z]{2}-[A-Z0-9]{3}-\d{2}-\d{5}$/, "ISRC format: CC-XXX-YY-NNNNN").optional().or(z.literal("")),
-  title: z.string().min(1, "Title is required"),
+  isrc: z
+    .string()
+    .regex(/^[A-Z]{2}-[A-Z0-9]{3}-\d{2}-\d{5}$/, 'ISRC format: CC-XXX-YY-NNNNN')
+    .optional()
+    .or(z.literal('')),
+  title: z.string().min(1, 'Title is required'),
   artist: z.string().optional(),
   genre: z.string().optional(),
   explicitContent: z.boolean().default(false),
@@ -72,6 +75,9 @@ interface DistributionDialogProps {
   tracks: StudioTrack[];
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function DistributionDialog({
   open,
   onOpenChange,
@@ -79,24 +85,24 @@ export function DistributionDialog({
   projectName,
   tracks,
 }: DistributionDialogProps) {
-  const [currentTab, setCurrentTab] = useState("album");
+  const [currentTab, setCurrentTab] = useState('album');
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
-  const [artworkPreview, setArtworkPreview] = useState<string>("");
+  const [artworkPreview, setArtworkPreview] = useState<string>('');
   const [exportProgress, setExportProgress] = useState(0);
-  const [downloadUrl, setDownloadUrl] = useState<string>("");
+  const [downloadUrl, setDownloadUrl] = useState<string>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const form = useForm<PackageFormData>({
     resolver: zodResolver(packageSchema),
     defaultValues: {
-      albumTitle: projectName || "",
-      upc: "",
-      releaseDate: "",
-      label: "",
-      artworkUrl: "",
-      copyrightP: "",
-      copyrightC: "",
+      albumTitle: projectName || '',
+      upc: '',
+      releaseDate: '',
+      label: '',
+      artworkUrl: '',
+      copyrightP: '',
+      copyrightC: '',
     },
   });
 
@@ -114,19 +120,19 @@ export function DistributionDialog({
     if (existingPackage) {
       form.reset({
         albumTitle: existingPackage.albumTitle || projectName,
-        upc: existingPackage.upc || "",
+        upc: existingPackage.upc || '',
         releaseDate: existingPackage.releaseDate
-          ? new Date(existingPackage.releaseDate).toISOString().split("T")[0]
-          : "",
-        label: existingPackage.label || "",
-        artworkUrl: existingPackage.artworkUrl || "",
-        copyrightP: existingPackage.copyrightP || "",
-        copyrightC: existingPackage.copyrightC || "",
+          ? new Date(existingPackage.releaseDate).toISOString().split('T')[0]
+          : '',
+        label: existingPackage.label || '',
+        artworkUrl: existingPackage.artworkUrl || '',
+        copyrightP: existingPackage.copyrightP || '',
+        copyrightC: existingPackage.copyrightC || '',
       });
       if (existingPackage.artworkUrl) {
         setArtworkPreview(existingPackage.artworkUrl);
       }
-      if (existingPackage.status === "ready" && existingPackage.id) {
+      if (existingPackage.status === 'ready' && existingPackage.id) {
         setDownloadUrl(`/exports/distribution_${existingPackage.id}_*.zip`);
       }
     }
@@ -136,15 +142,15 @@ export function DistributionDialog({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('artwork', file);
-      
-      const response = await apiRequest("POST", "/api/distribution/artwork/upload", formData);
+
+      const response = await apiRequest('POST', '/api/distribution/artwork/upload', formData);
       return response.json();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
-        title: "Artwork Upload Failed",
-        description: error.message || "Failed to upload artwork",
-        variant: "destructive",
+        title: 'Artwork Upload Failed',
+        description: error.message || 'Failed to upload artwork',
+        variant: 'destructive',
       });
     },
   });
@@ -160,35 +166,41 @@ export function DistributionDialog({
         artworkUrl: data.uploadedArtworkUrl || null,
         copyrightP: data.copyrightP || null,
         copyrightC: data.copyrightC || null,
-        status: "draft",
+        status: 'draft',
       };
 
       if (existingPackage?.id) {
-        return apiRequest("PUT", `/api/distribution/packages/${existingPackage.id}`, payload);
+        return apiRequest('PUT', `/api/distribution/packages/${existingPackage.id}`, payload);
       } else {
-        return apiRequest("POST", "/api/distribution/packages", payload);
+        return apiRequest('POST', '/api/distribution/packages', payload);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/distribution/packages/${projectId}`] });
       toast({
-        title: "Success",
-        description: "Distribution package saved",
+        title: 'Success',
+        description: 'Distribution package saved',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to save distribution package",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to save distribution package',
+        variant: 'destructive',
       });
     },
   });
 
   const addTrackMutation = useMutation({
-    mutationFn: async ({ trackData, trackNumber }: { trackData: TrackFormData; trackNumber: number }) => {
-      if (!existingPackage?.id) throw new Error("Package not created yet");
-      
+    mutationFn: async ({
+      trackData,
+      trackNumber,
+    }: {
+      trackData: TrackFormData;
+      trackNumber: number;
+    }) => {
+      if (!existingPackage?.id) throw new Error('Package not created yet');
+
       const payload = {
         ...trackData,
         trackNumber,
@@ -196,54 +208,60 @@ export function DistributionDialog({
         credits: trackData.credits ? trackData.credits : null,
       };
 
-      return apiRequest("POST", `/api/distribution/packages/${existingPackage.id}/tracks`, payload);
+      return apiRequest('POST', `/api/distribution/packages/${existingPackage.id}/tracks`, payload);
     },
     onSuccess: () => {
       if (existingPackage?.id) {
-        queryClient.invalidateQueries({ queryKey: [`/api/distribution/packages/${existingPackage.id}/tracks`] });
+        queryClient.invalidateQueries({
+          queryKey: [`/api/distribution/packages/${existingPackage.id}/tracks`],
+        });
       }
       toast({
-        title: "Success",
-        description: "Track added to package",
+        title: 'Success',
+        description: 'Track added to package',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to add track",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to add track',
+        variant: 'destructive',
       });
     },
   });
 
   const exportMutation = useMutation({
     mutationFn: async () => {
-      if (!existingPackage?.id) throw new Error("Package not created yet");
+      if (!existingPackage?.id) throw new Error('Package not created yet');
       setExportProgress(0);
-      
+
       const interval = setInterval(() => {
         setExportProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
 
-      const response = await apiRequest("POST", `/api/distribution/packages/${existingPackage.id}/export`, {});
+      const response = await apiRequest(
+        'POST',
+        `/api/distribution/packages/${existingPackage.id}/export`,
+        {}
+      );
       clearInterval(interval);
       setExportProgress(100);
       return response;
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: unknown) => {
       setDownloadUrl(data.downloadUrl);
       queryClient.invalidateQueries({ queryKey: [`/api/distribution/packages/${projectId}`] });
       toast({
-        title: "Export Complete",
-        description: "Your distribution package is ready to download",
+        title: 'Export Complete',
+        description: 'Your distribution package is ready to download',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       setExportProgress(0);
       toast({
-        title: "Export Failed",
-        description: error.message || "Failed to export package",
-        variant: "destructive",
+        title: 'Export Failed',
+        description: error.message || 'Failed to export package',
+        variant: 'destructive',
       });
     },
   });
@@ -254,9 +272,9 @@ export function DistributionDialog({
 
     if (!file.type.match(/image\/(jpeg|jpg|png)/)) {
       toast({
-        title: "Invalid Format",
-        description: "Artwork must be JPEG or PNG",
-        variant: "destructive",
+        title: 'Invalid Format',
+        description: 'Artwork must be JPEG or PNG',
+        variant: 'destructive',
       });
       return;
     }
@@ -269,9 +287,9 @@ export function DistributionDialog({
       img.onload = () => {
         if (img.width < 3000 || img.height < 3000) {
           toast({
-            title: "Image Too Small",
-            description: "Artwork must be at least 3000x3000px for DSP compliance",
-            variant: "destructive",
+            title: 'Image Too Small',
+            description: 'Artwork must be at least 3000x3000px for DSP compliance',
+            variant: 'destructive',
           });
           return;
         }
@@ -292,7 +310,7 @@ export function DistributionDialog({
         const uploadResult = await uploadArtworkMutation.mutateAsync(artworkFile);
         uploadedArtworkUrl = uploadResult.artworkUrl;
         setArtworkFile(null); // Clear the file after successful upload
-      } catch (error) {
+      } catch (error: unknown) {
         // Error already shown by mutation, abort save
         return;
       }
@@ -307,9 +325,9 @@ export function DistributionDialog({
   const handleAutoFillTracks = async () => {
     if (!existingPackage?.id) {
       toast({
-        title: "Info",
-        description: "Please save album info first",
-        variant: "default",
+        title: 'Info',
+        description: 'Please save album info first',
+        variant: 'default',
       });
       return;
     }
@@ -319,12 +337,12 @@ export function DistributionDialog({
       await addTrackMutation.mutateAsync({
         trackData: {
           title: track.name || `Track ${i + 1}`,
-          artist: "",
-          genre: "",
+          artist: '',
+          genre: '',
           explicitContent: false,
-          isrc: "",
-          lyrics: "",
-          credits: "",
+          isrc: '',
+          lyrics: '',
+          credits: '',
         },
         trackNumber: i + 1,
       });
@@ -334,9 +352,9 @@ export function DistributionDialog({
   const handleExport = async () => {
     if (!existingPackage?.id) {
       toast({
-        title: "Info",
-        description: "Please save the distribution package first",
-        variant: "default",
+        title: 'Info',
+        description: 'Please save the distribution package first',
+        variant: 'default',
       });
       return;
     }
@@ -346,7 +364,10 @@ export function DistributionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-distribution">
+      <DialogContent
+        className="max-w-4xl max-h-[90vh] overflow-y-auto"
+        data-testid="dialog-distribution"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2" data-testid="text-distribution-title">
             <Package className="w-5 h-5" />
@@ -383,7 +404,11 @@ export function DistributionDialog({
                     <FormItem>
                       <FormLabel>Album Title *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Enter album title" data-testid="input-album-title" />
+                        <Input
+                          {...field}
+                          placeholder="Enter album title"
+                          data-testid="input-album-title"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -397,7 +422,12 @@ export function DistributionDialog({
                     <FormItem>
                       <FormLabel>UPC/EAN Code</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="123456789012" maxLength={13} data-testid="input-upc" />
+                        <Input
+                          {...field}
+                          placeholder="123456789012"
+                          maxLength={13}
+                          data-testid="input-upc"
+                        />
                       </FormControl>
                       <FormDescription>12-13 digits. Leave blank to auto-generate.</FormDescription>
                       <FormMessage />
@@ -443,7 +473,11 @@ export function DistributionDialog({
                       <FormItem>
                         <FormLabel>℗ Phonographic Copyright</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="℗ 2025 Artist Name" data-testid="input-copyright-p" />
+                          <Input
+                            {...field}
+                            placeholder="℗ 2025 Artist Name"
+                            data-testid="input-copyright-p"
+                          />
                         </FormControl>
                         <FormDescription>Sound recording copyright</FormDescription>
                         <FormMessage />
@@ -458,7 +492,11 @@ export function DistributionDialog({
                       <FormItem>
                         <FormLabel>© Compositional Copyright</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="© 2025 Artist Name" data-testid="input-copyright-c" />
+                          <Input
+                            {...field}
+                            placeholder="© 2025 Artist Name"
+                            data-testid="input-copyright-c"
+                          />
                         </FormControl>
                         <FormDescription>Composition copyright</FormDescription>
                         <FormMessage />
@@ -476,7 +514,12 @@ export function DistributionDialog({
                       onChange={handleArtworkUpload}
                       data-testid="input-artwork"
                     />
-                    <Button type="button" variant="outline" size="icon" data-testid="button-upload-artwork">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      data-testid="button-upload-artwork"
+                    >
                       <Upload className="w-4 h-4" />
                     </Button>
                   </div>
@@ -504,7 +547,7 @@ export function DistributionDialog({
                   {(uploadArtworkMutation.isPending || createPackageMutation.isPending) && (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   )}
-                  {uploadArtworkMutation.isPending ? "Uploading Artwork..." : "Save Album Info"}
+                  {uploadArtworkMutation.isPending ? 'Uploading Artwork...' : 'Save Album Info'}
                 </Button>
               </form>
             </Form>
@@ -512,7 +555,9 @@ export function DistributionDialog({
 
           <TabsContent value="tracks" className="space-y-4" data-testid="content-tracks">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold" data-testid="text-tracks-title">Track Metadata</h3>
+              <h3 className="text-lg font-semibold" data-testid="text-tracks-title">
+                Track Metadata
+              </h3>
               <Button
                 onClick={handleAutoFillTracks}
                 variant="outline"
@@ -531,34 +576,49 @@ export function DistributionDialog({
             ) : packageTracks.length > 0 ? (
               <Accordion type="single" collapsible className="w-full">
                 {packageTracks.map((track, index) => (
-                  <AccordionItem key={track.id} value={`track-${index}`} data-testid={`accordion-track-${index}`}>
+                  <AccordionItem
+                    key={track.id}
+                    value={`track-${index}`}
+                    data-testid={`accordion-track-${index}`}
+                  >
                     <AccordionTrigger data-testid={`trigger-track-${index}`}>
-                      Track {track.trackNumber}: {track.title || "Untitled"}
+                      Track {track.trackNumber}: {track.title || 'Untitled'}
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-3 p-4" data-testid={`content-track-${index}`}>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label className="text-sm font-medium">Title</label>
-                            <p className="text-sm" data-testid={`text-track-title-${index}`}>{track.title}</p>
+                            <p className="text-sm" data-testid={`text-track-title-${index}`}>
+                              {track.title}
+                            </p>
                           </div>
                           <div>
                             <label className="text-sm font-medium">Artist</label>
-                            <p className="text-sm" data-testid={`text-track-artist-${index}`}>{track.artist || "—"}</p>
+                            <p className="text-sm" data-testid={`text-track-artist-${index}`}>
+                              {track.artist || '—'}
+                            </p>
                           </div>
                           <div>
                             <label className="text-sm font-medium">ISRC</label>
-                            <p className="text-sm font-mono" data-testid={`text-track-isrc-${index}`}>{track.isrc || "—"}</p>
+                            <p
+                              className="text-sm font-mono"
+                              data-testid={`text-track-isrc-${index}`}
+                            >
+                              {track.isrc || '—'}
+                            </p>
                           </div>
                           <div>
                             <label className="text-sm font-medium">Genre</label>
-                            <p className="text-sm" data-testid={`text-track-genre-${index}`}>{track.genre || "—"}</p>
+                            <p className="text-sm" data-testid={`text-track-genre-${index}`}>
+                              {track.genre || '—'}
+                            </p>
                           </div>
                         </div>
                         <div>
                           <label className="text-sm font-medium">Explicit Content</label>
                           <p className="text-sm" data-testid={`text-track-explicit-${index}`}>
-                            {track.explicitContent ? "Yes" : "No"}
+                            {track.explicitContent ? 'Yes' : 'No'}
                           </p>
                         </div>
                       </div>
@@ -576,21 +636,23 @@ export function DistributionDialog({
           <TabsContent value="export" className="space-y-4" data-testid="content-export">
             <div className="space-y-4">
               <div className="p-4 border rounded-lg space-y-2">
-                <h3 className="font-semibold" data-testid="text-export-title">Export Package</h3>
+                <h3 className="font-semibold" data-testid="text-export-title">
+                  Export Package
+                </h3>
                 <p className="text-sm text-muted-foreground" data-testid="text-export-description">
                   Generate a ZIP file containing metadata.json, tracks.csv, artwork, and README.
                 </p>
-                
+
                 {existingPackage?.status && (
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Status:</span>
                     <span
                       className={`text-sm px-2 py-1 rounded ${
-                        existingPackage.status === "ready"
-                          ? "bg-green-100 text-green-700"
-                          : existingPackage.status === "submitted"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-700"
+                        existingPackage.status === 'ready'
+                          ? 'bg-green-100 text-green-700'
+                          : existingPackage.status === 'submitted'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-gray-100 text-gray-700'
                       }`}
                       data-testid="text-package-status"
                     >
@@ -629,7 +691,7 @@ export function DistributionDialog({
 
                   {downloadUrl && (
                     <Button
-                      onClick={() => window.open(downloadUrl, "_blank")}
+                      onClick={() => window.open(downloadUrl, '_blank')}
                       variant="outline"
                       data-testid="button-download"
                     >
@@ -641,8 +703,13 @@ export function DistributionDialog({
               </div>
 
               <div className="p-4 border rounded-lg space-y-2 bg-muted/50">
-                <h4 className="font-semibold text-sm" data-testid="text-package-contents">Package Contents:</h4>
-                <ul className="text-sm space-y-1 list-disc list-inside" data-testid="list-package-contents">
+                <h4 className="font-semibold text-sm" data-testid="text-package-contents">
+                  Package Contents:
+                </h4>
+                <ul
+                  className="text-sm space-y-1 list-disc list-inside"
+                  data-testid="list-package-contents"
+                >
                   <li>metadata.json - DSP-compliant release metadata</li>
                   <li>tracks.csv - Track listing in CSV format</li>
                   <li>artwork.jpg/png - Album artwork (if provided)</li>

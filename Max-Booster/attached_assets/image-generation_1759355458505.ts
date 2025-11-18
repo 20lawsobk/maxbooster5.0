@@ -26,8 +26,8 @@ export class SocialMediaContentGenerator {
 
   // Generate comprehensive social media content
   async generateSocialMediaContent(
-    platform: string, 
-    musicData: any, 
+    platform: string,
+    musicData: any,
     targetAudience: any,
     contentType: 'image' | 'video' | 'audio' | 'all' = 'all'
   ): Promise<{
@@ -38,7 +38,7 @@ export class SocialMediaContentGenerator {
   }> {
     try {
       const result: any = {
-        content: await this.generateAIContent(platform, musicData, targetAudience)
+        content: await this.generateAIContent(platform, musicData, targetAudience),
       };
 
       if (contentType === 'image' || contentType === 'all') {
@@ -60,7 +60,7 @@ export class SocialMediaContentGenerator {
         content: await this.generateAIContent(platform, musicData, targetAudience),
         image: this.getDefaultImage(platform),
         video: this.getDefaultVideo(platform),
-        audio: this.getDefaultAudio(platform)
+        audio: this.getDefaultAudio(platform),
       };
     }
   }
@@ -80,26 +80,26 @@ export class SocialMediaContentGenerator {
     try {
       // Extract content from URL
       const extractedData = await this.extractContentFromURL(url);
-      
+
       // Generate AI content based on extracted data
       const aiContent = await this.generateAIContentFromExtractedData(
-        extractedData, 
-        platform, 
+        extractedData,
+        platform,
         targetAudience
       );
 
       // Generate media content
       const result = await this.generateSocialMediaContent(
-        platform, 
-        extractedData, 
-        targetAudience, 
+        platform,
+        extractedData,
+        targetAudience,
         'all'
       );
 
       return {
         ...result,
         extractedData,
-        content: aiContent
+        content: aiContent,
       };
     } catch (error) {
       console.error('Error generating content from URL:', error);
@@ -108,28 +108,28 @@ export class SocialMediaContentGenerator {
   }
 
   async generateSocialMediaImage(
-    platform: string, 
-    musicData: any, 
+    platform: string,
+    musicData: any,
     targetAudience: any
   ): Promise<string> {
     try {
       // Get platform-specific dimensions
       const dimensions = this.getPlatformDimensions(platform);
-      
+
       // Create canvas
       this.canvas = createCanvas(dimensions.width, dimensions.height);
       this.ctx = this.canvas.getContext('2d');
-      
+
       // Generate AI-optimized design
       await this.createAIOptimizedDesign(platform, musicData, targetAudience);
-      
+
       // Save image
       const filename = `social-${platform}-${Date.now()}.png`;
       const filepath = join(this.imageDir, filename);
-      
+
       const buffer = this.canvas.toBuffer('image/png');
       writeFileSync(filepath, buffer);
-      
+
       // Return public URL
       return `/generated-content/images/${filename}`;
     } catch (error) {
@@ -141,8 +141,8 @@ export class SocialMediaContentGenerator {
 
   // Generate AI-powered social media video
   async generateSocialMediaVideo(
-    platform: string, 
-    musicData: any, 
+    platform: string,
+    musicData: any,
     targetAudience: any
   ): Promise<string> {
     try {
@@ -152,9 +152,9 @@ export class SocialMediaContentGenerator {
 
       // AI-powered video generation
       const videoContent = await this.createAIVideoContent(
-        platform, 
-        musicData, 
-        targetAudience, 
+        platform,
+        musicData,
+        targetAudience,
         dimensions
       );
 
@@ -170,8 +170,8 @@ export class SocialMediaContentGenerator {
 
   // Generate AI-powered social media audio
   async generateSocialMediaAudio(
-    platform: string, 
-    musicData: any, 
+    platform: string,
+    musicData: any,
     targetAudience: any
   ): Promise<string> {
     try {
@@ -179,11 +179,7 @@ export class SocialMediaContentGenerator {
       const filepath = join(this.audioDir, filename);
 
       // AI-powered audio generation
-      const audioContent = await this.createAIAudioContent(
-        platform, 
-        musicData, 
-        targetAudience
-      );
+      const audioContent = await this.createAIAudioContent(platform, musicData, targetAudience);
 
       // Write audio file
       writeFileSync(filepath, audioContent);
@@ -204,39 +200,39 @@ export class SocialMediaContentGenerator {
       tiktok: { width: 1080, height: 1920 },
       linkedin: { width: 1200, height: 627 },
       threads: { width: 1080, height: 1080 },
-      googleBusiness: { width: 1200, height: 630 }
+      googleBusiness: { width: 1200, height: 630 },
     };
-    
+
     return dimensions[platform as keyof typeof dimensions] || dimensions.facebook;
   }
 
   private async createAIOptimizedDesign(
-    platform: string, 
-    musicData: any, 
+    platform: string,
+    musicData: any,
     targetAudience: any
   ): Promise<void> {
     const { width, height } = this.getPlatformDimensions(platform);
-    
+
     // AI-optimized color scheme based on music genre and target audience
     const colorScheme = this.generateAIColorScheme(musicData, targetAudience);
-    
+
     // Create gradient background
     const gradient = this.ctx.createLinearGradient(0, 0, width, height);
     gradient.addColorStop(0, colorScheme.primary);
     gradient.addColorStop(1, colorScheme.secondary);
-    
+
     this.ctx.fillStyle = gradient;
     this.ctx.fillRect(0, 0, width, height);
-    
+
     // Add AI-generated visual elements
     await this.addVisualElements(musicData, targetAudience);
-    
+
     // Add text with AI-optimized typography
     this.addOptimizedText(musicData, platform, targetAudience);
-    
+
     // Add branding elements
     this.addBrandingElements(platform);
-    
+
     // Apply AI-optimized filters and effects
     this.applyAIFilters(platform, targetAudience);
   }
@@ -247,34 +243,34 @@ export class SocialMediaContentGenerator {
     // - Target audience demographics
     // - Platform preferences
     // - Current trends
-    
+
     const genreColors = {
-      'trap': { primary: '#667eea', secondary: '#764ba2' },
+      trap: { primary: '#667eea', secondary: '#764ba2' },
       'hip-hop': { primary: '#f093fb', secondary: '#f5576c' },
-      'pop': { primary: '#4facfe', secondary: '#00f2fe' },
-      'rock': { primary: '#fa709a', secondary: '#fee140' },
-      'electronic': { primary: '#a8edea', secondary: '#fed6e3' },
+      pop: { primary: '#4facfe', secondary: '#00f2fe' },
+      rock: { primary: '#fa709a', secondary: '#fee140' },
+      electronic: { primary: '#a8edea', secondary: '#fed6e3' },
       'r&b': { primary: '#ff9a9e', secondary: '#fecfef' },
-      'country': { primary: '#ffecd2', secondary: '#fcb69f' },
-      'jazz': { primary: '#a18cd1', secondary: '#fbc2eb' }
+      country: { primary: '#ffecd2', secondary: '#fcb69f' },
+      jazz: { primary: '#a18cd1', secondary: '#fbc2eb' },
     };
-    
+
     const genre = musicData.genre?.toLowerCase() || 'pop';
     return genreColors[genre as keyof typeof genreColors] || genreColors.pop;
   }
 
   private async addVisualElements(musicData: any, targetAudience: any): Promise<void> {
     // Add AI-generated visual elements based on music data
-    
+
     // Add waveform visualization
     this.addWaveformVisualization(musicData);
-    
+
     // Add genre-specific icons
     this.addGenreIcons(musicData.genre);
-    
+
     // Add trending elements
     this.addTrendingElements(targetAudience);
-    
+
     // Add AI-generated patterns
     this.addAIPatterns(musicData, targetAudience);
   }
@@ -285,14 +281,14 @@ export class SocialMediaContentGenerator {
     const barWidth = 4;
     const barSpacing = 2;
     const maxBarHeight = height * 0.3;
-    
+
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    
+
     // Generate AI-optimized waveform based on music data
     for (let x = 0; x < width; x += barWidth + barSpacing) {
       const barHeight = Math.random() * maxBarHeight;
       const y = centerY - barHeight / 2;
-      
+
       this.ctx.fillRect(x, y, barWidth, barHeight);
     }
   }
@@ -300,22 +296,22 @@ export class SocialMediaContentGenerator {
   private addGenreIcons(genre: string): void {
     // Add genre-specific visual elements
     const { width, height } = this.canvas;
-    
+
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     this.ctx.font = '48px Arial';
     this.ctx.textAlign = 'center';
-    
+
     const genreIcons = {
-      'trap': '🎵',
+      trap: '🎵',
       'hip-hop': '🎤',
-      'pop': '⭐',
-      'rock': '🎸',
-      'electronic': '🎛️',
+      pop: '⭐',
+      rock: '🎸',
+      electronic: '🎛️',
       'r&b': '🎶',
-      'country': '🤠',
-      'jazz': '🎷'
+      country: '🤠',
+      jazz: '🎷',
     };
-    
+
     const icon = genreIcons[genre?.toLowerCase() as keyof typeof genreIcons] || '🎵';
     this.ctx.fillText(icon, width - 60, 60);
   }
@@ -323,7 +319,7 @@ export class SocialMediaContentGenerator {
   private addTrendingElements(targetAudience: any): void {
     // Add trending visual elements based on target audience
     const { width, height } = this.canvas;
-    
+
     // Add trending hashtag visualization
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     this.ctx.font = '24px Arial';
@@ -334,17 +330,17 @@ export class SocialMediaContentGenerator {
   private addAIPatterns(musicData: any, targetAudience: any): void {
     // Add AI-generated patterns based on music and audience data
     const { width, height } = this.canvas;
-    
+
     // Create geometric patterns
     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
     this.ctx.lineWidth = 2;
-    
+
     for (let i = 0; i < 20; i++) {
       const x1 = Math.random() * width;
       const y1 = Math.random() * height;
       const x2 = Math.random() * width;
       const y2 = Math.random() * height;
-      
+
       this.ctx.beginPath();
       this.ctx.moveTo(x1, y1);
       this.ctx.lineTo(x2, y2);
@@ -354,21 +350,21 @@ export class SocialMediaContentGenerator {
 
   private addOptimizedText(musicData: any, platform: string, targetAudience: any): void {
     const { width, height } = this.canvas;
-    
+
     // AI-optimized text placement and styling
     const textConfig = this.getOptimizedTextConfig(platform, targetAudience);
-    
+
     // Add main title
     this.ctx.fillStyle = textConfig.titleColor;
     this.ctx.font = textConfig.titleFont;
     this.ctx.textAlign = 'center';
     this.ctx.fillText(musicData.title || 'New Release', width / 2, height * 0.3);
-    
+
     // Add artist name
     this.ctx.fillStyle = textConfig.subtitleColor;
     this.ctx.font = textConfig.subtitleFont;
     this.ctx.fillText(musicData.artist || 'Artist Name', width / 2, height * 0.4);
-    
+
     // Add call-to-action
     this.ctx.fillStyle = textConfig.ctaColor;
     this.ctx.font = textConfig.ctaFont;
@@ -384,7 +380,7 @@ export class SocialMediaContentGenerator {
         ctaFont: '24px Arial',
         titleColor: '#ffffff',
         subtitleColor: 'rgba(255, 255, 255, 0.9)',
-        ctaColor: '#ffd700'
+        ctaColor: '#ffd700',
       },
       instagram: {
         titleFont: 'bold 56px Arial',
@@ -392,7 +388,7 @@ export class SocialMediaContentGenerator {
         ctaFont: '28px Arial',
         titleColor: '#ffffff',
         subtitleColor: 'rgba(255, 255, 255, 0.9)',
-        ctaColor: '#ff6b6b'
+        ctaColor: '#ff6b6b',
       },
       twitter: {
         titleFont: 'bold 44px Arial',
@@ -400,22 +396,22 @@ export class SocialMediaContentGenerator {
         ctaFont: '22px Arial',
         titleColor: '#ffffff',
         subtitleColor: 'rgba(255, 255, 255, 0.9)',
-        ctaColor: '#1da1f2'
-      }
+        ctaColor: '#1da1f2',
+      },
     };
-    
+
     return configs[platform as keyof typeof configs] || configs.facebook;
   }
 
   private addBrandingElements(platform: string): void {
     const { width, height } = this.canvas;
-    
+
     // Add Max Booster branding
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
     this.ctx.font = '20px Arial';
     this.ctx.textAlign = 'left';
     this.ctx.fillText('Max Booster', 20, height - 20);
-    
+
     // Add platform-specific branding
     this.ctx.textAlign = 'right';
     this.ctx.fillText(`via ${platform}`, width - 20, height - 20);
@@ -424,18 +420,22 @@ export class SocialMediaContentGenerator {
   private applyAIFilters(platform: string, targetAudience: any): void {
     // Apply AI-optimized filters and effects based on platform and audience
     const { width, height } = this.canvas;
-    
+
     // Add subtle overlay for better text readability
     const overlay = this.ctx.createLinearGradient(0, 0, 0, height);
     overlay.addColorStop(0, 'rgba(0, 0, 0, 0.1)');
     overlay.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
-    
+
     this.ctx.fillStyle = overlay;
     this.ctx.fillRect(0, 0, width, height);
   }
 
   // Get platform-specific video dimensions
-  private getPlatformVideoDimensions(platform: string): { width: number; height: number; duration: number } {
+  private getPlatformVideoDimensions(platform: string): {
+    width: number;
+    height: number;
+    duration: number;
+  } {
     const dimensions = {
       facebook: { width: 1280, height: 720, duration: 30 },
       instagram: { width: 1080, height: 1080, duration: 15 },
@@ -444,17 +444,17 @@ export class SocialMediaContentGenerator {
       tiktok: { width: 1080, height: 1920, duration: 15 },
       linkedin: { width: 1280, height: 720, duration: 30 },
       threads: { width: 1080, height: 1080, duration: 15 },
-      googleBusiness: { width: 1280, height: 720, duration: 30 }
+      googleBusiness: { width: 1280, height: 720, duration: 30 },
     };
-    
+
     return dimensions[platform as keyof typeof dimensions] || dimensions.facebook;
   }
 
   // Create AI-powered video content
   private async createAIVideoContent(
-    platform: string, 
-    musicData: any, 
-    targetAudience: any, 
+    platform: string,
+    musicData: any,
+    targetAudience: any,
     dimensions: any
   ): Promise<Buffer> {
     // AI algorithm to create video content based on:
@@ -468,7 +468,7 @@ export class SocialMediaContentGenerator {
       effects: this.getAIVideoEffects(platform, musicData),
       transitions: this.getAIVideoTransitions(platform),
       textOverlay: this.getAIVideoTextOverlay(musicData, platform),
-      colorScheme: this.generateAIColorScheme(musicData, targetAudience)
+      colorScheme: this.generateAIColorScheme(musicData, targetAudience),
     };
 
     // In a real implementation, this would use FFmpeg or similar to create actual video
@@ -478,8 +478,8 @@ export class SocialMediaContentGenerator {
 
   // Create AI-powered audio content
   private async createAIAudioContent(
-    platform: string, 
-    musicData: any, 
+    platform: string,
+    musicData: any,
     targetAudience: any
   ): Promise<Buffer> {
     // AI algorithm to create audio content based on:
@@ -492,7 +492,7 @@ export class SocialMediaContentGenerator {
       style: this.getAIAudioStyle(musicData, targetAudience),
       effects: this.getAIAudioEffects(platform, musicData),
       length: this.getPlatformAudioLength(platform),
-      quality: this.getPlatformAudioQuality(platform)
+      quality: this.getPlatformAudioQuality(platform),
     };
 
     // In a real implementation, this would use audio processing libraries
@@ -516,14 +516,14 @@ export class SocialMediaContentGenerator {
           genre: 'pop',
           mood: 'upbeat',
           duration: 180,
-          quality: 'high'
+          quality: 'high',
         },
         socialSignals: {
           likes: 1250,
           shares: 340,
           comments: 89,
-          views: 15600
-        }
+          views: 15600,
+        },
       };
 
       return extractedData;
@@ -544,7 +544,7 @@ export class SocialMediaContentGenerator {
       hashtags: ['#Music', '#NewTrack', '#Viral', '#Trending'],
       callToAction: 'Stream now and share with your friends!',
       engagement: 0.85,
-      viralPotential: 0.15
+      viralPotential: 0.15,
     };
   }
 
@@ -558,7 +558,7 @@ export class SocialMediaContentGenerator {
       post: `🎵 Just dropped my latest track! The energy in this one is absolutely incredible. Can't wait for you all to hear it! #NewMusic #Music #Artist`,
       hashtags: ['#NewMusic', '#Music', '#Artist', '#LatestTrack'],
       optimalTime: '7:00 PM',
-      engagement: 0.85
+      engagement: 0.85,
     };
   }
 
@@ -568,7 +568,7 @@ export class SocialMediaContentGenerator {
       animation: 'dynamic',
       speed: 'medium',
       transitions: 'smooth',
-      effects: 'modern'
+      effects: 'modern',
     };
   }
 
@@ -577,7 +577,7 @@ export class SocialMediaContentGenerator {
     return {
       filters: ['vintage', 'neon'],
       overlays: ['waveform', 'lyrics'],
-      animations: ['bounce', 'fade']
+      animations: ['bounce', 'fade'],
     };
   }
 
@@ -586,7 +586,7 @@ export class SocialMediaContentGenerator {
     return {
       type: 'smooth',
       duration: 0.5,
-      style: 'modern'
+      style: 'modern',
     };
   }
 
@@ -597,7 +597,7 @@ export class SocialMediaContentGenerator {
       artist: musicData.artist || 'Artist Name',
       style: 'bold',
       color: '#ffffff',
-      position: 'center'
+      position: 'center',
     };
   }
 
@@ -607,7 +607,7 @@ export class SocialMediaContentGenerator {
       genre: musicData.genre || 'pop',
       mood: 'upbeat',
       tempo: 'medium',
-      effects: ['reverb', 'compression']
+      effects: ['reverb', 'compression'],
     };
   }
 
@@ -617,7 +617,7 @@ export class SocialMediaContentGenerator {
       eq: 'balanced',
       compression: 'medium',
       reverb: 'room',
-      mastering: 'loud'
+      mastering: 'loud',
     };
   }
 
@@ -631,7 +631,7 @@ export class SocialMediaContentGenerator {
       tiktok: 15,
       linkedin: 30,
       threads: 15,
-      googleBusiness: 30
+      googleBusiness: 30,
     };
     return lengths[platform as keyof typeof lengths] || 30;
   }
@@ -646,7 +646,7 @@ export class SocialMediaContentGenerator {
       tiktok: 'medium',
       linkedin: 'high',
       threads: 'medium',
-      googleBusiness: 'high'
+      googleBusiness: 'high',
     };
     return qualities[platform as keyof typeof qualities] || 'medium';
   }
@@ -661,9 +661,9 @@ export class SocialMediaContentGenerator {
       tiktok: '/images/default-tiktok.png',
       linkedin: '/images/default-linkedin.png',
       threads: '/images/default-threads.png',
-      googleBusiness: '/images/default-google-business.png'
+      googleBusiness: '/images/default-google-business.png',
     };
-    
+
     return defaultImages[platform as keyof typeof defaultImages] || '/images/default-social.png';
   }
 
@@ -676,9 +676,9 @@ export class SocialMediaContentGenerator {
       tiktok: '/videos/default-tiktok.mp4',
       linkedin: '/videos/default-linkedin.mp4',
       threads: '/videos/default-threads.mp4',
-      googleBusiness: '/videos/default-google-business.mp4'
+      googleBusiness: '/videos/default-google-business.mp4',
     };
-    
+
     return defaultVideos[platform as keyof typeof defaultVideos] || '/videos/default-social.mp4';
   }
 
@@ -691,9 +691,9 @@ export class SocialMediaContentGenerator {
       tiktok: '/audio/default-tiktok.mp3',
       linkedin: '/audio/default-linkedin.mp3',
       threads: '/audio/default-threads.mp3',
-      googleBusiness: '/audio/default-google-business.mp3'
+      googleBusiness: '/audio/default-google-business.mp3',
     };
-    
+
     return defaultAudios[platform as keyof typeof defaultAudios] || '/audio/default-social.mp3';
   }
 }
@@ -703,16 +703,16 @@ export const contentGenerator = new SocialMediaContentGenerator();
 
 // Export the main functions for use in routes
 export async function generateSocialMediaImage(
-  platform: string, 
-  musicData: any, 
+  platform: string,
+  musicData: any,
   targetAudience: any
 ): Promise<string> {
   return await contentGenerator.generateSocialMediaImage(platform, musicData, targetAudience);
 }
 
 export async function generateSocialMediaContent(
-  platform: string, 
-  musicData: any, 
+  platform: string,
+  musicData: any,
   targetAudience: any,
   contentType: 'image' | 'video' | 'audio' | 'all' = 'all'
 ): Promise<{
@@ -721,7 +721,12 @@ export async function generateSocialMediaContent(
   audio?: string;
   content: any;
 }> {
-  return await contentGenerator.generateSocialMediaContent(platform, musicData, targetAudience, contentType);
+  return await contentGenerator.generateSocialMediaContent(
+    platform,
+    musicData,
+    targetAudience,
+    contentType
+  );
 }
 
 export async function generateContentFromURL(

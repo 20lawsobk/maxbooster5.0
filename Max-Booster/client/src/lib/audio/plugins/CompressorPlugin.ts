@@ -7,35 +7,35 @@ import { BasePlugin } from './BasePlugin';
 export class CompressorPlugin extends BasePlugin {
   private compressor: DynamicsCompressorNode;
   private makeupGain: GainNode;
-  
+
   // Advanced parameters
   private lookahead: number = 0.005; // 5ms lookahead
   private delayNode: DelayNode;
-  
+
   constructor(context: AudioContext) {
     super(context);
-    
+
     // Create compressor node
     this.compressor = context.createDynamicsCompressor();
-    
+
     // Create makeup gain
     this.makeupGain = context.createGain();
-    
+
     // Create lookahead delay for smooth compression
     this.delayNode = context.createDelay(0.1);
     this.delayNode.delayTime.value = this.lookahead;
-    
+
     // Connect signal path: input -> delay -> compressor -> makeup -> wet
     this.input.connect(this.delayNode);
     this.delayNode.connect(this.compressor);
     this.compressor.connect(this.makeupGain);
     this.makeupGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
-    
+
     // Set default parameters
     this.setDefaultParameters();
   }
-  
+
   private setDefaultParameters(): void {
     this.compressor.threshold.value = -24; // dB
     this.compressor.knee.value = 12; // dB
@@ -44,7 +44,7 @@ export class CompressorPlugin extends BasePlugin {
     this.compressor.release.value = 0.1; // 100ms
     this.makeupGain.gain.value = 1.5; // ~3dB makeup gain
   }
-  
+
   /**
    * Set threshold in dB (-100 to 0)
    */
@@ -54,7 +54,7 @@ export class CompressorPlugin extends BasePlugin {
       this.context.currentTime
     );
   }
-  
+
   /**
    * Set compression ratio (1 to 20)
    */
@@ -64,17 +64,14 @@ export class CompressorPlugin extends BasePlugin {
       this.context.currentTime
     );
   }
-  
+
   /**
    * Set knee in dB (0 to 40)
    */
   setKnee(value: number): void {
-    this.compressor.knee.setValueAtTime(
-      Math.max(0, Math.min(40, value)),
-      this.context.currentTime
-    );
+    this.compressor.knee.setValueAtTime(Math.max(0, Math.min(40, value)), this.context.currentTime);
   }
-  
+
   /**
    * Set attack time in seconds (0 to 1)
    */
@@ -84,7 +81,7 @@ export class CompressorPlugin extends BasePlugin {
       this.context.currentTime
     );
   }
-  
+
   /**
    * Set release time in seconds (0 to 1)
    */
@@ -94,39 +91,33 @@ export class CompressorPlugin extends BasePlugin {
       this.context.currentTime
     );
   }
-  
+
   /**
    * Set makeup gain (0 to 10)
    */
   setMakeupGain(value: number): void {
-    this.makeupGain.gain.setValueAtTime(
-      Math.max(0, Math.min(10, value)),
-      this.context.currentTime
-    );
+    this.makeupGain.gain.setValueAtTime(Math.max(0, Math.min(10, value)), this.context.currentTime);
   }
-  
+
   /**
    * Set lookahead time in seconds (0 to 0.05)
    */
   setLookahead(value: number): void {
     this.lookahead = Math.max(0, Math.min(0.05, value));
-    this.delayNode.delayTime.setValueAtTime(
-      this.lookahead,
-      this.context.currentTime
-    );
+    this.delayNode.delayTime.setValueAtTime(this.lookahead, this.context.currentTime);
   }
-  
+
   /**
    * Get current gain reduction in dB
    */
   getGainReduction(): number {
     return this.compressor.reduction;
   }
-  
+
   getName(): string {
     return 'Max Booster Compressor';
   }
-  
+
   getParameters(): Record<string, any> {
     return {
       threshold: this.compressor.threshold.value,
@@ -137,10 +128,10 @@ export class CompressorPlugin extends BasePlugin {
       makeupGain: this.makeupGain.gain.value,
       lookahead: this.lookahead,
       mix: this.mix,
-      bypass: this.bypass
+      bypass: this.bypass,
     };
   }
-  
+
   setParameters(params: Record<string, any>): void {
     if (params.threshold !== undefined) this.setThreshold(params.threshold);
     if (params.ratio !== undefined) this.setRatio(params.ratio);
@@ -152,7 +143,7 @@ export class CompressorPlugin extends BasePlugin {
     if (params.mix !== undefined) this.setMix(params.mix);
     if (params.bypass !== undefined) this.setBypass(params.bypass);
   }
-  
+
   destroy(): void {
     super.destroy();
     this.compressor.disconnect();

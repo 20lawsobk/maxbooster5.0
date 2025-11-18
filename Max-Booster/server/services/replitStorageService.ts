@@ -12,14 +12,14 @@ export class ReplitStorageService {
 
   constructor() {
     this.bucketId = process.env.REPLIT_BUCKET_ID || '';
-    
+
     if (!this.bucketId) {
       throw new Error('REPLIT_BUCKET_ID environment variable is required');
     }
 
     // Initialize Replit Storage client (auto-authenticates)
     this.client = new Client();
-    
+
     logger.info(`✅ Replit App Storage initialized for bucket: ${this.bucketId}`);
   }
 
@@ -54,11 +54,13 @@ export class ReplitStorageService {
 
       return {
         url,
-        key
+        key,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('❌ Failed to upload file to Replit App Storage:', error);
-      throw new Error(`Storage upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Storage upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -75,9 +77,11 @@ export class ReplitStorageService {
 
       logger.info(`✅ File downloaded from Replit App Storage: ${key}`);
       return result.value;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('❌ Failed to download file from Replit App Storage:', error);
-      throw new Error(`Storage download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Storage download failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -93,9 +97,11 @@ export class ReplitStorageService {
       }
 
       logger.info(`✅ File deleted from Replit App Storage: ${key}`);
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('❌ Failed to delete file from Replit App Storage:', error);
-      throw new Error(`Storage delete failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Storage delete failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -111,7 +117,7 @@ export class ReplitStorageService {
       }
 
       return result.value;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('❌ Failed to check file existence in Replit App Storage:', error);
       return false;
     }
@@ -130,10 +136,12 @@ export class ReplitStorageService {
         throw new Error(`List failed: ${result.error}`);
       }
 
-      return result.value.map(obj => obj.name);
-    } catch (error) {
+      return result.value.map((obj) => obj.name);
+    } catch (error: unknown) {
       logger.error('❌ Failed to list files in Replit App Storage:', error);
-      throw new Error(`Storage list failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Storage list failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -148,6 +156,9 @@ export class ReplitStorageService {
 // Singleton instance
 let storageInstance: ReplitStorageService | null = null;
 
+/**
+ * TODO: Add function documentation
+ */
 export function getReplitStorageService(): ReplitStorageService {
   if (!storageInstance) {
     storageInstance = new ReplitStorageService();

@@ -1,4 +1,9 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { logger } from '../logger.js';
 import crypto from 'crypto';
@@ -22,10 +27,13 @@ export class S3StorageService {
     // Initialize S3 client
     this.s3Client = new S3Client({
       region: this.region,
-      credentials: process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-      } : undefined // Use IAM role if no credentials provided
+      credentials:
+        process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+          ? {
+              accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+              secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            }
+          : undefined, // Use IAM role if no credentials provided
     });
 
     logger.info(`S3 Storage initialized for bucket: ${this.bucketName}`);
@@ -55,8 +63,8 @@ export class S3StorageService {
         ServerSideEncryption: 'AES256',
         Metadata: {
           'uploaded-at': new Date().toISOString(),
-          'original-name': fileName
-        }
+          'original-name': fileName,
+        },
       });
 
       await this.s3Client.send(command);
@@ -70,9 +78,9 @@ export class S3StorageService {
       return {
         url: cdnUrl || s3Url,
         key,
-        cdnUrl
+        cdnUrl,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('S3 upload failed:', error);
       throw new Error('Failed to upload file to S3');
     }
@@ -97,7 +105,7 @@ export class S3StorageService {
       }
 
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Audio upload failed:', error);
       throw error;
     }
@@ -113,7 +121,7 @@ export class S3StorageService {
   ): Promise<{ url: string; key: string; thumbnailUrl?: string }> {
     try {
       const folder = `covers/${userId}`;
-      
+
       // Upload original
       const result = await this.uploadFile(buffer, fileName, 'image/jpeg', folder);
 
@@ -121,7 +129,7 @@ export class S3StorageService {
       // This would use Sharp or similar library to resize
 
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Cover art upload failed:', error);
       throw error;
     }
@@ -144,13 +152,13 @@ export class S3StorageService {
         Bucket: this.bucketName,
         Key: key,
         ContentType: mimeType,
-        ServerSideEncryption: 'AES256'
+        ServerSideEncryption: 'AES256',
       });
 
       const uploadUrl = await getSignedUrl(this.s3Client, command, { expiresIn });
 
       return { uploadUrl, key };
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Failed to generate presigned URL:', error);
       throw error;
     }
@@ -159,18 +167,15 @@ export class S3StorageService {
   /**
    * Generate presigned URL for download
    */
-  async getPresignedDownloadUrl(
-    key: string,
-    expiresIn: number = 3600
-  ): Promise<string> {
+  async getPresignedDownloadUrl(key: string, expiresIn: number = 3600): Promise<string> {
     try {
       const command = new GetObjectCommand({
         Bucket: this.bucketName,
-        Key: key
+        Key: key,
       });
 
       return await getSignedUrl(this.s3Client, command, { expiresIn });
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Failed to generate download URL:', error);
       throw error;
     }
@@ -183,12 +188,12 @@ export class S3StorageService {
     try {
       const command = new DeleteObjectCommand({
         Bucket: this.bucketName,
-        Key: key
+        Key: key,
       });
 
       await this.s3Client.send(command);
       logger.info(`File deleted from S3: ${key}`);
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('S3 delete failed:', error);
       throw error;
     }
@@ -197,10 +202,7 @@ export class S3StorageService {
   /**
    * Update file metadata
    */
-  private async updateMetadata(
-    key: string,
-    metadata: Record<string, string>
-  ): Promise<void> {
+  private async updateMetadata(key: string, metadata: Record<string, string>): Promise<void> {
     // S3 doesn't support updating metadata directly
     // Would need to copy object with new metadata
     // For now, store metadata in database
@@ -214,12 +216,12 @@ export class S3StorageService {
     try {
       const command = new GetObjectCommand({
         Bucket: this.bucketName,
-        Key: key
+        Key: key,
       });
 
       const response = await this.s3Client.send(command);
       return response.Body as Readable;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('S3 stream failed:', error);
       throw error;
     }
@@ -249,7 +251,7 @@ export class S3StorageService {
       provider: 'aws-s3',
       bucket: this.bucketName,
       region: this.region,
-      cdnEnabled: !!this.cloudFrontUrl
+      cdnEnabled: !!this.cloudFrontUrl,
     };
   }
 }

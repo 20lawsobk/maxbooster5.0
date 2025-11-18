@@ -9,6 +9,9 @@ interface RecordingPanelProps {
   latencyMs: number;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function RecordingPanel({
   isRecording,
   recordingDuration,

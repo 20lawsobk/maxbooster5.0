@@ -50,6 +50,9 @@ export interface AudioPlayerOptions {
   onError?: (error: Error) => void;
 }
 
+/**
+ * TODO: Add function documentation
+ */
 export function useAudioPlayer(options: AudioPlayerOptions = {}) {
   const engineRef = useRef<AudioEngine>(AudioEngine.getInstance());
   const [state, setState] = useState<PlaybackState>({
@@ -74,8 +77,8 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
     const initEngine = async () => {
       try {
         await engineRef.current.initialize();
-      } catch (error) {
-        console.error('Failed to initialize AudioEngine:', error);
+      } catch (error: unknown) {
+        logger.error('Failed to initialize AudioEngine:', error);
         if (options.onError) {
           options.onError(error as Error);
         }
@@ -100,63 +103,66 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
   const updateCurrentTime = useCallback(() => {
     if (state.isPlaying) {
       const currentTime = engineRef.current.getCurrentTime();
-      setState(prev => ({ ...prev, currentTime }));
+      setState((prev) => ({ ...prev, currentTime }));
 
       if (currentTime >= state.duration && state.duration > 0) {
         // Playback finished
-        setState(prev => ({ ...prev, isPlaying: false, isPaused: false }));
+        setState((prev) => ({ ...prev, isPlaying: false, isPaused: false }));
       } else {
         animationFrameRef.current = requestAnimationFrame(updateCurrentTime);
       }
     }
   }, [state.isPlaying, state.duration]);
 
-  const loadTrack = useCallback(async (track: Track) => {
-    setState(prev => ({ ...prev, isLoading: true }));
+  const loadTrack = useCallback(
+    async (track: Track) => {
+      setState((prev) => ({ ...prev, isLoading: true }));
 
-    try {
-      // Ensure engine is initialized
-      await initializeRef.current;
+      try {
+        // Ensure engine is initialized
+        await initializeRef.current;
 
-      // Convert track to AudioClip format
-      const clip: AudioClip = {
-        id: track.id,
-        url: track.url,
-        startTime: 0,
-        duration: track.duration || 0,
-        offset: 0,
-      };
+        // Convert track to AudioClip format
+        const clip: AudioClip = {
+          id: track.id,
+          url: track.url,
+          startTime: 0,
+          duration: track.duration || 0,
+          offset: 0,
+        };
 
-      // Load buffer and get waveform data
-      const buffer = await engineRef.current.loadBuffer(track.id, track.url);
-      const waveformData = engineRef.current.getWaveformData(track.id);
+        // Load buffer and get waveform data
+        const buffer = await engineRef.current.loadBuffer(track.id, track.url);
+        const waveformData = engineRef.current.getWaveformData(track.id);
 
-      // Update track with duration and waveform
-      const updatedTrack = {
-        ...track,
-        duration: buffer.duration,
-        waveformData: waveformData || undefined,
-      };
+        // Update track with duration and waveform
+        const updatedTrack = {
+          ...track,
+          duration: buffer.duration,
+          waveformData: waveformData || undefined,
+        };
 
-      setState(prev => ({
-        ...prev,
-        tracks: prev.tracks.map(t => (t.id === track.id ? updatedTrack : t)),
-        duration: Math.max(prev.duration, buffer.duration),
-        isLoading: false,
-      }));
-    } catch (error) {
-      console.error('Error loading track:', error);
-      setState(prev => ({ ...prev, isLoading: false }));
-      if (options.onError) {
-        options.onError(error as Error);
+        setState((prev) => ({
+          ...prev,
+          tracks: prev.tracks.map((t) => (t.id === track.id ? updatedTrack : t)),
+          duration: Math.max(prev.duration, buffer.duration),
+          isLoading: false,
+        }));
+      } catch (error: unknown) {
+        logger.error('Error loading track:', error);
+        setState((prev) => ({ ...prev, isLoading: false }));
+        if (options.onError) {
+          options.onError(error as Error);
+        }
+        throw error;
       }
-      throw error;
-    }
-  }, [options.onError]);
+    },
+    [options.onError]
+  );
 
   const addTrack = useCallback(
     async (track: Track) => {
-      setState(prev => ({ ...prev, tracks: [...prev.tracks, track] }));
+      setState((prev) => ({ ...prev, tracks: [...prev.tracks, track] }));
 
       try {
         // Ensure engine is initialized
@@ -186,8 +192,8 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
 
         // Load the track buffer
         await loadTrack(track);
-      } catch (error) {
-        console.error('Error adding track:', error);
+      } catch (error: unknown) {
+        logger.error('Error adding track:', error);
         if (options.onError) {
           options.onError(error as Error);
         }
@@ -197,20 +203,23 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
     [loadTrack, options.onError]
   );
 
-  const removeTrack = useCallback((trackId: string) => {
-    try {
-      engineRef.current.removeTrack(trackId);
-      setState(prev => ({
-        ...prev,
-        tracks: prev.tracks.filter(t => t.id !== trackId),
-      }));
-    } catch (error) {
-      console.error('Error removing track:', error);
-      if (options.onError) {
-        options.onError(error as Error);
+  const removeTrack = useCallback(
+    (trackId: string) => {
+      try {
+        engineRef.current.removeTrack(trackId);
+        setState((prev) => ({
+          ...prev,
+          tracks: prev.tracks.filter((t) => t.id !== trackId),
+        }));
+      } catch (error: unknown) {
+        logger.error('Error removing track:', error);
+        if (options.onError) {
+          options.onError(error as Error);
+        }
       }
-    }
-  }, [options.onError]);
+    },
+    [options.onError]
+  );
 
   const play = useCallback(
     async (startTime: number = 0) => {
@@ -218,7 +227,7 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
         await initializeRef.current;
         await engineRef.current.play(startTime);
 
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           isPlaying: true,
           isPaused: false,
@@ -227,8 +236,8 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
 
         // Start time updates
         animationFrameRef.current = requestAnimationFrame(updateCurrentTime);
-      } catch (error) {
-        console.error('Error starting playback:', error);
+      } catch (error: unknown) {
+        logger.error('Error starting playback:', error);
         if (options.onError) {
           options.onError(error as Error);
         }
@@ -246,14 +255,14 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
         cancelAnimationFrame(animationFrameRef.current);
       }
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isPlaying: false,
         isPaused: true,
         currentTime: engineRef.current.getCurrentTime(),
       }));
-    } catch (error) {
-      console.error('Error pausing playback:', error);
+    } catch (error: unknown) {
+      logger.error('Error pausing playback:', error);
       if (options.onError) {
         options.onError(error as Error);
       }
@@ -268,14 +277,14 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
         cancelAnimationFrame(animationFrameRef.current);
       }
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isPlaying: false,
         isPaused: false,
         currentTime: 0,
       }));
-    } catch (error) {
-      console.error('Error stopping playback:', error);
+    } catch (error: unknown) {
+      logger.error('Error stopping playback:', error);
       if (options.onError) {
         options.onError(error as Error);
       }
@@ -290,7 +299,7 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
         pause();
       }
 
-      setState(prev => ({ ...prev, currentTime: time }));
+      setState((prev) => ({ ...prev, currentTime: time }));
 
       if (wasPlaying) {
         await play(time);
@@ -299,125 +308,130 @@ export function useAudioPlayer(options: AudioPlayerOptions = {}) {
     [state.isPlaying, pause, play]
   );
 
-  const updateTrackGain = useCallback((trackId: string, gain: number) => {
-    try {
-      engineRef.current.updateTrackGain(trackId, gain);
-      setState(prev => ({
-        ...prev,
-        tracks: prev.tracks.map(t => (t.id === trackId ? { ...t, gain } : t)),
-      }));
-    } catch (error) {
-      console.error('Error updating track gain:', error);
-      if (options.onError) {
-        options.onError(error as Error);
-      }
-    }
-  }, [options.onError]);
-
-  const updateTrackPan = useCallback((trackId: string, pan: number) => {
-    try {
-      engineRef.current.updateTrackPan(trackId, pan);
-      setState(prev => ({
-        ...prev,
-        tracks: prev.tracks.map(t => (t.id === trackId ? { ...t, pan } : t)),
-      }));
-    } catch (error) {
-      console.error('Error updating track pan:', error);
-      if (options.onError) {
-        options.onError(error as Error);
-      }
-    }
-  }, [options.onError]);
-
-  const muteTrack = useCallback((trackId: string) => {
-    const track = state.tracks.find(t => t.id === trackId);
-    if (!track) return;
-
-    const newMuteState = !track.isMuted;
-
-    try {
-      engineRef.current.updateTrackMute(trackId, newMuteState);
-      setState(prev => ({
-        ...prev,
-        tracks: prev.tracks.map(t =>
-          t.id === trackId ? { ...t, isMuted: newMuteState } : t
-        ),
-      }));
-    } catch (error) {
-      console.error('Error muting track:', error);
-      if (options.onError) {
-        options.onError(error as Error);
-      }
-    }
-  }, [state.tracks, options.onError]);
-
-  const soloTrack = useCallback((trackId: string) => {
-    const track = state.tracks.find(t => t.id === trackId);
-    if (!track) return;
-
-    const newSoloState = !track.isSolo;
-
-    try {
-      engineRef.current.updateTrackSolo(trackId, newSoloState);
-      setState(prev => ({
-        ...prev,
-        tracks: prev.tracks.map(t =>
-          t.id === trackId ? { ...t, isSolo: newSoloState } : t
-        ),
-      }));
-    } catch (error) {
-      console.error('Error soloing track:', error);
-      if (options.onError) {
-        options.onError(error as Error);
-      }
-    }
-  }, [state.tracks, options.onError]);
-
-  const setMasterVolume = useCallback((volume: number) => {
-    try {
-      engineRef.current.setMasterVolume(volume);
-      setState(prev => ({ ...prev, masterVolume: volume }));
-    } catch (error) {
-      console.error('Error setting master volume:', error);
-      if (options.onError) {
-        options.onError(error as Error);
-      }
-    }
-  }, [options.onError]);
-
-  const setPlaybackRate = useCallback((rate: number) => {
-    setState(prev => ({ ...prev, playbackRate: rate }));
-  }, []);
-
-  const getTrackPeakLevel = useCallback(
-    (trackId: string): { peak: number; rms: number } => {
+  const updateTrackGain = useCallback(
+    (trackId: string, gain: number) => {
       try {
-        return engineRef.current.getTrackPeakLevel(trackId);
-      } catch (error) {
-        return { peak: -60, rms: -60 };
+        engineRef.current.updateTrackGain(trackId, gain);
+        setState((prev) => ({
+          ...prev,
+          tracks: prev.tracks.map((t) => (t.id === trackId ? { ...t, gain } : t)),
+        }));
+      } catch (error: unknown) {
+        logger.error('Error updating track gain:', error);
+        if (options.onError) {
+          options.onError(error as Error);
+        }
       }
     },
-    []
+    [options.onError]
   );
 
-  const getMasterPeakLevel = useCallback((): { peak: number; rms: number } => {
+  const updateTrackPan = useCallback(
+    (trackId: string, pan: number) => {
+      try {
+        engineRef.current.updateTrackPan(trackId, pan);
+        setState((prev) => ({
+          ...prev,
+          tracks: prev.tracks.map((t) => (t.id === trackId ? { ...t, pan } : t)),
+        }));
+      } catch (error: unknown) {
+        logger.error('Error updating track pan:', error);
+        if (options.onError) {
+          options.onError(error as Error);
+        }
+      }
+    },
+    [options.onError]
+  );
+
+  const muteTrack = useCallback(
+    (trackId: string) => {
+      const track = state.tracks.find((t) => t.id === trackId);
+      if (!track) return;
+
+      const newMuteState = !track.isMuted;
+
+      try {
+        engineRef.current.updateTrackMute(trackId, newMuteState);
+        setState((prev) => ({
+          ...prev,
+          tracks: prev.tracks.map((t) => (t.id === trackId ? { ...t, isMuted: newMuteState } : t)),
+        }));
+      } catch (error: unknown) {
+        logger.error('Error muting track:', error);
+        if (options.onError) {
+          options.onError(error as Error);
+        }
+      }
+    },
+    [state.tracks, options.onError]
+  );
+
+  const soloTrack = useCallback(
+    (trackId: string) => {
+      const track = state.tracks.find((t) => t.id === trackId);
+      if (!track) return;
+
+      const newSoloState = !track.isSolo;
+
+      try {
+        engineRef.current.updateTrackSolo(trackId, newSoloState);
+        setState((prev) => ({
+          ...prev,
+          tracks: prev.tracks.map((t) => (t.id === trackId ? { ...t, isSolo: newSoloState } : t)),
+        }));
+      } catch (error: unknown) {
+        logger.error('Error soloing track:', error);
+        if (options.onError) {
+          options.onError(error as Error);
+        }
+      }
+    },
+    [state.tracks, options.onError]
+  );
+
+  const setMasterVolume = useCallback(
+    (volume: number) => {
+      try {
+        engineRef.current.setMasterVolume(volume);
+        setState((prev) => ({ ...prev, masterVolume: volume }));
+      } catch (error: unknown) {
+        logger.error('Error setting master volume:', error);
+        if (options.onError) {
+          options.onError(error as Error);
+        }
+      }
+    },
+    [options.onError]
+  );
+
+  const setPlaybackRate = useCallback((rate: number) => {
+    setState((prev) => ({ ...prev, playbackRate: rate }));
+  }, []);
+
+  const getTrackPeakLevel = useCallback((trackId: string): { peak: number; rms: number } => {
     try {
-      return engineRef.current.getMasterPeakLevel();
-    } catch (error) {
+      return engineRef.current.getTrackPeakLevel(trackId);
+    } catch (error: unknown) {
       return { peak: -60, rms: -60 };
     }
   }, []);
 
-  const getAudioContext = useCallback(
-    () => engineRef.current.getContext(),
-    []
-  );
+  const getMasterPeakLevel = useCallback((): { peak: number; rms: number } => {
+    try {
+      return engineRef.current.getMasterPeakLevel();
+    } catch (error: unknown) {
+      return { peak: -60, rms: -60 };
+    }
+  }, []);
+
+  const getAudioContext = useCallback(() => engineRef.current.getContext(), []);
 
   // CPU usage monitoring
   const getCPUUsage = useCallback((): number => {
     const context = engineRef.current.getContext();
     if (!context) return 0;
-    
+
     // Estimate CPU usage based on active nodes
     // This is a rough estimate; actual CPU monitoring requires performance API
     return 0; // Placeholder

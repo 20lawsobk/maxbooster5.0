@@ -1,13 +1,33 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { SiFacebook, SiInstagram, SiYoutube, SiTiktok, SiLinkedin, SiThreads, SiGoogle } from 'react-icons/si';
+import {
+  SiFacebook,
+  SiInstagram,
+  SiYoutube,
+  SiTiktok,
+  SiLinkedin,
+  SiThreads,
+  SiGoogle,
+} from 'react-icons/si';
 import { MessageCircle, Calendar, Clock, Hash, AtSign, MapPin, FileText } from 'lucide-react';
 
 interface SchedulePostDialogProps {
@@ -48,7 +68,15 @@ const POST_TYPES = [
   { value: 'video', label: 'Video' },
 ];
 
-export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData }: SchedulePostDialogProps) {
+/**
+ * TODO: Add function documentation
+ */
+export function SchedulePostDialog({
+  open,
+  onOpenChange,
+  onSchedule,
+  initialData,
+}: SchedulePostDialogProps) {
   const [formData, setFormData] = useState<SchedulePostData>({
     title: initialData?.title || '',
     scheduledFor: initialData?.scheduledFor || '',
@@ -66,47 +94,51 @@ export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData
   const [mentionInput, setMentionInput] = useState('');
 
   const handlePlatformToggle = (platformId: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       platforms: prev.platforms.includes(platformId)
-        ? prev.platforms.filter(p => p !== platformId)
-        : [...prev.platforms, platformId]
+        ? prev.platforms.filter((p) => p !== platformId)
+        : [...prev.platforms, platformId],
     }));
   };
 
   const addHashtag = () => {
     if (hashtagInput.trim()) {
-      const tag = hashtagInput.trim().startsWith('#') ? hashtagInput.trim() : `#${hashtagInput.trim()}`;
-      setFormData(prev => ({
+      const tag = hashtagInput.trim().startsWith('#')
+        ? hashtagInput.trim()
+        : `#${hashtagInput.trim()}`;
+      setFormData((prev) => ({
         ...prev,
-        hashtags: [...prev.hashtags, tag]
+        hashtags: [...prev.hashtags, tag],
       }));
       setHashtagInput('');
     }
   };
 
   const removeHashtag = (tag: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      hashtags: prev.hashtags.filter(h => h !== tag)
+      hashtags: prev.hashtags.filter((h) => h !== tag),
     }));
   };
 
   const addMention = () => {
     if (mentionInput.trim()) {
-      const mention = mentionInput.trim().startsWith('@') ? mentionInput.trim() : `@${mentionInput.trim()}`;
-      setFormData(prev => ({
+      const mention = mentionInput.trim().startsWith('@')
+        ? mentionInput.trim()
+        : `@${mentionInput.trim()}`;
+      setFormData((prev) => ({
         ...prev,
-        mentions: [...prev.mentions, mention]
+        mentions: [...prev.mentions, mention],
       }));
       setMentionInput('');
     }
   };
 
   const removeMention = (mention: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      mentions: prev.mentions.filter(m => m !== mention)
+      mentions: prev.mentions.filter((m) => m !== mention),
     }));
   };
 
@@ -144,7 +176,7 @@ export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData
               id="title"
               placeholder="Enter post title..."
               value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
             />
           </div>
 
@@ -160,7 +192,7 @@ export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData
                 value={formData.scheduledFor.split('T')[0]}
                 onChange={(e) => {
                   const time = formData.scheduledFor.split('T')[1] || '12:00';
-                  setFormData(prev => ({ ...prev, scheduledFor: `${e.target.value}T${time}` }));
+                  setFormData((prev) => ({ ...prev, scheduledFor: `${e.target.value}T${time}` }));
                 }}
               />
             </div>
@@ -175,8 +207,9 @@ export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData
                 type="time"
                 value={formData.scheduledFor.split('T')[1] || ''}
                 onChange={(e) => {
-                  const date = formData.scheduledFor.split('T')[0] || new Date().toISOString().split('T')[0];
-                  setFormData(prev => ({ ...prev, scheduledFor: `${date}T${e.target.value}` }));
+                  const date =
+                    formData.scheduledFor.split('T')[0] || new Date().toISOString().split('T')[0];
+                  setFormData((prev) => ({ ...prev, scheduledFor: `${date}T${e.target.value}` }));
                 }}
               />
             </div>
@@ -194,10 +227,7 @@ export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData
                       checked={formData.platforms.includes(platform.id)}
                       onCheckedChange={() => handlePlatformToggle(platform.id)}
                     />
-                    <Label
-                      htmlFor={platform.id}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
+                    <Label htmlFor={platform.id} className="flex items-center gap-2 cursor-pointer">
                       <Icon size={16} style={{ color: platform.color }} />
                       {platform.name}
                     </Label>
@@ -211,7 +241,7 @@ export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData
             <Label htmlFor="postType">Post Type</Label>
             <Select
               value={formData.postType}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, postType: value }))}
+              onValueChange={(value) => setFormData((prev) => ({ ...prev, postType: value }))}
             >
               <SelectTrigger id="postType">
                 <SelectValue />
@@ -232,7 +262,9 @@ export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData
                 <FileText className="h-4 w-4" />
                 Content
               </span>
-              <span className={`text-xs ${characterCount > characterLimit ? 'text-red-500' : 'text-gray-500'}`}>
+              <span
+                className={`text-xs ${characterCount > characterLimit ? 'text-red-500' : 'text-gray-500'}`}
+              >
                 {characterCount} / {characterLimit}
               </span>
             </Label>
@@ -240,7 +272,7 @@ export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData
               id="content"
               placeholder="What's happening?"
               value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
               rows={4}
               className="resize-none"
             />
@@ -266,7 +298,12 @@ export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData
             {formData.hashtags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {formData.hashtags.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => removeHashtag(tag)}>
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="cursor-pointer"
+                    onClick={() => removeHashtag(tag)}
+                  >
                     {tag} ×
                   </Badge>
                 ))}
@@ -294,7 +331,12 @@ export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData
             {formData.mentions.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {formData.mentions.map((mention, index) => (
-                  <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => removeMention(mention)}>
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="cursor-pointer"
+                    onClick={() => removeMention(mention)}
+                  >
                     {mention} ×
                   </Badge>
                 ))}
@@ -311,7 +353,7 @@ export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData
               id="location"
               placeholder="Add location..."
               value={formData.location}
-              onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
             />
           </div>
         </div>
@@ -320,7 +362,7 @@ export function SchedulePostDialog({ open, onOpenChange, onSchedule, initialData
           <Button variant="outline" onClick={() => handleSubmit('draft')}>
             Save Draft
           </Button>
-          <Button 
+          <Button
             onClick={() => handleSubmit('scheduled')}
             disabled={!formData.title || !formData.scheduledFor || formData.platforms.length === 0}
           >
