@@ -183,7 +183,7 @@ export class StripeService {
   }
 
   private async handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
-    const { userId, tier, beatId, buyerId, licenseType } = paymentIntent.metadata;
+    const { userId, tier, beatId, buyerId, licenseType, type, stemId, sellerId, listingId, stemFileUrl } = paymentIntent.metadata;
 
     if (tier === 'lifetime' && userId) {
       // Update user subscription status
@@ -191,11 +191,67 @@ export class StripeService {
         subscriptionPlan: 'lifetime',
         subscriptionStatus: 'active'
       });
+    } else if (type === 'stem_purchase' && stemId && buyerId && sellerId && listingId) {
+      // Handle stem purchase completion
+      await this.handleStemPurchase({
+        stemId,
+        buyerId,
+        sellerId,
+        listingId,
+        stemFileUrl: stemFileUrl || '',
+        amountCents: paymentIntent.amount,
+      });
     } else if (beatId && buyerId && licenseType) {
       // Beat purchase handling - would need beat marketplace storage methods
       console.log('Beat purchase completed:', { beatId, buyerId, licenseType });
       // TODO: Implement beat sale storage when marketplace is active
     }
+  }
+
+  private async handleStemPurchase(data: {
+    stemId: string;
+    buyerId: string;
+    sellerId: string;
+    listingId: string;
+    stemFileUrl: string;
+    amountCents: number;
+  }) {
+    const { db } = await import('../db');
+    const { orders, stemOrders, listingStems } = await import('@shared/schema');
+    const { eq, sql } = await import('drizzle-orm');
+    const crypto = await import('crypto');
+
+    // Create order record
+    const [order] = await db.insert(orders).values({
+      buyerId: data.buyerId,
+      sellerId: data.sellerId,
+      listingId: parseInt(data.listingId),
+      licenseType: 'stem_purchase',
+      amountCents: data.amountCents,
+      currency: 'usd',
+      status: 'completed',
+      downloadUrl: data.stemFileUrl
+    }).returning();
+
+    // Generate download token
+    const downloadToken = crypto.randomBytes(32).toString('hex');
+
+    // Create stem order
+    await db.insert(stemOrders).values({
+      orderId: order.id,
+      stemId: data.stemId,
+      price: (data.amountCents / 100).toString(),
+      downloadToken,
+      downloadCount: 0
+    });
+
+    // Update stem download count
+    await db
+      .update(listingStems)
+      .set({ downloadCount: sql`${listingStems.downloadCount} + 1` })
+      .where(eq(listingStems.id, data.stemId));
+
+    console.log(`✅ Stem purchase completed: ${data.stemId} by ${data.buyerId}`);
   }
 
   private async handleSubscriptionPayment(invoice: Stripe.Invoice) {

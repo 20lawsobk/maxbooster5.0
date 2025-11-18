@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import fsPromises from 'fs/promises';
 import ffmpeg from 'fluent-ffmpeg';
+import ffmpegStatic from 'ffmpeg-static';
 import wavefilePkg from 'wavefile';
 const WaveFile = (wavefilePkg as any).WaveFile || wavefilePkg;
 import { storageService } from './storageService.js';
@@ -22,6 +23,11 @@ import {
   type SampleRate,
   type BitDepth,
 } from '../../shared/audioConstants.js';
+
+// Configure FFmpeg path for production
+if (ffmpegStatic) {
+  ffmpeg.setFfmpegPath(ffmpegStatic);
+}
 
 export interface JobResponse {
   jobId: string;

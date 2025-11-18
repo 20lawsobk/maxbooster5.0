@@ -185,18 +185,16 @@ export class StudioService {
   }
 
   /**
-   * Process audio waveform
+   * Process audio waveform using FFmpeg
    */
   async processAudio(audioId: string, audioPath: string): Promise<{ waveformData: number[]; peaks: number[] }> {
     try {
-      // In production:
-      // 1. Use ffmpeg or similar to extract waveform data
-      // 2. Generate peak data for visualization
-      // 3. Store processed data for quick retrieval
-
-      // Mock waveform data
-      const waveformData = Array.from({ length: 1000 }, () => Math.random() * 2 - 1);
-      const peaks = Array.from({ length: 100 }, () => Math.random());
+      // Use audioService for real waveform generation
+      const { audioService } = await import('./audioService');
+      const waveformData = await audioService.generateWaveform(audioPath);
+      
+      // Extract peaks from waveform data for visualization
+      const peaks = this.extractPeaksFromWaveform(waveformData, 100);
 
       return {
         waveformData,
@@ -206,6 +204,24 @@ export class StudioService {
       console.error("Error processing audio:", error);
       throw new Error("Failed to process audio");
     }
+  }
+
+  /**
+   * Extract peak values from waveform data
+   */
+  private extractPeaksFromWaveform(waveformData: number[], targetPeaks: number): number[] {
+    const peaks: number[] = [];
+    const windowSize = Math.floor(waveformData.length / targetPeaks);
+    
+    for (let i = 0; i < waveformData.length; i += windowSize) {
+      let maxPeak = 0;
+      for (let j = i; j < Math.min(i + windowSize, waveformData.length); j++) {
+        maxPeak = Math.max(maxPeak, Math.abs(waveformData[j]));
+      }
+      peaks.push(maxPeak);
+    }
+    
+    return peaks;
   }
 
   /**
