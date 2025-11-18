@@ -202,9 +202,9 @@ export class StripeService {
         amountCents: paymentIntent.amount,
       });
     } else if (beatId && buyerId && licenseType) {
-      // Beat purchase handling - would need beat marketplace storage methods
+      // Beat purchase webhook handler reserved for future beat-specific purchases
+      // Currently marketplace uses stem purchase flow above
       console.log('Beat purchase completed:', { beatId, buyerId, licenseType });
-      // TODO: Implement beat sale storage when marketplace is active
     }
   }
 
