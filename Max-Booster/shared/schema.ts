@@ -218,6 +218,8 @@ export const analytics = pgTable(
     totalStreams: integer('total_streams').default(0),
     totalRevenue: decimal('total_revenue', { precision: 10, scale: 2 }).default('0'),
     totalListeners: integer('total_listeners').default(0),
+    totalFollowers: integer('total_followers').default(0),
+    engagementRate: real('engagement_rate').default(0),
     streams: integer('streams').default(0),
     revenue: decimal('revenue', { precision: 10, scale: 2 }).default('0'),
     platform: varchar('platform', { length: 100 }),
