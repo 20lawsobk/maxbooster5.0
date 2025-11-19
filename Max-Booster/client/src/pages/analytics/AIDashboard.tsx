@@ -157,7 +157,7 @@ interface PlatformMetrics {
 // Last updated: 2025-11-17 - Added Admin-specific Analytics
 export default function AIDashboard() {
   const { user } = useAuth();
-  const [selectedMetric, setSelectedMetric] = useState('users');
+  const [selectedMetric, setSelectedMetric] = useState('streams');
   const [timeRange, setTimeRange] = useState('30d');
 
   // Check if user is admin
@@ -526,7 +526,7 @@ export default function AIDashboard() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="users">Active Users</SelectItem>
+                        <SelectItem value="streams">Streams</SelectItem>
                         <SelectItem value="revenue">Revenue</SelectItem>
                         <SelectItem value="engagement">Engagement</SelectItem>
                       </SelectContent>
