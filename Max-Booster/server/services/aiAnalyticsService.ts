@@ -86,7 +86,7 @@ function linearRegression(dataPoints: { x: number; y: number }[]): {
 function calculateStandardDeviation(values: number[]): number {
   if (values.length === 0) return 0;
   const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 0), 0) / values.length;
+  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
   return Math.sqrt(variance);
 }
 
