@@ -4,23 +4,20 @@ import { queueMonitor } from '../monitoring/queueMonitor.js';
 import { aiModelManager } from '../services/aiModelManager.js';
 import { metricsCollector } from '../monitoring/metricsCollector.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
+
+router.use(requireAdmin);
 
 /**
  * GET /api/executive/dashboard
  * High-level non-technical dashboard for executives and stakeholders
- * Requires admin authentication
+ * Requires admin authentication (enforced by router.use(requireAdmin))
  */
 router.get(
   '/dashboard',
   asyncHandler(async (req, res) => {
-    if (!req.isAuthenticated() || !req.user?.isAdmin) {
-      return res.status(403).json({
-        success: false,
-        error: 'Admin access required',
-      });
-    }
     const [queueHealth, aiMetrics, dashboard] = await Promise.all([
       queueMonitor.getHealthStatus(),
       aiModelManager.getMetrics(),
@@ -109,17 +106,11 @@ router.get(
 /**
  * GET /api/executive/health-summary
  * Simple health summary for quick checks
- * Requires admin authentication
+ * Requires admin authentication (enforced by router.use(requireAdmin))
  */
 router.get(
   '/health-summary',
   asyncHandler(async (req, res) => {
-    if (!req.isAuthenticated() || !req.user?.isAdmin) {
-      return res.status(403).json({
-        success: false,
-        error: 'Admin access required',
-      });
-    }
     const queueHealth = await queueMonitor.getHealthStatus();
 
     res.json({

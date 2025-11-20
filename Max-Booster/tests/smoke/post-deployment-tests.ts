@@ -31,7 +31,7 @@ class PostDeploymentSmokeTests {
         test: async () => {
           const response = await fetch('http://localhost:5000/api/monitoring/system-health');
           const data = await response.json();
-          return data.components?.queues?.healthy === true;
+          return data.success && data.healthy;
         },
       },
       {
