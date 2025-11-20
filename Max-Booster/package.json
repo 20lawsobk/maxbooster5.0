@@ -37,10 +37,15 @@
     "test:distribution": "tsx test-distribution.ts",
     "test:chaos": "tsx tests/chaos/worker-crash-test.ts",
     "test:burn-in": "tsx tests/burn-in/24-hour-test.ts",
+    "test:load": "tsx tests/load/load-test.ts",
+    "test:smoke": "tsx tests/smoke/post-deployment-tests.ts",
     "monitor:queue": "curl http://localhost:5000/api/monitoring/queue-metrics | jq",
     "monitor:ai": "curl http://localhost:5000/api/monitoring/ai-models | jq",
     "monitor:health": "curl http://localhost:5000/api/monitoring/system-health | jq",
-    "monitor:dashboard": "curl http://localhost:5000/api/monitoring/dashboard | jq"
+    "monitor:dashboard": "curl http://localhost:5000/api/monitoring/dashboard | jq",
+    "deploy:checklist": "tsx scripts/pre-deployment-checklist.ts",
+    "deploy:verify-backups": "tsx scripts/verify-backups.ts",
+    "deploy:runbook": "tsx scripts/deployment-runbook.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.927.0",

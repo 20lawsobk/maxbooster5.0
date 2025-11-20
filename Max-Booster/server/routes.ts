@@ -31,6 +31,7 @@ import developerApiRoutes from './routes/developerApi';
 import analyticsApiRoutes from './routes/api/v1/analytics';
 import adminMetricsRoutes from './routes/admin/metrics';
 import monitoringRoutes from './routes/monitoring';
+import executiveDashboardRoutes from './routes/executiveDashboard';
 import { metricsService } from './services/metricsService';
 import { createSessionStore, getSessionConfig } from './middleware/sessionConfig';
 import { ConnectionGuard } from './middleware/connectionGuard';
@@ -656,6 +657,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Production Monitoring & Telemetry routes (queue metrics, AI models, health)
   app.use('/api/monitoring', monitoringRoutes);
+  
+  // Executive Dashboard (high-level non-technical metrics for stakeholders)
+  app.use('/api/executive', executiveDashboardRoutes);
 
   // Distribution and Autonomous API routes
   app.use('/api/distribution/labelgrid', distributionApiRoutes); // LabelGrid distribution routes
