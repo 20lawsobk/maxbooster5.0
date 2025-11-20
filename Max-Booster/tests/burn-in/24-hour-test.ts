@@ -1,5 +1,5 @@
 import { schedule } from 'node-cron';
-import logger from '../../server/logger.js';
+import { logger } from '../../server/logger.js';
 
 interface BurnInMetrics {
   startTime: Date;
