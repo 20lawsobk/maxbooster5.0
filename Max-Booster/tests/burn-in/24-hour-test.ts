@@ -1,4 +1,3 @@
-import { schedule } from 'node-cron';
 import { logger } from '../../server/logger.js';
 import { FeatureValidators } from './feature-validators.js';
 
@@ -91,6 +90,10 @@ class BurnInTest {
             waiting: queueData.waiting || 0,
             failed: queueData.failed || 0,
           });
+          
+          if (this.metrics.queueMetrics.length > 150) {
+            this.metrics.queueMetrics = this.metrics.queueMetrics.slice(-150);
+          }
         }
       } catch (error) {
         logger.warn('Failed to capture queue metrics detail');
@@ -121,6 +124,25 @@ class BurnInTest {
       heapUsed: memUsage.heapUsed,
       rss: memUsage.rss,
     });
+    
+    if (this.metrics.memorySnapshots.length > 150) {
+      this.metrics.memorySnapshots = this.metrics.memorySnapshots.slice(-150);
+    }
+  }
+
+  limitArraySizes(): void {
+    if (this.metrics.errors.length > 50) {
+      this.metrics.errors = this.metrics.errors.slice(-50);
+    }
+    if (this.metrics.queueMetrics.length > 150) {
+      this.metrics.queueMetrics = this.metrics.queueMetrics.slice(-150);
+    }
+    if (this.metrics.memorySnapshots.length > 150) {
+      this.metrics.memorySnapshots = this.metrics.memorySnapshots.slice(-150);
+    }
+    if (this.metrics.featureValidationSnapshots.length > 10) {
+      this.metrics.featureValidationSnapshots = this.metrics.featureValidationSnapshots.slice(-10);
+    }
   }
 
   async runFeatureValidation(): Promise<void> {
@@ -179,6 +201,7 @@ class BurnInTest {
     ]);
 
     this.captureMemorySnapshot();
+    this.limitArraySizes();
 
     const cyclesPerFeatureValidation = this.featureValidationIntervalMinutes / this.intervalMinutes;
     if (this.cycleCount % cyclesPerFeatureValidation === 0) {
@@ -497,11 +520,12 @@ class BurnInTest {
 
     await this.runHealthCheckCycle();
 
-    schedule(`*/${this.intervalMinutes} * * * *`, async () => {
+    const intervalMs = this.intervalMinutes * 60 * 1000;
+    setInterval(async () => {
       if (this.isRunning) {
         await this.runHealthCheckCycle();
       }
-    });
+    }, intervalMs);
 
     setTimeout(() => {
       this.stop();
