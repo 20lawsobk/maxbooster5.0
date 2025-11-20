@@ -13,6 +13,8 @@ export { EngagementPredictionModel } from './EngagementPredictionModel.js';
 export { ContentPatternLearner } from './ContentPatternLearner.js';
 export { IntelligentMixingModel } from './IntelligentMixingModel.js';
 export { BrandVoiceAnalyzer } from './BrandVoiceAnalyzer.js';
+export { SocialMediaAutopilotAI } from './SocialMediaAutopilotAI.ts';
+export { AdvertisingAutopilotAI } from './AdvertisingAutopilotAI.ts';
 
 export type {
   ChurnFeatures,
