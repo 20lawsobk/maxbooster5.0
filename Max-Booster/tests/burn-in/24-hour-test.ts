@@ -1,5 +1,15 @@
 import { schedule } from 'node-cron';
 import { logger } from '../../server/logger.js';
+import { FeatureValidators } from './feature-validators.js';
+
+interface FeatureValidationSnapshot {
+  timestamp: Date;
+  totalTests: number;
+  passed: number;
+  failed: number;
+  successRate: number;
+  failedTests: Array<{ category: string; testName: string; error?: string }>;
+}
 
 interface BurnInMetrics {
   startTime: Date;
@@ -9,9 +19,11 @@ interface BurnInMetrics {
   queueHealthChecks: number;
   aiModelChecks: number;
   systemHealthChecks: number;
+  featureValidations: number;
   errors: Array<{ timestamp: Date; error: string }>;
   memorySnapshots: Array<{ timestamp: Date; heapUsed: number; rss: number }>;
   queueMetrics: Array<{ timestamp: Date; redisLatency: number; waiting: number; failed: number }>;
+  featureValidationSnapshots: FeatureValidationSnapshot[];
 }
 
 class BurnInTest {
@@ -19,6 +31,9 @@ class BurnInTest {
   private isRunning = false;
   private baseUrl = 'http://localhost:5000';
   private intervalMinutes = 1.25;
+  private featureValidationIntervalMinutes = 30;
+  private featureValidators: FeatureValidators;
+  private cycleCount = 0;
 
   constructor() {
     this.metrics = {
@@ -29,10 +44,13 @@ class BurnInTest {
       queueHealthChecks: 0,
       aiModelChecks: 0,
       systemHealthChecks: 0,
+      featureValidations: 0,
       errors: [],
       memorySnapshots: [],
       queueMetrics: [],
+      featureValidationSnapshots: [],
     };
+    this.featureValidators = new FeatureValidators();
   }
 
   async makeRequest(url: string, description: string): Promise<boolean> {
@@ -105,8 +123,54 @@ class BurnInTest {
     });
   }
 
+  async runFeatureValidation(): Promise<void> {
+    this.metrics.featureValidations++;
+    logger.info('🔍 Running comprehensive feature validation...');
+
+    try {
+      const validationResults = await this.featureValidators.validateAllFeatures();
+
+      const failedTests = validationResults.results
+        .filter((r) => !r.passed)
+        .map((r) => ({
+          category: r.category,
+          testName: r.testName,
+          error: r.error,
+        }));
+
+      this.metrics.featureValidationSnapshots.push({
+        timestamp: new Date(),
+        totalTests: validationResults.totalTests,
+        passed: validationResults.passed,
+        failed: validationResults.failed,
+        successRate: validationResults.successRate,
+        failedTests,
+      });
+
+      if (validationResults.successRate >= 95) {
+        logger.info(
+          `✅ Feature validation passed: ${validationResults.passed}/${validationResults.totalTests} tests (${validationResults.successRate.toFixed(1)}%)`
+        );
+      } else {
+        logger.warn(
+          `⚠️ Feature validation completed with issues: ${validationResults.failed} failures`
+        );
+        failedTests.forEach((test) => {
+          logger.warn(`   - ${test.category}: ${test.testName} - ${test.error}`);
+        });
+      }
+    } catch (error) {
+      logger.error('❌ Feature validation failed:', error);
+      this.metrics.errors.push({
+        timestamp: new Date(),
+        error: `Feature validation error: ${error instanceof Error ? error.message : 'Unknown'}`,
+      });
+    }
+  }
+
   async runHealthCheckCycle(): Promise<void> {
-    logger.info('🔄 Running burn-in test cycle...');
+    this.cycleCount++;
+    logger.info(`🔄 Running burn-in test cycle #${this.cycleCount}...`);
     
     await Promise.all([
       this.checkQueueHealth(),
@@ -115,6 +179,12 @@ class BurnInTest {
     ]);
 
     this.captureMemorySnapshot();
+
+    const cyclesPerFeatureValidation = this.featureValidationIntervalMinutes / this.intervalMinutes;
+    if (this.cycleCount % cyclesPerFeatureValidation === 0) {
+      await this.runFeatureValidation();
+    }
+
     this.printCurrentStatus();
   }
 
@@ -127,22 +197,34 @@ class BurnInTest {
     const latestMemory = this.metrics.memorySnapshots[this.metrics.memorySnapshots.length - 1];
     const memoryMB = latestMemory ? (latestMemory.heapUsed / 1024 / 1024).toFixed(2) : '0';
 
+    const latestFeatureValidation = this.metrics.featureValidationSnapshots[
+      this.metrics.featureValidationSnapshots.length - 1
+    ];
+    const featureStatus = latestFeatureValidation
+      ? `${latestFeatureValidation.passed}/${latestFeatureValidation.totalTests} (${latestFeatureValidation.successRate.toFixed(1)}%)`
+      : 'Pending...';
+
     logger.info(`
 ╔═══════════════════════════════════════════════════════════════╗
-║           6-HOUR BURN-IN TEST - STATUS REPORT                 ║
+║      6-HOUR COMPREHENSIVE BURN-IN TEST - STATUS REPORT        ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║ Runtime:          ${runtime.toFixed(2)} hours / 6 hours                   ║
-║ Total Requests:   ${this.metrics.totalRequests}                                      ║
-║ Success Rate:     ${successRate}%                                   ║
-║ Failed Requests:  ${this.metrics.failedRequests}                                      ║
-║ Memory Usage:     ${memoryMB} MB                                ║
+║ Infrastructure Tests:                                         ║
+║   Total Requests:   ${this.metrics.totalRequests}                                    ║
+║   Success Rate:     ${successRate}%                                 ║
+║   Failed:           ${this.metrics.failedRequests}                                    ║
+║   Memory Usage:     ${memoryMB} MB                              ║
 ║                                                               ║
-║ Health Checks:                                                ║
-║   - Queue Health:    ${this.metrics.queueHealthChecks} checks                         ║
-║   - AI Models:       ${this.metrics.aiModelChecks} checks                         ║
-║   - System Health:   ${this.metrics.systemHealthChecks} checks                         ║
+║ Stability Checks (every 1.25 min):                           ║
+║   - Queue Health:    ${this.metrics.queueHealthChecks} checks                       ║
+║   - AI Models:       ${this.metrics.aiModelChecks} checks                       ║
+║   - System Health:   ${this.metrics.systemHealthChecks} checks                       ║
 ║                                                               ║
-║ Recent Errors:    ${this.metrics.errors.slice(-3).length} (last 3 shown)              ║
+║ Feature Validation (every 30 min):                           ║
+║   - Validations:     ${this.metrics.featureValidations} completed                   ║
+║   - Latest Result:   ${featureStatus}           ║
+║                                                               ║
+║ Recent Errors:    ${this.metrics.errors.slice(-3).length} (last 3 shown)            ║
 ╚═══════════════════════════════════════════════════════════════╝
     `);
 
@@ -160,16 +242,17 @@ class BurnInTest {
 
     const memoryGrowth = this.analyzeMemoryGrowth();
     const queuePerformance = this.analyzeQueuePerformance();
+    const featurePerformance = this.analyzeFeatureValidation();
 
     logger.info(`
 ╔═══════════════════════════════════════════════════════════════╗
-║         6-HOUR BURN-IN TEST - FINAL REPORT                    ║
+║      6-HOUR COMPREHENSIVE BURN-IN TEST - FINAL REPORT         ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║ Start Time:       ${this.metrics.startTime.toISOString()}       ║
 ║ End Time:         ${new Date().toISOString()}       ║
 ║ Total Runtime:    ${totalRuntime.toFixed(2)} hours                           ║
 ║                                                               ║
-║ REQUEST STATISTICS:                                           ║
+║ INFRASTRUCTURE STABILITY (288 checks):                        ║
 ║   Total Requests:     ${this.metrics.totalRequests}                              ║
 ║   Successful:         ${this.metrics.successfulRequests} (${successRate}%)                    ║
 ║   Failed:             ${this.metrics.failedRequests}                              ║
@@ -186,6 +269,14 @@ class BurnInTest {
 ║   Total Failed Jobs:  ${queuePerformance.totalFailed}                              ║
 ║   Status:             ${queuePerformance.status}                          ║
 ║                                                               ║
+║ FEATURE VALIDATION (12 comprehensive checks):                ║
+║   Total Validations:  ${this.metrics.featureValidations}                              ║
+║   Avg Success Rate:   ${featurePerformance.avgSuccessRate}%                    ║
+║   Total Tests Run:    ${featurePerformance.totalTests}                            ║
+║   Total Passed:       ${featurePerformance.totalPassed}                            ║
+║   Total Failed:       ${featurePerformance.totalFailed}                              ║
+║   Status:             ${featurePerformance.status}                          ║
+║                                                               ║
 ║ ERRORS ENCOUNTERED:   ${this.metrics.errors.length}                              ║
 ╚═══════════════════════════════════════════════════════════════╝
     `);
@@ -197,7 +288,17 @@ class BurnInTest {
       });
     }
 
-    const verdict = this.getVerdict(successRate, memoryGrowth, queuePerformance);
+    if (featurePerformance.failedCategories.length > 0) {
+      logger.warn('\n⚠️ FEATURE VALIDATION FAILURES:');
+      featurePerformance.failedCategories.forEach((failure) => {
+        logger.warn(`  - ${failure.category}: ${failure.testName}`);
+        if (failure.error) {
+          logger.warn(`    Error: ${failure.error}`);
+        }
+      });
+    }
+
+    const verdict = this.getVerdict(successRate, memoryGrowth, queuePerformance, featurePerformance);
     logger.info(`\n${verdict}`);
   }
 
@@ -252,24 +353,98 @@ class BurnInTest {
     };
   }
 
-  getVerdict(successRate: string, memoryGrowth: any, queuePerformance: any): string {
-    const rate = parseFloat(successRate);
+  analyzeFeatureValidation() {
+    if (this.metrics.featureValidationSnapshots.length === 0) {
+      return {
+        avgSuccessRate: '0.00',
+        totalTests: 0,
+        totalPassed: 0,
+        totalFailed: 0,
+        status: 'No data',
+        failedCategories: [],
+      };
+    }
 
-    if (rate >= 99.9 && memoryGrowth.status === '✅ HEALTHY' && queuePerformance.status === '✅ HEALTHY') {
+    const allSnapshots = this.metrics.featureValidationSnapshots;
+    const avgSuccessRate = (
+      allSnapshots.reduce((sum, snap) => sum + snap.successRate, 0) / allSnapshots.length
+    ).toFixed(2);
+
+    const totalTests = allSnapshots.reduce((sum, snap) => sum + snap.totalTests, 0);
+    const totalPassed = allSnapshots.reduce((sum, snap) => sum + snap.passed, 0);
+    const totalFailed = allSnapshots.reduce((sum, snap) => sum + snap.failed, 0);
+
+    const failedCategories: Array<{ category: string; testName: string; error?: string }> = [];
+    allSnapshots.forEach((snap) => {
+      snap.failedTests.forEach((test) => {
+        if (!failedCategories.find((f) => f.category === test.category && f.testName === test.testName)) {
+          failedCategories.push(test);
+        }
+      });
+    });
+
+    let status = '✅ HEALTHY';
+    const rate = parseFloat(avgSuccessRate);
+    if (rate < 95) {
+      status = '❌ FAILING';
+    } else if (rate < 99) {
+      status = '⚠️ DEGRADED';
+    }
+
+    return {
+      avgSuccessRate,
+      totalTests,
+      totalPassed,
+      totalFailed,
+      status,
+      failedCategories,
+    };
+  }
+
+  getVerdict(successRate: string, memoryGrowth: any, queuePerformance: any, featurePerformance: any): string {
+    const rate = parseFloat(successRate);
+    const featureRate = parseFloat(featurePerformance.avgSuccessRate);
+
+    const allHealthy =
+      rate >= 99.9 &&
+      memoryGrowth.status === '✅ HEALTHY' &&
+      queuePerformance.status === '✅ HEALTHY' &&
+      featurePerformance.status === '✅ HEALTHY';
+
+    const mostlyHealthy =
+      rate >= 95 &&
+      featureRate >= 95 &&
+      memoryGrowth.status !== '⚠️ POTENTIAL LEAK' &&
+      queuePerformance.status !== '⚠️ HIGH FAILURES';
+
+    if (allHealthy) {
       return `
 ╔═══════════════════════════════════════════════════════════════╗
 ║                    ✅ VERDICT: PASS                           ║
 ║                                                               ║
-║  The platform successfully completed the 6-hour burn-in       ║
-║  test with excellent stability metrics. The system is         ║
-║  PRODUCTION-READY for paying customers.                       ║
+║  The platform successfully completed the 6-hour               ║
+║  comprehensive burn-in test with excellent metrics:           ║
+║                                                               ║
+║  ✅ Infrastructure Stability: ${rate}%                         ║
+║  ✅ Feature Validation: ${featureRate}%                         ║
+║  ✅ Memory: ${memoryGrowth.status}                                   ║
+║  ✅ Queue: ${queuePerformance.status}                                   ║
+║                                                               ║
+║  The system is PRODUCTION-READY for deployment.               ║
 ╚═══════════════════════════════════════════════════════════════╝`;
-    } else if (rate >= 95) {
+    } else if (mostlyHealthy) {
       return `
 ╔═══════════════════════════════════════════════════════════════╗
 ║                 ⚠️ VERDICT: CONDITIONAL PASS                  ║
 ║                                                               ║
-║  The platform completed the burn-in test with minor issues.   ║
+║  The platform completed the burn-in test with some issues:    ║
+║                                                               ║
+║  Infrastructure Stability: ${rate}%                            ║
+║  Feature Validation: ${featureRate}%                            ║
+║  Memory: ${memoryGrowth.status}                                      ║
+║  Queue: ${queuePerformance.status}                                      ║
+║  Features: ${featurePerformance.status}                                 ║
+║                                                               ║
 ║  Review warnings before production deployment.                ║
 ╚═══════════════════════════════════════════════════════════════╝`;
     } else {
@@ -277,8 +452,14 @@ class BurnInTest {
 ╔═══════════════════════════════════════════════════════════════╗
 ║                    ❌ VERDICT: FAIL                           ║
 ║                                                               ║
-║  The platform encountered significant issues during the       ║
-║  burn-in test. DO NOT deploy to production until resolved.    ║
+║  The platform encountered significant issues:                 ║
+║                                                               ║
+║  Infrastructure: ${rate}% (Need ≥99.9%)                        ║
+║  Features: ${featureRate}% (Need ≥99%)                          ║
+║  Memory: ${memoryGrowth.status}                                      ║
+║  Queue: ${queuePerformance.status}                                      ║
+║                                                               ║
+║  DO NOT deploy to production until issues are resolved.       ║
 ╚═══════════════════════════════════════════════════════════════╝`;
     }
   }
@@ -287,16 +468,28 @@ class BurnInTest {
     this.isRunning = true;
     logger.info(`
 ╔═══════════════════════════════════════════════════════════════╗
-║        STARTING 6-HOUR BURN-IN TEST                           ║
+║   STARTING 6-HOUR COMPREHENSIVE BURN-IN TEST                  ║
 ╠═══════════════════════════════════════════════════════════════╣
-║  This test will run for 6 hours, continuously monitoring:     ║
+║  This test validates ALL Max Booster Platform features:       ║
+║                                                               ║
+║  TIER 1: Infrastructure Stability (every 1.25 min)            ║
 ║    - Queue health and Redis performance                       ║
 ║    - AI model cache behavior                                  ║
 ║    - System health metrics                                    ║
 ║    - Memory usage trends                                      ║
+║    → 288 stability checks over 6 hours                        ║
 ║                                                               ║
-║  Health checks will run every ${this.intervalMinutes} minutes (288 total).     ║
-║  Accelerated schedule = same data points, 75% faster!         ║
+║  TIER 2: Feature Validation (every 30 min)                    ║
+║    ✓ Authentication & Users                                   ║
+║    ✓ Payment System (Stripe)                                  ║
+║    ✓ Advertisement System (Zero-Cost AI)                      ║
+║    ✓ Social Media Auto-Posting (8 platforms)                  ║
+║    ✓ Music Distribution (LabelGrid)                           ║
+║    ✓ Marketplace (BeatStars clone)                            ║
+║    ✓ Studio/DAW                                               ║
+║    ✓ Analytics & AI                                           ║
+║    ✓ Infrastructure (Storage, Email, DB, Redis)               ║
+║    → 12 comprehensive feature validations                     ║
 ║                                                               ║
 ║  Press Ctrl+C to stop the test early (not recommended).       ║
 ╚═══════════════════════════════════════════════════════════════╝
