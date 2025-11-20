@@ -4,6 +4,35 @@ Max Booster is an AI-powered platform designed to empower music artists with pro
 
 # Recent Changes
 
+**November 20, 2025 - Auto-Posting & AI Content Generation System**
+- ✅ **Complete Auto-Posting Integration** - 8-platform auto-posting system operational
+  - Supports Facebook, Instagram, Twitter, TikTok, YouTube, LinkedIn, Threads, Google Business
+  - Queue-based scheduling system with scheduled_posts database table
+  - Auto-retry with token refresh for expired tokens
+  - Platform-specific formatting and content optimization
+- ✅ **AI Content Generator** - Both autopilots now generate AND post content automatically
+  - Social Media Autopilot: Engagement-optimized content generation
+  - Advertising Autopilot AI v3.0: Viral content generation with predictions
+  - Supports 4 objectives: awareness, engagement, conversions, viral
+  - Platform-specific optimization with hashtags, mentions, optimal timing
+- ✅ **Viral Prediction Before Posting** - Predict performance before going live
+  - Virality score (0-1), expected reach, engagement, shares, conversions
+  - Platform algorithm compatibility scores
+  - Optimal posting time recommendations
+  - Trust/authenticity scoring for organic engagement
+- ✅ **13 New API Endpoints** - Comprehensive auto-posting and AI content API
+  - `/api/ai/advertising/train` - Train on organic campaign data
+  - `/api/ai/advertising/predict-viral` - Predict viral performance
+  - `/api/ai/advertising/content-distribution` - Multi-platform distribution plans
+  - `/api/ai/advertising/auto-post` - Viral prediction + auto-post combined
+  - `/api/auto-posting/schedule` - Schedule posts for later
+  - `/api/auto-posting/post-now` - Post immediately to platforms
+  - `/api/auto-posting/generate-and-post-social` - AI-generated engagement posts
+  - `/api/auto-posting/generate-and-post-viral` - AI-generated viral posts
+  - Complete documentation in AUTO_POSTING_API_DOCUMENTATION.md
+- ✅ **Database Schema Updates** - New scheduled_posts table with proper indexes
+- 🚀 **Status:** 100% operational - Auto-posting, AI generation, viral prediction all working
+
 **November 18, 2025 - FAANG-Level Excellence Infrastructure**
 - ✅ **Code Quality Foundation** - Production-grade excellence infrastructure deployed
   - ESLint v9 flat config with TypeScript + React strict linting (zero warnings policy)
