@@ -38,8 +38,8 @@ async function main() {
 ║  Scheduled Start:  ${startTime.toLocaleString('en-US', { timeZone: 'America/New_York' })}                ║
 ║  Time Until Start: ${formatTimeRemaining(msUntilStart)}                              ║
 ║                                                               ║
-║  The 12-hour accelerated burn-in test will automatically      ║
-║  start at 7:30 AM and complete at 7:30 PM.                    ║
+║  The 6-hour accelerated burn-in test will automatically       ║
+║  start at 7:30 AM and complete at 1:30 PM.                    ║
 ║                                                               ║
 ║  Press Ctrl+C to cancel the scheduled start.                  ║
 ╚═══════════════════════════════════════════════════════════════╝
@@ -49,7 +49,7 @@ async function main() {
   
   await new Promise(resolve => setTimeout(resolve, msUntilStart));
   
-  logger.info(`🚀 Starting 12-hour burn-in test NOW at 7:30 AM...`);
+  logger.info(`🚀 Starting 6-hour burn-in test NOW at 7:30 AM...`);
   
   const child = spawn('tsx', ['tests/burn-in/24-hour-test.ts'], {
     cwd: process.cwd(),

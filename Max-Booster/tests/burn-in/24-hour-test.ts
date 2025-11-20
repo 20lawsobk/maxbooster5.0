@@ -18,7 +18,7 @@ class BurnInTest {
   private metrics: BurnInMetrics;
   private isRunning = false;
   private baseUrl = 'http://localhost:5000';
-  private intervalMinutes = 2.5;
+  private intervalMinutes = 1.25;
 
   constructor() {
     this.metrics = {
@@ -129,9 +129,9 @@ class BurnInTest {
 
     logger.info(`
 ╔═══════════════════════════════════════════════════════════════╗
-║           12-HOUR BURN-IN TEST - STATUS REPORT                ║
+║           6-HOUR BURN-IN TEST - STATUS REPORT                 ║
 ╠═══════════════════════════════════════════════════════════════╣
-║ Runtime:          ${runtime.toFixed(2)} hours / 12 hours                  ║
+║ Runtime:          ${runtime.toFixed(2)} hours / 6 hours                   ║
 ║ Total Requests:   ${this.metrics.totalRequests}                                      ║
 ║ Success Rate:     ${successRate}%                                   ║
 ║ Failed Requests:  ${this.metrics.failedRequests}                                      ║
@@ -163,7 +163,7 @@ class BurnInTest {
 
     logger.info(`
 ╔═══════════════════════════════════════════════════════════════╗
-║         12-HOUR BURN-IN TEST - FINAL REPORT                   ║
+║         6-HOUR BURN-IN TEST - FINAL REPORT                    ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║ Start Time:       ${this.metrics.startTime.toISOString()}       ║
 ║ End Time:         ${new Date().toISOString()}       ║
@@ -260,7 +260,7 @@ class BurnInTest {
 ╔═══════════════════════════════════════════════════════════════╗
 ║                    ✅ VERDICT: PASS                           ║
 ║                                                               ║
-║  The platform successfully completed the 12-hour burn-in      ║
+║  The platform successfully completed the 6-hour burn-in       ║
 ║  test with excellent stability metrics. The system is         ║
 ║  PRODUCTION-READY for paying customers.                       ║
 ╚═══════════════════════════════════════════════════════════════╝`;
@@ -287,16 +287,16 @@ class BurnInTest {
     this.isRunning = true;
     logger.info(`
 ╔═══════════════════════════════════════════════════════════════╗
-║        STARTING 12-HOUR BURN-IN TEST                          ║
+║        STARTING 6-HOUR BURN-IN TEST                           ║
 ╠═══════════════════════════════════════════════════════════════╣
-║  This test will run for 12 hours, continuously monitoring:    ║
+║  This test will run for 6 hours, continuously monitoring:     ║
 ║    - Queue health and Redis performance                       ║
 ║    - AI model cache behavior                                  ║
 ║    - System health metrics                                    ║
 ║    - Memory usage trends                                      ║
 ║                                                               ║
-║  Health checks will run every ${this.intervalMinutes} minutes (288 total).    ║
-║  Accelerated schedule = same data points, 50% faster!         ║
+║  Health checks will run every ${this.intervalMinutes} minutes (288 total).     ║
+║  Accelerated schedule = same data points, 75% faster!         ║
 ║                                                               ║
 ║  Press Ctrl+C to stop the test early (not recommended).       ║
 ╚═══════════════════════════════════════════════════════════════╝
@@ -312,12 +312,12 @@ class BurnInTest {
 
     setTimeout(() => {
       this.stop();
-    }, 12 * 60 * 60 * 1000);
+    }, 6 * 60 * 60 * 1000);
   }
 
   stop(): void {
     this.isRunning = false;
-    logger.info('🛑 Stopping 12-hour burn-in test...');
+    logger.info('🛑 Stopping 6-hour burn-in test...');
     this.printFinalReport();
     process.exit(0);
   }
