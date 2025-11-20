@@ -564,11 +564,18 @@ Writing style. Options:
 - `"inspirational"` - Motivating, uplifting
 
 ### `mediaType` (optional)
-Content format:
-- `"text"` - Text only
-- `"image"` - Image + text
-- `"video"` - Video + text
-- `"carousel"` - Multiple images/videos
+Content format with AI-generated guidance:
+- `"text"` - Text-only post (no media required)
+- `"audio"` - Audio content (music snippet, voice note, podcast clip, audio preview)
+- `"image"` or `"photo"` - Single image/photo (album art, promotional graphic, behind-the-scenes)
+- `"video"` - Video content (music video, performance clip, lyric video, short-form content)
+- `"carousel"` - Multiple images/videos slideshow (story sequence, multi-angle presentation)
+
+**NEW:** AI now provides media guidance for each type, including:
+- Recommended content examples
+- Optimal dimensions and format
+- Platform-specific tips
+- Best practices for engagement
 
 ### `scheduleOptimal` (optional)
 - `true` - Schedule for AI-determined optimal time
@@ -582,7 +589,120 @@ Content format:
 
 ## 🎨 **Example Use Cases**
 
-### Use Case 1: New Single Release (Viral Campaign)
+### Use Case 1: Audio Content - Music Snippet Preview
+```javascript
+// Generate audio-focused content for new single preview
+const result = await fetch('/api/auto-posting/generate-and-post-viral', {
+  method: 'POST',
+  body: JSON.stringify({
+    topic: 'new single preview',
+    objective: 'viral',
+    platforms: ['instagram', 'tiktok', 'twitter'],
+    tone: 'inspirational',
+    mediaType: 'audio', // Audio content type
+    scheduleOptimal: true
+  })
+});
+
+// AI generates:
+// - Headline: "🎵 Sneak peek of my new single..."
+// - Body: "I can't keep this to myself anymore..."
+// - Hashtags: #newmusic #musicpreview #comingsoon
+// - Media Guidance: "Create audio content for new single preview. Examples: 
+//   30-60 second music snippet, behind-the-scenes voice note, audio preview..."
+// - Scheduled for optimal time
+```
+
+### Use Case 2: Photo Content - Album Artwork Reveal
+```javascript
+// Generate image-focused content for album artwork
+const result = await fetch('/api/auto-posting/generate-and-post-social', {
+  method: 'POST',
+  body: JSON.stringify({
+    topic: 'album artwork reveal',
+    objective: 'engagement',
+    platforms: ['instagram', 'facebook'],
+    tone: 'professional',
+    mediaType: 'image', // Or 'photo' - both work
+    scheduleOptimal: false // Post immediately
+  })
+});
+
+// AI generates:
+// - Headline: "The artwork for my new album is finally here!"
+// - Media Guidance: "Create eye-catching image for album artwork reveal. 
+//   Optimal dimensions: 1080x1080 (square) for Instagram/Facebook. 
+//   Use vibrant colors and readable text overlays."
+```
+
+### Use Case 3: Video Content - Music Video Teaser
+```javascript
+// Generate viral video content
+const result = await fetch('/api/auto-posting/generate-and-post-viral', {
+  method: 'POST',
+  body: JSON.stringify({
+    topic: 'music video teaser',
+    objective: 'viral',
+    platforms: ['tiktok', 'instagram', 'youtube'],
+    tone: 'inspirational',
+    mediaType: 'video',
+    scheduleOptimal: true
+  })
+});
+
+// AI generates:
+// - Headline: "🔥 You won't believe what's coming..."
+// - Viral Score: 0.87
+// - Media Guidance: "Create SHORT, attention-grabbing video for music video teaser 
+//   (15-60 seconds). Hook viewers in first 3 seconds. Vertical format (9:16) 
+//   performs best on TikTok, Instagram Reels, YouTube Shorts."
+```
+
+### Use Case 4: Carousel - Behind The Scenes Story
+```javascript
+// Generate carousel content showing process
+const result = await fetch('/api/auto-posting/generate-and-post-social', {
+  method: 'POST',
+  body: JSON.stringify({
+    topic: 'studio recording process',
+    objective: 'engagement',
+    platforms: ['instagram', 'facebook'],
+    tone: 'casual',
+    mediaType: 'carousel',
+    scheduleOptimal: true
+  })
+});
+
+// AI generates:
+// - Headline: "Take a journey through my recording process"
+// - Media Guidance: "Create carousel/slideshow (2-10 images/videos) for 
+//   studio recording process. Examples: step-by-step story, before/after sequence. 
+//   Each slide should tell part of the story."
+```
+
+### Use Case 5: Text-Only - Announcement or Story
+```javascript
+// Generate text-only content (no media required)
+const result = await fetch('/api/auto-posting/generate-and-post-social', {
+  method: 'POST',
+  body: JSON.stringify({
+    topic: 'concert announcement',
+    objective: 'conversions',
+    platforms: ['twitter', 'facebook', 'linkedin'],
+    tone: 'professional',
+    mediaType: 'text',
+    scheduleOptimal: false
+  })
+});
+
+// AI generates:
+// - Headline: "Big announcement: I'm performing live!"
+// - Body: "I'm thrilled to announce my upcoming concert..."
+// - Media Guidance: "Create text-only post. No images or videos needed. 
+//   Focus on compelling copy and storytelling."
+```
+
+### Use Case 6: New Single Release (Viral Campaign)
 ```javascript
 // Step 1: Generate viral content with prediction
 const viralPrediction = await fetch('/api/ai/advertising/predict-viral', {
@@ -612,7 +732,7 @@ if (viralPrediction.prediction.predictions.viralityScore > 0.7) {
 }
 ```
 
-### Use Case 2: AI-Generated Content (Let AI Write Everything)
+### Use Case 7: AI-Generated Content (Let AI Write Everything)
 ```javascript
 // Let Advertising Autopilot generate AND post viral content
 const result = await fetch('/api/auto-posting/generate-and-post-viral', {
@@ -635,7 +755,7 @@ const result = await fetch('/api/auto-posting/generate-and-post-viral', {
 // - Viral prediction: 0.85 score, 145K expected reach
 ```
 
-### Use Case 3: Manual Post to Multiple Platforms
+### Use Case 8: Manual Post to Multiple Platforms
 ```javascript
 // Post immediately to all platforms
 const result = await fetch('/api/auto-posting/post-now', {

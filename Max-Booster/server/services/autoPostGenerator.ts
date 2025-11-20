@@ -18,7 +18,7 @@ export interface ContentGenerationRequest {
   tone?: 'professional' | 'casual' | 'humorous' | 'inspirational';
   includeHashtags?: boolean;
   includeMentions?: boolean;
-  mediaType?: 'text' | 'image' | 'video' | 'carousel';
+  mediaType?: 'text' | 'audio' | 'image' | 'photo' | 'video' | 'carousel';
 }
 
 export interface GeneratedContent {
@@ -26,7 +26,7 @@ export interface GeneratedContent {
   body: string;
   hashtags: string[];
   mentions: string[];
-  mediaType: 'text' | 'image' | 'video' | 'carousel';
+  mediaType: 'text' | 'audio' | 'image' | 'photo' | 'video' | 'carousel';
   callToAction?: string;
   viralScore?: number;
   expectedReach?: number;
@@ -34,6 +34,7 @@ export interface GeneratedContent {
   generatedBy: 'social_autopilot' | 'advertising_autopilot';
   platforms: string[];
   optimalPostingTime: Date;
+  mediaGuidance?: string; // Guidance for what media content to create
 }
 
 class AutoPostGenerator {
@@ -154,16 +155,23 @@ class AutoPostGenerator {
       optimalTime.setDate(optimalTime.getDate() + 1);
     }
 
+    // Normalize mediaType (photo -> image)
+    const mediaType = this.normalizeMediaType(request.mediaType || 'image');
+    
+    // Generate media guidance
+    const mediaGuidance = this.generateMediaGuidance(mediaType, topic, request.objective || 'engagement');
+
     return {
       headline,
       body,
       hashtags,
       mentions: [],
-      mediaType: request.mediaType || 'image',
+      mediaType,
       callToAction,
       generatedBy: 'social_autopilot',
       platforms,
       optimalPostingTime: optimalTime,
+      mediaGuidance,
     };
   }
 
@@ -218,12 +226,18 @@ class AutoPostGenerator {
     // Use the optimal posting time from the highest priority platform
     const optimalTime = distributionPlan[0]?.optimalPostingTime || new Date();
 
+    // Normalize mediaType (photo -> image)
+    const mediaType = this.normalizeMediaType(request.mediaType || 'video');
+    
+    // Generate media guidance
+    const mediaGuidance = this.generateMediaGuidance(mediaType, topic, request.objective || 'viral');
+
     return {
       headline,
       body,
       hashtags,
       mentions: [],
-      mediaType: request.mediaType || 'video',
+      mediaType,
       callToAction,
       viralScore: prediction.predictions.viralityScore,
       expectedReach: prediction.predictions.expectedReach,
@@ -231,6 +245,7 @@ class AutoPostGenerator {
       generatedBy: 'advertising_autopilot',
       platforms: distributionPlan.map(p => p.platform),
       optimalPostingTime: optimalTime,
+      mediaGuidance,
     };
   }
 
@@ -459,6 +474,46 @@ class AutoPostGenerator {
     }
 
     return viralHashtags.slice(0, 10);
+  }
+
+  /**
+   * Normalize media type (convert 'photo' to 'image')
+   */
+  private normalizeMediaType(mediaType: string): 'text' | 'audio' | 'image' | 'video' | 'carousel' {
+    if (mediaType === 'photo') return 'image';
+    if (['text', 'audio', 'image', 'video', 'carousel'].includes(mediaType)) {
+      return mediaType as 'text' | 'audio' | 'image' | 'video' | 'carousel';
+    }
+    return 'image'; // default
+  }
+
+  /**
+   * Generate media guidance for content creators
+   */
+  private generateMediaGuidance(mediaType: string, topic: string, objective: string): string {
+    switch (mediaType) {
+      case 'text':
+        return `Create text-only post. No images or videos needed. Focus on compelling copy and storytelling.`;
+      
+      case 'audio':
+        return `Create audio content for ${topic}. Examples: 30-60 second music snippet, behind-the-scenes voice note, audio preview, podcast clip, or narrated story. Platforms: Instagram Reels (with static image), TikTok (with visualization), Twitter Spaces, YouTube (audio with static image).`;
+      
+      case 'image':
+      case 'photo':
+        return `Create eye-catching image for ${topic}. Examples: album artwork, professional photo, promotional graphic, quote card, or behind-the-scenes snapshot. Optimal dimensions: 1080x1080 (square) for Instagram/Facebook, 1080x1920 (vertical) for Instagram Stories/TikTok. Use vibrant colors and readable text overlays.`;
+      
+      case 'video':
+        if (objective === 'viral') {
+          return `Create SHORT, attention-grabbing video for ${topic} (15-60 seconds). Hook viewers in first 3 seconds. Examples: music video snippet, performance clip, creative visual, trending sound/challenge, or emotional storytelling. Vertical format (9:16) performs best on TikTok, Instagram Reels, YouTube Shorts. Include captions for sound-off viewing.`;
+        }
+        return `Create engaging video for ${topic} (30-90 seconds). Examples: music video preview, performance footage, behind-the-scenes content, lyric video, or promotional clip. Vertical format (9:16) recommended. Add captions and ensure good lighting/audio quality.`;
+      
+      case 'carousel':
+        return `Create carousel/slideshow (2-10 images/videos) for ${topic}. Examples: step-by-step story, before/after sequence, collection showcase, or multi-angle presentation. Each slide should tell part of the story. Works best on Instagram and Facebook. Include swipeable call-to-action.`;
+      
+      default:
+        return `Create visual content for ${topic}.`;
+    }
   }
 
   private getOptimalPostingHour(platforms: string[]): number {

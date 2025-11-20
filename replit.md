@@ -15,6 +15,13 @@ Max Booster is an AI-powered platform designed to empower music artists with pro
   - Advertising Autopilot AI v3.0: Viral content generation with predictions
   - Supports 4 objectives: awareness, engagement, conversions, viral
   - Platform-specific optimization with hashtags, mentions, optimal timing
+- ✅ **Multi-Format Media Support** - AI generates content for all media types
+  - Text-only posts (Twitter threads, LinkedIn updates, announcements)
+  - Audio content (music snippets, voice notes, podcast clips, audio previews)
+  - Photo/image posts (album art, promotional graphics, behind-the-scenes)
+  - Video content (music videos, performance clips, short-form viral content)
+  - Carousel posts (multi-image/video stories, step-by-step sequences)
+  - AI provides media-specific guidance (dimensions, format, best practices)
 - ✅ **Viral Prediction Before Posting** - Predict performance before going live
   - Virality score (0-1), expected reach, engagement, shares, conversions
   - Platform algorithm compatibility scores
