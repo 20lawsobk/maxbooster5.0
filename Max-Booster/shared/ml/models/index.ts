@@ -11,6 +11,7 @@ export { GenreClassificationModel, GENRES, type Genre } from './GenreClassificat
 export { BPMDetectionModel } from './BPMDetectionModel.js';
 export { EngagementPredictionModel } from './EngagementPredictionModel.js';
 export { ContentPatternLearner } from './ContentPatternLearner.js';
+export { IntelligentMixingModel } from './IntelligentMixingModel.js';
 
 export type {
   ChurnFeatures,
@@ -31,3 +32,9 @@ export type {
   NGram,
   MarkovChain,
 } from './ContentPatternLearner.js';
+
+export type {
+  MixingParameters,
+  MasteringParameters,
+  AudioAnalysis,
+} from './IntelligentMixingModel.js';
