@@ -15,6 +15,7 @@ export { IntelligentMixingModel } from './IntelligentMixingModel.js';
 export { BrandVoiceAnalyzer } from './BrandVoiceAnalyzer.js';
 export { SocialMediaAutopilotAI } from './SocialMediaAutopilotAI.ts';
 export { AdvertisingAutopilotAI } from './AdvertisingAutopilotAI.ts';
+export { AdvertisingAutopilotAI_v3 } from './AdvertisingAutopilotAI_v3.ts';
 
 export type {
   ChurnFeatures,
