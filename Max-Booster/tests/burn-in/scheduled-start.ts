@@ -3,15 +3,21 @@ import { spawn } from 'child_process';
 
 function getMillisecondsUntil730AM(): number {
   const now = new Date();
-  const target = new Date();
+  const nowUTC = now.getTime();
   
-  target.setHours(7, 30, 0, 0);
+  const currentUTCHours = now.getUTCHours();
+  const currentUTCMinutes = now.getUTCMinutes();
   
-  if (now >= target) {
-    target.setDate(target.getDate() + 1);
+  const targetUTCHours = 12;
+  const targetUTCMinutes = 30;
+  
+  let minutesUntilTarget = (targetUTCHours * 60 + targetUTCMinutes) - (currentUTCHours * 60 + currentUTCMinutes);
+  
+  if (minutesUntilTarget <= 0) {
+    minutesUntilTarget += 24 * 60;
   }
   
-  return target.getTime() - now.getTime();
+  return minutesUntilTarget * 60 * 1000;
 }
 
 function formatTimeRemaining(ms: number): string {
