@@ -37,6 +37,7 @@
     "test:distribution": "tsx test-distribution.ts",
     "test:chaos": "tsx tests/chaos/worker-crash-test.ts",
     "test:burn-in": "tsx tests/burn-in/24-hour-test.ts",
+    "test:burn-in-scheduled": "tsx tests/burn-in/scheduled-start.ts",
     "test:load": "tsx tests/load/load-test.ts",
     "test:smoke": "tsx tests/smoke/post-deployment-tests.ts",
     "monitor:queue": "curl http://localhost:5000/api/monitoring/queue-metrics | jq",

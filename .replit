@@ -20,7 +20,7 @@ args = "Max Booster Platform"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Burn-in Test"
+args = "Burn-in Test (Scheduled 7:30 AM)"
 
 [[workflows.workflow]]
 name = "Max Booster Platform"
@@ -35,12 +35,12 @@ args = "cd Max-Booster && ./start-with-redis.sh"
 waitForPort = 5000
 
 [[workflows.workflow]]
-name = "Burn-in Test"
+name = "Burn-in Test (Scheduled 7:30 AM)"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd Max-Booster && npm run test:burn-in"
+args = "cd Max-Booster && npm run test:burn-in-scheduled"
 
 [workflows.workflow.metadata]
 outputType = "console"
