@@ -24,7 +24,7 @@ export interface ViralityFeatures {
   mentionCount: number;
   emojiCount: number;
   sentimentScore: number;
-  hasCall toAction: boolean;
+  hasCallToAction: boolean;
   topicTrendScore: number;
 }
 
