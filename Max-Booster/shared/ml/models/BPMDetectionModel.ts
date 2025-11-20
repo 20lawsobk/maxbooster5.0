@@ -19,7 +19,7 @@ export interface KeyDetectionResult {
 }
 
 export class BPMDetectionModel {
-  private readonly essentia: any = null;
+  private essentia: any = null;
 
   constructor() {
   }

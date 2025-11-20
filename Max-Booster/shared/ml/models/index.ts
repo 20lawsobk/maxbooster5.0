@@ -12,6 +12,7 @@ export { BPMDetectionModel } from './BPMDetectionModel.js';
 export { EngagementPredictionModel } from './EngagementPredictionModel.js';
 export { ContentPatternLearner } from './ContentPatternLearner.js';
 export { IntelligentMixingModel } from './IntelligentMixingModel.js';
+export { BrandVoiceAnalyzer } from './BrandVoiceAnalyzer.js';
 
 export type {
   ChurnFeatures,

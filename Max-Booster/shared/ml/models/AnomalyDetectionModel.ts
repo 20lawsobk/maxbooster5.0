@@ -1,17 +1,19 @@
 /**
  * Custom Anomaly Detection Model
- * Hybrid approach: Statistical baseline + Autoencoder neural network
+ * Hybrid approach: Isolation Forest + Autoencoder neural network + Statistical baseline
  */
 
 import * as tf from '@tensorflow/tfjs';
 import { BaseModel } from './BaseModel.js';
 import { calculateStatistics, detectOutliersIQR, detectOutliersZScore } from '../statistics/core.js';
+import { IsolationForest } from '../algorithms/IsolationForest.js';
 import type { AnomalyResult } from '../types.js';
 
 export class AnomalyDetectionModel extends BaseModel {
   private autoencoderModel: tf.LayersModel | null = null;
   private reconstructionThreshold: number = 0;
   private statisticalBaseline: { mean: number; std: number } | null = null;
+  private isolationForest: IsolationForest | null = null;
 
   constructor() {
     super({
@@ -60,7 +62,7 @@ export class AnomalyDetectionModel extends BaseModel {
   }
 
   /**
-   * Train on normal data
+   * Train on pre-extracted normal feature vectors (10-dimensional)
    */
   public async trainOnNormalData(normalData: number[][]): Promise<void> {
     if (!this.model) {
@@ -71,12 +73,16 @@ export class AnomalyDetectionModel extends BaseModel {
       throw new Error('Model initialization failed');
     }
 
-    // Calculate statistical baseline
+    // Calculate statistical baseline from feature vectors
     const allValues = normalData.flat();
     const stats = calculateStatistics(allValues);
     this.statisticalBaseline = { mean: stats.mean, std: stats.stdDev };
 
-    // Train autoencoder to reconstruct normal data
+    // Train Isolation Forest (fast, O(n log n)) on feature vectors
+    this.isolationForest = new IsolationForest(100, 256, 0.01);
+    this.isolationForest.fit(normalData);
+
+    // Train autoencoder to reconstruct normal feature vectors
     const inputTensor = tf.tensor2d(normalData);
 
     try {
@@ -103,18 +109,18 @@ export class AnomalyDetectionModel extends BaseModel {
   }
 
   /**
-   * Detect anomalies in data
+   * Detect anomalies in multi-dimensional feature data
    */
-  public async detectAnomalies(data: number[]): Promise<AnomalyResult[]> {
+  public async detectAnomalies(featureData: number[][]): Promise<AnomalyResult[]> {
     if (!this.isTrained || !this.statisticalBaseline) {
       throw new Error('Model must be trained before detecting anomalies');
     }
 
     const results: AnomalyResult[] = [];
 
-    for (let i = 0; i < data.length; i++) {
-      const value = data[i];
-      const result = await this.isAnomaly(value, data, i);
+    for (let i = 0; i < featureData.length; i++) {
+      const features = featureData[i];
+      const result = await this.isAnomalyFromFeatures(features, i);
       
       if (result.isAnomaly) {
         results.push(result);
@@ -125,28 +131,75 @@ export class AnomalyDetectionModel extends BaseModel {
   }
 
   /**
-   * Check if a single value is anomalous
+   * Train on time series data (automatically extracts features)
    */
-  private async isAnomaly(
-    value: number,
-    context: number[],
+  public async trainOnTimeSeriesData(data: number[]): Promise<void> {
+    const featureVectors: number[][] = [];
+
+    for (let i = 10; i < data.length; i++) {
+      const features = this.extractFeatures(data[i], data, i);
+      featureVectors.push(features);
+    }
+
+    await this.trainOnNormalData(featureVectors);
+  }
+
+  /**
+   * Detect anomalies in single-dimensional time series data
+   * Automatically extracts features from temporal context
+   */
+  public async detectTimeSeriesAnomalies(data: number[]): Promise<AnomalyResult[]> {
+    if (!this.isTrained || !this.statisticalBaseline) {
+      throw new Error('Model must be trained before detecting anomalies');
+    }
+
+    const results: AnomalyResult[] = [];
+
+    for (let i = 10; i < data.length; i++) {
+      const features = this.extractFeatures(data[i], data, i);
+      const result = await this.isAnomalyFromFeatures(features, i);
+      
+      if (result.isAnomaly) {
+        results.push(result);
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Check if features represent an anomaly
+   */
+  private async isAnomalyFromFeatures(
+    features: number[],
     index: number
   ): Promise<AnomalyResult> {
     if (!this.statisticalBaseline) {
       throw new Error('Statistical baseline not calculated');
     }
 
-    // Statistical detection (Z-score)
-    const { mean, std } = this.statisticalBaseline;
-    const zScore = Math.abs((value - mean) / (std || 1));
+    // Compute overall feature statistics for Z-score
+    const featureMean = features.reduce((sum, val) => sum + val, 0) / features.length;
+    const featureStd = Math.sqrt(
+      features.reduce((sum, val) => sum + Math.pow(val - featureMean, 2), 0) / features.length
+    );
+    const zScore = Math.abs((featureMean - this.statisticalBaseline.mean) / (this.statisticalBaseline.std || 1));
     const isStatisticalAnomaly = zScore > 3;
 
-    // Neural network detection (if we have enough context)
+    // Isolation Forest detection (operates on same feature vector)
+    let isIsolationAnomaly = false;
+    let isolationScore = 0;
+    
+    if (this.isolationForest) {
+      isIsolationAnomaly = this.isolationForest.predict(features);
+      isolationScore = this.isolationForest.anomalyScore(features);
+    }
+
+    // Neural network detection (operates on same feature vector)
     let isNeuralAnomaly = false;
     let reconstructionError = 0;
 
-    if (context.length >= 10 && this.model) {
-      const features = this.extractFeatures(value, context, index);
+    if (this.model) {
       const inputTensor = tf.tensor2d([features]);
 
       try {
@@ -159,20 +212,24 @@ export class AnomalyDetectionModel extends BaseModel {
       }
     }
 
-    // Combine both methods
-    const isAnomaly = isStatisticalAnomaly || isNeuralAnomaly;
+    // Combine all three methods (voting ensemble)
+    const isAnomaly = isStatisticalAnomaly || isIsolationAnomaly || isNeuralAnomaly;
 
-    // Calculate severity
+    // Calculate severity (consider all detection methods)
     let severity: 'low' | 'medium' | 'high' = 'low';
-    if (zScore > 5 || reconstructionError > this.reconstructionThreshold * 2) {
+    const highSeverity = zScore > 5 || reconstructionError > this.reconstructionThreshold * 2 || isolationScore > 0.8;
+    const mediumSeverity = zScore > 4 || reconstructionError > this.reconstructionThreshold * 1.5 || isolationScore > 0.6;
+    
+    if (highSeverity) {
       severity = 'high';
-    } else if (zScore > 4 || reconstructionError > this.reconstructionThreshold * 1.5) {
+    } else if (mediumSeverity) {
       severity = 'medium';
     }
 
-    // Determine anomaly type
-    const isSpike = value > mean + 3 * std;
-    const isDrop = value < mean - 3 * std;
+    const value = features[0];
+    const { mean } = this.statisticalBaseline;
+    const isSpike = value > mean + 3 * featureStd;
+    const isDrop = value < mean - 3 * featureStd;
 
     let description = '';
     if (isSpike) {
@@ -185,7 +242,7 @@ export class AnomalyDetectionModel extends BaseModel {
 
     return {
       isAnomaly,
-      score: Math.max(zScore / 5, reconstructionError / this.reconstructionThreshold),
+      score: Math.max(zScore / 5, reconstructionError / this.reconstructionThreshold, isolationScore),
       severity,
       expectedValue: mean,
       actualValue: value,
