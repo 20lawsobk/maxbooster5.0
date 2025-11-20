@@ -34,7 +34,11 @@
     "prepare": "husky",
     "test:marketplace": "tsx test-marketplace.ts",
     "test:studio": "tsx test-studio.ts",
-    "test:distribution": "tsx test-distribution.ts"
+    "test:distribution": "tsx test-distribution.ts",
+    "test:chaos": "tsx tests/chaos/worker-crash-test.ts",
+    "monitor:queue": "curl http://localhost:5000/api/monitoring/queue-metrics | jq",
+    "monitor:ai": "curl http://localhost:5000/api/monitoring/ai-models | jq",
+    "monitor:health": "curl http://localhost:5000/api/monitoring/system-health | jq"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.927.0",

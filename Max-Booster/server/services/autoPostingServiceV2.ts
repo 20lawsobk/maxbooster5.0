@@ -2,6 +2,7 @@ import { Queue, Worker, QueueEvents } from 'bullmq';
 import { storage } from '../storage.js';
 import { logger } from '../logger.js';
 import { getRedisClient } from '../lib/redisConnectionFactory.js';
+import { queueMonitor } from '../monitoring/queueMonitor.js';
 import axios from 'axios';
 import type { User } from '../../shared/schema.js';
 
@@ -97,6 +98,10 @@ class AutoPostingServiceV2 {
 
     // Reload pending jobs from database
     await this.reloadPendingJobs();
+
+    // Register queue for monitoring
+    queueMonitor.registerQueue('scheduled-posts', this.postQueue);
+    queueMonitor.startMonitoring();
 
     this.isInitialized = true;
     logger.info('✅ Auto-posting service initialized with BullMQ (production-ready)');

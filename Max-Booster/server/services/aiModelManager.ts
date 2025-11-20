@@ -2,6 +2,7 @@ import { storage } from '../storage.js';
 import { logger } from '../logger.js';
 import { SocialMediaAutopilotAI } from '../../shared/ml/models/SocialMediaAutopilotAI.js';
 import { AdvertisingAutopilotAI_v3 } from '../../shared/ml/models/AdvertisingAutopilotAI_v3.js';
+import { aiModelTelemetry } from '../monitoring/aiModelTelemetry.js';
 
 /**
  * AI Model Manager
@@ -45,11 +46,23 @@ class AIModelManager {
    * CRITICAL: Per-user isolation prevents cross-tenant data leakage
    */
   async getSocialAutopilot(userId: string): Promise<SocialMediaAutopilotAI> {
+    const startTime = Date.now();
+    
     // Check cache first
     const cached = this.socialModels.get(userId);
     if (cached) {
       cached.lastAccessed = new Date();
       logger.debug(`Using cached Social AI model for user ${userId}`);
+      
+      // Record cache hit
+      aiModelTelemetry.recordModelLoad({
+        userId,
+        modelType: 'social',
+        loadTimeMs: Date.now() - startTime,
+        cacheHit: true,
+        timestamp: new Date(),
+      });
+      
       return cached.model;
     }
 
@@ -86,6 +99,15 @@ class AIModelManager {
     // Add to cache
     this.addToSocialCache(userId, model, !!persistedModel);
 
+    // Record cache miss and model load
+    aiModelTelemetry.recordModelLoad({
+      userId,
+      modelType: 'social',
+      loadTimeMs: Date.now() - startTime,
+      cacheHit: false,
+      timestamp: new Date(),
+    });
+
     return model;
   }
 
@@ -94,11 +116,23 @@ class AIModelManager {
    * CRITICAL: Per-user isolation prevents cross-tenant data leakage
    */
   async getAdvertisingAutopilot(userId: string): Promise<AdvertisingAutopilotAI_v3> {
+    const startTime = Date.now();
+    
     // Check cache first
     const cached = this.advertisingModels.get(userId);
     if (cached) {
       cached.lastAccessed = new Date();
       logger.debug(`Using cached Advertising AI model for user ${userId}`);
+      
+      // Record cache hit
+      aiModelTelemetry.recordModelLoad({
+        userId,
+        modelType: 'advertising',
+        loadTimeMs: Date.now() - startTime,
+        cacheHit: true,
+        timestamp: new Date(),
+      });
+      
       return cached.model;
     }
 
@@ -134,6 +168,15 @@ class AIModelManager {
 
     // Add to cache
     this.addToAdvertisingCache(userId, model, !!persistedModel);
+
+    // Record cache miss and model load
+    aiModelTelemetry.recordModelLoad({
+      userId,
+      modelType: 'advertising',
+      loadTimeMs: Date.now() - startTime,
+      cacheHit: false,
+      timestamp: new Date(),
+    });
 
     return model;
   }
@@ -222,9 +265,19 @@ class AIModelManager {
       }
     }
 
-    if (oldestKey) {
+    if (oldestKey && oldestEntry) {
+      const idleTimeMs = Date.now() - oldestEntry.lastAccessed.getTime();
       this.socialModels.delete(oldestKey);
       logger.debug(`Evicted Social AI model for user ${oldestKey} (LRU)`);
+      
+      // Record eviction telemetry
+      aiModelTelemetry.recordModelEviction({
+        userId: oldestKey,
+        modelType: 'social',
+        reason: 'lru',
+        idleTimeMs,
+        timestamp: new Date(),
+      });
     }
   }
 
@@ -242,9 +295,19 @@ class AIModelManager {
       }
     }
 
-    if (oldestKey) {
+    if (oldestKey && oldestEntry) {
+      const idleTimeMs = Date.now() - oldestEntry.lastAccessed.getTime();
       this.advertisingModels.delete(oldestKey);
       logger.debug(`Evicted Advertising AI model for user ${oldestKey} (LRU)`);
+      
+      // Record eviction telemetry
+      aiModelTelemetry.recordModelEviction({
+        userId: oldestKey,
+        modelType: 'advertising',
+        reason: 'lru',
+        idleTimeMs,
+        timestamp: new Date(),
+      });
     }
   }
 
@@ -260,16 +323,36 @@ class AIModelManager {
       // Evict stale social models
       for (const [key, entry] of this.socialModels.entries()) {
         if (entry.lastAccessed < thirtyMinutesAgo) {
+          const idleTimeMs = now.getTime() - entry.lastAccessed.getTime();
           this.socialModels.delete(key);
           logger.debug(`Evicted stale Social AI model for user ${key}`);
+          
+          // Record telemetry
+          aiModelTelemetry.recordModelEviction({
+            userId: key,
+            modelType: 'social',
+            reason: 'timeout',
+            idleTimeMs,
+            timestamp: new Date(),
+          });
         }
       }
 
       // Evict stale advertising models
       for (const [key, entry] of this.advertisingModels.entries()) {
         if (entry.lastAccessed < thirtyMinutesAgo) {
+          const idleTimeMs = now.getTime() - entry.lastAccessed.getTime();
           this.advertisingModels.delete(key);
           logger.debug(`Evicted stale Advertising AI model for user ${key}`);
+          
+          // Record telemetry
+          aiModelTelemetry.recordModelEviction({
+            userId: key,
+            modelType: 'advertising',
+            reason: 'timeout',
+            idleTimeMs,
+            timestamp: new Date(),
+          });
         }
       }
     }, 10 * 60 * 1000); // Run every 10 minutes
@@ -333,6 +416,25 @@ class AIModelManager {
     }
     this.clearCache();
     logger.info('✅ AI Model Manager shut down gracefully');
+  }
+
+  /**
+   * Get current cache metrics for monitoring
+   */
+  getMetrics() {
+    return aiModelTelemetry.captureMetrics(
+      this.socialModels,
+      this.advertisingModels,
+      this.MAX_SOCIAL_MODELS,
+      this.MAX_ADVERTISING_MODELS
+    );
+  }
+
+  /**
+   * Get telemetry summary for health checks
+   */
+  getTelemetrySummary() {
+    return aiModelTelemetry.getSummary();
   }
 }
 
