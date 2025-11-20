@@ -10,6 +10,8 @@ interface StripeVerificationResult {
     createPaymentIntent: boolean;
     listProducts: boolean;
     webhookEndpoint: boolean;
+    createSubscription: boolean;
+    createInvoice: boolean;
   };
   error?: string;
 }
@@ -29,6 +31,8 @@ class StripeVerificationService {
         createPaymentIntent: false,
         listProducts: false,
         webhookEndpoint: false,
+        createSubscription: false,
+        createInvoice: false,
       },
     };
 
@@ -103,6 +107,101 @@ class StripeVerificationService {
       logger.error('   ❌ FAIL:', error instanceof Error ? error.message : 'Unknown error');
     }
 
+    try {
+      logger.info('Testing: Subscription capability (revenue-critical)...');
+      
+      const testCustomer = await this.stripe.customers.create({
+        email: `subscription-test-${Date.now()}@maxbooster-verification.com`,
+        metadata: { test: 'subscription-verification' },
+      });
+
+      const recurringPrices = await this.stripe.prices.list({ 
+        type: 'recurring',
+        limit: 1 
+      });
+      
+      let testPriceId: string | undefined = recurringPrices.data[0]?.id;
+
+      if (!testPriceId) {
+        const testProduct = await this.stripe.products.create({
+          name: 'Verification Test Product',
+          metadata: { test: 'verification' },
+        });
+
+        const testPrice = await this.stripe.prices.create({
+          product: testProduct.id,
+          unit_amount: 999,
+          currency: 'usd',
+          recurring: { interval: 'month' },
+          metadata: { test: 'verification' },
+        });
+
+        testPriceId = testPrice.id;
+      }
+
+      const subscription = await this.stripe.subscriptions.create({
+        customer: testCustomer.id,
+        items: [{ price: testPriceId }],
+        payment_behavior: 'default_incomplete',
+        metadata: { test: 'verification' },
+      });
+
+      if (subscription.id) {
+        result.capabilities.createSubscription = true;
+        logger.info('   ✅ PASS - Subscription created:', subscription.id);
+
+        await this.stripe.subscriptions.cancel(subscription.id);
+        logger.info('   🧹 Cleanup - Test subscription cancelled');
+      }
+
+      await this.stripe.customers.del(testCustomer.id);
+      logger.info('   🧹 Cleanup - Test customer deleted\n');
+    } catch (error) {
+      logger.error('   ❌ FAIL:', error instanceof Error ? error.message : 'Unknown error');
+    }
+
+    try {
+      logger.info('Testing: Invoice capability (revenue-critical)...');
+      
+      const testCustomer = await this.stripe.customers.create({
+        email: `invoice-test-${Date.now()}@maxbooster-verification.com`,
+        metadata: { test: 'invoice-verification' },
+      });
+
+      const invoiceItem = await this.stripe.invoiceItems.create({
+        customer: testCustomer.id,
+        amount: 1500,
+        currency: 'usd',
+        description: 'Verification test invoice item',
+      });
+
+      const invoice = await this.stripe.invoices.create({
+        customer: testCustomer.id,
+        auto_advance: false,
+        metadata: { test: 'verification' },
+      });
+
+      if (invoice.id) {
+        result.capabilities.createInvoice = true;
+        logger.info('   ✅ PASS - Invoice created:', invoice.id);
+
+        try {
+          const finalizedInvoice = await this.stripe.invoices.finalizeInvoice(invoice.id);
+          if (finalizedInvoice.status === 'open') {
+            await this.stripe.invoices.voidInvoice(finalizedInvoice.id);
+            logger.info('   🧹 Cleanup - Test invoice finalized and voided');
+          }
+        } catch (cleanupError) {
+          logger.info('   🧹 Cleanup - Invoice created successfully (finalization skipped)');
+        }
+      }
+
+      await this.stripe.customers.del(testCustomer.id);
+      logger.info('   🧹 Cleanup - Test customer deleted\n');
+    } catch (error) {
+      logger.error('   ❌ FAIL:', error instanceof Error ? error.message : 'Unknown error');
+    }
+
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     if (webhookSecret && webhookSecret.startsWith('whsec_')) {
       result.capabilities.webhookEndpoint = true;
@@ -115,7 +214,9 @@ class StripeVerificationService {
     result.verified =
       result.capabilities.createCustomer &&
       result.capabilities.createPaymentIntent &&
-      result.capabilities.listProducts;
+      result.capabilities.listProducts &&
+      result.capabilities.createSubscription &&
+      result.capabilities.createInvoice;
   }
 
   private printReport(result: StripeVerificationResult): void {
@@ -131,6 +232,8 @@ class StripeVerificationService {
     console.log(`  Create Customer:       ${result.capabilities.createCustomer ? '✅' : '❌'}`);
     console.log(`  Create Payment:        ${result.capabilities.createPaymentIntent ? '✅' : '❌'}`);
     console.log(`  List Products:         ${result.capabilities.listProducts ? '✅' : '❌'}`);
+    console.log(`  Create Subscription:   ${result.capabilities.createSubscription ? '✅' : '❌'} (revenue-critical)`);
+    console.log(`  Create Invoice:        ${result.capabilities.createInvoice ? '✅' : '❌'} (revenue-critical)`);
     console.log(
       `  Webhook Endpoint:      ${result.capabilities.webhookEndpoint ? '✅' : '⚠️  (Optional)'}\n`
     );

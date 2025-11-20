@@ -17,7 +17,7 @@ async function initializeLabelGridProvider() {
 
     const providerData = {
       name: 'LabelGrid',
-      code: 'labelgrid',
+      slug: 'labelgrid',
       apiBase: process.env.LABELGRID_API_URL || 'https://api.labelgrid.com',
       authType: 'api_key' as const,
       supportedFormats: ['flac', 'wav', 'mp3'],
@@ -40,8 +40,8 @@ async function initializeLabelGridProvider() {
     logger.info(`   Provider ID: ${provider.id}`);
     logger.info(`   Name: ${provider.name}`);
     logger.info(`   Base URL: ${provider.apiBase}`);
-    logger.info(`   Supported Formats: ${provider.supportedFormats.join(', ')}`);
-    logger.info(`   Turnaround: ${provider.turnaroundDays} days\n`);
+    logger.info(`   Supported Formats: ${Array.isArray(provider.supportedFormats) ? provider.supportedFormats.join(', ') : 'flac, wav, mp3'}`);
+    logger.info(`   Turnaround: ${provider.turnaroundDays || 3} days\n`);
 
     logger.info('═'.repeat(70));
     logger.info('           LABELGRID PROVIDER INITIALIZED');
