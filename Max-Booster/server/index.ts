@@ -35,6 +35,8 @@ import { SelfHealingSecuritySystem } from './security-system';
 import { config, validateConfig, logConfig } from './config/defaults.js';
 import { metricsMiddleware, getHealthStatus } from './monitoring.js';
 import { setupSwagger } from './swagger.js';
+import { autoPostingServiceV2 } from './services/autoPostingServiceV2.js';
+import { aiModelManager } from './services/aiModelManager.js';
 
 // IMPORTANT: Warn if --expose-gc flag is missing (recommended for 24/7 reliability)
 if (process.env.NODE_ENV === 'production' && typeof (global as any).gc !== 'function') {
@@ -251,6 +253,13 @@ app.use((req, res, next) => {
 
   // Initialize 24/7/365 Reliability System
   await initializeMaxBooster247();
+
+  // PRODUCTION FIX: Initialize Auto-Posting Service V2 (Redis-backed, durable queue)
+  await autoPostingServiceV2.initialize();
+  logger.info('✅ Auto-posting service V2 initialized (production-ready)');
+
+  // Initialize AI Model Manager (per-user isolation)
+  logger.info('✅ AI Model Manager initialized (per-user isolation enabled)');
 
   // Initialize Analytics Anomaly Detection Job (every 5 minutes)
   const { analyticsAnomalyService } = await import('./services/analyticsAnomalyService.js');

@@ -2484,6 +2484,23 @@ export const approvalHistory = pgTable(
   })
 );
 
+// User-trained AI models (per-user isolation to prevent cross-tenant data leakage)
+export const userAIModels = pgTable(
+  'user_ai_models',
+  {
+    id: varchar('id', { length: 255 }).primaryKey(),
+    userId: varchar('user_id', { length: 255 }).notNull(),
+    modelType: varchar('model_type', { length: 100 }).notNull(), // 'social_autopilot' | 'advertising_autopilot'
+    weights: jsonb('weights').notNull(), // Serialized model weights/state
+    trainedAt: timestamp('trained_at').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userModelTypeIdx: index('user_ai_models_user_model_type_idx').on(table.userId, table.modelType),
+  })
+);
+
 // Auto-Posting Scheduled Posts - AI Autopilot Auto-Posting
 export const scheduledPosts = pgTable(
   'scheduled_posts',

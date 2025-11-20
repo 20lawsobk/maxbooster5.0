@@ -38,6 +38,7 @@ import {
   socialCampaigns,
   posts,
   scheduledPosts,
+  userAIModels,
   socialMetrics,
   payouts,
   listings,
@@ -8658,24 +8659,33 @@ export class DatabaseStorage implements IStorage {
     }, 'createScheduledPost');
   }
 
-  async getScheduledPosts(userId: string): Promise<any[]> {
+  async getScheduledPosts(filter?: { userId?: string; status?: string }): Promise<any[]> {
     return databaseResilience.executeWithRetry(async () => {
-      const posts = await db
-        .select()
-        .from(scheduledPosts)
-        .where(eq(scheduledPosts.userId, userId))
-        .orderBy(desc(scheduledPosts.scheduledTime));
+      let query = db.select().from(scheduledPosts);
+      
+      if (filter?.userId) {
+        query = query.where(eq(scheduledPosts.userId, filter.userId)) as any;
+      }
+      if (filter?.status) {
+        query = query.where(eq(scheduledPosts.status, filter.status)) as any;
+      }
+      
+      const posts = await query.orderBy(desc(scheduledPosts.scheduledTime));
       return posts;
     }, 'getScheduledPosts');
   }
 
-  async updateScheduledPostStatus(postId: string, status: string, results?: any): Promise<void> {
+  async updateScheduledPost(postId: string, updates: { status?: string; results?: any }): Promise<void> {
     return databaseResilience.executeWithRetry(async () => {
       await db
         .update(scheduledPosts)
-        .set({ status, results, updatedAt: new Date() })
+        .set({ ...updates, updatedAt: new Date() })
         .where(eq(scheduledPosts.id, postId));
-    }, 'updateScheduledPostStatus');
+    }, 'updateScheduledPost');
+  }
+
+  async updateScheduledPostStatus(postId: string, status: string, results?: any): Promise<void> {
+    return this.updateScheduledPost(postId, { status, results });
   }
 
   async getOrganicCampaigns(userId: string): Promise<any[]> {
@@ -8809,6 +8819,44 @@ export class DatabaseStorage implements IStorage {
         hasCallToAction: !!(post.content?.callToAction),
       }));
     }, 'getUserSocialPosts');
+  }
+
+  async saveAIModel(data: {
+    userId: string;
+    modelType: string;
+    weights: any;
+    trainedAt: Date;
+  }): Promise<void> {
+    return databaseResilience.executeWithRetry(async () => {
+      const modelId = `aimodel_${data.userId}_${data.modelType}_${Date.now()}`;
+      await db.insert(userAIModels).values({
+        id: modelId,
+        userId: data.userId,
+        modelType: data.modelType,
+        weights: data.weights,
+        trainedAt: data.trainedAt,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }, 'saveAIModel');
+  }
+
+  async getAIModel(userId: string, modelType: string): Promise<any | null> {
+    return databaseResilience.executeWithRetry(async () => {
+      const models = await db
+        .select()
+        .from(userAIModels)
+        .where(
+          and(
+            eq(userAIModels.userId, userId),
+            eq(userAIModels.modelType, modelType)
+          )
+        )
+        .orderBy(desc(userAIModels.trainedAt))
+        .limit(1);
+
+      return models.length > 0 ? models[0] : null;
+    }, 'getAIModel');
   }
 }
 

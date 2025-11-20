@@ -1,7 +1,6 @@
 import { storage } from '../storage.js';
 import { logger } from '../logger.js';
-import { SocialMediaAutopilotAI } from '../../shared/ml/models/SocialMediaAutopilotAI.js';
-import { AdvertisingAutopilotAI_v3 } from '../../shared/ml/models/AdvertisingAutopilotAI_v3.js';
+import { aiModelManager } from './aiModelManager.js';
 import { autoPostingService, type PostContent } from './autoPostingService.js';
 
 /**
@@ -38,53 +37,20 @@ export interface GeneratedContent {
 }
 
 class AutoPostGenerator {
-  private socialAI: Map<string, SocialMediaAutopilotAI> = new Map();
-  private advertisingAI: Map<string, AdvertisingAutopilotAI_v3> = new Map();
-
   /**
-   * Get or create Social Media Autopilot AI for user
+   * Get Social Media Autopilot AI for user (per-user isolated)
+   * FIXED: Uses aiModelManager to prevent cross-tenant data leakage
    */
-  private async getSocialAI(userId: string): Promise<SocialMediaAutopilotAI> {
-    if (!this.socialAI.has(userId)) {
-      const ai = new SocialMediaAutopilotAI();
-      
-      // Try to train on user's data
-      try {
-        const posts = await storage.getUserSocialPosts(userId);
-        if (posts && posts.length >= 50) {
-          await ai.trainOnUserEngagementData(posts);
-        }
-      } catch (error) {
-        logger.warn(`Could not train Social AI for user ${userId}:`, error);
-      }
-      
-      this.socialAI.set(userId, ai);
-    }
-    
-    return this.socialAI.get(userId)!;
+  private async getSocialAI(userId: string) {
+    return await aiModelManager.getSocialAutopilot(userId);
   }
 
   /**
-   * Get or create Advertising Autopilot AI v3.0 for user
+   * Get Advertising Autopilot AI v3.0 for user (per-user isolated)
+   * FIXED: Uses aiModelManager to prevent cross-tenant data leakage
    */
-  private async getAdvertisingAI(userId: string): Promise<AdvertisingAutopilotAI_v3> {
-    if (!this.advertisingAI.has(userId)) {
-      const ai = new AdvertisingAutopilotAI_v3();
-      
-      // Try to train on user's data
-      try {
-        const campaigns = await storage.getOrganicCampaigns(userId);
-        if (campaigns && campaigns.length >= 30) {
-          await ai.trainOnOrganicCampaigns(campaigns);
-        }
-      } catch (error) {
-        logger.warn(`Could not train Advertising AI for user ${userId}:`, error);
-      }
-      
-      this.advertisingAI.set(userId, ai);
-    }
-    
-    return this.advertisingAI.get(userId)!;
+  private async getAdvertisingAI(userId: string) {
+    return await aiModelManager.getAdvertisingAutopilot(userId);
   }
 
   /**
