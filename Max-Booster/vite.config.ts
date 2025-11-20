@@ -71,7 +71,8 @@ export default defineConfig({
       protocol: 'wss',
       host:
         process.env.REPLIT_DEV_DOMAIN ||
-        (process.env.REPLIT_DOMAINS ? process.env.REPLIT_DOMAINS.split(',')[0] : undefined),
+        (process.env.REPLIT_DOMAINS ? process.env.REPLIT_DOMAINS.split(',')[0] : 'localhost'),
+      port: process.env.REPLIT_DOMAINS ? 443 : 5000,
       clientPort: 443,
     },
     fs: {
