@@ -52,23 +52,43 @@ class BurnInTest {
     this.featureValidators = new FeatureValidators();
   }
 
-  async makeRequest(url: string, description: string): Promise<boolean> {
+  async makeRequest(url: string, description: string, retries = 3): Promise<boolean> {
     this.metrics.totalRequests++;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+    
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const response = await fetch(url);
+        
+        if (response.status === 429) {
+          if (attempt < retries) {
+            const retryAfter = response.headers.get('retry-after');
+            const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
+            logger.warn(`⏳ Rate limited on ${description}, retrying in ${waitMs}ms (attempt ${attempt + 1}/${retries})`);
+            await new Promise(resolve => setTimeout(resolve, waitMs));
+            continue;
+          }
+          throw new Error(`HTTP 429 (Rate Limited after ${retries} retries)`);
+        }
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        this.metrics.successfulRequests++;
+        logger.info(`✅ Burn-in test: ${description} - OK`);
+        return true;
+      } catch (error) {
+        if (attempt === retries) {
+          this.metrics.failedRequests++;
+          const errorMsg = `${description}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          this.metrics.errors.push({ timestamp: new Date(), error: errorMsg });
+          logger.error(`❌ Burn-in test: ${errorMsg}`);
+          return false;
+        }
       }
-      this.metrics.successfulRequests++;
-      logger.info(`✅ Burn-in test: ${description} - OK`);
-      return true;
-    } catch (error) {
-      this.metrics.failedRequests++;
-      const errorMsg = `${description}: ${error instanceof Error ? error.message : 'Unknown error'}`;
-      this.metrics.errors.push({ timestamp: new Date(), error: errorMsg });
-      logger.error(`❌ Burn-in test: ${errorMsg}`);
-      return false;
     }
+    
+    return false;
   }
 
   async checkQueueHealth(): Promise<void> {
