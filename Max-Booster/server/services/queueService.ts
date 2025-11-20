@@ -14,6 +14,7 @@ import { Queue, Worker, Job, QueueEvents } from 'bullmq';
 import { config } from '../config/defaults.js';
 import { Redis } from 'ioredis';
 import { logger } from '../logger.js';
+import { queueBackpressure } from './queueBackpressure.js';
 
 const isDevelopment = config.nodeEnv === 'development';
 let hasLoggedWarning = false;
@@ -176,7 +177,16 @@ class QueueService {
       },
     });
 
-    logger.info('📋 Job queues initialized');
+    // Register queues with backpressure manager for memory protection
+    queueBackpressure.registerQueue('audio', this.audioQueue);
+    queueBackpressure.registerQueue('csv', this.csvQueue);
+    queueBackpressure.registerQueue('analytics', this.analyticsQueue);
+    queueBackpressure.registerQueue('email', this.emailQueue);
+
+    // Start backpressure monitoring (pauses queues if memory > 1200MB or queue > 1000 jobs)
+    queueBackpressure.start();
+
+    logger.info('📋 Job queues initialized with backpressure protection');
   }
 
   /**

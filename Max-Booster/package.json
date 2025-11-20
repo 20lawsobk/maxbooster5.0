@@ -45,7 +45,9 @@
     "monitor:dashboard": "curl http://localhost:5000/api/monitoring/dashboard | jq",
     "deploy:checklist": "tsx scripts/pre-deployment-checklist.ts",
     "deploy:verify-backups": "tsx scripts/verify-backups.ts",
-    "deploy:runbook": "tsx scripts/deployment-runbook.ts"
+    "deploy:runbook": "tsx scripts/deployment-runbook.ts",
+    "test:stripe": "tsx tests/integration/stripe-verification.ts",
+    "init:labelgrid": "tsx scripts/init-labelgrid-provider.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.927.0",
