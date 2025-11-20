@@ -16,12 +16,13 @@ export const globalRateLimiter = rateLimit({
   legacyHeaders: false,
   skip: (req: Request) => {
     const isDevelopment = process.env.NODE_ENV === 'development';
-    const isLocalhost = req.ip === '127.0.0.1' || req.ip === '::1' || req.ip?.startsWith('10.82.');
+    const isLocalhost = req.ip === '127.0.0.1' || req.ip === '::1' || req.ip?.startsWith('10.82.') || req.ip?.startsWith('10.81.');
+    const isMonitoringEndpoint = req.path.startsWith('/api/monitoring/') || req.path.startsWith('/api/system/');
     const isStaticAsset =
       req.path.startsWith('/@fs/') ||
       req.path.startsWith('/src/') ||
       req.path.startsWith('/node_modules/');
-    return (isDevelopment && isLocalhost) || isStaticAsset;
+    return (isDevelopment && (isLocalhost || isMonitoringEndpoint)) || isStaticAsset;
   },
   handler: (req: Request, res: Response) => {
     logger.warn(`⚠️ Rate limit exceeded for IP: ${req.ip}`);
