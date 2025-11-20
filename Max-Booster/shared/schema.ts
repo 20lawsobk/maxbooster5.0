@@ -2484,6 +2484,30 @@ export const approvalHistory = pgTable(
   })
 );
 
+// Auto-Posting Scheduled Posts - AI Autopilot Auto-Posting
+export const scheduledPosts = pgTable(
+  'scheduled_posts',
+  {
+    id: varchar('id', { length: 255 }).primaryKey(),
+    userId: varchar('user_id', { length: 255 }).notNull(),
+    platforms: jsonb('platforms').notNull(), // Array of platforms
+    content: jsonb('content').notNull(), // PostContent object
+    scheduledTime: timestamp('scheduled_time').notNull(),
+    status: varchar('status', { length: 50 }).notNull().default('pending'), // pending, posting, completed, failed
+    results: jsonb('results'), // Array of PostResult
+    createdBy: varchar('created_by', { length: 50 }).notNull().default('manual'), // social_autopilot, advertising_autopilot, manual
+    viralPrediction: jsonb('viral_prediction'), // Viral prediction data from AI v3.0
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index('scheduled_posts_user_id_idx').on(table.userId),
+    statusIdx: index('scheduled_posts_status_idx').on(table.status),
+    scheduledTimeIdx: index('scheduled_posts_scheduled_time_idx').on(table.scheduledTime),
+    createdByIdx: index('scheduled_posts_created_by_idx').on(table.createdBy),
+  })
+);
+
 // Social Metrics
 export const socialMetrics = pgTable('social_metrics', {
   id: uuid('id')
@@ -6769,6 +6793,15 @@ export const insertPersonalNetworkImpactSchema = createInsertSchema(personalNetw
   createdAt: true,
 });
 export type InsertPersonalNetworkImpact = z.infer<typeof insertPersonalNetworkImpactSchema>;
+
+// Auto-Posting Types
+export type ScheduledPost = typeof scheduledPosts.$inferSelect;
+export const insertScheduledPostSchema = createInsertSchema(scheduledPosts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertScheduledPost = z.infer<typeof insertScheduledPostSchema>;
 
 // Social Amplification Professional Features Types
 export type SocialInfluencerScore = typeof socialInfluencerScores.$inferSelect;

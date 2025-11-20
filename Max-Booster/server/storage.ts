@@ -37,6 +37,7 @@ import {
   socialAccounts,
   socialCampaigns,
   posts,
+  scheduledPosts,
   socialMetrics,
   payouts,
   listings,
@@ -8635,6 +8636,179 @@ export class DatabaseStorage implements IStorage {
         recentAudits: auditStats?.recent || 0,
       };
     }, 'getComplianceOverview');
+  }
+
+  // ============================================================================
+  // AUTO-POSTING & AI AUTOPILOT METHODS
+  // ============================================================================
+
+  async createScheduledPost(post: any): Promise<void> {
+    return databaseResilience.executeWithRetry(async () => {
+      await db.insert(scheduledPosts).values({
+        id: post.id,
+        userId: post.userId,
+        platforms: post.platforms,
+        content: post.content,
+        scheduledTime: post.scheduledTime,
+        status: post.status,
+        results: post.results,
+        createdBy: post.createdBy,
+        viralPrediction: post.viralPrediction,
+      });
+    }, 'createScheduledPost');
+  }
+
+  async getScheduledPosts(userId: string): Promise<any[]> {
+    return databaseResilience.executeWithRetry(async () => {
+      const posts = await db
+        .select()
+        .from(scheduledPosts)
+        .where(eq(scheduledPosts.userId, userId))
+        .orderBy(desc(scheduledPosts.scheduledTime));
+      return posts;
+    }, 'getScheduledPosts');
+  }
+
+  async updateScheduledPostStatus(postId: string, status: string, results?: any): Promise<void> {
+    return databaseResilience.executeWithRetry(async () => {
+      await db
+        .update(scheduledPosts)
+        .set({ status, results, updatedAt: new Date() })
+        .where(eq(scheduledPosts.id, postId));
+    }, 'updateScheduledPostStatus');
+  }
+
+  async getOrganicCampaigns(userId: string): Promise<any[]> {
+    return databaseResilience.executeWithRetry(async () => {
+      // Get user's social media posts that can be used as organic campaign training data
+      const userPosts = await db
+        .select()
+        .from(posts)
+        .where(eq(posts.userId, userId))
+        .orderBy(desc(posts.createdAt))
+        .limit(100);
+
+      // Transform posts into OrganicCampaign format for AI training
+      return userPosts.map((post: any) => ({
+        campaignId: post.id,
+        platforms: [post.platform],
+        content: {
+          headline: post.content?.headline || '',
+          body: post.content?.text || post.caption || '',
+          hashtags: post.hashtags || [],
+          mentions: [],
+          mediaType: post.mediaType || 'text',
+          callToAction: post.content?.callToAction,
+        },
+        timing: {
+          publishedAt: post.publishedAt || post.createdAt,
+          hourOfDay: new Date(post.publishedAt || post.createdAt).getHours(),
+          dayOfWeek: new Date(post.publishedAt || post.createdAt).getDay(),
+          isOptimalTime: true,
+        },
+        performance: {
+          impressions: post.impressions || 0,
+          reach: post.reach || 0,
+          organicReach: post.reach || 0,
+          clicks: post.clicks || 0,
+          engagement: (post.likes || 0) + (post.comments || 0) + (post.shares || 0),
+          likes: post.likes || 0,
+          comments: post.comments || 0,
+          shares: post.shares || 0,
+          saves: post.saves || 0,
+          conversions: post.conversions || 0,
+          engagementRate: post.engagementRate || 0.05,
+          viralCoefficient: post.shares / Math.max(post.impressions || 1, 1),
+          authenticityScore: 0.8,
+        },
+        algorithms: {
+          engagementVelocity: 100,
+          algorithmicBoost: 1.0,
+          decayRate: 0.1,
+          peakEngagementTime: 12,
+        },
+        audience: {
+          segmentIds: [],
+          demographicsReached: {},
+          influencersEngaged: [],
+          networkPropagation: 1.0,
+        },
+        objective: 'engagement',
+        wentViral: (post.shares || 0) > 100,
+      }));
+    }, 'getOrganicCampaigns');
+  }
+
+  async getSocialTokens(userId: string, platform: string): Promise<any> {
+    return databaseResilience.executeWithRetry(async () => {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId));
+
+      if (!user) return null;
+
+      const tokenField = `${platform}Token` as keyof typeof user;
+      const accessToken = user[tokenField];
+
+      if (!accessToken) return null;
+
+      return {
+        accessToken,
+        refreshToken: null,
+        expiresAt: null,
+      };
+    }, 'getSocialTokens');
+  }
+
+  async trackSocialPost(data: any): Promise<void> {
+    return databaseResilience.executeWithRetry(async () => {
+      // Track successful posts for analytics
+      for (const result of data.results) {
+        if (result.success) {
+          await db.insert(posts).values({
+            id: result.postId || `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            userId: data.userId,
+            platform: result.platform,
+            content: data.content,
+            mediaType: data.mediaType,
+            publishedAt: result.postedAt,
+            status: 'published',
+            createdBy: data.createdBy,
+          });
+        }
+      }
+    }, 'trackSocialPost');
+  }
+
+  async getUserSocialPosts(userId: string): Promise<any[]> {
+    return databaseResilience.executeWithRetry(async () => {
+      const userPosts = await db
+        .select()
+        .from(posts)
+        .where(eq(posts.userId, userId))
+        .orderBy(desc(posts.createdAt))
+        .limit(100);
+
+      // Transform to SocialPost format for AI training
+      return userPosts.map((post: any) => ({
+        postId: post.id,
+        platform: post.platform,
+        content: post.content?.text || post.caption || '',
+        mediaType: post.mediaType || 'text',
+        postedAt: post.publishedAt || post.createdAt,
+        likes: post.likes || 0,
+        comments: post.comments || 0,
+        shares: post.shares || 0,
+        reach: post.reach || 0,
+        engagement: (post.likes || 0) + (post.comments || 0) + (post.shares || 0),
+        hashtagCount: (post.hashtags || []).length,
+        mentionCount: 0,
+        emojiCount: 0,
+        contentLength: (post.content?.text || post.caption || '').length,
+        hasCallToAction: !!(post.content?.callToAction),
+      }));
+    }, 'getUserSocialPosts');
   }
 }
 

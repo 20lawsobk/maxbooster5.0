@@ -22,6 +22,7 @@ import distributionRoutes from './routes/distribution';
 import distributionApiRoutes from './api/distribution';
 import autonomousApiRoutes from './api/autonomous';
 import oauthRoutes from './api/oauth';
+import advertisingAIRoutes from './api/advertisingAI';
 import socialBulkRoutes from './routes/socialBulk';
 import socialApprovalsRoutes from './routes/socialApprovals';
 import storefrontRoutes from './routes/storefront';
@@ -655,6 +656,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Distribution and Autonomous API routes
   app.use('/api/distribution/labelgrid', distributionApiRoutes); // LabelGrid distribution routes
   app.use('/api/autonomous', autonomousApiRoutes); // Autonomous service routes
+
+  // AI Autopilot & Auto-Posting routes
+  app.use('/api/ai/advertising', advertisingAIRoutes); // Advertising AI v3.0 + Auto-posting
+  app.use('/api/auto-posting', advertisingAIRoutes); // Auto-posting service
 
   // OAuth routes for social media connections
   app.use('/api/oauth', oauthRoutes); // OAuth for social media connections
