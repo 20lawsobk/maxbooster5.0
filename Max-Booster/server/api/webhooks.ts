@@ -11,18 +11,27 @@ const router = Router();
  * Verify LabelGrid webhook signature
  */
 /**
- * TODO: Add function documentation
+ * Verify LabelGrid webhook signature with timing-safe comparison
  */
-function verifyLabelGridSignature(payload: string, signature: string): boolean {
+function verifyLabelGridSignature(payload: string, signature: string | undefined): boolean {
   const secret = process.env.LABELGRID_WEBHOOK_SECRET || '';
   if (!secret) {
     logger.warn('LabelGrid webhook secret not configured');
     return false;
   }
 
-  const expectedSignature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+  if (!signature || typeof signature !== 'string') {
+    logger.error('LabelGrid webhook signature missing or invalid');
+    return false;
+  }
 
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
+  try {
+    const expectedSignature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
+  } catch (error) {
+    logger.error('LabelGrid signature verification error:', error);
+    return false;
+  }
 }
 
 /**

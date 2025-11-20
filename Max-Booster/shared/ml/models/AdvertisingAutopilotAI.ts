@@ -82,7 +82,7 @@ export class AdvertisingAutopilotAI extends BaseModel {
       name: 'AdvertisingAutopilotAI',
       type: 'regression',
       version: '2.0.0',
-      inputShape: [15],
+      inputShape: [19],
       outputShape: [3],
     });
   }
