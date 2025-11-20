@@ -1,0 +1,54 @@
+~/workspace$ # Real-time dashboards
+npm run monitor:burn-in    # Full burn-in test dashboard
+npm run monitor:live       # Alternative full dashboard
+
+# Watch individual metrics (auto-refresh every 5s)
+npm run watch:test         # Burn-in test progress only
+npm run watch:memory       # Memory usage only
+npm run watch:queues       # Queue metrics only
+
+# One-time snapshots (no auto-refresh)
+npm run monitor:queue      # Queue snapshot
+npm run monitor:ai         # AI model snapshot
+npm run monitor:health     # System health snapshot
+npm error Missing script: "monitor:burn-in"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2025-11-20T11_40_16_115Z-debug-0.log
+npm error Missing script: "monitor:live"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2025-11-20T11_40_16_284Z-debug-0.log
+npm error Missing script: "watch:test"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2025-11-20T11_40_16_411Z-debug-0.log
+npm error Missing script: "watch:memory"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2025-11-20T11_40_16_550Z-debug-0.log
+npm error Missing script: "watch:queues"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2025-11-20T11_40_16_763Z-debug-0.log
+npm error Missing script: "monitor:queue"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2025-11-20T11_40_16_936Z-debug-0.log
+npm error Missing script: "monitor:ai"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2025-11-20T11_40_17_131Z-debug-0.log
+npm error Missing script: "monitor:health"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2025-11-20T11_40_17_302Z-debug-0.log
+~/workspace$ 
