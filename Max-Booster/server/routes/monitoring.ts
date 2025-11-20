@@ -3,6 +3,8 @@ import { logger } from '../logger.js';
 import { queueMonitor } from '../monitoring/queueMonitor.js';
 import { aiModelManager } from '../services/aiModelManager.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { alertingService } from '../monitoring/alertingService.js';
+import { metricsCollector } from '../monitoring/metricsCollector.js';
 
 const router = Router();
 
@@ -180,6 +182,113 @@ router.post(
     res.json({
       success: true,
       message: 'Alert thresholds updated successfully',
+    });
+  })
+);
+
+/**
+ * GET /api/monitoring/dashboard
+ * Get comprehensive metrics dashboard with trends and baseline data
+ */
+router.get(
+  '/dashboard',
+  asyncHandler(async (req, res) => {
+    const dashboardData = metricsCollector.getDashboardData();
+    const alertConfig = alertingService.getConfig();
+
+    res.json({
+      success: true,
+      dashboard: dashboardData,
+      alerting: {
+        emailEnabled: alertConfig.emailEnabled,
+        webhookEnabled: alertConfig.webhookEnabled,
+        thresholds: alertConfig.thresholds,
+      },
+      timestamp: new Date(),
+    });
+  })
+);
+
+/**
+ * POST /api/monitoring/baseline/save
+ * Save current metrics as baseline for comparison
+ * Requires admin access
+ */
+router.post(
+  '/baseline/save',
+  asyncHandler(async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required',
+      });
+    }
+
+    const { name } = req.body;
+    const baselineName = name || 'baseline';
+    const filepath = await metricsCollector.saveBaseline(baselineName);
+
+    logger.info('📊 Baseline metrics saved by admin', {
+      adminId: req.user.id,
+      baselineName,
+      filepath,
+    });
+
+    res.json({
+      success: true,
+      message: 'Baseline metrics saved successfully',
+      filepath,
+    });
+  })
+);
+
+/**
+ * GET /api/monitoring/alerting/config
+ * Get current alerting configuration
+ */
+router.get(
+  '/alerting/config',
+  asyncHandler(async (req, res) => {
+    const config = alertingService.getConfig();
+
+    res.json({
+      success: true,
+      config: {
+        emailEnabled: config.emailEnabled,
+        webhookEnabled: config.webhookEnabled,
+        recipientCount: config.emailRecipients.length,
+        thresholds: config.thresholds,
+      },
+    });
+  })
+);
+
+/**
+ * POST /api/monitoring/alerting/test
+ * Send test alert to verify alerting configuration
+ * Requires admin access
+ */
+router.post(
+  '/alerting/test',
+  asyncHandler(async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required',
+      });
+    }
+
+    await alertingService.sendAlert({
+      severity: 'info',
+      title: 'Test Alert',
+      message: 'This is a test alert from Max Booster monitoring system.',
+      timestamp: new Date(),
+      metadata: { testBy: req.user.email },
+    });
+
+    res.json({
+      success: true,
+      message: 'Test alert sent successfully',
     });
   })
 );

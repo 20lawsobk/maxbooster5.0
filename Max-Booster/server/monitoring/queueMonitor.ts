@@ -1,6 +1,8 @@
 import { Queue } from 'bullmq';
 import { logger } from '../logger.js';
 import { getRedisClient } from '../lib/redisConnectionFactory.js';
+import { alertingService } from './alertingService.js';
+import { metricsCollector } from './metricsCollector.js';
 
 export interface QueueMetrics {
   queueName: string;
@@ -139,7 +141,7 @@ class QueueMonitor {
     }
   }
 
-  private checkAlerts(metrics: QueueMetrics): void {
+  private async checkAlerts(metrics: QueueMetrics): Promise<void> {
     const alerts: string[] = [];
 
     if (
@@ -183,6 +185,11 @@ class QueueMonitor {
 
     if (alerts.length > 0) {
       logger.warn(`🚨 Queue alerts for ${metrics.queueName}:\n${alerts.join('\n')}`);
+      
+      // Send alerts via alerting service (async, fire and forget)
+      alertingService.checkQueueMetrics(metrics).catch((error) => {
+        logger.error('Failed to send queue alerts:', error);
+      });
     }
   }
 
@@ -232,7 +239,30 @@ class QueueMonitor {
     }
 
     this.monitoringInterval = setInterval(async () => {
-      await this.collectAllMetrics();
+      const allMetrics = await this.collectAllMetrics();
+      
+      // Collect metrics snapshot for dashboard/baseline
+      const firstQueue = allMetrics.values().next().value;
+      if (firstQueue) {
+        try {
+          // Get AI model metrics
+          const { aiModelManager } = await import('../services/aiModelManager.js');
+          const aiMetrics = aiModelManager.getMetrics();
+          
+          // Get system metrics
+          const memUsage = process.memoryUsage();
+          const systemMetrics = {
+            memoryMB: memUsage.heapUsed / 1024 / 1024,
+            uptime: process.uptime(),
+            cpuPercent: 0, // Could add cpu-usage package for this
+          };
+          
+          // Store snapshot
+          await metricsCollector.collectSnapshot(firstQueue, aiMetrics, systemMetrics);
+        } catch (error) {
+          logger.debug('Failed to collect metrics snapshot:', error);
+        }
+      }
     }, this.MONITORING_INTERVAL);
 
     logger.info(
