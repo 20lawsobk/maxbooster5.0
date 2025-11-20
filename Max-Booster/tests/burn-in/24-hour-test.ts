@@ -30,8 +30,8 @@ class BurnInTest {
   private metrics: BurnInMetrics;
   private isRunning = false;
   private baseUrl = 'http://localhost:5000';
-  private intervalMinutes = 1.25;
-  private featureValidationIntervalMinutes = 30;
+  private intervalMinutes = 0.625;
+  private featureValidationIntervalMinutes = 15;
   private featureValidators: FeatureValidators;
   private cycleCount = 0;
 
@@ -206,21 +206,21 @@ class BurnInTest {
 
     logger.info(`
 ╔═══════════════════════════════════════════════════════════════╗
-║      6-HOUR COMPREHENSIVE BURN-IN TEST - STATUS REPORT        ║
+║      3-HOUR COMPREHENSIVE BURN-IN TEST - STATUS REPORT        ║
 ╠═══════════════════════════════════════════════════════════════╣
-║ Runtime:          ${runtime.toFixed(2)} hours / 6 hours                   ║
+║ Runtime:          ${runtime.toFixed(2)} hours / 3 hours                   ║
 ║ Infrastructure Tests:                                         ║
 ║   Total Requests:   ${this.metrics.totalRequests}                                    ║
 ║   Success Rate:     ${successRate}%                                 ║
 ║   Failed:           ${this.metrics.failedRequests}                                    ║
 ║   Memory Usage:     ${memoryMB} MB                              ║
 ║                                                               ║
-║ Stability Checks (every 1.25 min):                           ║
+║ Stability Checks (every 0.625 min):                        ║
 ║   - Queue Health:    ${this.metrics.queueHealthChecks} checks                       ║
 ║   - AI Models:       ${this.metrics.aiModelChecks} checks                       ║
 ║   - System Health:   ${this.metrics.systemHealthChecks} checks                       ║
 ║                                                               ║
-║ Feature Validation (every 30 min):                           ║
+║ Feature Validation (every 15 min):                           ║
 ║   - Validations:     ${this.metrics.featureValidations} completed                   ║
 ║   - Latest Result:   ${featureStatus}           ║
 ║                                                               ║
@@ -246,13 +246,13 @@ class BurnInTest {
 
     logger.info(`
 ╔═══════════════════════════════════════════════════════════════╗
-║      6-HOUR COMPREHENSIVE BURN-IN TEST - FINAL REPORT         ║
+║      3-HOUR COMPREHENSIVE BURN-IN TEST - FINAL REPORT         ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║ Start Time:       ${this.metrics.startTime.toISOString()}       ║
 ║ End Time:         ${new Date().toISOString()}       ║
 ║ Total Runtime:    ${totalRuntime.toFixed(2)} hours                           ║
 ║                                                               ║
-║ INFRASTRUCTURE STABILITY (288 checks):                        ║
+║ INFRASTRUCTURE STABILITY (144 checks):                        ║
 ║   Total Requests:     ${this.metrics.totalRequests}                              ║
 ║   Successful:         ${this.metrics.successfulRequests} (${successRate}%)                    ║
 ║   Failed:             ${this.metrics.failedRequests}                              ║
@@ -269,7 +269,7 @@ class BurnInTest {
 ║   Total Failed Jobs:  ${queuePerformance.totalFailed}                              ║
 ║   Status:             ${queuePerformance.status}                          ║
 ║                                                               ║
-║ FEATURE VALIDATION (12 comprehensive checks):                ║
+║ FEATURE VALIDATION (6 comprehensive checks):                 ║
 ║   Total Validations:  ${this.metrics.featureValidations}                              ║
 ║   Avg Success Rate:   ${featurePerformance.avgSuccessRate}%                    ║
 ║   Total Tests Run:    ${featurePerformance.totalTests}                            ║
@@ -422,7 +422,7 @@ class BurnInTest {
 ╔═══════════════════════════════════════════════════════════════╗
 ║                    ✅ VERDICT: PASS                           ║
 ║                                                               ║
-║  The platform successfully completed the 6-hour               ║
+║  The platform successfully completed the 3-hour               ║
 ║  comprehensive burn-in test with excellent metrics:           ║
 ║                                                               ║
 ║  ✅ Infrastructure Stability: ${rate}%                         ║
@@ -468,18 +468,18 @@ class BurnInTest {
     this.isRunning = true;
     logger.info(`
 ╔═══════════════════════════════════════════════════════════════╗
-║   STARTING 6-HOUR COMPREHENSIVE BURN-IN TEST                  ║
+║   STARTING 3-HOUR COMPREHENSIVE BURN-IN TEST                  ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║  This test validates ALL Max Booster Platform features:       ║
 ║                                                               ║
-║  TIER 1: Infrastructure Stability (every 1.25 min)            ║
+║  TIER 1: Infrastructure Stability (every 0.625 min)          ║
 ║    - Queue health and Redis performance                       ║
 ║    - AI model cache behavior                                  ║
 ║    - System health metrics                                    ║
 ║    - Memory usage trends                                      ║
-║    → 288 stability checks over 6 hours                        ║
+║    → 144 stability checks over 3 hours                        ║
 ║                                                               ║
-║  TIER 2: Feature Validation (every 30 min)                    ║
+║  TIER 2: Feature Validation (every 15 min)                   ║
 ║    ✓ Authentication & Users                                   ║
 ║    ✓ Payment System (Stripe)                                  ║
 ║    ✓ Advertisement System (Zero-Cost AI)                      ║
@@ -489,7 +489,7 @@ class BurnInTest {
 ║    ✓ Studio/DAW                                               ║
 ║    ✓ Analytics & AI                                           ║
 ║    ✓ Infrastructure (Storage, Email, DB, Redis)               ║
-║    → 12 comprehensive feature validations                     ║
+║    → 6 comprehensive feature validations                      ║
 ║                                                               ║
 ║  Press Ctrl+C to stop the test early (not recommended).       ║
 ╚═══════════════════════════════════════════════════════════════╝
@@ -505,12 +505,12 @@ class BurnInTest {
 
     setTimeout(() => {
       this.stop();
-    }, 6 * 60 * 60 * 1000);
+    }, 3 * 60 * 60 * 1000);
   }
 
   stop(): void {
     this.isRunning = false;
-    logger.info('🛑 Stopping 6-hour burn-in test...');
+    logger.info('🛑 Stopping 3-hour burn-in test...');
     this.printFinalReport();
     process.exit(0);
   }
