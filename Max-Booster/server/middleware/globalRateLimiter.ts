@@ -22,7 +22,14 @@ export const globalRateLimiter = rateLimit({
       req.path.startsWith('/@fs/') ||
       req.path.startsWith('/src/') ||
       req.path.startsWith('/node_modules/');
-    return (isDevelopment && (isLocalhost || isMonitoringEndpoint)) || isStaticAsset;
+    
+    // Always skip monitoring/system endpoints (needed for health checks and burn-in tests)
+    if (isMonitoringEndpoint) {
+      return true;
+    }
+    
+    // Skip localhost requests in development
+    return (isDevelopment && isLocalhost) || isStaticAsset;
   },
   handler: (req: Request, res: Response) => {
     logger.warn(`⚠️ Rate limit exceeded for IP: ${req.ip}`);
