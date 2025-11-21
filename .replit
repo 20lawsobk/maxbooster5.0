@@ -92,3 +92,8 @@ build = ["npm", "run", "build"]
 
 [objectStorage]
 defaultBucketID = "replit-objstore-3340ce4d-11a4-420d-af58-a73cce467dbe"
+
+[userenv]
+
+[userenv.shared]
+DMCA_AGENT_ID = "DMCA-1065850"
