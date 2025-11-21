@@ -2632,6 +2632,23 @@ export const auditLogs = pgTable('audit_logs', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+// GDPR Account Deletion Audit Log (Legal Compliance)
+export const deletionAuditLogs = pgTable('deletion_audit_logs', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar('user_id').notNull(),
+  userEmail: text('user_email').notNull(),
+  deletionType: text('deletion_type').notNull(), // 'scheduled' or 'manual'
+  requestedAt: timestamp('requested_at').notNull(),
+  deletedAt: timestamp('deleted_at').defaultNow(),
+  deletedBy: varchar('deleted_by'), // admin ID if manual deletion
+  reason: text('reason'), // admin reason for manual deletion
+  cascadedRecords: jsonb('cascaded_records'), // counts of deleted related records
+  metadata: jsonb('metadata'), // additional context
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 // Health Checks
 export const healthChecks = pgTable('health_checks', {
   id: uuid('id')

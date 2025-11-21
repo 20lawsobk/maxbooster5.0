@@ -304,6 +304,12 @@ app.use((req, res, next) => {
 
   const server = await registerRoutes(app);
 
+  // GDPR COMPLIANCE: Initialize Account Deletion Service (daily cron at 2 AM UTC)
+  // Loaded after registerRoutes to ensure async context
+  const { accountDeletionService } = await import('./services/accountDeletionService.js');
+  accountDeletionService.initialize();
+  logger.info('✅ Account Deletion Service initialized (GDPR Right to Erasure compliance)');
+
   // Enhanced global error handler
   app.use(globalErrorHandler);
 

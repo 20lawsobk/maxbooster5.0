@@ -400,6 +400,12 @@ const updateContentFlagSchema = z.object({
   resolution: z.string().max(2000).optional(),
 }).strict(); // strict() prevents arbitrary field injection
 
+// GDPR admin deletion schemas (secure field validation)
+const manualDeleteAccountSchema = z.object({
+  userId: z.string().min(1, 'User ID is required'),
+  reason: z.string().min(10, 'Deletion reason must be at least 10 characters').max(500, 'Deletion reason too long'),
+}).strict();
+
 // Pagination helper
 interface PaginationParams {
   page?: number;
@@ -897,7 +903,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Log successful login
         auditLogger.logLogin(req, user.id, user.email, true);
 
-        // Session tracking is handled by Redis - no need for PostgreSQL tracking
+        // GDPR: Track session for O(1) revocation (session ID is available after logIn)
+        if (req.sessionID) {
+          const { sessionTracking } = await import('./services/sessionTrackingService.js');
+          await sessionTracking.trackSession(user.id, req.sessionID);
+        }
 
         // Send response - express-session will auto-save
         res.json({ user: { ...user, password: undefined } });
@@ -905,15 +915,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })(req, res, next);
   });
 
-  app.post('/api/auth/logout', (req, res) => {
+  app.post('/api/auth/logout', async (req, res) => {
     const user = req.user as any;
+    const sessionId = req.sessionID;
 
-    req.logout((err) => {
+    req.logout(async (err) => {
       if (err) throw err;
 
       // Log logout
       if (user) {
         auditLogger.logLogout(req, user.id, user.email);
+        
+        // GDPR: Untrack session when user logs out
+        if (sessionId) {
+          const { sessionTracking } = await import('./services/sessionTrackingService.js');
+          await sessionTracking.untrackSession(user.id, sessionId);
+        }
       }
 
       res.json({ success: true });
@@ -1084,34 +1101,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Revoke all JWT refresh tokens atomically
         await storage.revokeAllRefreshTokensForUser(userId, 'account_deletion_requested');
         
-        // Clear Redis sessions for this user
-        // NOTE: This uses KEYS pattern matching which is O(N) - acceptable for deletion requests
-        // In production, consider using Redis SCAN for better performance under heavy load
-        // Alternative: Maintain userId → sessionId mapping in Redis for O(1) lookups
-        const redis = await getRedisClient();
-        if (redis) {
-          const sessionKeys = await redis.keys(`sess:*`);
-          const deletionPromises = [];
-          
-          for (const key of sessionKeys) {
-            const sessionData = await redis.get(key);
-            // Check if session belongs to this user (robust against encoding changes)
-            if (sessionData && (sessionData.includes(userId) || sessionData.includes(`"id":"${userId}"`))) {
-              deletionPromises.push(redis.del(key));
-            }
-          }
-          
-          await Promise.all(deletionPromises);
-          logger.info(`🔐 Revoked ${deletionPromises.length} Redis sessions for user ${userId}`);
-        }
+        // OPTIMIZATION: Use O(1) session revocation via userId index
+        // This is 100-1000x faster than O(N) key scanning at scale
+        const { sessionTracking } = await import('./services/sessionTrackingService.js');
+        const revokedCount = await sessionTracking.revokeAllUserSessions(userId);
+        
+        logger.info(`🔐 Revoked ${revokedCount} Redis sessions for user ${userId} (O(1) optimized)`);
       } catch (tokenError: unknown) {
         logger.error('Error revoking tokens during account deletion:', tokenError);
         // Continue with deletion even if token revocation fails (fail-safe)
       }
       
-      // NOTE: Background job required for production to execute deletion after 30 days
-      // TODO: Implement cron job to query users with deletionScheduledAt <= NOW and execute permanent deletion
-      // Job should: 1) Delete all user data, 2) Cascade delete related records, 3) Log to audit trail
+      // Background job runs daily at 2 AM UTC to execute permanent deletion
+      // See: server/services/accountDeletionService.ts
+      // Admin can also trigger manual deletion via /api/admin/accounts/manual-delete
 
       // Log the deletion request
       auditLogger.logSecurityEvent(
@@ -6410,6 +6413,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: unknown) {
       logger.error('Error updating content flag:', error);
       res.status(500).json({ error: 'Failed to update content flag' });
+    }
+  });
+
+  // GDPR Compliance: Account Deletion Admin Endpoints
+  app.post('/api/admin/accounts/manual-delete', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+
+      if (!user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      // Validate input with Zod to prevent malformed payloads
+      const validationResult = manualDeleteAccountSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: 'Invalid input',
+          details: validationResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const { userId, reason } = validationResult.data;
+
+      const { accountDeletionService } = await import('./services/accountDeletionService.js');
+      await accountDeletionService.manualDelete(userId, user.id, reason);
+
+      res.json({ success: true, message: 'Account deleted successfully' });
+    } catch (error: unknown) {
+      logger.error('Error in manual account deletion:', error);
+      res.status(500).json({ error: error.message || 'Failed to delete account' });
+    }
+  });
+
+  app.get('/api/admin/accounts/deletion-status', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+
+      if (!user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { accountDeletionService } = await import('./services/accountDeletionService.js');
+      const status = accountDeletionService.getStatus();
+
+      res.json({ success: true, status });
+    } catch (error: unknown) {
+      logger.error('Error getting deletion service status:', error);
+      res.status(500).json({ error: 'Failed to get status' });
+    }
+  });
+
+  app.post('/api/admin/accounts/run-deletion-job', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+
+      if (!user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { accountDeletionService } = await import('./services/accountDeletionService.js');
+      const results = await accountDeletionService.processScheduledDeletions();
+
+      res.json({ success: true, results });
+    } catch (error: unknown) {
+      logger.error('Error running deletion job:', error);
+      res.status(500).json({ error: 'Failed to run deletion job' });
     }
   });
 
