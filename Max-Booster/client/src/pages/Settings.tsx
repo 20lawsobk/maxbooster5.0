@@ -122,7 +122,6 @@ export default function Settings() {
     emailNotifications: true,
     pushNotifications: true,
     weeklyReports: true,
-    newCollaborations: true,
     salesAlerts: true,
     royaltyUpdates: true,
   });
@@ -156,7 +155,6 @@ export default function Settings() {
         emailNotifications: notificationData.emailNotifications ?? true,
         pushNotifications: notificationData.pushNotifications ?? true,
         weeklyReports: notificationData.weeklyReports ?? true,
-        newCollaborations: notificationData.newCollaborations ?? true,
         salesAlerts: notificationData.salesAlerts ?? true,
         royaltyUpdates: notificationData.royaltyUpdates ?? true,
       });
