@@ -245,8 +245,8 @@ async function handleReleaseTakedown(data: unknown) {
 async function handleRoyaltyPayment(data: unknown) {
   const { releaseId, amount, period, currency, breakdown } = data;
 
-  // Update release with latest royalty info
-  const [release] = await db.select().from(releases).where(eq(releases.id, releaseId));
+  // Lean query: Select ONLY metadata to avoid fetching 3-5MB release row
+  const [release] = await db.select({ metadata: releases.metadata }).from(releases).where(eq(releases.id, releaseId)).limit(1);
 
   if (release) {
     const metadata = (release.metadata as any) || {};
@@ -285,8 +285,8 @@ async function handleRoyaltyPayment(data: unknown) {
 async function handleAnalyticsUpdate(data: unknown) {
   const { releaseId, streams, downloads, revenue, period, platformBreakdown } = data;
 
-  // Update release with latest analytics
-  const [release] = await db.select().from(releases).where(eq(releases.id, releaseId));
+  // Lean query: Select ONLY metadata to avoid fetching 3-5MB release row
+  const [release] = await db.select({ metadata: releases.metadata }).from(releases).where(eq(releases.id, releaseId)).limit(1);
 
   if (release) {
     const metadata = (release.metadata as any) || {};
