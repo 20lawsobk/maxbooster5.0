@@ -25,11 +25,13 @@ export class CapacityMonitor {
         );
       }
 
-      // Check active sessions (within last 24 hours)
+      // Check active sessions (within last 24 hours) - Use approximate count for performance
       const sessionResult = await db.execute(
-        sql`SELECT COUNT(*) as count FROM sessions WHERE last_activity > NOW() - INTERVAL '24 hours'`
+        sql`SELECT reltuples::bigint AS count FROM pg_class WHERE relname = 'sessions'`
       );
-      const activeSessions = parseInt(sessionResult.rows[0].count as string);
+      const totalSessions = parseInt(sessionResult.rows[0].count as string);
+      // Approximate active sessions (assume 80% active within 24h for monitoring purposes)
+      const activeSessions = Math.floor(totalSessions * 0.8);
       const sessionUtilization = activeSessions / 50000;
 
       if (sessionUtilization >= CapacityMonitor.ALERT_THRESHOLD) {

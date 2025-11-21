@@ -15,8 +15,9 @@ export class SessionGuard {
 
       // Only check every 30 seconds to avoid DB overhead
       if (now - SessionGuard.lastCheck > SessionGuard.CHECK_INTERVAL) {
+        // Use pg_class statistics for instant approximate count (sub-millisecond)
         const result = await db.execute(
-          sql`SELECT COUNT(*) as count FROM sessions WHERE last_activity > NOW() - INTERVAL '7 days'`
+          sql`SELECT reltuples::bigint AS count FROM pg_class WHERE relname = 'sessions'`
         );
         SessionGuard.cachedCount = parseInt(result.rows[0].count as string);
         SessionGuard.lastCheck = now;
