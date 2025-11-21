@@ -792,11 +792,6 @@ export default function Settings() {
                         label: 'Push Notifications',
                         description: 'Receive push notifications on your devices',
                       },
-                      {
-                        key: 'newCollaborations',
-                        label: 'Collaboration Requests',
-                        description: 'Notifications for new collaboration invites',
-                      },
                     ].map((setting) => (
                       <div key={setting.key} className="flex items-center justify-between">
                         <div>

@@ -194,8 +194,8 @@ export default function Admin() {
   const sendEmailMutation = useMutation({
     mutationFn: async (userId: string) => {
       const response = await apiRequest('POST', `/api/admin/users/${userId}/email`, {
-        subject: 'Message from Admin',
-        message: 'Hello from Max Booster Co admin team!',
+        subject: 'Message from Max Booster',
+        message: 'Hello from Max Booster! We wanted to reach out about your account.',
       });
       return response.json();
     },
