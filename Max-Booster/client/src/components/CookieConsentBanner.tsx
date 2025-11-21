@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { X } from 'lucide-react';
 
 const COOKIE_CONSENT_KEY = 'max_booster_cookie_consent';
 
@@ -25,10 +24,6 @@ export function CookieConsentBanner() {
     setIsVisible(false);
   };
 
-  const handleClose = () => {
-    setIsVisible(false);
-  };
-
   if (!isVisible) return null;
 
   return (
@@ -40,56 +35,47 @@ export function CookieConsentBanner() {
     >
       <Card className="max-w-4xl mx-auto bg-zinc-900/95 border-zinc-800 backdrop-blur-sm">
         <div className="p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <h2
-                id="cookie-banner-title"
-                className="text-lg font-semibold text-white mb-2"
-              >
-                Cookie & Privacy Notice
-              </h2>
-              <p
-                id="cookie-banner-description"
-                className="text-sm text-zinc-300 mb-4"
-              >
-                We use essential cookies to provide our services and improve your experience. 
-                By clicking "Accept", you consent to the use of cookies for authentication, 
-                session management, and platform functionality. You can reject non-essential cookies, 
-                though some features may be limited.{' '}
-                <a
-                  href="/privacy"
-                  className="text-blue-400 hover:text-blue-300 underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Learn more in our Privacy Policy
-                </a>
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  onClick={handleAccept}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  aria-label="Accept cookies"
-                >
-                  Accept All
-                </Button>
-                <Button
-                  onClick={handleReject}
-                  variant="outline"
-                  className="border-zinc-700 text-white hover:bg-zinc-800"
-                  aria-label="Reject non-essential cookies"
-                >
-                  Reject Non-Essential
-                </Button>
-              </div>
-            </div>
-            <button
-              onClick={handleClose}
-              className="text-zinc-400 hover:text-white transition-colors p-1"
-              aria-label="Close cookie banner"
+          <div className="flex flex-col gap-4">
+            <h2
+              id="cookie-banner-title"
+              className="text-lg font-semibold text-white"
             >
-              <X className="h-5 w-5" />
-            </button>
+              Cookie & Privacy Notice
+            </h2>
+            <p
+              id="cookie-banner-description"
+              className="text-sm text-zinc-300"
+            >
+              We use essential cookies to provide our services and improve your experience. 
+              By clicking "Accept", you consent to the use of cookies for authentication, 
+              session management, and platform functionality. You can reject non-essential cookies, 
+              though some features may be limited.{' '}
+              <a
+                href="/privacy"
+                className="text-blue-400 hover:text-blue-300 underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Learn more in our Privacy Policy
+              </a>
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={handleAccept}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                aria-label="Accept cookies"
+              >
+                Accept All
+              </Button>
+              <Button
+                onClick={handleReject}
+                variant="outline"
+                className="border-zinc-700 text-white hover:bg-zinc-800"
+                aria-label="Reject non-essential cookies"
+              >
+                Reject Non-Essential
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
