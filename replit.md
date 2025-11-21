@@ -24,7 +24,7 @@ Max Booster is an AI-powered platform designed to empower music artists with pro
   - `/api/admin/accounts/manual-delete` - Immediate deletion with Zod validation
   - `/api/admin/accounts/deletion-status` - View deletion service metrics
   - `/api/admin/accounts/run-deletion-job` - Manually trigger scheduled deletions
-- 🎯 **Next Steps** - Register DMCA designated agent ($105/3 years), implement cookie consent banner, form LLC
+- 🎯 **Next Steps** - Register DMCA designated agent ($6/3 years at copyright.gov), implement cookie consent banner, form LLC
 - 🚀 **Status:** Production-ready for paid user launch with full legal compliance
 
 **November 21, 2025 - Database Query Optimization (5-10x Performance Boost)**
