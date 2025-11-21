@@ -1767,7 +1767,7 @@ export class DatabaseStorage implements IStorage {
       const [totalEarnings] = await db
         .select({ total: sql<number>`COALESCE(SUM(${earnings.amount}), 0)` })
         .from(earnings)
-        .leftJoin(releases, eq(earnings.releaseId, releases.id))
+        .leftJoin(releases, sql`${earnings.releaseId}::uuid = ${releases.id}`)
         .where(eq(releases.userId, userId));
 
       // Get platform-wise distribution
@@ -1778,7 +1778,7 @@ export class DatabaseStorage implements IStorage {
           earnings: sql<number>`COALESCE(SUM(${earnings.amount}), 0)`,
         })
         .from(earnings)
-        .leftJoin(releases, eq(earnings.releaseId, releases.id))
+        .leftJoin(releases, sql`${earnings.releaseId}::uuid = ${releases.id}`)
         .where(eq(releases.userId, userId))
         .groupBy(earnings.platform);
 

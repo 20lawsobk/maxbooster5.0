@@ -46,6 +46,7 @@ import { royaltiesForecastingService } from './services/royaltiesForecastingServ
 import { emailService } from './services/emailService.js';
 import { emailMonitor } from './monitoring/emailMonitor.js';
 import { queueService } from './services/queueService.js';
+import { instantPayoutService } from './services/instantPayoutService.js';
 import { labelGridService } from './services/labelgrid-service.js';
 import * as aiAnalyticsService from './services/aiAnalyticsService.js';
 import * as securityMonitoringService from './services/securityMonitoringService.js';

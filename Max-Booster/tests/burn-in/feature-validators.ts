@@ -1,4 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
+import { wrapper } from 'axios-cookiejar-support';
+import { CookieJar } from 'tough-cookie';
 import { logger } from '../../server/logger.js';
 
 interface ValidationResult {
@@ -16,14 +18,20 @@ export class FeatureValidators {
   private testUserEmail = 'test.monthly@maxbooster.com';
   private testUserPassword = process.env.TEST_USER_PASSWORD || 'TestUser123!@#';
   private isAuthenticated = false;
+  private cookieJar: CookieJar;
 
   constructor() {
-    this.axiosClient = axios.create({
+    this.cookieJar = new CookieJar();
+    
+    const client = axios.create({
       baseURL: this.baseUrl,
       withCredentials: true,
       maxRedirects: 0,
       validateStatus: (status) => status < 500,
+      jar: this.cookieJar,
     });
+    
+    this.axiosClient = wrapper(client);
   }
 
   async authenticate(): Promise<boolean> {
