@@ -403,20 +403,13 @@ export default function Landing() {
             Start growing your music career today with our comprehensive platform. Protected by our
             90-day money-back guarantee!
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Link href="/register">
               <Button size="lg" variant="secondary" className="px-8 py-4 text-lg">
                 Get Started - 90-Day Guarantee
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button
-              size="lg"
-              variant="outline"
-              className="px-8 py-4 text-lg border-white text-white hover:bg-white hover:text-primary"
-            >
-              Contact Sales
-            </Button>
           </div>
           <p className="text-sm mt-4 opacity-80">
             Secure payment • Cancel anytime • 100% money back within 90 days
@@ -501,11 +494,6 @@ export default function Landing() {
                 <li>
                   <Link href="/solo-founder-story">
                     <span className="hover:text-white cursor-pointer">Solo Founder Story</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact">
-                    <span className="hover:text-white cursor-pointer">Contact</span>
                   </Link>
                 </li>
               </ul>
