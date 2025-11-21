@@ -38,6 +38,7 @@ import {
   socialCampaigns,
   posts,
   scheduledPosts,
+  contentFlags,
   userAIModels,
   socialMetrics,
   payouts,
@@ -272,6 +273,8 @@ import {
   type InsertAssetFolder,
   type AssetTag,
   type InsertAssetTag,
+  type ContentFlag,
+  type InsertContentFlag,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, asc, sql, and, gte, lte, or, like } from 'drizzle-orm';
@@ -8825,6 +8828,54 @@ export class DatabaseStorage implements IStorage {
 
       return models.length > 0 ? models[0] : null;
     }, 'getAIModel');
+  }
+
+  async createContentFlag(data: InsertContentFlag): Promise<ContentFlag> {
+    return databaseResilience.executeWithRetry(async () => {
+      const [flag] = await db.insert(contentFlags).values(data).returning();
+      return flag;
+    }, 'createContentFlag');
+  }
+
+  async getContentFlags(filters: {
+    status?: string;
+    contentType?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ContentFlag[]> {
+    return databaseResilience.executeWithRetry(async () => {
+      const { status, contentType, page = 1, limit = 50 } = filters;
+      const offset = (page - 1) * limit;
+
+      let query = db.select().from(contentFlags);
+
+      const conditions = [];
+      if (status) conditions.push(eq(contentFlags.status, status));
+      if (contentType) conditions.push(eq(contentFlags.contentType, contentType));
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions)) as any;
+      }
+
+      const flags = await query
+        .orderBy(desc(contentFlags.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      return flags;
+    }, 'getContentFlags');
+  }
+
+  async updateContentFlag(
+    flagId: string,
+    updates: Partial<ContentFlag>
+  ): Promise<void> {
+    return databaseResilience.executeWithRetry(async () => {
+      await db
+        .update(contentFlags)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(contentFlags.id, flagId));
+    }, 'updateContentFlag');
   }
 }
 

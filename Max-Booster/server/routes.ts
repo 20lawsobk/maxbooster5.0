@@ -352,12 +352,53 @@ const createCheckoutSessionSchema = z.object({
   tier: z.enum(['monthly', 'yearly', 'lifetime']),
   userEmail: z.string().email(),
   username: z.string().min(3).max(50),
+  birthdate: z.string().refine((date) => {
+    const birthDate = new Date(date);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) ? age - 1 : age;
+    return actualAge >= 13;
+  }, {
+    message: 'You must be at least 13 years old to create an account (COPPA compliance)',
+  }),
 });
 
 const registerAfterPaymentSchema = z.object({
   sessionId: z.string().min(1),
   password: z.string().min(6),
+  birthdate: z.string().refine((date) => {
+    // Server-side UTC age validation - don't trust Stripe metadata alone
+    const birthdateStr = date.includes('T') ? date.split('T')[0] : date;
+    const [year, month, day] = birthdateStr.split('-').map(Number);
+    const birthDateUTC = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+    const todayUTC = new Date(Date.UTC(
+      new Date().getUTCFullYear(),
+      new Date().getUTCMonth(),
+      new Date().getUTCDate(),
+      0, 0, 0, 0
+    ));
+    
+    let ageYears = todayUTC.getUTCFullYear() - birthDateUTC.getUTCFullYear();
+    const monthDiff = todayUTC.getUTCMonth() - birthDateUTC.getUTCMonth();
+    const dayDiff = todayUTC.getUTCDate() - birthDateUTC.getUTCDate();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      ageYears--;
+    }
+    
+    return ageYears >= 13;
+  }, {
+    message: 'You must be at least 13 years old to create an account (COPPA compliance)',
+  }),
 });
+
+// Admin moderation schemas (secure field validation)
+const updateContentFlagSchema = z.object({
+  status: z.enum(['pending', 'under_review', 'resolved', 'dismissed']).optional(),
+  actionTaken: z.enum(['content_removed', 'warning_issued', 'no_action', 'user_banned', 'referred_to_legal']).optional(),
+  resolution: z.string().max(2000).optional(),
+}).strict(); // strict() prevents arbitrary field injection
 
 // Pagination helper
 interface PaginationParams {
@@ -1019,6 +1060,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: unknown) {
       logger.error('Error exporting user data:', error);
       res.status(500).json({ error: 'Failed to export data' });
+    }
+  });
+
+  // Delete account (GDPR Right to Erasure - Article 17)
+  app.delete('/api/auth/delete-account', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const user = req.user as any;
+
+      // Schedule deletion for 30 days from now (grace period)
+      const deletionDate = new Date();
+      deletionDate.setDate(deletionDate.getDate() + 30);
+
+      await storage.updateUser(userId, {
+        markedForDeletion: true,
+        deletionRequestedAt: new Date(),
+        deletionScheduledAt: deletionDate,
+      });
+
+      // Revoke ALL active sessions and JWT tokens for security (GDPR compliance)
+      try {
+        // Revoke all JWT refresh tokens atomically
+        await storage.revokeAllRefreshTokensForUser(userId, 'account_deletion_requested');
+        
+        // Clear Redis sessions for this user
+        // NOTE: This uses KEYS pattern matching which is O(N) - acceptable for deletion requests
+        // In production, consider using Redis SCAN for better performance under heavy load
+        // Alternative: Maintain userId → sessionId mapping in Redis for O(1) lookups
+        const redis = await getRedisClient();
+        if (redis) {
+          const sessionKeys = await redis.keys(`sess:*`);
+          const deletionPromises = [];
+          
+          for (const key of sessionKeys) {
+            const sessionData = await redis.get(key);
+            // Check if session belongs to this user (robust against encoding changes)
+            if (sessionData && (sessionData.includes(userId) || sessionData.includes(`"id":"${userId}"`))) {
+              deletionPromises.push(redis.del(key));
+            }
+          }
+          
+          await Promise.all(deletionPromises);
+          logger.info(`🔐 Revoked ${deletionPromises.length} Redis sessions for user ${userId}`);
+        }
+      } catch (tokenError: unknown) {
+        logger.error('Error revoking tokens during account deletion:', tokenError);
+        // Continue with deletion even if token revocation fails (fail-safe)
+      }
+      
+      // NOTE: Background job required for production to execute deletion after 30 days
+      // TODO: Implement cron job to query users with deletionScheduledAt <= NOW and execute permanent deletion
+      // Job should: 1) Delete all user data, 2) Cascade delete related records, 3) Log to audit trail
+
+      // Log the deletion request
+      auditLogger.logSecurityEvent(
+        req,
+        userId,
+        'account_deletion_requested',
+        'Account deletion requested with 30-day grace period - all sessions/tokens revoked',
+        { deletionScheduledAt: deletionDate.toISOString() }
+      );
+
+      logger.info(`🗑️ Account deletion requested for user ${userId} (${user.email}) - scheduled for ${deletionDate.toISOString()}`);
+
+      // Logout the current session
+      req.logout((err) => {
+        if (err) {
+          logger.error('Error logging out during account deletion:', err);
+        }
+      });
+
+      res.json({
+        success: true,
+        message: 'Account deletion scheduled',
+        deletionDate: deletionDate.toISOString(),
+        gracePeriodDays: 30,
+        note: 'Your account will be permanently deleted in 30 days. All active sessions have been terminated. You can cancel this deletion by logging in again before the scheduled date.',
+      });
+    } catch (error: unknown) {
+      logger.error('Error deleting account:', error);
+      res.status(500).json({ error: 'Failed to schedule account deletion' });
+    }
+  });
+
+  // Cancel account deletion (GDPR compliance - allow users to cancel within grace period)
+  app.post('/api/auth/cancel-deletion', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const user = req.user as any;
+
+      // Verify deletion was actually scheduled
+      if (!user.markedForDeletion) {
+        return res.status(400).json({ error: 'No deletion scheduled for this account' });
+      }
+
+      // Check if we're still within the grace period
+      const now = new Date();
+      const scheduledDate = user.deletionScheduledAt ? new Date(user.deletionScheduledAt) : null;
+      
+      if (scheduledDate && now >= scheduledDate) {
+        return res.status(400).json({ error: 'Deletion grace period has expired. Contact support for assistance.' });
+      }
+
+      // Cancel the deletion
+      await storage.updateUser(userId, {
+        markedForDeletion: false,
+        deletionRequestedAt: null,
+        deletionScheduledAt: null,
+      });
+
+      // Log the cancellation
+      auditLogger.logSecurityEvent(
+        req,
+        userId,
+        'account_deletion_cancelled',
+        'Account deletion cancelled by user within grace period',
+        { cancelledAt: now.toISOString() }
+      );
+
+      logger.info(`✅ Account deletion cancelled for user ${userId} (${user.email})`);
+
+      res.json({
+        success: true,
+        message: 'Account deletion has been cancelled successfully',
+        note: 'Your account is now active and will not be deleted.',
+      });
+    } catch (error: unknown) {
+      logger.error('Error cancelling account deletion:', error);
+      res.status(500).json({ error: 'Failed to cancel account deletion' });
     }
   });
 
@@ -2736,7 +2906,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { tier, userEmail, username } = validationResult.data;
+      const { tier, userEmail, username, birthdate } = validationResult.data;
 
       // Use programmatically generated price IDs
       const { getStripePriceIds } = await import('./services/stripeSetup');
@@ -2759,6 +2929,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tier,
           userEmail,
           username,
+          birthdate,
           payment_before_account: 'true',
         },
         success_url: `${process.env.CLIENT_URL || 'http://localhost:5000'}/register/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -2815,7 +2986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { sessionId, password } = validationResult.data;
+      const { sessionId, password, birthdate: requestBirthdate } = validationResult.data;
 
       // Retrieve checkout session to verify payment
       const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -2824,11 +2995,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Payment not completed' });
       }
 
-      const { userEmail, username, tier } = session.metadata || {};
+      const { userEmail, username, tier, birthdate: metadataBirthdate } = session.metadata || {};
 
       if (!userEmail || !username || !tier) {
-        return res.status(400).json({ error: 'Invalid session metadata' });
+        return res.status(400).json({ error: 'Invalid session metadata - missing required fields' });
       }
+      
+      // SECURITY: Validate request birthdate matches Stripe metadata to prevent tampering
+      if (metadataBirthdate && requestBirthdate !== metadataBirthdate) {
+        logger.error(`🚨 Birthdate mismatch: request=${requestBirthdate}, metadata=${metadataBirthdate}`);
+        return res.status(400).json({ error: 'Validation failed - data mismatch' });
+      }
+
+      // COPPA Compliance: Server-side UTC age validation from trusted request data
+      // Use request birthdate (Zod-validated), not Stripe metadata, as source of truth
+      const birthdateStr = requestBirthdate.includes('T') ? requestBirthdate.split('T')[0] : requestBirthdate;
+      const [year, month, day] = birthdateStr.split('-').map(Number);
+      const birthDateUTC = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+      const todayUTC = new Date(Date.UTC(
+        new Date().getUTCFullYear(),
+        new Date().getUTCMonth(),
+        new Date().getUTCDate(),
+        0, 0, 0, 0
+      ));
+      
+      // Calculate age precisely in UTC to avoid off-by-one errors at 13th birthday
+      let ageYears = todayUTC.getUTCFullYear() - birthDateUTC.getUTCFullYear();
+      const monthDiff = todayUTC.getUTCMonth() - birthDateUTC.getUTCMonth();
+      const dayDiff = todayUTC.getUTCDate() - birthDateUTC.getUTCDate();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+        ageYears--;
+      }
+      
+      if (ageYears < 13) {
+        logger.warn(`🚫 COPPA violation prevented: Attempted signup with age ${ageYears} (birthdate: ${birthdate})`);
+        return res.status(403).json({ 
+          error: 'You must be at least 13 years old to create an account (COPPA compliance)',
+          detail: 'Account creation is restricted by the Children\'s Online Privacy Protection Act (COPPA)'
+        });
+      }
+      
+      logger.info(`✅ COPPA check passed: Age ${ageYears} years (birthdate: ${birthdate})`);
 
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userEmail);
@@ -2860,11 +3068,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Lifetime plans have subscriptionEndsAt = null (never expires)
       }
 
-      // Create user with paid subscription
+      // Create user with paid subscription (including UTC-normalized birthdate for COPPA compliance)
       const user = await storage.createUser({
         username,
         email: userEmail,
         password: hashedPassword,
+        birthdate: birthDateUTC, // Use UTC-normalized date to prevent timezone issues
         role: userEmail === 'brandonlawson720@gmail.com' ? 'admin' : 'user',
         subscriptionPlan,
         subscriptionStatus,
@@ -6080,6 +6289,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: `${platform} disconnected successfully` });
     } catch (error: unknown) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Content Moderation - Report/Flag Content (DMCA/Abuse Compliance)
+  app.post('/api/content/report', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { contentType, contentId, reason, description } = req.body;
+
+      // Validate inputs
+      const validContentTypes = ['project', 'storefront', 'beat', 'profile'];
+      const validReasons = ['copyright', 'inappropriate', 'spam', 'harassment', 'other'];
+
+      if (!validContentTypes.includes(contentType)) {
+        return res.status(400).json({ error: 'Invalid content type' });
+      }
+
+      if (!validReasons.includes(reason)) {
+        return res.status(400).json({ error: 'Invalid reason' });
+      }
+
+      if (!contentId) {
+        return res.status(400).json({ error: 'Content ID is required' });
+      }
+
+      // Create content flag
+      const flag = await storage.createContentFlag({
+        reporterId: userId,
+        contentType,
+        contentId,
+        reason,
+        description: description || '',
+        status: 'pending',
+      });
+
+      // Log the report for audit
+      auditLogger.logSecurityEvent(
+        req,
+        userId,
+        'content_reported',
+        `Content reported: ${contentType} ${contentId} - ${reason}`,
+        { contentType, contentId, reason }
+      );
+
+      logger.info(`🚩 Content flagged: ${contentType} ${contentId} by user ${userId} - Reason: ${reason}`);
+
+      res.json({
+        success: true,
+        message: 'Content reported successfully. Our team will review it shortly.',
+        flagId: flag.id,
+      });
+    } catch (error: unknown) {
+      logger.error('Error reporting content:', error);
+      res.status(500).json({ error: 'Failed to report content' });
+    }
+  });
+
+  // Admin: Get all content flags
+  app.get('/api/admin/content-flags', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+
+      if (!user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { status, contentType, page = 1, limit = 50 } = req.query;
+      
+      const flags = await storage.getContentFlags({
+        status: status as string,
+        contentType: contentType as string,
+        page: Number(page),
+        limit: Number(limit),
+      });
+
+      res.json(flags);
+    } catch (error: unknown) {
+      logger.error('Error fetching content flags:', error);
+      res.status(500).json({ error: 'Failed to fetch content flags' });
+    }
+  });
+
+  // Admin: Resolve content flag (with secure Zod validation)
+  app.patch('/api/admin/content-flags/:flagId', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+
+      if (!user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      // Validate input with Zod to prevent privilege escalation
+      const validationResult = updateContentFlagSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: 'Invalid input',
+          details: validationResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const { flagId } = req.params;
+      const { status, actionTaken, resolution } = validationResult.data;
+
+      // Build update object only with validated fields
+      const updates: any = {
+        reviewedBy: user.id,
+        reviewedAt: new Date(),
+      };
+      
+      if (status) updates.status = status;
+      if (actionTaken) updates.actionTaken = actionTaken;
+      if (resolution) updates.resolution = resolution;
+
+      await storage.updateContentFlag(flagId, updates);
+
+      logger.info(`✅ Content flag ${flagId} resolved by admin ${user.id} - Status: ${status || 'unchanged'}, Action: ${actionTaken || 'none'}`);
+
+      res.json({ success: true, message: 'Content flag updated successfully' });
+    } catch (error: unknown) {
+      logger.error('Error updating content flag:', error);
+      res.status(500).json({ error: 'Failed to update content flag' });
     }
   });
 

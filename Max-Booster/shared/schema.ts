@@ -112,6 +112,12 @@ export const users = pgTable('users', {
   hasCompletedOnboarding: boolean('has_completed_onboarding').default(false),
   onboardingData: jsonb('onboarding_data'),
   socialRole: userRoleEnum('social_role').default('content_creator'),
+  // COPPA Compliance - Age Verification
+  birthdate: timestamp('birthdate'), // Required for 13+ age verification
+  // GDPR Compliance - Right to Erasure
+  markedForDeletion: boolean('marked_for_deletion').default(false),
+  deletionScheduledAt: timestamp('deletion_scheduled_at'),
+  deletionRequestedAt: timestamp('deletion_requested_at'),
 });
 
 // Password Reset Tokens table
@@ -1927,6 +1933,39 @@ export const customerMemberships = pgTable(
       table.storefrontId,
       table.status
     ),
+  })
+);
+
+// Content Flags - User reporting system for DMCA/abuse
+export const contentFlags = pgTable(
+  'content_flags',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    reporterId: varchar('reporter_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    contentType: varchar('content_type', { length: 50 }).notNull(), // 'project', 'storefront', 'beat', 'profile'
+    contentId: varchar('content_id', { length: 255 }).notNull(), // ID of the flagged content
+    contentOwnerId: varchar('content_owner_id').references(() => users.id, { onDelete: 'cascade' }),
+    reason: varchar('reason', { length: 100 }).notNull(), // 'copyright', 'inappropriate', 'spam', 'harassment', 'other'
+    description: text('description'), // Detailed explanation from reporter
+    status: varchar('status', { length: 50 }).notNull().default('pending'), // 'pending', 'under_review', 'resolved', 'dismissed'
+    reviewedBy: varchar('reviewed_by').references(() => users.id),
+    reviewedAt: timestamp('reviewed_at'),
+    resolution: text('resolution'), // Admin notes on how it was resolved
+    actionTaken: varchar('action_taken', { length: 100 }), // 'content_removed', 'warning_issued', 'no_action', 'user_banned'
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    reporterIdIdx: index('content_flags_reporter_id_idx').on(table.reporterId),
+    contentTypeIdx: index('content_flags_content_type_idx').on(table.contentType),
+    contentIdIdx: index('content_flags_content_id_idx').on(table.contentId),
+    statusIdx: index('content_flags_status_idx').on(table.status),
+    contentOwnerIdIdx: index('content_flags_content_owner_id_idx').on(table.contentOwnerId),
+    typeContentIdx: index('content_flags_type_content_idx').on(table.contentType, table.contentId),
   })
 );
 
@@ -6819,6 +6858,15 @@ export const insertScheduledPostSchema = createInsertSchema(scheduledPosts).omit
   updatedAt: true,
 });
 export type InsertScheduledPost = z.infer<typeof insertScheduledPostSchema>;
+
+// Content Moderation Types
+export type ContentFlag = typeof contentFlags.$inferSelect;
+export const insertContentFlagSchema = createInsertSchema(contentFlags).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertContentFlag = z.infer<typeof insertContentFlagSchema>;
 
 // Social Amplification Professional Features Types
 export type SocialInfluencerScore = typeof socialInfluencerScores.$inferSelect;
