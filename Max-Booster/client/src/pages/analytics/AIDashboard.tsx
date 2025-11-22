@@ -573,7 +573,7 @@ export default function AIDashboard() {
                             <CardContent className="p-4">
                               <p className="text-sm text-muted-foreground">Current</p>
                               <p className="text-2xl font-bold">
-                                {prediction.current.toLocaleString()}
+                                {prediction.current?.toLocaleString() || '0'}
                               </p>
                             </CardContent>
                           </Card>
@@ -581,7 +581,7 @@ export default function AIDashboard() {
                             <CardContent className="p-4">
                               <p className="text-sm text-muted-foreground">Predicted</p>
                               <p className="text-2xl font-bold flex items-center gap-2">
-                                {prediction.predicted.toLocaleString()}
+                                {prediction.predicted?.toLocaleString() || '0'}
                                 {prediction.trend === 'up' ? (
                                   <ArrowUpRight className="w-5 h-5 text-green-600" />
                                 ) : (
@@ -615,7 +615,7 @@ export default function AIDashboard() {
                                     {point.confidence_low} - {point.confidence_high}
                                   </span>
                                   <span className="font-semibold">
-                                    {point.value.toLocaleString()}
+                                    {point.value?.toLocaleString() || '0'}
                                   </span>
                                 </div>
                               </div>
@@ -782,13 +782,13 @@ export default function AIDashboard() {
                               <p className="text-xs text-muted-foreground">
                                 Monthly Recurring Revenue
                               </p>
-                              <p className="text-2xl font-bold">${scenario.mrr.toLocaleString()}</p>
+                              <p className="text-2xl font-bold">${scenario.mrr?.toLocaleString() || '0'}</p>
                             </div>
                             <div className="space-y-1">
                               <p className="text-xs text-muted-foreground">
                                 Annual Recurring Revenue
                               </p>
-                              <p className="text-2xl font-bold">${scenario.arr.toLocaleString()}</p>
+                              <p className="text-2xl font-bold">${scenario.arr?.toLocaleString() || '0'}</p>
                             </div>
                           </div>
 
@@ -1093,8 +1093,8 @@ export default function AIDashboard() {
                         </div>
                         <Progress value={milestone.progress} className="h-2" />
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
-                          <span>Current: {milestone.current?.toLocaleString()}</span>
-                          <span>Next: {milestone.nextMilestone?.toLocaleString()}</span>
+                          <span>Current: {milestone.current?.toLocaleString() || '0'}</span>
+                          <span>Next: {milestone.nextMilestone?.toLocaleString() || '0'}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
                           Est. completion: {milestone.estimatedDate}
