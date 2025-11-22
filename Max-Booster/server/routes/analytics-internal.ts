@@ -37,13 +37,13 @@ router.post('/ai/predict-metric', async (req: Request, res: Response) => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    // Get historical data for the metric
+    // Get historical data for the metric - use SUM to aggregate values by date
     const historicalData = await db
       .select({
         date: sql<string>`DATE(${analytics.date})`,
-        value: metric === 'streams' ? analytics.streams :
-               metric === 'revenue' ? analytics.revenue :
-               analytics.totalListeners,
+        value: metric === 'streams' ? sql<number>`SUM(${analytics.streams})` :
+               metric === 'revenue' ? sql<number>`SUM(${analytics.revenue})` :
+               sql<number>`SUM(${analytics.totalListeners})`,
       })
       .from(analytics)
       .where(
