@@ -23,10 +23,12 @@ export function LanguageSwitcher() {
     i18n.changeLanguage(languageCode);
   };
 
-  const currentLanguage = languages.find((lang) => lang.code === i18n.language) || languages[0];
+  // Normalize language code to base language (e.g., en-US -> en)
+  const normalizedLanguage = i18n.language.split('-')[0];
+  const currentLanguage = languages.find((lang) => lang.code === normalizedLanguage) || languages[0];
 
   return (
-    <Select value={i18n.language} onValueChange={handleLanguageChange}>
+    <Select value={normalizedLanguage} onValueChange={handleLanguageChange}>
       <SelectTrigger className="w-[180px]">
         <Globe className="w-4 h-4 mr-2" />
         <SelectValue>

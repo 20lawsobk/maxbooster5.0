@@ -28,7 +28,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { labelKey: 'navigation.dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { labelKey: 'studio.title', path: '/projects', icon: Music },
+  { labelKey: 'navigation.projects', path: '/projects', icon: Music },
   { labelKey: 'navigation.analytics', path: '/analytics', icon: BarChart3 },
   { labelKey: 'analytics.aiInsights', path: '/analytics/ai', icon: Brain },
   { labelKey: 'navigation.social', path: '/social-media', icon: Share2 },

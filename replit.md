@@ -48,6 +48,13 @@ Authentication includes bcrypt password hashing, secure session cookies, JWT ref
 
 # Recent Changes
 
+-   **Multilingual Support** (Nov 22, 2025): Added comprehensive internationalization (i18n) support for Max Booster platform:
+    -   Integrated i18next and react-i18next for translation management
+    -   5 supported languages: English, Spanish, French, German, and Japanese
+    -   Language switcher component in sidebar with flag indicators
+    -   Translated navigation, common UI elements, and key pages
+    -   Automatic language detection with localStorage persistence
+    -   Production-ready multilingual infrastructure
 -   **Multimodal Content Analysis System** (Nov 22, 2025): Completed production-ready multimodal content analysis system powering both AI autopilots with rich content features:
     -   5 custom TensorFlow.js analyzers (image, video, audio, text, website) extracting 20+ features per content type
     -   SocialMediaAutopilotAI upgraded to 28 features (12 base + 16 multimodal)
