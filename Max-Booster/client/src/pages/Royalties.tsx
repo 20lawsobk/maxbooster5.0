@@ -104,9 +104,6 @@ export default function Royalties() {
 
   const [selectedPeriod, setSelectedPeriod] = useState('current');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
-  const [editingSplit, setEditingSplit] = useState<RoyaltySplit | null>(null);
-  const [isEditSplitDialogOpen, setIsEditSplitDialogOpen] = useState(false);
-  const [isAddCollaboratorDialogOpen, setIsAddCollaboratorDialogOpen] = useState(false);
   const [isAddPaymentDialogOpen, setIsAddPaymentDialogOpen] = useState(false);
   const [isTaxInfoDialogOpen, setIsTaxInfoDialogOpen] = useState(false);
   const [taxCountry, setTaxCountry] = useState('');
@@ -131,12 +128,6 @@ export default function Royalties() {
 
   const { data: topTracks = [], isLoading: tracksLoading } = useQuery<TopTrack[]>({
     queryKey: ['/api/royalties/top-tracks', { period: selectedPeriod }],
-    enabled: !!user,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const { data: splits = [], isLoading: splitsLoading } = useQuery<RoyaltySplit[]>({
-    queryKey: ['/api/royalties/splits'],
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
   });
@@ -178,41 +169,6 @@ export default function Royalties() {
     onSuccess: () => {
       toast({ title: 'Payout Requested', description: 'Your payout request has been submitted' });
       queryClient.invalidateQueries({ queryKey: ['/api/royalties'] });
-    },
-  });
-
-  const updateSplitMutation = useMutation({
-    mutationFn: async ({ id, percentage }: { id: string; percentage: number }) => {
-      const response = await apiRequest('PATCH', `/api/royalties/splits/${id}`, { percentage });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({ title: 'Split Updated', description: 'Royalty split has been updated' });
-      setIsEditSplitDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/royalties/splits'] });
-    },
-  });
-
-  const removeSplitMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/royalties/splits/${id}`, {});
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({ title: 'Split Removed', description: 'Collaborator has been removed' });
-      queryClient.invalidateQueries({ queryKey: ['/api/royalties/splits'] });
-    },
-  });
-
-  const addCollaboratorMutation = useMutation({
-    mutationFn: async (data: { name: string; email: string; role: string; percentage: number }) => {
-      const response = await apiRequest('POST', '/api/royalties/splits', data);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({ title: 'Collaborator Added', description: 'New collaborator has been added' });
-      setIsAddCollaboratorDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/royalties/splits'] });
     },
   });
 
@@ -488,15 +444,12 @@ export default function Royalties() {
 
         {/* Main Content */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview" data-testid="tab-overview">
               Overview
             </TabsTrigger>
             <TabsTrigger value="statements" data-testid="tab-statements">
               Statements
-            </TabsTrigger>
-            <TabsTrigger value="splits" data-testid="tab-splits">
-              Splits
             </TabsTrigger>
             <TabsTrigger value="settings" data-testid="tab-settings">
               Settings

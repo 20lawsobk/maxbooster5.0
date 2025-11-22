@@ -17,9 +17,6 @@ export default function SoloFounderStory() {
               </div>
             </Link>
             <div className="flex items-center space-x-4">
-              <Link href="/contact">
-                <Button variant="ghost">Contact</Button>
-              </Link>
               <Link href="/pricing">
                 <Button>Get Started</Button>
               </Link>

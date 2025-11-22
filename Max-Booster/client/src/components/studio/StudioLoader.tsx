@@ -209,7 +209,7 @@ export function StudioLoader({ children, userId }: StudioLoaderProps) {
 
       toast({
         title: 'Failed to create project',
-        description: 'Please try again or contact support.',
+        description: 'Please try again.',
         variant: 'destructive',
       });
     }

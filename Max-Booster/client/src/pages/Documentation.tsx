@@ -208,19 +208,13 @@ export default function Documentation() {
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-white mb-4">Need Help?</h2>
           <p className="text-xl text-white/90 mb-8">
-            Can't find what you're looking for? Our support team is here to help.
+            Can't find what you're looking for? Check out the Help Center for comprehensive guides.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contact">
-              <Button size="lg" variant="secondary">
-                Contact Support
-              </Button>
-            </Link>
+          <div className="flex justify-center">
             <Link href="/help">
               <Button
                 size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-blue-600"
+                variant="secondary"
               >
                 Visit Help Center
               </Button>

@@ -31,7 +31,7 @@ export default function Pricing() {
         'Unlimited Active Projects',
         'Premium Content Library',
         'Cloud Storage',
-        'Email & Chat Support',
+        'Comprehensive Help Center',
       ],
     },
     {
@@ -56,7 +56,7 @@ export default function Pricing() {
         'Unlimited Active Projects',
         'Premium Content Library',
         'Cloud Storage',
-        'Email & Chat Support',
+        'Comprehensive Help Center',
       ],
     },
     {
@@ -79,7 +79,7 @@ export default function Pricing() {
         'Unlimited Active Projects',
         'Premium Content Library',
         'Cloud Storage',
-        'Email & Chat Support',
+        'Comprehensive Help Center',
       ],
     },
   ];
@@ -465,7 +465,7 @@ export default function Pricing() {
           <p className="text-xl mb-8 opacity-90">
             Join thousands of artists who are already using Max Booster to grow their careers.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Link href="/register/payment/yearly">
               <Button
                 size="lg"
@@ -476,13 +476,6 @@ export default function Pricing() {
                 Get Started Now
               </Button>
             </Link>
-            <Button
-              size="lg"
-              variant="outline"
-              className="px-8 py-4 border-white text-white hover:bg-white hover:text-primary"
-            >
-              Contact Sales
-            </Button>
           </div>
         </div>
       </div>

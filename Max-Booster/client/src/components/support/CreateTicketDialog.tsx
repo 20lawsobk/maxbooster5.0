@@ -94,7 +94,7 @@ export function CreateTicketDialog({ open, onOpenChange, onSuccess }: CreateTick
         <DialogHeader>
           <DialogTitle>Create Support Ticket</DialogTitle>
           <DialogDescription>
-            Describe your issue and our team will assist you as soon as possible.
+            Describe your issue and I'll assist you as soon as possible.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>

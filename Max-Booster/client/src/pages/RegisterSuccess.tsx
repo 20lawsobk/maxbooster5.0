@@ -55,7 +55,7 @@ export default function RegisterSuccess() {
         setIsVerifying(false);
         toast({
           title: 'Payment Verification Failed',
-          description: 'Unable to verify your payment. Please contact support.',
+          description: 'Unable to verify your payment. Please try again.',
           variant: 'destructive',
         });
         navigate('/pricing');
@@ -141,7 +141,7 @@ export default function RegisterSuccess() {
           <CardContent className="p-8 text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Payment Verification Failed</h1>
             <p className="text-gray-600 mb-6">
-              We couldn't verify your payment. Please try again or contact support.
+              We couldn't verify your payment. Please try again.
             </p>
             <Button onClick={() => navigate('/pricing')} data-testid="button-back-to-pricing">
               Back to Pricing

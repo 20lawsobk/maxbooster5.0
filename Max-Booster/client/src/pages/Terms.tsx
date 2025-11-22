@@ -180,7 +180,7 @@ export default function Terms() {
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">11. Contact Information</h2>
-              <p>For questions about these Terms, please contact us at support@maxbooster.com</p>
+              <p>For questions about these Terms, please refer to the Help Center at /help</p>
             </section>
           </CardContent>
         </Card>

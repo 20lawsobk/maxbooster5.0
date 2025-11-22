@@ -1,13 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   ArrowLeft,
   Search,
   HelpCircle,
   Book,
-  MessageCircle,
-  Mail,
   ExternalLink,
   Video,
   FileText,
@@ -21,16 +18,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
 const faqs = [
@@ -197,14 +184,6 @@ export default function Help() {
   const [navigate] = useLocation();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
-  const [chatOpen, setChatOpen] = useState(false);
-  const [contactOpen, setContactOpen] = useState(false);
-  const [chatMessage, setChatMessage] = useState('');
-  const [contactForm, setContactForm] = useState({
-    email: '',
-    subject: '',
-    message: '',
-  });
 
   const filteredFAQs = faqs
     .map((category) => ({
@@ -407,118 +386,6 @@ export default function Help() {
           </CardContent>
         </Card>
 
-        {/* Still Need Help */}
-        <div className="mt-12 p-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl text-white text-center">
-          <h2 className="text-2xl font-bold mb-4">Still need help?</h2>
-          <p className="mb-6 text-blue-100">
-            I'm here to personally help you succeed with Max Booster
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button
-              variant="secondary"
-              size="lg"
-              data-testid="button-contact-support"
-              onClick={handleContactSupport}
-            >
-              <Mail className="w-5 h-5 mr-2" />
-              Contact Support
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="bg-transparent border-white text-white hover:bg-white/10"
-              onClick={handleLiveChat}
-              data-testid="button-live-chat-footer"
-            >
-              <MessageCircle className="w-5 h-5 mr-2" />
-              Live Chat
-            </Button>
-          </div>
-        </div>
-
-        {/* Live Chat Dialog */}
-        <Dialog open={chatOpen} onOpenChange={setChatOpen}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Live Chat Support</DialogTitle>
-              <DialogDescription>Chat with our support team in real-time</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="h-64 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 overflow-y-auto">
-                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg mb-2">
-                  <p className="text-sm font-medium">Support Agent</p>
-                  <p className="text-sm">Hello! How can I help you today?</p>
-                </div>
-              </div>
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Type your message..."
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendChat()}
-                  data-testid="input-chat-message"
-                />
-                <Button onClick={handleSendChat} data-testid="button-send-chat">
-                  Send
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Contact Support Dialog */}
-        <Dialog open={contactOpen} onOpenChange={setContactOpen}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Contact Support</DialogTitle>
-              <DialogDescription>
-                Send us a message and we'll get back to you within 24 hours
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="contact-email">Email</Label>
-                <Input
-                  id="contact-email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={contactForm.email}
-                  onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                  data-testid="input-contact-email"
-                />
-              </div>
-              <div>
-                <Label htmlFor="contact-subject">Subject</Label>
-                <Input
-                  id="contact-subject"
-                  placeholder="What's this about?"
-                  value={contactForm.subject}
-                  onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                  data-testid="input-contact-subject"
-                />
-              </div>
-              <div>
-                <Label htmlFor="contact-message">Message</Label>
-                <Textarea
-                  id="contact-message"
-                  placeholder="Describe your issue or question..."
-                  value={contactForm.message}
-                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                  rows={4}
-                  data-testid="input-contact-message"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setContactOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSendContact} data-testid="button-send-contact">
-                Send Message
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );

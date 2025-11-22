@@ -8,7 +8,6 @@ import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { KeyboardShortcutsDialog } from '@/components/dialogs/KeyboardShortcutsDialog';
 import { SkipLinks } from '@/components/SkipLinks';
-import { LiveChatWidget } from '@/components/support/LiveChatWidget';
 import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 import { useKeyboardShortcuts, announce } from '@/lib/accessibility';
 import Landing from '@/pages/Landing';
@@ -25,7 +24,6 @@ import Documentation from '@/pages/Documentation';
 import About from '@/pages/About';
 import Blog from '@/pages/Blog';
 import SoloFounderStory from '@/pages/SoloFounderStory';
-import Contact from '@/pages/Contact';
 import SecurityPage from '@/pages/SecurityPage';
 import DMCA from '@/pages/DMCA';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -92,7 +90,6 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/blog" component={Blog} />
       <Route path="/solo-founder-story" component={SoloFounderStory} />
-      <Route path="/contact" component={Contact} />
       <Route path="/security" component={SecurityPage} />
       <Route path="/dmca" component={DMCA} />
       <Route path="/terms" component={Terms} />
@@ -215,7 +212,6 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
-            <LiveChatWidget />
             <CookieConsentBanner />
             <div id="main-content" role="main" tabIndex={-1}>
               <Suspense

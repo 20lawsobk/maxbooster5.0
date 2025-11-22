@@ -30,7 +30,6 @@ const ROUTE_LABELS: Record<string, string> = {
   documentation: 'Documentation',
   about: 'About',
   blog: 'Blog',
-  contact: 'Contact',
   security: 'Security',
   dmca: 'DMCA',
   terms: 'Terms',

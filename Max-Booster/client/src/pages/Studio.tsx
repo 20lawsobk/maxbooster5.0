@@ -65,7 +65,6 @@ import {
   Minimize,
   RotateCw,
   Share2,
-  Link2,
 } from 'lucide-react';
 
 import { Transport } from '@/components/studio/Transport';
@@ -1091,33 +1090,6 @@ export default function Studio() {
     }
   }, [selectedProject, toast]);
 
-  const handleShareLink = useCallback(async () => {
-    if (!selectedProject) {
-      toast({
-        title: 'No project selected',
-        description: 'Please select a project to share.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const shareUrl = `${window.location.origin}/studio/${selectedProject.id}`;
-
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast({
-        title: 'Link copied!',
-        description: 'Project link has been copied to clipboard. Share it with collaborators.',
-      });
-    } catch (error: unknown) {
-      logger.error('Failed to copy link:', error);
-      toast({
-        title: 'Copy failed',
-        description: 'Could not copy link to clipboard. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  }, [selectedProject, toast]);
 
   const handleTrackUpdate = useCallback(
     async (trackId: string, updates: Partial<StudioTrack>) => {
@@ -1862,17 +1834,6 @@ export default function Studio() {
                       >
                         <FileText className="h-4 w-4 mr-1" />
                         Distribution
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8"
-                        onClick={handleShareLink}
-                        disabled={!selectedProject}
-                        data-testid="button-share-link"
-                      >
-                        <Link2 className="h-4 w-4 mr-1" />
-                        Share Link
                       </Button>
                       <Separator orientation="vertical" className="h-6 bg-gray-600" />
                       <TooltipProvider>
