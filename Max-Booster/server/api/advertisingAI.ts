@@ -1,37 +1,12 @@
 import { Router } from 'express';
 import { storage } from '../storage.js';
 import { logger } from '../logger.js';
-import { AdvertisingAutopilotAI_v3 } from '../../shared/ml/models/AdvertisingAutopilotAI_v3.js';
+import { aiModelManager } from '../services/aiModelManager.js';
 import { autoPostingService } from '../services/autoPostingService.js';
 import { autoPostGenerator } from '../services/autoPostGenerator.js';
 import type { User } from '../../shared/schema.js';
 
 const router = Router();
-
-// Singleton AI instance
-let advertisingAI: AdvertisingAutopilotAI_v3 | null = null;
-
-/**
- * Get or create AI instance for user
- */
-async function getAdvertisingAI(userId: string): Promise<AdvertisingAutopilotAI_v3> {
-  if (!advertisingAI) {
-    advertisingAI = new AdvertisingAutopilotAI_v3();
-    
-    // Try to load user's training data and train
-    try {
-      const campaigns = await storage.getOrganicCampaigns(userId);
-      if (campaigns && campaigns.length >= 30) {
-        logger.info(`Training Advertising AI v3.0 for user ${userId} with ${campaigns.length} campaigns`);
-        await advertisingAI.trainOnOrganicCampaigns(campaigns);
-      }
-    } catch (error) {
-      logger.warn(`Could not train Advertising AI v3.0 for user ${userId}:`, error);
-    }
-  }
-  
-  return advertisingAI;
-}
 
 /**
  * POST /api/ai/advertising/train
@@ -53,10 +28,13 @@ router.post('/train', async (req, res) => {
       });
     }
 
-    const ai = await getAdvertisingAI(user.id);
+    const ai = await aiModelManager.getAdvertisingAutopilot(user.id);
     const result = await ai.trainOnOrganicCampaigns(campaigns);
 
-    logger.info(`Advertising AI v3.0 training completed for user ${user.id}`);
+    // CRITICAL: Persist model state after training to ensure per-user isolation
+    await aiModelManager.saveAdvertisingModel(user.id);
+
+    logger.info(`Advertising AI v3.0 training completed and persisted for user ${user.id}`);
 
     res.json({
       success: true,
@@ -86,7 +64,7 @@ router.post('/predict-viral', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: headline, body, platforms' });
     }
 
-    const ai = await getAdvertisingAI(user.id);
+    const ai = await aiModelManager.getAdvertisingAutopilot(user.id);
 
     const prediction = await ai.predictViralContent({
       headline,
@@ -126,7 +104,7 @@ router.post('/content-distribution', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: headline, body' });
     }
 
-    const ai = await getAdvertisingAI(user.id);
+    const ai = await aiModelManager.getAdvertisingAutopilot(user.id);
 
     const distributionPlan = await ai.generateContentDistributionPlan(
       {
@@ -170,7 +148,7 @@ router.post('/auto-post', async (req, res) => {
     }
 
     // Step 1: Get viral prediction
-    const ai = await getAdvertisingAI(user.id);
+    const ai = await aiModelManager.getAdvertisingAutopilot(user.id);
     const prediction = await ai.predictViralContent({
       headline,
       body,
@@ -271,7 +249,7 @@ router.get('/performance', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const ai = await getAdvertisingAI(user.id);
+    const ai = await aiModelManager.getAdvertisingAutopilot(user.id);
 
     res.json({
       success: true,
@@ -304,7 +282,7 @@ router.get('/segments', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const ai = await getAdvertisingAI(user.id);
+    const ai = await aiModelManager.getAdvertisingAutopilot(user.id);
 
     res.json({
       success: true,

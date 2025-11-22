@@ -182,6 +182,30 @@ class AIModelManager {
   }
 
   /**
+   * Save Social Media Autopilot model to database (public method for manual persistence)
+   * Call this after training to ensure model state is persisted
+   */
+  async saveSocialModel(userId: string): Promise<void> {
+    const cached = this.socialModels.get(userId);
+    if (!cached) {
+      throw new Error(`No Social AI model found in cache for user ${userId}`);
+    }
+    await this.persistSocialModel(userId, cached.model);
+  }
+
+  /**
+   * Save Advertising Autopilot model to database (public method for manual persistence)
+   * Call this after training to ensure model state is persisted
+   */
+  async saveAdvertisingModel(userId: string): Promise<void> {
+    const cached = this.advertisingModels.get(userId);
+    if (!cached) {
+      throw new Error(`No Advertising AI model found in cache for user ${userId}`);
+    }
+    await this.persistAdvertisingModel(userId, cached.model);
+  }
+
+  /**
    * Persist Social Media Autopilot model to database
    */
   private async persistSocialModel(userId: string, model: SocialMediaAutopilotAI): Promise<void> {
