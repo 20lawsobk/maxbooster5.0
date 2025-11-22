@@ -74,6 +74,10 @@ localPort = 41595
 externalPort = 3001
 
 [[ports]]
+localPort = 42061
+externalPort = 4200
+
+[[ports]]
 localPort = 43199
 
 [[ports]]
@@ -101,3 +105,4 @@ defaultBucketID = "replit-objstore-3340ce4d-11a4-420d-af58-a73cce467dbe"
 
 [userenv.shared]
 DMCA_AGENT_ID = "DMCA-1065850"
+REDIS_URL = "redis://localhost:6379"
