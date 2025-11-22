@@ -4,8 +4,8 @@ import {
   analytics, 
   users, 
   subscriptions, 
-  socialPosts, 
-  adCampaigns,
+  socialCampaigns, 
+  campaigns,
   projects,
   releases
 } from '@shared/schema';
@@ -140,13 +140,13 @@ router.get('/ai/predict-churn', async (req: Request, res: Response) => {
 
       const [recentActivity] = await db
         .select({
-          postCount: count(socialPosts.id),
+          postCount: count(socialCampaigns.id),
         })
-        .from(socialPosts)
+        .from(socialCampaigns)
         .where(
           and(
-            eq(socialPosts.userId, user.id),
-            gte(socialPosts.createdAt, thirtyDaysAgo)
+            eq(socialCampaigns.userId, user.id),
+            gte(socialCampaigns.createdAt, thirtyDaysAgo)
           )
         );
 
