@@ -50,9 +50,9 @@ Authentication includes bcrypt password hashing, secure session cookies, JWT ref
 
 -   **AI Assistant System Restoration** (Nov 22, 2025): Fully restored dual AI assistant system as solo founder's 24/7 support workaround:
     -   **AI Studio Assistant**: Re-integrated AIAssistantPanel component into Studio.tsx with "AI Assistant" button in toolbar (cyan, Sparkles icon) - provides mixing suggestions, loudness analysis, genre presets, mastering recommendations
-    -   **AI Chat Bubble**: Created new AIAssistantBubble component (floating chat widget) appearing on all pages - provides intelligent help about DAW, distribution, social media, advertising, marketplace, monetization, and all platform features
+    -   **"Max" AI Chat Bubble**: Created new AIAssistantBubble component named "Max" (floating chat widget) appearing on all pages - provides intelligent help about DAW, distribution, social media, advertising, marketplace, monetization, and all platform features
     -   Both AI systems provide intelligent 24/7 assistance without requiring external support team
-    -   Quick suggestions for common questions with instant AI-powered responses
+    -   Max greets users personally and offers quick suggestions for common questions with instant AI-powered responses
 -   **Complete Contact/Support References Removal** (Nov 22, 2025): Eliminated all team/support references to reflect solo founder operation:
     -   Removed Contact page, LiveChatWidget, and all "Contact Support/Sales" buttons
     -   Changed all "Email & Chat Support" features to "Comprehensive Help Center"

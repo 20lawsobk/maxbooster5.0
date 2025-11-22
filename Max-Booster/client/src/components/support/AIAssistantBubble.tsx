@@ -29,7 +29,7 @@ const QUICK_SUGGESTIONS: Suggestion[] = [
 ];
 
 const AI_RESPONSES: Record<string, string> = {
-  default: "I'm your AI assistant, here to help you navigate Max Booster! I can answer questions about the Studio, distribution, social media autopilot, advertising campaigns, marketplace features, and more. What would you like to know?",
+  default: "I'm Max, your AI assistant! I'm here to help you navigate Max Booster. I can answer questions about the Studio, distribution, social media autopilot, advertising campaigns, marketplace features, and more. What would you like to know?",
   daw: "The Max Booster Studio is a full-featured DAW (Digital Audio Workstation) inspired by Studio One. You can:\n\n• Create and manage unlimited projects\n• Record audio and MIDI tracks\n• Use AI mixing and mastering\n• Apply professional effects and plugins\n• Export in multiple formats\n\nTo get started, click 'Studio' in the sidebar and create a new project!",
   distribution: "Max Booster offers unlimited music distribution to 150+ platforms including Spotify, Apple Music, Amazon Music, and more. You keep 100% of your royalties!\n\nTo distribute:\n1. Go to Distribution in the sidebar\n2. Upload your finished track\n3. Add metadata (title, artist, cover art)\n4. Select platforms\n5. Submit for review\n\nYour music will go live within 2-3 business days!",
   ai: "Max Booster includes powerful AI features:\n\n• **AI Mix**: Automatic EQ, compression, and spatial positioning\n• **AI Master**: Professional loudness optimization and finishing\n• **AI Generator**: Create beats and melodies from text descriptions\n• **Social Media Autopilot**: 24/7 automated content posting\n• **Ad Campaign Autopilot**: Organic growth optimization\n\nAll AI is 100% custom-built in-house - no external APIs!",
@@ -60,8 +60,8 @@ export function AIAssistantBubble() {
         id: '1',
         role: 'assistant',
         content: user 
-          ? `Hey ${user.username}! 👋 I'm your AI assistant. I'm here to help you with anything about Max Booster - from using the Studio to growing your music career. What can I help you with today?`
-          : "Hey there! 👋 I'm your AI assistant. I'm here to help you learn about Max Booster and how it can accelerate your music career. What questions do you have?",
+          ? `Hey ${user.username}! 👋 I'm Max, your AI assistant. I'm here to help you with anything about Max Booster - from using the Studio to growing your music career. What can I help you with today?`
+          : "Hey there! 👋 I'm Max, your AI assistant. I'm here to help you learn about Max Booster and how it can accelerate your music career. What questions do you have?",
         timestamp: new Date(),
       };
       setMessages([welcomeMessage]);
@@ -158,8 +158,8 @@ export function AIAssistantBubble() {
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <div>
-                <div className="text-sm font-semibold">AI Assistant</div>
-                <div className="text-xs text-gray-400 font-normal">Always here to help</div>
+                <div className="text-sm font-semibold">Max</div>
+                <div className="text-xs text-gray-400 font-normal">Your AI Assistant</div>
               </div>
             </CardTitle>
             <div className="flex items-center gap-1">
