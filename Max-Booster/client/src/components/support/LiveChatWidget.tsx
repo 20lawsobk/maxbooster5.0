@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Minimize2, AlertCircle, Bot, User } from 'lucide-react';
+import { MessageCircle, X, Send, Minimize2, Bot, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,20 +87,6 @@ export function LiveChatWidget() {
 
       setMessages((prev) => [...prev, aiMessage]);
 
-      if (data.shouldEscalate) {
-        setTimeout(() => {
-          const escalationMessage: Message = {
-            id: `escalate-${Date.now()}`,
-            message:
-              'Would you like to create a support ticket for human assistance? Click below to get started.',
-            isAI: true,
-            isStaff: false,
-            createdAt: new Date(),
-          };
-          setMessages((prev) => [...prev, escalationMessage]);
-        }, 1000);
-      }
-
       if (data.suggestedArticles && data.suggestedArticles.length > 0) {
         const articlesMessage: Message = {
           id: `articles-${Date.now()}`,
@@ -126,11 +112,6 @@ export function LiveChatWidget() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleCreateTicket = () => {
-    setIsOpen(false);
-    window.location.href = '/help';
   };
 
   if (!isOpen) {
@@ -231,12 +212,6 @@ export function LiveChatWidget() {
           </ScrollArea>
 
           <div className="p-4 border-t">
-            <div className="flex items-center gap-2 mb-2">
-              <Button variant="outline" size="sm" className="text-xs" onClick={handleCreateTicket}>
-                <AlertCircle className="h-3 w-3 mr-1" />
-                Create Ticket
-              </Button>
-            </div>
             <div className="flex gap-2">
               <Input
                 placeholder="Type your message..."
