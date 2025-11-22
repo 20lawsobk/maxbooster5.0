@@ -47,6 +47,7 @@ import { emailService } from './services/emailService.js';
 import { emailMonitor } from './monitoring/emailMonitor.js';
 import { queueService } from './services/queueService.js';
 import { chatService } from './services/chatService.js';
+import { consentService } from './services/consentService.js';
 import { instantPayoutService } from './services/instantPayoutService.js';
 import { labelGridService } from './services/labelgrid-service.js';
 import * as aiAnalyticsService from './services/aiAnalyticsService.js';
@@ -3085,6 +3086,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stripeCustomerId: session.customer as string,
         stripeSubscriptionId: tier !== 'lifetime' ? (session.subscription as string) : null,
       });
+
+      // Record GDPR consent (TOS, Privacy Policy)
+      const ipAddress = req.ip || req.headers['x-forwarded-for'] as string || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      
+      await consentService.recordRegistrationConsents(
+        user.id,
+        {
+          birthdate: birthDateUTC,
+          tosAccepted: true, // Required during payment flow
+          privacyAccepted: true, // Required during payment flow
+          marketingConsent: false, // Default to false, user can opt-in later
+        },
+        ipAddress,
+        userAgent
+      );
 
       // Log successful registration and payment
       auditLogger.logRegistration(req, user.id, user.email, true);

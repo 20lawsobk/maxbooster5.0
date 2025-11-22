@@ -114,11 +114,44 @@ export const users = pgTable('users', {
   socialRole: userRoleEnum('social_role').default('content_creator'),
   // COPPA Compliance - Age Verification
   birthdate: timestamp('birthdate'), // Required for 13+ age verification
+  ageVerified: boolean('age_verified').default(false),
+  // GDPR Compliance - Consent Tracking
+  tosAcceptedAt: timestamp('tos_accepted_at'), // Terms of Service acceptance timestamp
+  tosVersion: varchar('tos_version', { length: 50 }), // Version of TOS accepted
+  privacyAcceptedAt: timestamp('privacy_accepted_at'), // Privacy Policy acceptance timestamp
+  privacyVersion: varchar('privacy_version', { length: 50 }), // Version of Privacy Policy accepted
+  marketingConsent: boolean('marketing_consent').default(false), // Marketing emails consent
+  marketingConsentAt: timestamp('marketing_consent_at'),
   // GDPR Compliance - Right to Erasure
   markedForDeletion: boolean('marked_for_deletion').default(false),
   deletionScheduledAt: timestamp('deletion_scheduled_at'),
   deletionRequestedAt: timestamp('deletion_requested_at'),
 });
+
+// Consent Logs table for GDPR Compliance
+export const consentLogs = pgTable(
+  'consent_logs',
+  {
+    id: varchar('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    consentType: varchar('consent_type', { length: 100 }).notNull(), // 'tos', 'privacy', 'marketing', 'cookies'
+    action: varchar('action', { length: 50 }).notNull(), // 'accepted', 'rejected', 'withdrawn'
+    version: varchar('version', { length: 50 }), // Version of policy accepted
+    ipAddress: varchar('ip_address', { length: 45 }), // Support IPv6
+    userAgent: text('user_agent'),
+    metadata: jsonb('metadata'), // Additional context
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index('consent_logs_user_id_idx').on(table.userId),
+    consentTypeIdx: index('consent_logs_consent_type_idx').on(table.consentType),
+    createdAtIdx: index('consent_logs_created_at_idx').on(table.createdAt),
+  })
+);
 
 // Password Reset Tokens table
 export const passwordResetTokens = pgTable(
