@@ -8,15 +8,64 @@ import { Router } from 'express';
 import { contentAnalysisService } from '../services/contentAnalysisService';
 import { requireAuth } from '../middleware/auth';
 import { logger } from '../logger';
+import rateLimit from 'express-rate-limit';
+import { db } from '../db';
+import { users } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
+
+// Rate limiter for content analysis endpoints (expensive operations)
+const contentAnalysisLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // 50 requests per 15 minutes
+  message: 'Too many content analysis requests, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Middleware to check if user has premium subscription (required for content analysis)
+const requirePremium = async (req: any, res: any, next: any) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, req.user.id),
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Allow premium users and admin
+    if (user.subscriptionTier === 'premium' || user.subscriptionTier === 'admin' || user.role === 'admin') {
+      return next();
+    }
+
+    return res.status(403).json({
+      error: 'Premium subscription required',
+      message: 'Content analysis features require a premium subscription. Upgrade to access multimodal AI analysis.',
+      upgradeUrl: '/pricing',
+    });
+  } catch (error) {
+    logger.error('Premium check error:', error);
+    res.status(500).json({ error: 'Failed to verify subscription' });
+  }
+};
+
+// Apply rate limiting, authentication, and premium requirement to all routes
+router.use(contentAnalysisLimiter);
+router.use(requireAuth);
+router.use(requirePremium);
 
 /**
  * Analyze image content
  * POST /api/content-analysis/image
  * Body: { imageUrl: string }
  */
-router.post('/image', requireAuth, async (req, res) => {
+router.post('/image', async (req, res) => {
   try {
     const { imageUrl } = req.body;
 
@@ -46,7 +95,7 @@ router.post('/image', requireAuth, async (req, res) => {
  * POST /api/content-analysis/video
  * Body: { videoUrl: string, duration?: number }
  */
-router.post('/video', requireAuth, async (req, res) => {
+router.post('/video', async (req, res) => {
   try {
     const { videoUrl, duration } = req.body;
 
@@ -79,7 +128,7 @@ router.post('/video', requireAuth, async (req, res) => {
  * POST /api/content-analysis/audio
  * Body: { audioUrl: string, metadata?: any }
  */
-router.post('/audio', requireAuth, async (req, res) => {
+router.post('/audio', async (req, res) => {
   try {
     const { audioUrl, metadata } = req.body;
 
@@ -112,7 +161,7 @@ router.post('/audio', requireAuth, async (req, res) => {
  * POST /api/content-analysis/text
  * Body: { text: string }
  */
-router.post('/text', requireAuth, async (req, res) => {
+router.post('/text', async (req, res) => {
   try {
     const { text } = req.body;
 
@@ -142,7 +191,7 @@ router.post('/text', requireAuth, async (req, res) => {
  * POST /api/content-analysis/website
  * Body: { url: string }
  */
-router.post('/website', requireAuth, async (req, res) => {
+router.post('/website', async (req, res) => {
   try {
     const { url } = req.body;
 
@@ -178,7 +227,7 @@ router.post('/website', requireAuth, async (req, res) => {
  *   videoDuration?: number
  * }
  */
-router.post('/batch', requireAuth, async (req, res) => {
+router.post('/batch', async (req, res) => {
   try {
     const { mediaType, mediaUrl, text, landingPageUrl, videoDuration } = req.body;
 
@@ -224,7 +273,7 @@ router.post('/batch', requireAuth, async (req, res) => {
  * type: 'post' | 'campaign'
  * id: post or campaign ID
  */
-router.get('/:type/:id', requireAuth, async (req, res) => {
+router.get('/:type/:id', async (req, res) => {
   try {
     const { type, id } = req.params;
 

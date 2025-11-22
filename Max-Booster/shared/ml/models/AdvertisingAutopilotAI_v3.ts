@@ -273,8 +273,8 @@ export class AdvertisingAutopilotAI_v3 extends BaseModel {
     super({
       name: 'AdvertisingAutopilotAI_v3',
       type: 'multimodal',
-      version: '3.0.0',
-      inputShape: [25], // Expanded features for organic optimization
+      version: '3.1.0',
+      inputShape: [44], // 24 base features + 20 multimodal content features
       outputShape: [5], // Reach, engagement, virality, conversions, trust
     });
   }
@@ -290,7 +290,7 @@ export class AdvertisingAutopilotAI_v3 extends BaseModel {
         tf.layers.dense({
           units: 128,
           activation: 'relu',
-          inputShape: [25], // Content features + timing + historical performance
+          inputShape: [44], // 24 base features + 20 multimodal content features
           kernelRegularizer: tf.regularizers.l2({ l2: 0.01 }),
           name: 'content_encoder',
         }),
@@ -796,7 +796,7 @@ export class AdvertisingAutopilotAI_v3 extends BaseModel {
     const timing = campaign.timing;
     const performance = campaign.performance;
 
-    return [
+    const baseFeatures = [
       // Content features
       content.headline.length / 100,
       content.body.length / 1000,
@@ -841,6 +841,11 @@ export class AdvertisingAutopilotAI_v3 extends BaseModel {
       // Authenticity
       performance.authenticityScore || 0.8,
     ];
+
+    // Add multimodal content features (20 features)
+    const multimodalFeatures = this.extractMultimodalContentFeatures(campaign);
+    
+    return [...baseFeatures, ...multimodalFeatures];
   }
 
   /**
