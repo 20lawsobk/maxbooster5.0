@@ -1,0 +1,9 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('electron', {
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  getAppPath: () => ipcRenderer.invoke('get-app-path'),
+  onNewProject: (callback) => ipcRenderer.on('new-project', callback),
+  platform: process.platform,
+  isElectron: true,
+});

@@ -1,0 +1,11 @@
+PLACEHOLDER FOR PRODUCTION ICONS
+
+Before building production installers, replace these placeholder files with actual branded icons:
+
+1. icon.icns (macOS)
+2. icon.ico (Windows)  
+3. icon.png (Linux - 512x512)
+4. dmg-background.png (macOS installer)
+5. installer-header.bmp (Windows installer)
+
+Use your Max Booster brand assets to create professional icons.
