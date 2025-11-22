@@ -28,6 +28,8 @@ export interface OrganicCampaign {
     hashtags: string[];
     mentions: string[];
     mediaType: 'text' | 'image' | 'video' | 'carousel';
+    mediaUrl?: string;
+    landingPageUrl?: string;
     callToAction?: string;
   };
   timing: {
@@ -65,6 +67,52 @@ export interface OrganicCampaign {
   };
   objective: 'awareness' | 'engagement' | 'conversions' | 'viral';
   wentViral: boolean; // Did it exceed viral threshold for this artist
+  contentAnalysis?: {
+    image?: {
+      dominantColors: string[];
+      colorMood: 'vibrant' | 'muted' | 'dark' | 'light' | 'neutral';
+      hasFaces: boolean;
+      faceCount: number;
+      compositionLayout: string;
+      complexity: number;
+      attentionGrabbing: number;
+      shareability: number;
+      professionalQuality: number;
+      vibe: string[];
+    };
+    video?: {
+      duration: number;
+      hookStrength: number;
+      motionIntensity: string;
+      viralPotential: number;
+      hasMusic: boolean;
+      musicEnergy: number;
+      retention: {
+        first5Seconds: number;
+        first30Seconds: number;
+        overall: number;
+      };
+      callToActionPresence: boolean;
+    };
+    text?: {
+      sentiment: 'positive' | 'negative' | 'neutral';
+      energy: number;
+      readability: number;
+      viralPotential: number;
+      emotionalImpact: string[];
+      persuasiveness: number;
+      callToActionStrength: number;
+    };
+    website?: {
+      conversionOptimization: number;
+      ctaClarity: number;
+      socialProof: boolean;
+      trustSignals: string[];
+      mobileOptimized: boolean;
+      urgency: boolean;
+      scarcity: boolean;
+    };
+  };
 }
 
 /**
@@ -1404,7 +1452,7 @@ export class AdvertisingAutopilotAI_v3 extends BaseModel {
     const hourOfDay = plan.scheduledTime.getHours();
     const dayOfWeek = plan.scheduledTime.getDay();
 
-    return [
+    const baseFeatures = [
       plan.headline.length / 100,
       plan.body.length / 1000,
       plan.hashtags.length / 10,
@@ -1429,8 +1477,82 @@ export class AdvertisingAutopilotAI_v3 extends BaseModel {
       this.viralSuccessRate || 0.1,
       this.avgOrganicReachMultiplier || 1.5,
       0.8, // Default authenticity
-      0, // Padding for 25 features
     ];
+
+    const multimodalFeatures = this.extractMultimodalContentFeatures(plan);
+    
+    return [...baseFeatures, ...multimodalFeatures];
+  }
+
+  /**
+   * Extract multimodal content features for advertising campaigns
+   * Includes image, video, text, and website analysis for conversion optimization
+   */
+  private extractMultimodalContentFeatures(campaign: any): number[] {
+    const ca = campaign.contentAnalysis;
+    
+    if (!ca) {
+      return new Array(20).fill(0.5);
+    }
+
+    const imageFeatures = ca.image ? [
+      this.encodeMood(ca.image.colorMood),
+      ca.image.hasFaces ? 1 : 0,
+      Math.min(ca.image.faceCount / 5, 1),
+      ca.image.complexity,
+      ca.image.attentionGrabbing,
+      ca.image.shareability,
+      ca.image.professionalQuality,
+    ] : [0.5, 0, 0, 0.5, 0.5, 0.5, 0.7];
+
+    const videoFeatures = ca.video ? [
+      Math.min(ca.video.duration / 60, 1),
+      ca.video.hookStrength,
+      this.encodeMotionIntensity(ca.video.motionIntensity),
+      ca.video.viralPotential,
+      ca.video.hasMusic ? 1 : 0,
+      ca.video.musicEnergy,
+      ca.video.retention.first5Seconds,
+      ca.video.retention.overall,
+      ca.video.callToActionPresence ? 1 : 0,
+    ] : [0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const websiteFeatures = ca.website ? [
+      ca.website.conversionOptimization,
+      ca.website.ctaClarity,
+      ca.website.socialProof ? 1 : 0,
+      ca.website.mobileOptimized ? 1 : 0,
+    ] : [0.5, 0.5, 0, 1];
+
+    if (campaign.mediaType === 'image' || campaign.mediaType === 'carousel') {
+      return [...imageFeatures, ...new Array(9).fill(0), ...websiteFeatures];
+    } else if (campaign.mediaType === 'video') {
+      return [...new Array(7).fill(0), ...videoFeatures, ...websiteFeatures];
+    } else {
+      return [...new Array(16).fill(0), ...websiteFeatures];
+    }
+  }
+
+  private encodeMood(mood: string): number {
+    const moodMap: Record<string, number> = {
+      vibrant: 1.0,
+      light: 0.75,
+      neutral: 0.5,
+      muted: 0.25,
+      dark: 0,
+    };
+    return moodMap[mood] || 0.5;
+  }
+
+  private encodeMotionIntensity(intensity: string): number {
+    const intensityMap: Record<string, number> = {
+      frenetic: 1.0,
+      high: 0.8,
+      moderate: 0.5,
+      low: 0.3,
+      static: 0,
+    };
+    return intensityMap[intensity] || 0.5;
   }
 
   private extractPlatformFeaturesForPlan(plan: any, platform: string): number[] {
