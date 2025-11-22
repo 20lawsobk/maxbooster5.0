@@ -73,6 +73,7 @@ import { Timeline } from '@/components/studio/Timeline';
 import { MixerPanel } from '@/components/studio/MixerPanel';
 import { ExportDialog } from '@/components/studio/ExportDialog';
 import { StemExportDialog } from '@/components/studio/StemExportDialog';
+import { AIAssistantPanel } from '@/components/studio/AIAssistantPanel';
 import { DistributionDialog } from '@/components/studio/DistributionDialog';
 import { AIGeneratorDialog } from '@/components/studio/AIGeneratorDialog';
 import { ConversionDialog } from '@/components/studio/ConversionDialog';
@@ -284,6 +285,7 @@ export default function Studio() {
 
   const [isAIMixing, setIsAIMixing] = useState(false);
   const [isAIMastering, setIsAIMastering] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [showLyricsPanel, setShowLyricsPanel] = useState(false);
   const [lyricsContent, setLyricsContent] = useState('');
   const [showExportDialog, setShowExportDialog] = useState(false);
@@ -1722,6 +1724,16 @@ export default function Studio() {
                         <Wand2 className="h-4 w-4 mr-1" />
                         AI Generator
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-900/20"
+                        onClick={() => setShowAIAssistant(true)}
+                        data-testid="button-ai-assistant"
+                      >
+                        <Sparkles className="h-4 w-4 mr-1" />
+                        AI Assistant
+                      </Button>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -2249,6 +2261,27 @@ export default function Studio() {
                   </Button>
                 )}
               </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={showAIAssistant} onOpenChange={setShowAIAssistant}>
+            <DialogContent className="bg-[#252525] border-gray-700 text-white max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-cyan-400" />
+                  AI Studio Assistant
+                </DialogTitle>
+              </DialogHeader>
+              <AIAssistantPanel 
+                projectId={selectedProject?.id}
+                onApplyChanges={(changes) => {
+                  logger.info('AI Assistant applied changes:', changes);
+                  toast({
+                    title: 'AI Changes Applied',
+                    description: 'The AI Assistant has made improvements to your project.',
+                  });
+                }}
+              />
             </DialogContent>
           </Dialog>
 
