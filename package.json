@@ -24,6 +24,7 @@
     "archiver": "^7.0.1",
     "axios-cookiejar-support": "^6.0.5",
     "bullmq": "^5.63.2",
+    "canvas": "^3.2.0",
     "connect-redis": "^7.1.1",
     "ffmpeg-static": "^5.2.0",
     "fft.js": "^4.0.4",
@@ -33,6 +34,7 @@
     "music-metadata": "^11.10.0",
     "node-cron": "^4.2.1",
     "seedrandom": "^3.0.5",
+    "sharp": "^0.34.5",
     "tweetnacl": "^1.0.3",
     "vite-plugin-node-polyfills": "^0.24.0",
     "xmlbuilder2": "^4.0.0"
