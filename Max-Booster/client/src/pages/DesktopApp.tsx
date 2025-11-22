@@ -40,19 +40,19 @@ export default function DesktopApp() {
     {
       name: 'Windows',
       icon: '🪟',
-      downloadUrl: '#',
+      downloadUrl: 'https://releases.maxbooster.com/download/Max-Booster-Setup-1.0.0.exe',
       requirements: t('desktopApp.requirements.windows'),
     },
     {
       name: 'macOS',
       icon: '🍎',
-      downloadUrl: '#',
+      downloadUrl: 'https://releases.maxbooster.com/download/Max-Booster-1.0.0.dmg',
       requirements: t('desktopApp.requirements.mac'),
     },
     {
       name: 'Linux',
       icon: '🐧',
-      downloadUrl: '#',
+      downloadUrl: 'https://releases.maxbooster.com/download/Max-Booster-1.0.0.AppImage',
       requirements: t('desktopApp.requirements.linux'),
     },
   ];
@@ -106,9 +106,11 @@ export default function DesktopApp() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button className="w-full" size="lg">
-                  <Download className="w-4 h-4 mr-2" />
-                  {t('desktopApp.downloadButton')} {platform.name}
+                <Button className="w-full" size="lg" asChild>
+                  <a href={platform.downloadUrl} download>
+                    <Download className="w-4 h-4 mr-2" />
+                    {t('desktopApp.downloadButton')} {platform.name}
+                  </a>
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">
                   {t('desktopApp.version')}: 1.0.0
