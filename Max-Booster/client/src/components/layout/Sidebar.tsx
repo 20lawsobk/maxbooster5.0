@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Music,
+  Monitor,
   BarChart3,
   Share2,
   Megaphone,
@@ -29,6 +30,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { labelKey: 'navigation.dashboard', path: '/dashboard', icon: LayoutDashboard },
   { labelKey: 'navigation.projects', path: '/projects', icon: Music },
+  { labelKey: 'navigation.desktopApp', path: '/desktop-app', icon: Monitor },
   { labelKey: 'navigation.analytics', path: '/analytics', icon: BarChart3 },
   { labelKey: 'analytics.aiInsights', path: '/analytics/ai', icon: Brain },
   { labelKey: 'navigation.social', path: '/social-media', icon: Share2 },

@@ -51,6 +51,7 @@ const Pricing = lazy(() => import('@/pages/Pricing'));
 const Subscribe = lazy(() => import('@/pages/Subscribe'));
 const DeveloperApi = lazy(() => import('@/pages/DeveloperApi'));
 const SimplifiedDashboard = lazy(() => import('@/pages/SimplifiedDashboard'));
+const DesktopApp = lazy(() => import('@/pages/DesktopApp'));
 
 /**
  * TODO: Add function documentation
@@ -67,6 +68,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/simplified-dashboard" component={SimplifiedDashboard} />
       <Route path="/projects" component={Projects} />
+      <Route path="/desktop-app" component={DesktopApp} />
       <Route path="/analytics/ai" component={AIDashboard} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/developer-api" component={DeveloperApi} />
