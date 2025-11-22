@@ -35,7 +35,8 @@
     "distribution": "Distribution",
     "analytics": "Analytique",
     "settings": "Paramètres",
-    "help": "Aide"
+    "help": "Aide",
+    "desktopApp": "Application de Bureau"
   },
   "auth": {
     "loginTitle": "Connexion à Max Booster",
@@ -176,5 +177,52 @@
     "serverError": "Erreur serveur",
     "validationError": "Erreur de validation",
     "tryAgain": "Veuillez réessayer"
+  },
+  "desktopApp": {
+    "title": "Application de Bureau Max Booster",
+    "subtitle": "Découvrez toute la puissance de Max Booster avec notre application de bureau native. Performances améliorées, capacités hors ligne et intégration transparente avec votre flux de travail.",
+    "downloadTitle": "Télécharger pour Votre Plateforme",
+    "downloadButton": "Télécharger pour",
+    "version": "Version",
+    "features": {
+      "performance": {
+        "title": "Performances Ultra-Rapides",
+        "description": "Performances natives de bureau avec utilisation optimisée des ressources et temps de chargement instantanés."
+      },
+      "security": {
+        "title": "Sécurité Renforcée",
+        "description": "Vos données restent sécurisées avec un chiffrement local et des protocoles d'authentification sécurisés."
+      },
+      "offline": {
+        "title": "Mode Hors Ligne",
+        "description": "Travaillez sur vos projets même sans connexion Internet. Synchronisez automatiquement lorsque vous êtes en ligne."
+      },
+      "native": {
+        "title": "Intégration Native",
+        "description": "Intégration transparente avec les fonctionnalités de votre système d'exploitation et le système de fichiers."
+      }
+    },
+    "requirements": {
+      "windows": "Windows 10 ou ultérieur (64 bits)",
+      "mac": "macOS 10.15 Catalina ou ultérieur",
+      "linux": "Ubuntu 20.04+ ou équivalent"
+    },
+    "systemRequirements": {
+      "title": "Configuration Requise"
+    },
+    "webVersion": {
+      "title": "Vous Préférez la Version Web?",
+      "description": "Vous pouvez continuer à utiliser Max Booster dans votre navigateur avec toutes les mêmes fonctionnalités. L'application de bureau offre des performances améliorées et des capacités hors ligne.",
+      "button": "Continuer avec la Version Web"
+    },
+    "faq": {
+      "title": "Questions Fréquemment Posées",
+      "question1": "L'application de bureau est-elle gratuite?",
+      "answer1": "Oui! L'application de bureau est incluse avec votre abonnement Max Booster sans frais supplémentaires.",
+      "question2": "Mes projets se synchroniseront-ils entre le web et le bureau?",
+      "answer2": "Absolument! Tous vos projets, paramètres et données se synchronisent parfaitement entre les versions web et de bureau en temps réel.",
+      "question3": "Puis-je utiliser l'application de bureau hors ligne?",
+      "answer3": "Oui! Vous pouvez travailler sur vos projets hors ligne, et tous les changements se synchroniseront automatiquement lorsque vous vous reconnecterez à Internet."
+    }
   }
 }

@@ -35,7 +35,8 @@
     "distribution": "Vertrieb",
     "analytics": "Analytik",
     "settings": "Einstellungen",
-    "help": "Hilfe"
+    "help": "Hilfe",
+    "desktopApp": "Desktop-App"
   },
   "auth": {
     "loginTitle": "Anmelden bei Max Booster",
@@ -176,5 +177,52 @@
     "serverError": "Serverfehler",
     "validationError": "Validierungsfehler",
     "tryAgain": "Bitte versuchen Sie es erneut"
+  },
+  "desktopApp": {
+    "title": "Max Booster Desktop-App",
+    "subtitle": "Erleben Sie die volle Leistung von Max Booster mit unserer nativen Desktop-Anwendung. Verbesserte Leistung, Offline-Funktionen und nahtlose Integration in Ihren Workflow.",
+    "downloadTitle": "Download für Ihre Plattform",
+    "downloadButton": "Download für",
+    "version": "Version",
+    "features": {
+      "performance": {
+        "title": "Blitzschnelle Leistung",
+        "description": "Native Desktop-Leistung mit optimierter Ressourcennutzung und sofortigen Ladezeiten."
+      },
+      "security": {
+        "title": "Verbesserte Sicherheit",
+        "description": "Ihre Daten bleiben sicher mit lokaler Verschlüsselung und sicheren Authentifizierungsprotokollen."
+      },
+      "offline": {
+        "title": "Offline-Modus",
+        "description": "Arbeiten Sie an Ihren Projekten auch ohne Internetverbindung. Synchronisiert automatisch, wenn Sie online sind."
+      },
+      "native": {
+        "title": "Native Integration",
+        "description": "Nahtlose Integration mit den Funktionen Ihres Betriebssystems und dem Dateisystem."
+      }
+    },
+    "requirements": {
+      "windows": "Windows 10 oder neuer (64-Bit)",
+      "mac": "macOS 10.15 Catalina oder neuer",
+      "linux": "Ubuntu 20.04+ oder gleichwertig"
+    },
+    "systemRequirements": {
+      "title": "Systemanforderungen"
+    },
+    "webVersion": {
+      "title": "Bevorzugen Sie die Web-Version?",
+      "description": "Sie können Max Booster weiterhin in Ihrem Browser mit allen gleichen Funktionen nutzen. Die Desktop-App bietet verbesserte Leistung und Offline-Funktionen.",
+      "button": "Mit Web-Version fortfahren"
+    },
+    "faq": {
+      "title": "Häufig gestellte Fragen",
+      "question1": "Ist die Desktop-App kostenlos?",
+      "answer1": "Ja! Die Desktop-App ist in Ihrem Max Booster-Abonnement ohne zusätzliche Kosten enthalten.",
+      "question2": "Werden meine Projekte zwischen Web und Desktop synchronisiert?",
+      "answer2": "Absolut! Alle Ihre Projekte, Einstellungen und Daten werden nahtlos zwischen den Web- und Desktop-Versionen in Echtzeit synchronisiert.",
+      "question3": "Kann ich die Desktop-App offline verwenden?",
+      "answer3": "Ja! Sie können offline an Ihren Projekten arbeiten, und alle Änderungen werden automatisch synchronisiert, wenn Sie sich wieder mit dem Internet verbinden."
+    }
   }
 }

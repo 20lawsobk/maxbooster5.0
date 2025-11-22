@@ -35,7 +35,8 @@
     "distribution": "配信",
     "analytics": "分析",
     "settings": "設定",
-    "help": "ヘルプ"
+    "help": "ヘルプ",
+    "desktopApp": "デスクトップアプリ"
   },
   "auth": {
     "loginTitle": "Max Boosterにログイン",
@@ -176,5 +177,52 @@
     "serverError": "サーバーエラー",
     "validationError": "検証エラー",
     "tryAgain": "もう一度お試しください"
+  },
+  "desktopApp": {
+    "title": "Max Booster デスクトップアプリ",
+    "subtitle": "ネイティブデスクトップアプリケーションでMax Boosterの全機能を体験してください。パフォーマンスの向上、オフライン機能、ワークフローへのシームレスな統合。",
+    "downloadTitle": "プラットフォーム用にダウンロード",
+    "downloadButton": "ダウンロード：",
+    "version": "バージョン",
+    "features": {
+      "performance": {
+        "title": "超高速パフォーマンス",
+        "description": "最適化されたリソース使用と即座のロード時間でネイティブデスクトップパフォーマンス。"
+      },
+      "security": {
+        "title": "強化されたセキュリティ",
+        "description": "ローカル暗号化と安全な認証プロトコルでデータを安全に保ちます。"
+      },
+      "offline": {
+        "title": "オフラインモード",
+        "description": "インターネット接続なしでもプロジェクトで作業できます。オンライン時に自動的に同期します。"
+      },
+      "native": {
+        "title": "ネイティブ統合",
+        "description": "オペレーティングシステムの機能とファイルシステムとのシームレスな統合。"
+      }
+    },
+    "requirements": {
+      "windows": "Windows 10以降（64ビット）",
+      "mac": "macOS 10.15 Catalina以降",
+      "linux": "Ubuntu 20.04+または同等"
+    },
+    "systemRequirements": {
+      "title": "システム要件"
+    },
+    "webVersion": {
+      "title": "Web版をお好みですか？",
+      "description": "すべて同じ機能でブラウザでMax Boosterを引き続き使用できます。デスクトップアプリは、パフォーマンスの向上とオフライン機能を提供します。",
+      "button": "Web版で続ける"
+    },
+    "faq": {
+      "title": "よくある質問",
+      "question1": "デスクトップアプリは無料ですか？",
+      "answer1": "はい！デスクトップアプリはMax Boosterサブスクリプションに追加料金なしで含まれています。",
+      "question2": "プロジェクトはWebとデスクトップ間で同期されますか？",
+      "answer2": "もちろんです！すべてのプロジェクト、設定、データがWebとデスクトップ版の間でリアルタイムにシームレスに同期されます。",
+      "question3": "デスクトップアプリをオフラインで使用できますか？",
+      "answer3": "はい！オフラインでプロジェクトで作業でき、インターネットに再接続すると自動的にすべての変更が同期されます。"
+    }
   }
 }
