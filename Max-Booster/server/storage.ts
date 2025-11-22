@@ -8796,6 +8796,7 @@ export class DatabaseStorage implements IStorage {
     userId: string;
     modelType: string;
     weights: any;
+    metadata?: any;
     trainedAt: Date;
   }): Promise<void> {
     return databaseResilience.executeWithRetry(async () => {
@@ -8805,6 +8806,7 @@ export class DatabaseStorage implements IStorage {
         userId: data.userId,
         modelType: data.modelType,
         weights: data.weights,
+        metadata: data.metadata || null,
         trainedAt: data.trainedAt,
         createdAt: new Date(),
         updatedAt: new Date(),

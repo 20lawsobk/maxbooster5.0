@@ -2564,6 +2564,7 @@ export const userAIModels = pgTable(
     userId: varchar('user_id', { length: 255 }).notNull(),
     modelType: varchar('model_type', { length: 100 }).notNull(), // 'social_autopilot' | 'advertising_autopilot'
     weights: jsonb('weights').notNull(), // Serialized model weights/state
+    metadata: jsonb('metadata'), // Per-user metadata (segments, metrics, scalers, etc.)
     trainedAt: timestamp('trained_at').notNull(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),

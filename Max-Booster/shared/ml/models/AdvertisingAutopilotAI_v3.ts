@@ -1820,4 +1820,36 @@ export class AdvertisingAutopilotAI_v3 extends BaseModel {
   protected buildModel(): tf.LayersModel {
     return this.buildViralContentModel();
   }
+
+  /**
+   * Serialize per-user metadata for database persistence
+   * Prevents cross-tenant data leakage on cache eviction
+   */
+  public serializeMetadata(): any {
+    return {
+      campaignHistory: this.campaignHistory,
+      audienceSegments: this.audienceSegments,
+      platformAlgorithms: Array.from(this.platformAlgorithms.entries()),
+      viralContentScaler: this.viralContentScaler,
+      platformScalers: Array.from(this.platformScalers.entries()),
+      viralSuccessRate: this.viralSuccessRate,
+      avgOrganicReachMultiplier: this.avgOrganicReachMultiplier,
+    };
+  }
+
+  /**
+   * Deserialize per-user metadata from database
+   * Restores complete user-specific state after cache eviction
+   */
+  public deserializeMetadata(metadata: any): void {
+    if (!metadata) return;
+
+    this.campaignHistory = metadata.campaignHistory || [];
+    this.audienceSegments = metadata.audienceSegments || [];
+    this.platformAlgorithms = new Map(metadata.platformAlgorithms || []);
+    this.viralContentScaler = metadata.viralContentScaler || null;
+    this.platformScalers = new Map(metadata.platformScalers || []);
+    this.viralSuccessRate = metadata.viralSuccessRate || 0;
+    this.avgOrganicReachMultiplier = metadata.avgOrganicReachMultiplier || 1.5;
+  }
 }
