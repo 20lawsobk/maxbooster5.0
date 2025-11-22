@@ -24,7 +24,8 @@ const contentAnalysisLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Middleware to check if user has premium subscription (required for content analysis)
+// Middleware to check if user has a paid subscription (required for content analysis)
+// Note: There is no free tier - all content analysis requires a paid subscription
 const requirePremium = async (req: any, res: any, next: any) => {
   try {
     if (!req.user) {
@@ -39,14 +40,15 @@ const requirePremium = async (req: any, res: any, next: any) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Allow premium users and admin
-    if (user.subscriptionTier === 'premium' || user.subscriptionTier === 'admin' || user.role === 'admin') {
+    // Only paid subscribers (monthly/yearly/lifetime) and admins can access
+    const paidTiers = ['monthly', 'yearly', 'lifetime'];
+    if (user.subscriptionTier && paidTiers.includes(user.subscriptionTier) || user.role === 'admin' || user.isAdmin) {
       return next();
     }
 
     return res.status(403).json({
-      error: 'Premium subscription required',
-      message: 'Content analysis features require a premium subscription. Upgrade to access multimodal AI analysis.',
+      error: 'Paid subscription required',
+      message: 'Content analysis features require a paid subscription. Upgrade to access multimodal AI analysis.',
       upgradeUrl: '/pricing',
     });
   } catch (error) {
