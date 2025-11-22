@@ -1,6 +1,7 @@
 // AI Analytics Dashboard - Fixed: All null checks added (v2.1)
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -450,8 +451,8 @@ export default function AIDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8 space-y-6">
+    <AppLayout title="AI Analytics" subtitle="Powered by AI Insights Engine - Predictive analytics and intelligent recommendations">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -1461,6 +1462,6 @@ export default function AIDashboard() {
           )}
         </Tabs>
       </div>
-    </div>
+    </AppLayout>
   );
 }

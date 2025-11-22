@@ -29,6 +29,7 @@ import storefrontRoutes from './routes/storefront';
 import payoutRoutes from './routes/payouts';
 import developerApiRoutes from './routes/developerApi';
 import analyticsApiRoutes from './routes/api/v1/analytics';
+import analyticsInternalRoutes from './routes/analytics-internal';
 import adminMetricsRoutes from './routes/admin/metrics';
 import monitoringRoutes from './routes/monitoring';
 import executiveDashboardRoutes from './routes/executiveDashboard';
@@ -684,6 +685,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Developer API routes (API key management and analytics endpoints)
   app.use('/api/developer', developerApiRoutes);
   app.use('/api/v1/analytics', analyticsApiRoutes);
+  
+  // Internal Analytics Routes (AI-powered analytics for dashboard)
+  app.use('/api/analytics', analyticsInternalRoutes);
 
   // Admin monitoring routes (metrics, alerts, email stats) - Admin only
   app.use('/api/admin', adminMetricsRoutes);
