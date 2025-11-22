@@ -13,6 +13,7 @@ export interface SocialPost {
   platform: string;
   content: string;
   mediaType: 'text' | 'image' | 'video' | 'carousel';
+  mediaUrl?: string;
   postedAt: Date;
   likes: number;
   comments: number;
@@ -24,6 +25,35 @@ export interface SocialPost {
   emojiCount: number;
   contentLength: number;
   hasCallToAction: boolean;
+  contentAnalysis?: {
+    image?: {
+      dominantColors: string[];
+      colorMood: 'vibrant' | 'muted' | 'dark' | 'light' | 'neutral';
+      hasFaces: boolean;
+      faceCount: number;
+      compositionLayout: string;
+      complexity: number;
+      attentionGrabbing: number;
+      shareability: number;
+      vibe: string[];
+    };
+    video?: {
+      duration: number;
+      hookStrength: number;
+      motionIntensity: string;
+      viralPotential: number;
+      hasMusic: boolean;
+      musicEnergy: number;
+    };
+    text?: {
+      sentiment: 'positive' | 'negative' | 'neutral';
+      energy: number;
+      readability: number;
+      viralPotential: number;
+      emotionalImpact: string[];
+      persuasiveness: number;
+    };
+  };
 }
 
 export interface TrainingData {
@@ -63,8 +93,8 @@ export class SocialMediaAutopilotAI extends BaseModel {
     super({
       name: 'SocialMediaAutopilotAI',
       type: 'regression',
-      version: '2.0.0',
-      inputShape: [12],
+      version: '3.0.0',
+      inputShape: [28],
       outputShape: [2],
     });
   }
@@ -73,9 +103,9 @@ export class SocialMediaAutopilotAI extends BaseModel {
     const model = tf.sequential({
       layers: [
         tf.layers.dense({
-          units: 128,
+          units: 256,
           activation: 'relu',
-          inputShape: [12],
+          inputShape: [28],
           kernelRegularizer: tf.regularizers.l2({ l2: 0.01 }),
         }),
         tf.layers.batchNormalization(),
@@ -382,7 +412,7 @@ export class SocialMediaAutopilotAI extends BaseModel {
     const maxShares = Math.max(...this.trainingHistory.map(p => p.shares)) || 50;
     const maxReach = Math.max(...this.trainingHistory.map(p => p.reach)) || 10000;
     
-    return [
+    const baseFeatures = [
       post.postedAt.getHours() / 24,
       post.postedAt.getDay() / 7,
       post.postedAt.getMonth() / 12,
@@ -396,6 +426,86 @@ export class SocialMediaAutopilotAI extends BaseModel {
       post.likes / maxLikes,
       post.comments / maxComments,
     ];
+
+    const multimodalFeatures = this.extractMultimodalContentFeatures(post);
+    
+    return [...baseFeatures, ...multimodalFeatures];
+  }
+
+  /**
+   * Extract multimodal content features from content analysis
+   * These 16 features capture visual, audio, and textual elements that drive engagement
+   */
+  private extractMultimodalContentFeatures(post: SocialPost): number[] {
+    const ca = post.contentAnalysis;
+    
+    if (!ca) {
+      return new Array(16).fill(0.5);
+    }
+
+    const imageFeatures = ca.image ? [
+      this.encodeMood(ca.image.colorMood),
+      ca.image.hasFaces ? 1 : 0,
+      Math.min(ca.image.faceCount / 5, 1),
+      ca.image.complexity,
+      ca.image.attentionGrabbing,
+      ca.image.shareability,
+    ] : [0.5, 0, 0, 0.5, 0.5, 0.5];
+
+    const videoFeatures = ca.video ? [
+      Math.min(ca.video.duration / 60, 1),
+      ca.video.hookStrength,
+      this.encodeMotionIntensity(ca.video.motionIntensity),
+      ca.video.viralPotential,
+      ca.video.hasMusic ? 1 : 0,
+      ca.video.musicEnergy,
+    ] : [0, 0, 0, 0, 0, 0];
+
+    const textFeatures = ca.text ? [
+      this.encodeSentiment(ca.text.sentiment),
+      ca.text.energy,
+      ca.text.readability / 100,
+      ca.text.persuasiveness,
+    ] : [0.5, 0.5, 0.5, 0.5];
+
+    if (post.mediaType === 'image' || post.mediaType === 'carousel') {
+      return [...imageFeatures, ...new Array(6).fill(0), ...textFeatures];
+    } else if (post.mediaType === 'video') {
+      return [...new Array(6).fill(0), ...videoFeatures, ...textFeatures];
+    } else {
+      return [...new Array(12).fill(0), ...textFeatures];
+    }
+  }
+
+  private encodeMood(mood: string): number {
+    const moodMap: Record<string, number> = {
+      vibrant: 1.0,
+      light: 0.75,
+      neutral: 0.5,
+      muted: 0.25,
+      dark: 0,
+    };
+    return moodMap[mood] || 0.5;
+  }
+
+  private encodeMotionIntensity(intensity: string): number {
+    const intensityMap: Record<string, number> = {
+      frenetic: 1.0,
+      high: 0.8,
+      moderate: 0.5,
+      low: 0.3,
+      static: 0,
+    };
+    return intensityMap[intensity] || 0.5;
+  }
+
+  private encodeSentiment(sentiment: string): number {
+    const sentimentMap: Record<string, number> = {
+      positive: 1.0,
+      neutral: 0.5,
+      negative: 0,
+    };
+    return sentimentMap[sentiment] || 0.5;
   }
 
   private extractTimingFeatures(date: Date, platform: string, history: SocialPost[]): number[] {
