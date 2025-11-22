@@ -618,4 +618,28 @@ export class SocialMediaAutopilotAI extends BaseModel {
       lastTrained: this.metadata.lastTrained,
     };
   }
+
+  /**
+   * Serialize per-user metadata for database persistence
+   * Prevents cross-tenant data leakage on cache eviction
+   */
+  public serializeMetadata(): any {
+    return {
+      platformScalers: Array.from(this.platformScalers.entries()),
+      trainingHistory: this.trainingHistory,
+      platformStats: Array.from(this.platformStats.entries()),
+    };
+  }
+
+  /**
+   * Deserialize per-user metadata from database
+   * Restores complete user-specific state after cache eviction
+   */
+  public deserializeMetadata(metadata: any): void {
+    if (!metadata) return;
+
+    this.platformScalers = new Map(metadata.platformScalers || []);
+    this.trainingHistory = metadata.trainingHistory || [];
+    this.platformStats = new Map(metadata.platformStats || []);
+  }
 }
