@@ -1,6 +1,36 @@
 node_modules
 dist
+dist-electron
 .DS_Store
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Electron build outputs
+out/
+release-builds/
+*.dmg
+*.exe
+*.AppImage
+*.deb
+*.rpm
+*.pkg
+
+# Code signing certificates (NEVER commit these)
+*.p12
+*.pfx
+*.cer
+*.pem
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Logs
+logs/
+*.log
+
+# Editor
+.vscode/
+.idea/
