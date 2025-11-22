@@ -82,15 +82,14 @@ router.post('/ai/predict-metric', async (req: Request, res: Response) => {
       });
     }
 
-    // Return as array with single prediction (frontend expects array)
-    return res.json([{
+    return res.json({
       metric,
       current: Math.round(current),
       predicted: Math.round(predicted),
       confidence: Math.round(confidence),
       trend: trend > 0 ? 'up' : trend < 0 ? 'down' : 'stable',
       forecast,
-    }]);
+    });
   } catch (error) {
     logger.error('Error predicting metric:', error);
     return res.status(500).json({ error: 'Failed to predict metric' });
@@ -111,9 +110,8 @@ router.get('/ai/predict-churn', async (req: Request, res: Response) => {
     }
 
     // Admin can see all users, regular users see empty (for now)
-    // Frontend expects array at root level
     if (!isAdmin) {
-      return res.json([]);
+      return res.json({ atRiskUsers: [] });
     }
 
     // Get all paid users
@@ -190,8 +188,7 @@ router.get('/ai/predict-churn', async (req: Request, res: Response) => {
       }
     }
 
-    // Frontend expects array at root level
-    return res.json(atRiskUsers);
+    return res.json({ atRiskUsers });
   } catch (error) {
     logger.error('Error predicting churn:', error);
     return res.status(500).json({ error: 'Failed to predict churn' });
@@ -247,32 +244,11 @@ router.get('/ai/forecast-revenue', async (req: Request, res: Response) => {
       growthRate = 15; // Default 15% growth for individual users
     }
 
-    // Frontend expects RevenueScenario[] with name, probability, mrr, arr, growth
-    const scenarios = [
-      {
-        name: 'Conservative',
-        probability: 60,
-        mrr: Math.round(currentMRR * 0.9),
-        arr: Math.round(currentMRR * 0.9 * 12),
-        growth: growthRate * 0.5,
-      },
-      {
-        name: 'Expected',
-        probability: 75,
-        mrr: Math.round(currentMRR * (1 + growthRate / 100)),
-        arr: Math.round(currentMRR * (1 + growthRate / 100) * 12),
-        growth: growthRate,
-      },
-      {
-        name: 'Optimistic',
-        probability: 40,
-        mrr: Math.round(currentMRR * (1 + (growthRate * 1.5) / 100)),
-        arr: Math.round(currentMRR * (1 + (growthRate * 1.5) / 100) * 12),
-        growth: growthRate * 1.5,
-      },
-    ];
-    
-    return res.json(scenarios);
+    return res.json({
+      currentMRR: Math.round(currentMRR),
+      projectedMRR: Math.round(currentMRR * (1 + growthRate / 100)),
+      growthRate,
+    });
   } catch (error) {
     logger.error('Error forecasting revenue:', error);
     return res.status(500).json({ error: 'Failed to forecast revenue' });
@@ -332,8 +308,7 @@ router.get('/ai/detect-anomalies', async (req: Request, res: Response) => {
       }
     }
 
-    // Frontend expects array at root level
-    return res.json(anomalies);
+    return res.json({ anomalies });
   } catch (error) {
     logger.error('Error detecting anomalies:', error);
     return res.status(500).json({ error: 'Failed to detect anomalies' });
@@ -406,8 +381,7 @@ router.get('/ai/insights', async (req: Request, res: Response) => {
       });
     }
 
-    // Frontend expects array at root level
-    return res.json(insights);
+    return res.json({ insights });
   } catch (error) {
     logger.error('Error generating insights:', error);
     return res.status(500).json({ error: 'Failed to generate insights' });
@@ -539,7 +513,6 @@ router.get('/music/milestones', async (req: Request, res: Response) => {
       recommendations: ['Maintain consistent release schedule', 'Quality over quantity'],
     });
 
-    // Frontend expects array at root level
     return res.json(milestones);
   } catch (error) {
     logger.error('Error getting career milestones:', error);
@@ -649,7 +622,6 @@ router.get('/music/insights', async (req: Request, res: Response) => {
       },
     ];
 
-    // Frontend expects array at root level
     return res.json(insights);
   } catch (error) {
     logger.error('Error getting music insights:', error);
