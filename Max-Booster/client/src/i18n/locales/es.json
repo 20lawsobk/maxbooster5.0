@@ -208,7 +208,21 @@
       "linux": "Ubuntu 20.04+ o equivalente"
     },
     "systemRequirements": {
-      "title": "Requisitos del Sistema"
+      "title": "Requisitos del Sistema",
+      "windows": {
+        "os": "Windows 10 o posterior (64 bits)"
+      },
+      "mac": {
+        "os": "macOS 10.15 o posterior"
+      },
+      "linux": {
+        "os": "Ubuntu 20.04+ o equivalente"
+      },
+      "common": {
+        "ram": "4GB RAM mínimo",
+        "disk": "500MB de espacio libre en disco",
+        "internet": "Conexión a Internet"
+      }
     },
     "webVersion": {
       "title": "¿Prefieres la Versión Web?",

@@ -48,6 +48,14 @@ Authentication includes bcrypt password hashing, secure session cookies, JWT ref
 
 # Recent Changes
 
+-   **Desktop App Integration** (Nov 22, 2025): Created native desktop app download page integrated into protected dashboard:
+    -   Comprehensive DesktopApp page with platform-specific downloads (Windows, macOS, Linux)
+    -   4 feature cards highlighting benefits (Performance, Security, Offline Mode, Native Integration)
+    -   Complete system requirements and FAQ sections
+    -   Fully internationalized across all 5 languages with i18n
+    -   Protected route with AppLayout and useRequireSubscription authentication
+    -   Accessible via Desktop App link in main sidebar navigation
+    -   Production-ready for paid user access
 -   **Multilingual Support** (Nov 22, 2025): Added comprehensive internationalization (i18n) support for Max Booster platform:
     -   Integrated i18next and react-i18next for translation management
     -   5 supported languages: English, Spanish, French, German, and Japanese

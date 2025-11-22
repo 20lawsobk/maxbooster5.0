@@ -208,7 +208,21 @@
       "linux": "Ubuntu 20.04+または同等"
     },
     "systemRequirements": {
-      "title": "システム要件"
+      "title": "システム要件",
+      "windows": {
+        "os": "Windows 10以降（64ビット）"
+      },
+      "mac": {
+        "os": "macOS 10.15以降"
+      },
+      "linux": {
+        "os": "Ubuntu 20.04+または同等"
+      },
+      "common": {
+        "ram": "4GB RAM最小",
+        "disk": "500MBの空きディスク容量",
+        "internet": "インターネット接続"
+      }
     },
     "webVersion": {
       "title": "Web版をお好みですか？",

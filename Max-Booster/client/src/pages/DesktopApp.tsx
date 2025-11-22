@@ -1,10 +1,17 @@
 import { Download, Monitor, Zap, Shield, Cpu, HardDrive, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useRequireSubscription } from '@/hooks/useRequireAuth';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function DesktopApp() {
   const { t } = useTranslation();
+  const { user, isLoading } = useRequireSubscription();
+
+  if (isLoading) {
+    return null;
+  }
 
   const features = [
     {
@@ -51,7 +58,8 @@ export default function DesktopApp() {
   ];
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
+    <AppLayout>
+      <div className="container mx-auto p-6 space-y-8">
       <div className="text-center space-y-4">
         <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-4">
           <Monitor className="w-10 h-10 text-primary" />
@@ -140,28 +148,28 @@ export default function DesktopApp() {
             <div>
               <h4 className="font-semibold mb-2">Windows</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Windows 10 or later (64-bit)</li>
-                <li>• 4GB RAM minimum</li>
-                <li>• 500MB free disk space</li>
-                <li>• Internet connection</li>
+                <li>• {t('desktopApp.systemRequirements.windows.os')}</li>
+                <li>• {t('desktopApp.systemRequirements.common.ram')}</li>
+                <li>• {t('desktopApp.systemRequirements.common.disk')}</li>
+                <li>• {t('desktopApp.systemRequirements.common.internet')}</li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-2">macOS</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• macOS 10.15 or later</li>
-                <li>• 4GB RAM minimum</li>
-                <li>• 500MB free disk space</li>
-                <li>• Internet connection</li>
+                <li>• {t('desktopApp.systemRequirements.mac.os')}</li>
+                <li>• {t('desktopApp.systemRequirements.common.ram')}</li>
+                <li>• {t('desktopApp.systemRequirements.common.disk')}</li>
+                <li>• {t('desktopApp.systemRequirements.common.internet')}</li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-2">Linux</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Ubuntu 20.04+ or equivalent</li>
-                <li>• 4GB RAM minimum</li>
-                <li>• 500MB free disk space</li>
-                <li>• Internet connection</li>
+                <li>• {t('desktopApp.systemRequirements.linux.os')}</li>
+                <li>• {t('desktopApp.systemRequirements.common.ram')}</li>
+                <li>• {t('desktopApp.systemRequirements.common.disk')}</li>
+                <li>• {t('desktopApp.systemRequirements.common.internet')}</li>
               </ul>
             </div>
           </div>
@@ -193,6 +201,7 @@ export default function DesktopApp() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </AppLayout>
   );
 }
