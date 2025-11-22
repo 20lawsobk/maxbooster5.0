@@ -1,0 +1,108 @@
+name: Build Desktop Installers
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }} Installer
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+            artifact: '*.exe'
+          - os: macos-latest
+            platform: mac
+            artifact: '*.dmg'
+          - os: ubuntu-latest
+            platform: linux
+            artifact: '*.AppImage'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: Max-Booster/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: Max-Booster
+        run: npm ci --legacy-peer-deps
+      
+      - name: Build web app
+        working-directory: Max-Booster
+        run: npm run build
+      
+      - name: Build ${{ matrix.platform }} installer
+        working-directory: Max-Booster
+        run: npx electron-builder --${{ matrix.platform }} --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: List build artifacts
+        working-directory: Max-Booster
+        run: ls -lh dist-electron/
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: max-booster-${{ matrix.platform }}-installer
+          path: Max-Booster/dist-electron/${{ matrix.artifact }}
+          retention-days: 30
+      
+      - name: Upload to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: Max-Booster/dist-electron/${{ matrix.artifact }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-artifacts:
+    name: Create Release Summary
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Create release notes
+        run: |
+          echo "# Max Booster Desktop App Release" > release-notes.md
+          echo "" >> release-notes.md
+          echo "Download the installer for your platform:" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "- **Windows**: Max-Booster-Setup-*.exe" >> release-notes.md
+          echo "- **macOS**: Max-Booster-*.dmg" >> release-notes.md
+          echo "- **Linux**: Max-Booster-*.AppImage" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "## Installation Instructions" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### Windows" >> release-notes.md
+          echo "1. Download the .exe file" >> release-notes.md
+          echo "2. Run the installer" >> release-notes.md
+          echo "3. Follow the setup wizard" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### macOS" >> release-notes.md
+          echo "1. Download the .dmg file" >> release-notes.md
+          echo "2. Open the disk image" >> release-notes.md
+          echo "3. Drag Max Booster to Applications" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### Linux" >> release-notes.md
+          echo "1. Download the .AppImage file" >> release-notes.md
+          echo "2. Make it executable: chmod +x Max-Booster-*.AppImage" >> release-notes.md
+          echo "3. Run it: ./Max-Booster-*.AppImage" >> release-notes.md
+      
+      - name: Display completion
+        run: cat release-notes.md
