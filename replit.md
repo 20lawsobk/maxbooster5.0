@@ -48,12 +48,11 @@ Authentication includes bcrypt password hashing, secure session cookies, JWT ref
 
 # Recent Changes
 
--   **AI Assistant Restoration** (Nov 22, 2025): Restored AI Studio Assistant to the DAW interface:
-    -   Re-integrated AIAssistantPanel component into Studio.tsx
-    -   Added "AI Assistant" button in Studio toolbar (cyan-colored, Sparkles icon)
-    -   Full-featured AI panel with mixing suggestions, loudness analysis, genre presets, and mastering recommendations
-    -   Accessible via Studio toolbar alongside AI Mix, AI Master, and AI Generator buttons
-    -   Serves as solo founder's workaround for not having a support team - provides intelligent assistance 24/7
+-   **AI Assistant System Restoration** (Nov 22, 2025): Fully restored dual AI assistant system as solo founder's 24/7 support workaround:
+    -   **AI Studio Assistant**: Re-integrated AIAssistantPanel component into Studio.tsx with "AI Assistant" button in toolbar (cyan, Sparkles icon) - provides mixing suggestions, loudness analysis, genre presets, mastering recommendations
+    -   **AI Chat Bubble**: Created new AIAssistantBubble component (floating chat widget) appearing on all pages - provides intelligent help about DAW, distribution, social media, advertising, marketplace, monetization, and all platform features
+    -   Both AI systems provide intelligent 24/7 assistance without requiring external support team
+    -   Quick suggestions for common questions with instant AI-powered responses
 -   **Complete Contact/Support References Removal** (Nov 22, 2025): Eliminated all team/support references to reflect solo founder operation:
     -   Removed Contact page, LiveChatWidget, and all "Contact Support/Sales" buttons
     -   Changed all "Email & Chat Support" features to "Comprehensive Help Center"

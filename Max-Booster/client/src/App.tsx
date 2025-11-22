@@ -9,6 +9,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { KeyboardShortcutsDialog } from '@/components/dialogs/KeyboardShortcutsDialog';
 import { SkipLinks } from '@/components/SkipLinks';
 import { CookieConsentBanner } from '@/components/CookieConsentBanner';
+import { AIAssistantBubble } from '@/components/support/AIAssistantBubble';
 import { useKeyboardShortcuts, announce } from '@/lib/accessibility';
 import Landing from '@/pages/Landing';
 import Login from '@/pages/Login';
@@ -213,6 +214,7 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <CookieConsentBanner />
+            <AIAssistantBubble />
             <div id="main-content" role="main" tabIndex={-1}>
               <Suspense
                 fallback={
