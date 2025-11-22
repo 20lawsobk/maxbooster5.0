@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Music, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
@@ -16,6 +17,9 @@ export default function RegisterSuccess() {
   const sessionId = searchParams.get('session_id');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [tosAccepted, setTosAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,10 +78,22 @@ export default function RegisterSuccess() {
         throw new Error('Password must be at least 6 characters long');
       }
 
+      if (!tosAccepted) {
+        throw new Error('You must accept the Terms of Service to continue');
+      }
+
+      if (!privacyAccepted) {
+        throw new Error('You must accept the Privacy Policy to continue');
+      }
+
       // Create account after payment verification
+      // Note: birthdate is retrieved from Stripe session metadata (collected before payment)
       const response = await apiRequest('POST', '/api/register-after-payment', {
         sessionId,
         password,
+        tosAccepted,
+        privacyAccepted,
+        marketingConsent,
       });
 
       const data = await response.json();
@@ -218,6 +234,55 @@ export default function RegisterSuccess() {
                       <Eye className="h-4 w-4" />
                     )}
                   </Button>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-2 border-t border-gray-200">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="tosAccepted"
+                    checked={tosAccepted}
+                    onCheckedChange={(checked) => setTosAccepted(checked as boolean)}
+                    data-testid="checkbox-tos"
+                    className="mt-1"
+                  />
+                  <Label htmlFor="tosAccepted" className="text-sm leading-relaxed cursor-pointer">
+                    I have read and agree to the{' '}
+                    <a href="/terms" target="_blank" className="text-primary hover:underline font-medium">
+                      Terms of Service
+                    </a>
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="privacyAccepted"
+                    checked={privacyAccepted}
+                    onCheckedChange={(checked) => setPrivacyAccepted(checked as boolean)}
+                    data-testid="checkbox-privacy"
+                    className="mt-1"
+                  />
+                  <Label htmlFor="privacyAccepted" className="text-sm leading-relaxed cursor-pointer">
+                    I have read and agree to the{' '}
+                    <a href="/privacy" target="_blank" className="text-primary hover:underline font-medium">
+                      Privacy Policy
+                    </a>
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="marketingConsent"
+                    checked={marketingConsent}
+                    onCheckedChange={(checked) => setMarketingConsent(checked as boolean)}
+                    data-testid="checkbox-marketing"
+                    className="mt-1"
+                  />
+                  <Label htmlFor="marketingConsent" className="text-sm leading-relaxed cursor-pointer">
+                    I would like to receive marketing emails and promotional offers (optional)
+                  </Label>
                 </div>
               </div>
 

@@ -90,6 +90,7 @@ export default function RegisterPayment() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
+    birthdate: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -118,7 +119,7 @@ export default function RegisterPayment() {
 
     try {
       // Validate form data
-      if (!formData.username.trim() || !formData.email.trim()) {
+      if (!formData.username.trim() || !formData.email.trim() || !formData.birthdate.trim()) {
         throw new Error('Please fill in all fields');
       }
 
@@ -126,11 +127,25 @@ export default function RegisterPayment() {
         throw new Error('Please enter a valid email address');
       }
 
+      // Validate age (13+) for COPPA compliance
+      const birthDate = new Date(formData.birthdate);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      if (age < 13) {
+        throw new Error('You must be at least 13 years old to create an account (COPPA compliance)');
+      }
+
       // Create Stripe checkout session
       const response = await apiRequest('POST', '/api/create-checkout-session', {
         tier: plan.id,
         userEmail: formData.email,
         username: formData.username,
+        birthdate: formData.birthdate,
       });
 
       const data = await response.json();
@@ -289,6 +304,22 @@ export default function RegisterPayment() {
                       required
                       data-testid="input-email"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="birthdate">Date of Birth</Label>
+                    <Input
+                      id="birthdate"
+                      name="birthdate"
+                      type="date"
+                      value={formData.birthdate}
+                      onChange={handleInputChange}
+                      max={new Date().toISOString().split('T')[0]}
+                      required
+                      data-testid="input-birthdate"
+                      className="w-full"
+                    />
+                    <p className="text-xs text-gray-500">You must be at least 13 years old (COPPA compliance)</p>
                   </div>
 
                   <Button

@@ -369,30 +369,13 @@ const createCheckoutSessionSchema = z.object({
 const registerAfterPaymentSchema = z.object({
   sessionId: z.string().min(1),
   password: z.string().min(6),
-  birthdate: z.string().refine((date) => {
-    // Server-side UTC age validation - don't trust Stripe metadata alone
-    const birthdateStr = date.includes('T') ? date.split('T')[0] : date;
-    const [year, month, day] = birthdateStr.split('-').map(Number);
-    const birthDateUTC = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-    const todayUTC = new Date(Date.UTC(
-      new Date().getUTCFullYear(),
-      new Date().getUTCMonth(),
-      new Date().getUTCDate(),
-      0, 0, 0, 0
-    ));
-    
-    let ageYears = todayUTC.getUTCFullYear() - birthDateUTC.getUTCFullYear();
-    const monthDiff = todayUTC.getUTCMonth() - birthDateUTC.getUTCMonth();
-    const dayDiff = todayUTC.getUTCDate() - birthDateUTC.getUTCDate();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-      ageYears--;
-    }
-    
-    return ageYears >= 13;
-  }, {
-    message: 'You must be at least 13 years old to create an account (COPPA compliance)',
+  tosAccepted: z.boolean().refine((val) => val === true, {
+    message: 'You must accept the Terms of Service to create an account',
   }),
+  privacyAccepted: z.boolean().refine((val) => val === true, {
+    message: 'You must accept the Privacy Policy to create an account',
+  }),
+  marketingConsent: z.boolean().default(false),
 });
 
 // Admin moderation schemas (secure field validation)
@@ -2991,7 +2974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { sessionId, password, birthdate: requestBirthdate } = validationResult.data;
+      const { sessionId, password, tosAccepted, privacyAccepted, marketingConsent } = validationResult.data;
 
       // Retrieve checkout session to verify payment
       const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -3000,21 +2983,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Payment not completed' });
       }
 
-      const { userEmail, username, tier, birthdate: metadataBirthdate } = session.metadata || {};
+      const { userEmail, username, tier, birthdate } = session.metadata || {};
 
-      if (!userEmail || !username || !tier) {
+      if (!userEmail || !username || !tier || !birthdate) {
         return res.status(400).json({ error: 'Invalid session metadata - missing required fields' });
       }
-      
-      // SECURITY: Validate request birthdate matches Stripe metadata to prevent tampering
-      if (metadataBirthdate && requestBirthdate !== metadataBirthdate) {
-        logger.error(`🚨 Birthdate mismatch: request=${requestBirthdate}, metadata=${metadataBirthdate}`);
-        return res.status(400).json({ error: 'Validation failed - data mismatch' });
-      }
 
-      // COPPA Compliance: Server-side UTC age validation from trusted request data
-      // Use request birthdate (Zod-validated), not Stripe metadata, as source of truth
-      const birthdateStr = requestBirthdate.includes('T') ? requestBirthdate.split('T')[0] : requestBirthdate;
+      // COPPA Compliance: Server-side UTC age validation from Stripe metadata (collected before payment)
+      const birthdateStr = birthdate.includes('T') ? birthdate.split('T')[0] : birthdate;
       const [year, month, day] = birthdateStr.split('-').map(Number);
       const birthDateUTC = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
       const todayUTC = new Date(Date.UTC(
@@ -3034,14 +3010,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (ageYears < 13) {
-        logger.warn(`🚫 COPPA violation prevented: Attempted signup with age ${ageYears} (birthdate: ${birthdate})`);
+        logger.warn(`🚫 COPPA violation prevented: Attempted signup with age ${ageYears} (birthdate: ${birthdateStr})`);
         return res.status(403).json({ 
           error: 'You must be at least 13 years old to create an account (COPPA compliance)',
           detail: 'Account creation is restricted by the Children\'s Online Privacy Protection Act (COPPA)'
         });
       }
       
-      logger.info(`✅ COPPA check passed: Age ${ageYears} years (birthdate: ${birthdate})`);
+      logger.info(`✅ COPPA check passed: Age ${ageYears} years (birthdate: ${birthdateStr})`);
 
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userEmail);
@@ -3087,7 +3063,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stripeSubscriptionId: tier !== 'lifetime' ? (session.subscription as string) : null,
       });
 
-      // Record GDPR consent (TOS, Privacy Policy)
+      // Record GDPR consent (TOS, Privacy Policy) - using explicit user consent from validated input
       const ipAddress = req.ip || req.headers['x-forwarded-for'] as string || 'unknown';
       const userAgent = req.headers['user-agent'] || 'unknown';
       
@@ -3095,9 +3071,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user.id,
         {
           birthdate: birthDateUTC,
-          tosAccepted: true, // Required during payment flow
-          privacyAccepted: true, // Required during payment flow
-          marketingConsent: false, // Default to false, user can opt-in later
+          tosAccepted, // Validated by Zod schema - must be true
+          privacyAccepted, // Validated by Zod schema - must be true
+          marketingConsent, // Optional, defaults to false if not provided
         },
         ipAddress,
         userAgent
