@@ -30,6 +30,42 @@ export function LiveChatWidget() {
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
+      loadChatHistory();
+    }
+  }, [isOpen]);
+
+  const loadChatHistory = async () => {
+    try {
+      const response = await fetch('/api/support/ai/history', {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.messages && data.messages.length > 0) {
+          const historyMessages: Message[] = data.messages.map((msg: any) => ({
+            id: msg.id,
+            message: msg.message,
+            isAI: msg.isAI,
+            isStaff: msg.isStaff,
+            createdAt: new Date(msg.createdAt),
+          }));
+          setMessages(historyMessages);
+          return;
+        }
+      }
+
+      const welcomeMessage: Message = {
+        id: 'welcome',
+        message:
+          "Hi! I'm your AI assistant. How can I help you today? Ask me anything about Max Booster!",
+        isAI: true,
+        isStaff: false,
+        createdAt: new Date(),
+      };
+      setMessages([welcomeMessage]);
+    } catch (error: unknown) {
+      logger.error('Error loading chat history:', error);
       const welcomeMessage: Message = {
         id: 'welcome',
         message:
@@ -40,7 +76,7 @@ export function LiveChatWidget() {
       };
       setMessages([welcomeMessage]);
     }
-  }, [isOpen]);
+  };
 
   useEffect(() => {
     scrollToBottom();
@@ -69,13 +105,30 @@ export function LiveChatWidget() {
       const response = await fetch('/api/support/ai/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: inputMessage }),
+        body: JSON.stringify({
+          question: inputMessage,
+          sessionId: sessionId,
+        }),
         credentials: 'include',
       });
 
-      if (!response.ok) throw new Error('Failed to get response');
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast({
+            title: 'Authentication Required',
+            description: 'Please log in to use the AI assistant.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        throw new Error('Failed to get response');
+      }
 
       const data = await response.json();
+
+      if (data.sessionId && !sessionId) {
+        setSessionId(data.sessionId);
+      }
 
       const aiMessage: Message = {
         id: `ai-${Date.now()}`,

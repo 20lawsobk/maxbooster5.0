@@ -46,6 +46,7 @@ import { royaltiesForecastingService } from './services/royaltiesForecastingServ
 import { emailService } from './services/emailService.js';
 import { emailMonitor } from './monitoring/emailMonitor.js';
 import { queueService } from './services/queueService.js';
+import { chatService } from './services/chatService.js';
 import { instantPayoutService } from './services/instantPayoutService.js';
 import { labelGridService } from './services/labelgrid-service.js';
 import * as aiAnalyticsService from './services/aiAnalyticsService.js';
@@ -13718,21 +13719,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Support - Ask question
-  app.post('/api/support/ai/ask', async (req, res) => {
+  // AI Support - Ask question (requires authentication for per-user isolation)
+  app.post('/api/support/ai/ask', requireAuth, async (req, res) => {
     try {
-      const { question } = req.body;
-      const userId = req.user?.id;
+      const { question, sessionId: clientSessionId } = req.body;
+      const userId = req.user!.id;
 
+      // Get or create per-user chat session
+      const sessionId = await chatService.getOrCreateSession(userId);
+
+      // Save user message to database (per-user isolation)
+      await chatService.saveMessage({
+        sessionId,
+        userId,
+        message: question,
+        isAI: false,
+      });
+
+      // Get AI response
       const response = await supportAIService.answerQuestion({
         question,
         userId,
       });
 
-      res.json(response);
+      // Save AI response to database (per-user isolation)
+      await chatService.saveMessage({
+        sessionId,
+        userId,
+        message: response.answer,
+        isAI: true,
+      });
+
+      res.json({
+        ...response,
+        sessionId,
+      });
     } catch (error: unknown) {
       logger.error('Error answering question:', error);
       res.status(500).json({ error: 'Failed to get answer' });
+    }
+  });
+
+  // Get user's chat history (per-user isolation)
+  app.get('/api/support/ai/history', requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const messages = await chatService.getUserChatHistory(userId);
+      res.json({ messages });
+    } catch (error: unknown) {
+      logger.error('Error fetching chat history:', error);
+      res.status(500).json({ error: 'Failed to fetch history' });
     }
   });
 
