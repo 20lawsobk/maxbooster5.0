@@ -1,10 +1,10 @@
-modules = ["nodejs-20", "bash", "web", "postgresql-16"]
+modules = ["nodejs-20", "bash", "web", "postgresql-16", "python-3.11"]
 [agent]
 expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["libuuid", "cairo", "pango", "libpng", "libjpeg", "giflib", "pkg-config", "pixman", "redis", "jq", "imagemagick"]
+packages = ["libuuid", "cairo", "pango", "libpng", "libjpeg", "giflib", "pkg-config", "pixman", "redis", "jq", "imagemagick", "wine", "wine64", "dpkg", "fakeroot", "rpm"]
 
 [workflows]
 runButton = "Project"

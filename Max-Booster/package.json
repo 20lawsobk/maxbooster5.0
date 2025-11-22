@@ -1,6 +1,12 @@
 {
   "name": "max-booster",
   "version": "1.0.0",
+  "description": "AI-Powered Music Career Platform - Studio, Distribution, Social Media, Advertising, Marketplace & Analytics",
+  "author": {
+    "name": "B-LAWZ MUSIC",
+    "email": "support@maxbooster.com"
+  },
+  "homepage": "https://maxbooster.com",
   "main": "electron/main.js",
   "type": "module",
   "license": "MIT",
