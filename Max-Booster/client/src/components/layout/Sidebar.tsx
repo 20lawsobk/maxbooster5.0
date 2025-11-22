@@ -1,5 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Link, useLocation } from 'wouter';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Music,
@@ -16,27 +17,28 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 interface NavItem {
-  label: string;
+  labelKey: string;
   path: string;
   icon: React.ComponentType<{ className?: string }>;
   adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { label: 'Projects', path: '/projects', icon: Music },
-  { label: 'Analytics', path: '/analytics', icon: BarChart3 },
-  { label: 'AI Analytics', path: '/analytics/ai', icon: Brain },
-  { label: 'Social Media', path: '/social-media', icon: Share2 },
-  { label: 'Advertising', path: '/advertising', icon: Megaphone },
-  { label: 'Marketplace', path: '/marketplace', icon: ShoppingBag },
-  { label: 'Royalties', path: '/royalties', icon: DollarSign },
-  { label: 'Studio', path: '/studio', icon: Disc },
-  { label: 'Distribution', path: '/distribution', icon: Radio },
-  { label: 'Admin', path: '/admin', icon: Shield, adminOnly: true },
-  { label: 'Security', path: '/admin/security', icon: Shield, adminOnly: true },
+  { labelKey: 'navigation.dashboard', path: '/dashboard', icon: LayoutDashboard },
+  { labelKey: 'studio.title', path: '/projects', icon: Music },
+  { labelKey: 'navigation.analytics', path: '/analytics', icon: BarChart3 },
+  { labelKey: 'analytics.aiInsights', path: '/analytics/ai', icon: Brain },
+  { labelKey: 'navigation.social', path: '/social-media', icon: Share2 },
+  { labelKey: 'navigation.advertising', path: '/advertising', icon: Megaphone },
+  { labelKey: 'navigation.marketplace', path: '/marketplace', icon: ShoppingBag },
+  { labelKey: 'distribution.royalties', path: '/royalties', icon: DollarSign },
+  { labelKey: 'navigation.studio', path: '/studio', icon: Disc },
+  { labelKey: 'navigation.distribution', path: '/distribution', icon: Radio },
+  { labelKey: 'settings.title', path: '/admin', icon: Shield, adminOnly: true },
+  { labelKey: 'settings.security', path: '/admin/security', icon: Shield, adminOnly: true },
 ];
 
 interface SidebarProps {
@@ -45,11 +47,12 @@ interface SidebarProps {
 }
 
 /**
- * TODO: Add function documentation
+ * Sidebar component with navigation and language switcher
  */
 export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
   const { user } = useAuth();
   const [location] = useLocation();
+  const { t } = useTranslation();
 
   if (!user) {
     return null;
@@ -133,7 +136,7 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
                     isActive ? 'scale-110' : 'group-hover:scale-110'
                   )}
                 />
-                <span className="font-medium">{item.label}</span>
+                <span className="font-medium">{t(item.labelKey)}</span>
                 {isActive && (
                   <div className="ml-auto w-1 h-4 bg-gradient-to-b from-blue-600 to-cyan-600 rounded-full animate-pulse" />
                 )}
@@ -142,7 +145,10 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
+          <div className="mb-3">
+            <LanguageSwitcher />
+          </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
             <p className="font-medium text-gray-700 dark:text-gray-300">{user.username}</p>
             <p className="truncate">{user.email}</p>
