@@ -74,7 +74,14 @@ class AIModelManager {
     if (persistedModel) {
       try {
         await this.loadModelWeights(model, persistedModel.weights);
-        logger.info(`✅ Loaded persisted Social AI model for user ${userId}`);
+        
+        // CRITICAL: Restore per-user metadata to prevent cross-tenant data leakage
+        if (persistedModel.metadata) {
+          model.deserializeMetadata(persistedModel.metadata);
+          logger.info(`✅ Loaded persisted Social AI model for user ${userId} (with metadata)`);
+        } else {
+          logger.info(`✅ Loaded persisted Social AI model for user ${userId} (weights only)`);
+        }
       } catch (error) {
         logger.warn(`Failed to load persisted model for user ${userId}, using fresh model:`, error);
       }
@@ -144,7 +151,14 @@ class AIModelManager {
     if (persistedModel) {
       try {
         await this.loadModelWeights(model, persistedModel.weights);
-        logger.info(`✅ Loaded persisted Advertising AI model for user ${userId}`);
+        
+        // CRITICAL: Restore per-user metadata to prevent cross-tenant data leakage
+        if (persistedModel.metadata) {
+          model.deserializeMetadata(persistedModel.metadata);
+          logger.info(`✅ Loaded persisted Advertising AI model for user ${userId} (with metadata)`);
+        } else {
+          logger.info(`✅ Loaded persisted Advertising AI model for user ${userId} (weights only)`);
+        }
       } catch (error) {
         logger.warn(`Failed to load persisted model for user ${userId}, using fresh model:`, error);
       }
@@ -207,17 +221,21 @@ class AIModelManager {
 
   /**
    * Persist Social Media Autopilot model to database
+   * CRITICAL: Saves both weights AND metadata for complete per-user isolation
    */
   private async persistSocialModel(userId: string, model: SocialMediaAutopilotAI): Promise<void> {
     try {
       const weights = await this.extractModelWeights(model);
+      const metadata = model.serializeMetadata();
+      
       await storage.saveAIModel({
         userId,
         modelType: 'social_autopilot',
         weights,
+        metadata,
         trainedAt: new Date(),
       });
-      logger.info(`💾 Persisted Social AI model for user ${userId}`);
+      logger.info(`💾 Persisted Social AI model for user ${userId} (with metadata)`);
     } catch (error) {
       logger.error(`Failed to persist Social AI model for user ${userId}:`, error);
     }
@@ -225,17 +243,21 @@ class AIModelManager {
 
   /**
    * Persist Advertising Autopilot model to database
+   * CRITICAL: Saves both weights AND metadata for complete per-user isolation
    */
   private async persistAdvertisingModel(userId: string, model: AdvertisingAutopilotAI_v3): Promise<void> {
     try {
       const weights = await this.extractModelWeights(model);
+      const metadata = model.serializeMetadata();
+      
       await storage.saveAIModel({
         userId,
         modelType: 'advertising_autopilot',
         weights,
+        metadata,
         trainedAt: new Date(),
       });
-      logger.info(`💾 Persisted Advertising AI model for user ${userId}`);
+      logger.info(`💾 Persisted Advertising AI model for user ${userId} (with metadata)`);
     } catch (error) {
       logger.error(`Failed to persist Advertising AI model for user ${userId}:`, error);
     }
