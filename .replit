@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["libuuid", "cairo", "pango", "libpng", "libjpeg", "giflib", "pkg-config", "pixman", "redis", "jq"]
+packages = ["libuuid", "cairo", "pango", "libpng", "libjpeg", "giflib", "pkg-config", "pixman", "redis", "jq", "imagemagick"]
 
 [workflows]
 runButton = "Project"
@@ -48,6 +48,10 @@ outputType = "console"
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 35487
+externalPort = 3000
 
 [[ports]]
 localPort = 35687
