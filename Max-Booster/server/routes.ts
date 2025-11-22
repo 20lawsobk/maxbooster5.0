@@ -33,6 +33,7 @@ import analyticsInternalRoutes from './routes/analytics-internal';
 import adminMetricsRoutes from './routes/admin/metrics';
 import monitoringRoutes from './routes/monitoring';
 import executiveDashboardRoutes from './routes/executiveDashboard';
+import contentAnalysisRoutes from './routes/content-analysis';
 import { metricsService } from './services/metricsService';
 import { createSessionStore, getSessionConfig } from './middleware/sessionConfig';
 import { ConnectionGuard } from './middleware/connectionGuard';
@@ -688,6 +689,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Internal Analytics Routes (AI-powered analytics for dashboard)
   app.use('/api/analytics', analyticsInternalRoutes);
+
+  // Content Analysis Routes (multimodal content analysis for autopilot learning)
+  app.use('/api/content-analysis', contentAnalysisRoutes);
 
   // Admin monitoring routes (metrics, alerts, email stats) - Admin only
   app.use('/api/admin', adminMetricsRoutes);

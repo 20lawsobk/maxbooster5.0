@@ -514,7 +514,7 @@ export class SocialMediaAutopilotAI extends BaseModel {
       ? platformPosts.reduce((sum, p) => sum + p.engagement, 0) / platformPosts.length
       : 100;
 
-    return [
+    const baseFeatures = [
       date.getHours() / 24,
       date.getDay() / 7,
       date.getMonth() / 12,
@@ -528,6 +528,12 @@ export class SocialMediaAutopilotAI extends BaseModel {
       avgEngagement / 1000,
       0.6,
     ];
+
+    // Add default multimodal features (neutral values for prediction)
+    // When predicting timing, we don't have actual content yet, so use historical averages
+    const defaultMultimodalFeatures = new Array(16).fill(0.5);
+
+    return [...baseFeatures, ...defaultMultimodalFeatures];
   }
 
   private async predictWithModel(model: tf.LayersModel, features: number[], platform: string): Promise<number[]> {
