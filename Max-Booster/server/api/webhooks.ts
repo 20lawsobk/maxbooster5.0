@@ -1,11 +1,78 @@
 import { Router } from 'express';
 import crypto from 'crypto';
+import Stripe from 'stripe';
 import { db } from '../db.js';
-import { releases, webhookEvents, webhookAttempts } from '@shared/schema.js';
+import { releases, webhookEvents, webhookAttempts, users } from '@shared/schema.js';
 import { eq } from 'drizzle-orm';
 import { logger } from '../logger.js';
 
 const router = Router();
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripeClient = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
+
+type LabelGridBasePayload = {
+  releaseId: string;
+};
+
+type ReleaseSubmittedPayload = LabelGridBasePayload & {
+  status: string;
+  submittedAt: string;
+};
+
+type ReleaseApprovedPayload = LabelGridBasePayload & {
+  approvedAt: string;
+  platforms: string[];
+};
+
+type ReleaseRejectedPayload = LabelGridBasePayload & {
+  reason: string;
+  rejectedAt: string;
+};
+
+type ReleaseLivePayload = LabelGridBasePayload & {
+  platforms: string[];
+  liveAt: string;
+  urls: Record<string, string>;
+};
+
+type ReleaseTakedownPayload = LabelGridBasePayload & {
+  reason: string;
+  removedAt: string;
+};
+
+type RoyaltyPaymentPayload = LabelGridBasePayload & {
+  amount: number;
+  period: string;
+  currency: string;
+  breakdown?: Record<string, unknown>;
+};
+
+type AnalyticsUpdatePayload = LabelGridBasePayload & {
+  streams: number;
+  downloads: number;
+  revenue: number;
+  period: string;
+  platformBreakdown?: Record<string, unknown>;
+};
+
+type LabelGridWebhookPayload = {
+  event: string;
+  data: Record<string, unknown>;
+};
+
+const getStripeCustomerId = (
+  customer: string | Stripe.Customer | Stripe.DeletedCustomer | null
+): string | null => {
+  if (!customer) return null;
+  return typeof customer === 'string' ? customer : customer.id;
+};
+
+const getStripeSubscriptionId = (
+  subscription: string | Stripe.Subscription | null
+): string | null => {
+  if (!subscription) return null;
+  return typeof subscription === 'string' ? subscription : subscription.id;
+};
 
 /**
  * Verify LabelGrid webhook signature
@@ -42,53 +109,53 @@ router.post('/labelgrid', async (req, res) => {
     const signature = req.headers['x-labelgrid-signature'] as string;
     const eventId = req.headers['x-labelgrid-event-id'] as string;
     const timestamp = req.headers['x-labelgrid-timestamp'] as string;
+    const payload = req.body as LabelGridWebhookPayload;
+    const { event, data } = payload;
 
     // Log webhook attempt
     await db.insert(webhookAttempts).values({
       provider: 'labelgrid',
       eventId,
-      timestamp: new Date(parseInt(timestamp) * 1000),
-      payload: req.body,
+      timestamp: new Date(parseInt(timestamp, 10) * 1000),
+      payload,
       headers: req.headers as any,
       status: 'processing',
     });
 
     // Verify signature
-    if (!verifyLabelGridSignature(JSON.stringify(req.body), signature)) {
+    if (!verifyLabelGridSignature(JSON.stringify(payload), signature)) {
       logger.error('Invalid LabelGrid webhook signature');
       return res.status(401).json({ error: 'Invalid signature' });
     }
 
-    const { event, data } = req.body;
-
     // Process different event types
     switch (event) {
       case 'release.submitted':
-        await handleReleaseSubmitted(data);
+        await handleReleaseSubmitted(data as ReleaseSubmittedPayload);
         break;
 
       case 'release.approved':
-        await handleReleaseApproved(data);
+        await handleReleaseApproved(data as ReleaseApprovedPayload);
         break;
 
       case 'release.rejected':
-        await handleReleaseRejected(data);
+        await handleReleaseRejected(data as ReleaseRejectedPayload);
         break;
 
       case 'release.live':
-        await handleReleaseLive(data);
+        await handleReleaseLive(data as ReleaseLivePayload);
         break;
 
       case 'release.takedown':
-        await handleReleaseTakedown(data);
+        await handleReleaseTakedown(data as ReleaseTakedownPayload);
         break;
 
       case 'royalty.payment':
-        await handleRoyaltyPayment(data);
+        await handleRoyaltyPayment(data as RoyaltyPaymentPayload);
         break;
 
       case 'analytics.update':
-        await handleAnalyticsUpdate(data);
+        await handleAnalyticsUpdate(data as AnalyticsUpdatePayload);
         break;
 
       default:
@@ -117,7 +184,7 @@ router.post('/labelgrid', async (req, res) => {
 /**
  * TODO: Add function documentation
  */
-async function handleReleaseSubmitted(data: unknown) {
+async function handleReleaseSubmitted(data: ReleaseSubmittedPayload) {
   const { releaseId, status, submittedAt } = data;
 
   await db
@@ -141,7 +208,7 @@ async function handleReleaseSubmitted(data: unknown) {
 /**
  * TODO: Add function documentation
  */
-async function handleReleaseApproved(data: unknown) {
+async function handleReleaseApproved(data: ReleaseApprovedPayload) {
   const { releaseId, approvedAt, platforms } = data;
 
   await db
@@ -166,7 +233,7 @@ async function handleReleaseApproved(data: unknown) {
 /**
  * TODO: Add function documentation
  */
-async function handleReleaseRejected(data: unknown) {
+async function handleReleaseRejected(data: ReleaseRejectedPayload) {
   const { releaseId, reason, rejectedAt } = data;
 
   await db
@@ -191,7 +258,7 @@ async function handleReleaseRejected(data: unknown) {
 /**
  * TODO: Add function documentation
  */
-async function handleReleaseLive(data: unknown) {
+async function handleReleaseLive(data: ReleaseLivePayload) {
   const { releaseId, platforms, liveAt, urls } = data;
 
   await db
@@ -217,7 +284,7 @@ async function handleReleaseLive(data: unknown) {
 /**
  * TODO: Add function documentation
  */
-async function handleReleaseTakedown(data: unknown) {
+async function handleReleaseTakedown(data: ReleaseTakedownPayload) {
   const { releaseId, reason, removedAt } = data;
 
   await db
@@ -242,7 +309,7 @@ async function handleReleaseTakedown(data: unknown) {
 /**
  * TODO: Add function documentation
  */
-async function handleRoyaltyPayment(data: unknown) {
+async function handleRoyaltyPayment(data: RoyaltyPaymentPayload) {
   const { releaseId, amount, period, currency, breakdown } = data;
 
   // Lean query: Select ONLY metadata to avoid fetching 3-5MB release row
@@ -282,7 +349,7 @@ async function handleRoyaltyPayment(data: unknown) {
 /**
  * TODO: Add function documentation
  */
-async function handleAnalyticsUpdate(data: unknown) {
+async function handleAnalyticsUpdate(data: AnalyticsUpdatePayload) {
   const { releaseId, streams, downloads, revenue, period, platformBreakdown } = data;
 
   // Lean query: Select ONLY metadata to avoid fetching 3-5MB release row
@@ -322,42 +389,47 @@ router.post('/stripe', async (req, res) => {
     const sig = req.headers['stripe-signature'] as string;
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-    if (!endpointSecret) {
-      logger.warn('Stripe webhook secret not configured');
-      return res.status(400).json({ error: 'Webhook secret not configured' });
+    if (!endpointSecret || !stripeClient) {
+      logger.warn('Stripe webhook secret or client not configured');
+      return res.status(400).json({ error: 'Stripe configuration invalid' });
+    }
+
+    if (!sig) {
+      logger.warn('Stripe signature header missing');
+      return res.status(400).json({ error: 'Missing Stripe signature' });
     }
 
     // Verify Stripe webhook signature
-    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-    let event;
+    let event: Stripe.Event;
 
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      event = stripeClient.webhooks.constructEvent(req.body, sig, endpointSecret);
     } catch (err: unknown) {
-      logger.error('Stripe webhook signature verification failed:', err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      logger.error('Stripe webhook signature verification failed:', message);
+      return res.status(400).send(`Webhook Error: ${message}`);
     }
 
     // Handle Stripe events
     switch (event.type) {
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object);
+        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
         break;
 
       case 'customer.subscription.updated':
-        await handleSubscriptionUpdated(event.data.object);
+        await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
         break;
 
       case 'customer.subscription.deleted':
-        await handleSubscriptionCancelled(event.data.object);
+        await handleSubscriptionCancelled(event.data.object as Stripe.Subscription);
         break;
 
       case 'invoice.payment_succeeded':
-        await handlePaymentSucceeded(event.data.object);
+        await handlePaymentSucceeded(event.data.object as Stripe.Invoice);
         break;
 
       case 'invoice.payment_failed':
-        await handlePaymentFailed(event.data.object);
+        await handlePaymentFailed(event.data.object as Stripe.Invoice);
         break;
 
       default:
@@ -377,16 +449,21 @@ router.post('/stripe', async (req, res) => {
 /**
  * TODO: Add function documentation
  */
-async function handleCheckoutCompleted(session: unknown) {
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   try {
-    const customerId = session.customer;
-    const subscriptionId = session.subscription;
+    const customerId = getStripeCustomerId(session.customer);
+    const subscriptionId = getStripeSubscriptionId(session.subscription);
+
+    if (!customerId) {
+      logger.warn('Checkout session missing customer ID');
+      return;
+    }
 
     // Find user by Stripe customer ID
     const [user] = await db.select().from(users).where(eq(users.stripeCustomerId, customerId));
 
     if (user) {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         subscriptionStatus: 'active',
         stripeCustomerId: customerId,
       };
@@ -420,24 +497,35 @@ async function handleCheckoutCompleted(session: unknown) {
 /**
  * TODO: Add function documentation
  */
-async function handleSubscriptionUpdated(subscription: unknown) {
+async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   try {
-    const customerId = subscription.customer;
+    const customerId = getStripeCustomerId(subscription.customer);
     const status = subscription.status;
-    const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+    const currentPeriodEnd =
+      subscription.current_period_end != null
+        ? new Date(subscription.current_period_end * 1000)
+        : undefined;
+
+    if (!customerId) {
+      logger.warn('Subscription update missing customer ID');
+      return;
+    }
 
     // Find user by Stripe customer ID
     const [user] = await db.select().from(users).where(eq(users.stripeCustomerId, customerId));
 
     if (user) {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         subscriptionStatus: status,
         stripeSubscriptionId: subscription.id,
-        subscriptionEndsAt: currentPeriodEnd,
       };
 
+      if (currentPeriodEnd) {
+        updateData.subscriptionEndsAt = currentPeriodEnd;
+      }
+
       // Update tier based on price ID
-      const priceId = subscription.items.data[0]?.price.id;
+      const priceId = subscription.items.data[0]?.price?.id;
       if (priceId === process.env.STRIPE_PRICE_ID_MONTHLY) {
         updateData.subscriptionTier = 'monthly';
       } else if (priceId === process.env.STRIPE_PRICE_ID_YEARLY) {
@@ -462,11 +550,18 @@ async function handleSubscriptionUpdated(subscription: unknown) {
 /**
  * TODO: Add function documentation
  */
-async function handleSubscriptionCancelled(subscription: unknown) {
+async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
   try {
-    const customerId = subscription.customer;
-    const cancelledAt = new Date(subscription.canceled_at * 1000);
-    const periodEnd = new Date(subscription.current_period_end * 1000);
+    const customerId = getStripeCustomerId(subscription.customer);
+    const periodEnd =
+      subscription.current_period_end != null
+        ? new Date(subscription.current_period_end * 1000)
+        : new Date();
+
+    if (!customerId) {
+      logger.warn('Subscription cancellation missing customer ID');
+      return;
+    }
 
     // Find user by Stripe customer ID
     const [user] = await db.select().from(users).where(eq(users.stripeCustomerId, customerId));
@@ -499,12 +594,15 @@ async function handleSubscriptionCancelled(subscription: unknown) {
 /**
  * TODO: Add function documentation
  */
-async function handlePaymentSucceeded(invoice: unknown) {
+async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   try {
-    const customerId = invoice.customer;
-    const subscriptionId = invoice.subscription;
+    const customerId = getStripeCustomerId(invoice.customer);
+    const subscriptionId = getStripeSubscriptionId(invoice.subscription);
 
-    if (!subscriptionId) return; // Not a subscription payment
+    if (!subscriptionId || !customerId) {
+      logger.warn('Payment succeeded event missing subscription or customer');
+      return; // Not a subscription payment or incomplete payload
+    }
 
     // Find user by Stripe customer ID
     const [user] = await db.select().from(users).where(eq(users.stripeCustomerId, customerId));
@@ -532,12 +630,15 @@ async function handlePaymentSucceeded(invoice: unknown) {
 /**
  * TODO: Add function documentation
  */
-async function handlePaymentFailed(invoice: unknown) {
+async function handlePaymentFailed(invoice: Stripe.Invoice) {
   try {
-    const customerId = invoice.customer;
-    const subscriptionId = invoice.subscription;
+    const customerId = getStripeCustomerId(invoice.customer);
+    const subscriptionId = getStripeSubscriptionId(invoice.subscription);
 
-    if (!subscriptionId) return; // Not a subscription payment
+    if (!subscriptionId || !customerId) {
+      logger.warn('Payment failed event missing subscription or customer');
+      return; // Not a subscription payment or incomplete payload
+    }
 
     // Find user by Stripe customer ID
     const [user] = await db.select().from(users).where(eq(users.stripeCustomerId, customerId));
